@@ -14,7 +14,7 @@ class ReplayBuffer:
         self.actions = np.zeros((capacity, action_dim), dtype=np.float32)
         self.rewards = np.zeros((capacity,), dtype=np.float32)
         self.next_states = np.zeros((capacity, state_dim), dtype=np.float32)
-        self.dones = np.zeros((capacity,), dtype=np.float32)    # 0/1 floating
+        self.dones = np.zeros((capacity,), dtype=np.float32)  # 0/1 floating
 
     def push(self, s, a, r, ns, done: bool):
         i = self.ptr
@@ -26,15 +26,27 @@ class ReplayBuffer:
         self.ptr = (self.ptr + 1) % self.capacity
         self.size = min(self.size + 1, self.capacity)
 
-    def sample(self, batch_size: int):
+    def sample(self, batch_size: int, device="cpu",):
         idx = np.random.randint(0, self.size, size=batch_size)
         return (
-            torch.from_numpy(self.states[idx]),
-            torch.from_numpy(self.actions[idx]),
-            torch.from_numpy(self.rewards[idx]),
-            torch.from_numpy(self.next_states[idx]),
-            torch.from_numpy(self.dones[idx].astype(np.float32)),
+            torch.from_numpy(self.states[idx]).to(device),
+            torch.from_numpy(self.actions[idx]).to(device),
+            torch.from_numpy(self.rewards[idx]).to(device),
+            torch.from_numpy(self.next_states[idx]).to(device),
+            torch.from_numpy(self.dones[idx].astype(np.float32)).to(device),
         )
+
+    def pretrain_add(self, states_p, actions_p, rewards_p, next_states_p):
+        n = states_p.shape[0]
+        if n + self.ptr > self.capacity:
+            raise ValueError("Pretraining Data exceeds buffer capacity")
+
+        self.states[self.ptr: self.ptr + n] = states_p
+        self.actions[self.ptr: self.ptr + n] = actions_p
+        self.rewards[self.ptr: self.ptr + n] = rewards_p
+        self.next_states[self.ptr: self.ptr + n] = next_states_p
+        self.ptr += n
+        self.size = min(self.ptr, self.capacity)
 
     def __len__(self):
         return self.size
@@ -53,8 +65,8 @@ class PERRecentReplayBuffer:
             alpha: float = 0.6,  # PER exponent (0 = uniform, 1 = full PER)
             beta_start: float = 0.4,  # IS correction starts small, anneals to 1.0
             beta_end: float = 1.0,
-            beta_steps: int = 300_000,  # steps over which beta anneals
-        ):
+            beta_steps: int = 50_000,  # steps over which beta anneals
+    ):
 
         self.capacity = capacity
         self.state_dim = state_dim
@@ -68,7 +80,7 @@ class PERRecentReplayBuffer:
         self.actions = np.zeros((self.capacity, self.action_dim), np.float32)
         self.rewards = np.zeros((self.capacity,), np.float32)
         self.next_states = np.zeros((self.capacity, self.state_dim), np.float32)
-        self.dones = np.zeros((self.capacity,), np.float32)     # 0/1 floats
+        self.dones = np.zeros((self.capacity,), np.float32)  # 0/1 floats
 
         # PER + recency
         self.birth_step = np.zeros(self.capacity, np.int64)
@@ -85,7 +97,6 @@ class PERRecentReplayBuffer:
     def _beta(self):
         frac = min(1.0, self.beta_t / max(1, self.beta_steps))
         return self.beta_start + frac * (self.beta_end - self.beta_start)
-
 
     def push(self, s, a, r, ns, done, p0=None):
         i = self.ptr
@@ -105,14 +116,13 @@ class PERRecentReplayBuffer:
         self.ptr = (self.ptr + 1) % self.capacity
         self.size = min(self.size + 1, self.capacity)
 
-
     def sample(
             self,
             batch_size: int,
             device="cpu",
-            frac_per: float = 0.6,
+            frac_per: float = 0.5,
             frac_recent: float = 0.2,
-            recent_window = 5000,
+            recent_window=1000,
     ):
 
         assert self.size > 0
@@ -172,7 +182,7 @@ class PERRecentReplayBuffer:
             td = np.abs(td_errors).reshape(-1)
         p = td + self.eps
         # Clip to avoid extreme skew
-        p = np.clip(p, 1e-6, 1e6)
+        p = np.clip(p, 1e-4, 1e4)
         self.priorities[idx] = p.astype(np.float32)
         self._max_priority = max(self._max_priority, float(p.max()))
 

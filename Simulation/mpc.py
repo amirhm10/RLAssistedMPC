@@ -12,50 +12,49 @@ def exponential_decay_bonus(percentage_error, A=1000, B=1):
     return A * np.exp(-B * percentage_error)
 
 
-class MpcSolver(object):
-    def __init__(self, A: np.array, B: np.array, C: np.array,
-                 Q1_penalty, Q2_penalty, R1_penalty, R2_penalty,
-                 NP, NC,
-                 D=None):
-        """
-        Note that since this is an offset free MPC, the system matrices should be Augmented
-        Also the system matrices are in numpy array format
-        """
+class MpcSolverGeneral(object):
+    def __init__(self, A, B, C, Q_out, R_in, NP, NC, D=None):
+        self.A = np.asarray(A, float)
+        self.B = np.asarray(B, float)
+        self.C = np.asarray(C, float)
+        self.D = None if D is None else np.asarray(D, float)
 
-        self.A = A
-        self.B = B
-        self.C = C
-        self.D = D
+        self.NP = int(NP)
+        self.NC = int(NC)
 
-        self.NP = NP
-        self.NC = NC
+        self.Q_out = np.asarray(Q_out, float).reshape(-1)
+        self.R_in = np.asarray(R_in, float).reshape(-1)
 
-        self.Q1_penalty = Q1_penalty * np.eye(NP)
-        self.Q2_penalty = Q2_penalty * np.eye(NP)
-        self.R1_penalty = R1_penalty * np.eye(NC)
-        self.R2_penalty = R2_penalty * np.eye(NC)
+    def mpc_opt_fun(self, x, y_sp, u_prev_dev, x0_model):
+        n_inputs = self.B.shape[1]
+        n_outputs = self.C.shape[0]
 
-    def mpc_opt_fun(self, x, y_sp, u_pts, x0_model: np.array):
-        n_input = self.B.shape[1]
+        U = np.asarray(x[:n_inputs * self.NC], float).reshape(self.NC, n_inputs)
 
-        U_Matrix = x[:n_input * self.NC].copy().reshape(self.NC, n_input)
+        y_sp = np.asarray(y_sp, float).reshape(n_outputs, )
+        u_prev_dev = np.asarray(u_prev_dev, float).reshape(n_inputs, )
+        x0_model = np.asarray(x0_model, float)
 
-        x_init = np.zeros((self.A.shape[0], self.NP + 1))
-        x_init[:, 0] = x0_model
+        x_pred = np.zeros((self.A.shape[0], self.NP + 1), dtype=float)
+        x_pred[:, 0] = x0_model
 
         for j in range(self.NP):
-            control_index = j if j < self.NC else self.NC - 1
-            x_init[:, j + 1] = self.A @ x_init[:, j] + self.B @ U_Matrix[control_index]
+            idx = j if j < self.NC else self.NC - 1
+            x_pred[:, j + 1] = self.A @ x_pred[:, j] + self.B @ U[idx, :]
 
-        yy = self.C @ x_init
+        y_pred = self.C @ x_pred  # (n_outputs, NP+1)
+        y_dev = y_pred[:, 1:] - y_sp[:, None]  # (n_outputs, NP)
 
-        y_dev = yy[:, 1:] - y_sp[:, np.newaxis]
-        u_dev = U_Matrix - np.vstack((u_pts.reshape(1, -1), U_Matrix[:-1]))
+        U_prev = np.vstack([u_prev_dev.reshape(1, -1), U[:-1, :]])
+        du = U - U_prev  # (NC, n_inputs)
 
-        obj_val = (np.sum(self.Q1_penalty * y_dev[0] ** 2 + self.Q2_penalty * y_dev[1] ** 2) +
-                   np.sum(self.R1_penalty * u_dev[:, 0] ** 2 + self.R2_penalty * u_dev[:, 1] ** 2))
+        obj = 0.0
+        for i in range(n_outputs):
+            obj += float(self.Q_out[i]) * float(np.sum(y_dev[i, :] ** 2))
+        for j in range(n_inputs):
+            obj += float(self.R_in[j]) * float(np.sum(du[:, j] ** 2))
 
-        return obj_val
+        return float(obj)
 
 
 def augment_state_space(A, B, C):

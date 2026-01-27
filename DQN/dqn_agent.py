@@ -147,6 +147,14 @@ class DQNAgent(nn.Module):
     def push(self, s, a, r, ns, done):
         self.buffer.push(s, a, r, ns, done)
 
+    @torch.no_grad()
+    def act_eval(self, state: np.ndarray) -> int:
+        s = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
+        q1 = self.target.q1_forward(s)
+
+        return int(q1.argmax(dim=1).item())
+
+
     # ---------- training --------------------
     def train_step(self) -> Optional[float]:
         # check if the buffer has enough info

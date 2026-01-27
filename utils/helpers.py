@@ -63,6 +63,13 @@ def reverse_min_max(scaled_data, min_val, max_val):
 
 
 def apply_rl_scaled(min_max_dict, x_d_states, y_sp, u):
+    """
+    This function will apply RL scaling for the neural networks
+    :param min_max_dict:
+    :param state:
+    :return: rl scaled of the state
+    """
+
     x_min, x_max = min_max_dict["x_min"], min_max_dict["x_max"]
 
     y_sp_min, y_sp_max = min_max_dict["y_sp_min"], min_max_dict["y_sp_max"]

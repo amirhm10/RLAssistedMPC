@@ -1,0 +1,167 @@
+\documentclass[11pt]{article}
+\input{_common_preamble}
+\input{_common_notation}
+
+\title{Residual Methods Under Model Mismatch}
+\date{2026-04-01}
+
+\begin{document}
+\maketitle
+
+\section*{Method Goal}
+
+The residual notebook family adds a second control channel on top of baseline
+MPC. The MPC still computes a feasible baseline move, but a TD3 policy proposes
+an extra residual move that is clipped by mismatch-aware safety bounds before it
+is applied. The intent is to preserve the optimization structure of MPC while
+letting RL compensate for mismatch that the linear model does not capture well.
+
+\section*{Notebook Sources Covered}
+
+\begin{itemize}
+\item \texttt{RL\_assisted\_MPC\_residual\_model\_mismatch.ipynb}
+\item \texttt{RL\_assisted\_MPC\_residual\_model\_mismatch1.ipynb}
+\item \texttt{RL\_assisted\_MPC\_residual\_model\_mismatch2.ipynb}
+\item \texttt{RL\_assisted\_MPC\_residual\_model\_mismatch\_multi.ipynb}
+\end{itemize}
+
+\section*{State, Action, Reward, And Update Logic}
+
+The residual family augments the standard scaled state with innovation and
+tracking error terms:
+\[
+s_t =
+\begin{bmatrix}
+\tilde{x}_{t} \\
+\tilde{y}_{\mathrm{sp},t} \\
+\tilde{u}_{t}^{\mathrm{dev}} \\
+\mathrm{innov}_t \\
+e^{\mathrm{track}}_t
+\end{bmatrix},
+\]
+where
+\[
+\mathrm{innov}_t = y_t^{\mathrm{scaled}} - \Caug \hat{x}_t,
+\qquad
+e^{\mathrm{track}}_t = y_t^{\mathrm{scaled}} - \ysp^{(t)}.
+\]
+
+The agent proposes a residual move $\Delta u_t^{\mathrm{res}}$ in scaled space.
+That proposal is not applied directly. It is clipped by two intersected bounds:
+
+\begin{itemize}
+\item a magnitude bound relative to the MPC move,
+\item a safety bound given by actuator headroom around the baseline input.
+\end{itemize}
+
+The applied control is therefore
+\[
+u_t^{\mathrm{applied}} = u_t^{\mathrm{base}} + \Delta u_t^{\mathrm{res,exec}},
+\]
+where $\Delta u_t^{\mathrm{res,exec}}$ is the clipped residual that actually
+survives the bound intersection.
+
+\section*{Mismatch Bands And Residual Gating}
+
+The notebook family defines mismatch bands in scaled output coordinates:
+\[
+\mathrm{band}_{\mathrm{scaled}} =
+\frac{\max(k_{\mathrm{rel}} |\ysp^{\mathrm{phys}}|,
+\mathrm{band\_floor}^{\mathrm{phys}})}
+{\mathrm{data\_max} - \mathrm{data\_min}}.
+\]
+It also defines soft and hard gating helpers that estimate how far the current
+tracking error is outside the allowed band.
+
+\begin{lstlisting}
+def compute_band_scaled(y_sp_phys, data_min, data_max, n_inputs,
+                        k_rel, band_floor_phys):
+    dy = np.maximum(data_max[n_inputs:] - data_min[n_inputs:], 1e-12)
+    band_phys = np.maximum(k_rel * np.abs(y_sp_phys), band_floor_phys)
+    return band_phys / dy
+
+def residual_outside_weight(e_track_scaled, band_scaled,
+                            tau_frac=0.7, kind="geom"):
+    abs_e = np.abs(e_track_scaled)
+    tau = np.maximum(tau_frac * band_scaled, 1e-12)
+    x = (band_scaled - abs_e) / tau
+    s = 1.0 / (1.0 + np.exp(-x))
+    ...
+    return 1.0 - w_in
+\end{lstlisting}
+
+\section*{Core Residual Control Loop}
+
+\begin{enumerate}
+\item Compute the baseline MPC move from the current observer state.
+\item Compute innovation, tracking error, and a mismatch-band measure.
+\item Ask the TD3 policy for a raw residual move proposal.
+\item Build a magnitude envelope around the baseline MPC move.
+\item Intersect that envelope with actuator headroom bounds.
+\item Clip the residual move, apply the corrected control, and log the executed
+      residual rather than the raw proposal.
+\item Store the executed residual action in replay so the TD3 buffer reflects
+      what the plant actually saw.
+\end{enumerate}
+
+\section*{Key Code Paths}
+
+\subsection*{Notebook-local residual safety logic}
+
+\begin{lstlisting}
+u_base = sol.x[:n_inputs] + ss_scaled_inputs
+u_base = np.clip(u_base, u_min_scaled_abs, u_max_scaled_abs)
+
+delta_u_mpc = (u_base - u_current).astype(np.float32)
+delta_u_res_raw = map_to_bounds(a_raw, low_res, high_res).astype(np.float32)
+
+mag = (rho * beta_res) * (np.abs(delta_u_mpc) + du0_res)
+low_mag = -mag
+high_mag = mag
+
+low_safe = (u_min_scaled_abs - u_base).astype(np.float32)
+high_safe = (u_max_scaled_abs - u_base).astype(np.float32)
+
+low_bound = np.maximum(low_mag, low_safe)
+high_bound = np.minimum(high_mag, high_safe)
+delta_u_res = np.clip(delta_u_res_raw, low_bound, high_bound)
+\end{lstlisting}
+
+\subsection*{Notebook-local replay action logic}
+
+\begin{lstlisting}
+u_applied_scaled_abs = u_base + delta_u_res
+u_applied_scaled_abs = np.clip(u_applied_scaled_abs,
+                               u_min_scaled_abs, u_max_scaled_abs)
+
+delta_u_res_exec = (u_applied_scaled_abs - u_base).astype(np.float32)
+a_exec = map_from_bounds(delta_u_res_exec, low_res, high_res).astype(np.float32)
+a_exec = np.clip(a_exec, -1.0, 1.0).astype(np.float32)
+\end{lstlisting}
+
+\section*{Variants Covered}
+
+\begin{itemize}
+\item The base residual mismatch notebook defines the main residual scaffold.
+\item Variants \texttt{1} and \texttt{2} keep the same pattern while changing
+      disturbance or mismatch schedules.
+\item The \texttt{multi} variant extends the idea to a more involved residual
+      setting while preserving the same core ingredients: innovation terms,
+      mismatch bands, clipped residual execution, and replay of executed moves.
+\end{itemize}
+
+\section*{Limitations, Caveats, And Open Questions}
+
+\begin{itemize}
+\item This family depends on several notebook globals such as
+      \texttt{TEST\_CYCLE}, \texttt{IC\_opt}, \texttt{bnds}, \texttt{cons},
+      \texttt{k\_rel}, and \texttt{band\_floor\_phys}.
+\item Residual replay stores the executed clipped action, not the raw action.
+      That is intentional and must be preserved in refactors.
+\item Additional mismatch scheduling includes changes to \texttt{CMf}, not just
+      the shared $Q_i$, $Q_s$, and $hA$ schedules.
+\item This method is explicitly notebook-local and should not be inferred from
+      stale helper modules.
+\end{itemize}
+
+\end{document}

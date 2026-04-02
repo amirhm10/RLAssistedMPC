@@ -60,8 +60,9 @@ RL_REWARD_DEFAULTS = {
 }
 
 ARCHIVED_DISTILLATION_ROOT = Path("DIstillation Column Case") / "RL_assisted_MPC_DL"
-DISTILLATION_DATA_SUBDIR = Path("Data") / "distillation"
-DISTILLATION_RESULT_SUBDIR = Path("Result") / "distillation"
+DISTILLATION_ROOT = Path("Distillation")
+DISTILLATION_DATA_SUBDIR = DISTILLATION_ROOT / "Data"
+DISTILLATION_RESULT_SUBDIR = DISTILLATION_ROOT / "Results"
 
 DEFAULT_ASPEN_ROOT = Path(
     os.environ.get(
@@ -71,14 +72,14 @@ DEFAULT_ASPEN_ROOT = Path(
 )
 
 _FAMILY_FILE_MAP = {
-    "system_id": {"none": "C2S_SS_simulation4.dynf", "ramp": "C2S_SS_simulation1.dynf", "fluctuation": "C2S_SS_simulation2.dynf"},
+    "system_id": {"none": "C2S_SS_simulation4.dynf", "ramp": "C2S_SS_simulation1.dynf", "fluctuation": "C2S_SS_simulation1.dynf"},
     "baseline": {"none": "C2S_SS_simulation4.dynf", "ramp": "C2S_SS_simulation1.dynf", "fluctuation": "C2S_SS_simulation2.dynf"},
-    "horizon": {"none": "C2S_SS_simulation4.dynf", "ramp": "C2S_SS_simulation5.dynf", "fluctuation": "C2S_SS_simulation6.dynf"},
-    "matrix_td3": {"none": "C2S_SS_simulation1.dynf", "ramp": "C2S_SS_simulation3.dynf", "fluctuation": "C2S_SS_simulation2.dynf"},
-    "matrix_sac": {"none": "C2S_SS_simulation7.dynf", "ramp": "C2S_SS_simulation8.dynf", "fluctuation": "C2S_SS_simulation9.dynf"},
-    "weights": {"none": "C2S_SS_simulation10.dynf", "ramp": "C2S_SS_simulation11.dynf", "fluctuation": "C2S_SS_simulation12.dynf"},
-    "residual": {"none": "C2S_SS_simulation10.dynf", "ramp": "C2S_SS_simulation11.dynf", "fluctuation": "C2S_SS_simulation12.dynf"},
-    "combined": {"none": "C2S_SS_simulation10.dynf", "ramp": "C2S_SS_simulation11.dynf", "fluctuation": "C2S_SS_simulation12.dynf"},
+    "horizon": {"none": "C2S_SS_simulation4.dynf", "ramp": "C2S_SS_simulation5.dynf", "fluctuation": "C2S_SS_simulation3.dynf"},
+    "matrix_td3": {"none": "C2S_SS_simulation1.dynf", "ramp": "C2S_SS_simulation3.dynf", "fluctuation": "C2S_SS_simulation4.dynf"},
+    "matrix_sac": {"none": "C2S_SS_simulation7.dynf", "ramp": "C2S_SS_simulation8.dynf", "fluctuation": "C2S_SS_simulation5.dynf"},
+    "weights": {"none": "C2S_SS_simulation10.dynf", "ramp": "C2S_SS_simulation11.dynf", "fluctuation": "C2S_SS_simulation6.dynf"},
+    "residual": {"none": "C2S_SS_simulation10.dynf", "ramp": "C2S_SS_simulation11.dynf", "fluctuation": "C2S_SS_simulation7.dynf"},
+    "combined": {"none": "C2S_SS_simulation10.dynf", "ramp": "C2S_SS_simulation11.dynf", "fluctuation": "C2S_SS_simulation8.dynf"},
 }
 
 
@@ -93,3 +94,35 @@ def default_plant_paths(family, disturbance_profile):
     dyn_path = DEFAULT_ASPEN_ROOT / dyn_name
     snaps_path = DEFAULT_ASPEN_ROOT / dyn_name.replace(".dynf", "")
     return dyn_path, snaps_path
+
+
+def resolve_aspen_paths(
+    family,
+    disturbance_profile,
+    aspen_preset=None,
+    dyn_path_override=None,
+    snaps_path_override=None,
+    aspen_root=None,
+):
+    root = Path(aspen_root) if aspen_root else DEFAULT_ASPEN_ROOT
+    source = "family-default"
+
+    if dyn_path_override:
+        dyn_path = Path(dyn_path_override).expanduser()
+        source = "manual-path"
+    elif aspen_preset not in (None, "", "default", "auto"):
+        preset_str = str(aspen_preset).strip()
+        if preset_str.isdigit():
+            dyn_path = root / f"C2S_SS_simulation{int(preset_str)}.dynf"
+            source = f"preset-{int(preset_str)}"
+        else:
+            raise ValueError("ASPEN_PRESET must be an integer simulation number, 'default', or empty.")
+    else:
+        dyn_path, _ = default_plant_paths(family, disturbance_profile)
+
+    if snaps_path_override:
+        snaps_path = Path(snaps_path_override).expanduser()
+    else:
+        snaps_path = dyn_path.with_suffix("")
+
+    return dyn_path, snaps_path, source

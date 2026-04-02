@@ -8,6 +8,7 @@ from .config import (
     HORIZON_CONTROL_GRID,
     HORIZON_PREDICT_GRID,
     RL_REWARD_DEFAULTS,
+    resolve_aspen_paths,
 )
 from .data_io import (
     canonical_baseline_path,
@@ -24,4 +25,3 @@ from .scenarios import (
     canonical_disturbance_profile,
     validate_run_profile,
 )
-

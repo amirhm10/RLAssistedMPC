@@ -8,6 +8,14 @@ import numpy as np
 from Simulation.mpc import augment_state_space
 
 
+def resolve_repo_root(start=None):
+    start_path = Path(start or Path.cwd()).resolve()
+    for candidate in [start_path] + list(start_path.parents):
+        if (candidate / "utils").exists() and (candidate / "Simulation").exists():
+            return candidate
+    raise FileNotFoundError("Could not locate the repository root from the provided start path.")
+
+
 # -------------
 #  Discrete action space: prediction and control horizons
 # -------------

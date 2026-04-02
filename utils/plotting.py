@@ -2496,12 +2496,17 @@ def plot_rl_results_multiagent_dqnstyle(
 
 from utils.plotting_core import (
     compare_mpc_rl_from_dirs_core,
+    plot_baseline_mpc_results_core,
     plot_combined_results_core,
     plot_horizon_results_core,
     plot_matrix_multiplier_results_core,
     plot_residual_results_core,
     plot_weight_multiplier_results_core,
 )
+
+
+def plot_baseline_mpc_results(result_bundle, plot_cfg):
+    return plot_baseline_mpc_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
 
 
 def plot_horizon_results(result_bundle, plot_cfg):

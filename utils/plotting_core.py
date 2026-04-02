@@ -92,6 +92,7 @@ def normalize_result_bundle(result_bundle):
     bundle["y"] = np.asarray(y, float)
     bundle["u"] = np.asarray(u, float)
     bundle["avg_rewards"] = np.asarray(bundle.get("avg_rewards", []), float)
+    bundle["avg_rewards_mpc"] = np.asarray(bundle.get("avg_rewards_mpc", []), float)
     bundle["data_min"] = np.asarray(bundle["data_min"], float)
     bundle["data_max"] = np.asarray(bundle["data_max"], float)
     bundle["nFE"] = int(bundle["nFE"])
@@ -99,6 +100,7 @@ def normalize_result_bundle(result_bundle):
     bundle["time_in_sub_episodes"] = int(bundle["time_in_sub_episodes"])
     bundle["y_sp"] = np.asarray(bundle["y_sp"], float)
     bundle["rewards_step"] = None if bundle.get("rewards_step") is None else np.asarray(bundle["rewards_step"], float)
+    bundle["rewards_mpc"] = None if bundle.get("rewards_mpc") is None else np.asarray(bundle["rewards_mpc"], float)
     bundle["delta_y_storage"] = None if bundle.get("delta_y_storage") is None else np.asarray(bundle["delta_y_storage"], float)
     bundle["delta_u_storage"] = None if bundle.get("delta_u_storage") is None else np.asarray(bundle["delta_u_storage"], float)
     bundle["horizon_trace"] = None if bundle.get("horizon_trace") is None else np.asarray(bundle["horizon_trace"], float)
@@ -409,6 +411,226 @@ def _plot_mismatch_diagnostics(bundle, out_dir, prefix, t_step, t_step_blk, star
             "tracking_state_last_block",
             t_step_blk,
         )
+
+
+def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
+    style_profile = str(plot_cfg.get("style_profile", "hybrid")).lower()
+    _set_plot_style(style_profile=style_profile)
+    bundle = normalize_result_bundle(result_bundle)
+
+    directory = os.fspath(plot_cfg["directory"])
+    prefix_name = plot_cfg.get("prefix_name", "mpc_result")
+    start_episode = int(plot_cfg.get("start_episode", 1))
+    save_pdf = bool(plot_cfg.get("save_pdf", False))
+    out_dir = create_output_dir(directory, prefix_name)
+
+    y_line_full = bundle["y_line_full"]
+    u_step_full = bundle["u_step_full"]
+    nFE = bundle["nFE"]
+    delta_t = bundle["delta_t"]
+    time_in_sub_episodes = bundle["time_in_sub_episodes"]
+    n_inputs = bundle["n_inputs"]
+    n_outputs = bundle["n_outputs"]
+
+    y_sp_phys_full = ysp_scaled_dev_to_phys(
+        bundle["y_sp"],
+        bundle["steady_states"],
+        bundle["data_min"],
+        bundle["data_max"],
+        n_inputs=n_inputs,
+    )
+
+    start_step = int(min(max(0, (start_episode - 1) * time_in_sub_episodes), max(0, nFE - 1)))
+    W = int(len(y_sp_phys_full[start_step:, :]))
+    y_line = y_line_full[start_step:, :]
+    y_sp_phys = y_sp_phys_full[start_step:, :]
+    u_line = u_step_full[start_step:, :]
+
+    t_line = np.linspace(0.0, W * delta_t, W + 1)
+    t_step = t_line[:-1]
+    last_steps = int(min(max(20, time_in_sub_episodes), W))
+    s_last = max(0, W - last_steps)
+    t_line_blk = np.linspace(0.0, last_steps * delta_t, last_steps + 1)
+    t_step_blk = t_line_blk[:-1]
+    spans = episode_spans(bundle.get("test_train_dict"), nFE)
+
+    output_labels = [r"$\eta$ (L/g)", r"$T$ (K)"] if n_outputs == 2 else [f"y{idx + 1}" for idx in range(n_outputs)]
+    input_labels = [r"$Q_c$ (L/h)", r"$Q_m$ (L/h)"] if n_inputs == 2 else [f"u{idx + 1}" for idx in range(n_inputs)]
+
+    fig, axs = plt.subplots(n_outputs, 1, figsize=(8.2, 3.0 + 2.4 * max(1, n_outputs - 1)), sharex=True)
+    if n_outputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.plot(t_line, y_line[:, idx], label="MPC")
+        ax.step(t_step, y_sp_phys[:, idx], where="post", linestyle="--", label="Setpoint")
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel(output_labels[idx])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel("Time (h)")
+    axs[0].legend(loc="best")
+    _save_fig(fig, out_dir, "fig_mpc_outputs_full", save_pdf=save_pdf)
+
+    fig, axs = plt.subplots(n_outputs, 1, figsize=(8.2, 3.0 + 2.4 * max(1, n_outputs - 1)), sharex=True)
+    if n_outputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.plot(t_line_blk, y_line[s_last : s_last + last_steps + 1, idx], label="MPC")
+        ax.step(
+            t_step_blk,
+            y_sp_phys[s_last : s_last + last_steps, idx],
+            where="post",
+            linestyle="--",
+            label="Setpoint",
+        )
+        ax.set_ylabel(output_labels[idx])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel("Time (h)")
+    axs[0].legend(loc="best")
+    _save_fig(fig, out_dir, "fig_mpc_outputs_last_block", save_pdf=save_pdf)
+
+    fig, axs = plt.subplots(n_inputs, 1, figsize=(8.2, 3.0 + 2.1 * max(1, n_inputs - 1)), sharex=True)
+    if n_inputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.step(t_step, u_line[:, idx], where="post")
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel(input_labels[idx])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel("Time (h)")
+    _save_fig(fig, out_dir, "fig_mpc_inputs_full", save_pdf=save_pdf)
+
+    fig, axs = plt.subplots(n_inputs, 1, figsize=(8.2, 3.0 + 2.1 * max(1, n_inputs - 1)), sharex=True)
+    if n_inputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.step(t_step_blk, u_line[s_last : s_last + last_steps, idx], where="post")
+        ax.set_ylabel(input_labels[idx])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel("Time (h)")
+    _save_fig(fig, out_dir, "fig_mpc_inputs_last_block", save_pdf=save_pdf)
+
+    n_ep_total = int(nFE // time_in_sub_episodes) if time_in_sub_episodes > 0 else 0
+    x_ep, y_ep = slice_avg_rewards(bundle["avg_rewards"], n_ep_total, start_episode)
+    x_ep_mpc, y_ep_mpc = slice_avg_rewards(bundle.get("avg_rewards_mpc", []), n_ep_total, start_episode)
+    fig, ax = plt.subplots(figsize=(7.6, 4.8))
+    if len(y_ep) > 0:
+        ax.plot(x_ep, y_ep, "o-", label="Shared reward")
+    if len(y_ep_mpc) > 0:
+        ax.plot(x_ep_mpc, y_ep_mpc, "s--", label="Quadratic MPC reward")
+    ax.set_ylabel("Average Reward")
+    ax.set_xlabel("Episode #")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.legend(loc="best")
+    ax.xaxis.set_major_locator(mtick.MaxNLocator(8, integer=True))
+    _make_axes_bold(ax)
+    _save_fig(fig, out_dir, "fig_mpc_avg_rewards", save_pdf=save_pdf)
+
+    rewards_step = bundle.get("rewards_step")
+    if rewards_step is not None:
+        rewards_seg = rewards_step[start_step : start_step + W]
+        fig, ax = plt.subplots(figsize=(8.2, 4.7))
+        ax.plot(t_step, rewards_seg, label="Shared reward")
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel("Reward")
+        ax.set_xlabel("Time (h)")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_mpc_step_rewards", save_pdf=save_pdf)
+
+    rewards_mpc = bundle.get("rewards_mpc")
+    if rewards_mpc is not None:
+        rewards_mpc_seg = rewards_mpc[start_step : start_step + W]
+        fig, ax = plt.subplots(figsize=(8.2, 4.7))
+        ax.plot(t_step, rewards_mpc_seg, label="Quadratic MPC reward")
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel("Reward")
+        ax.set_xlabel("Time (h)")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_mpc_step_rewards_quadratic", save_pdf=save_pdf)
+
+    delta_y_storage = bundle.get("delta_y_storage")
+    if delta_y_storage is not None:
+        dy_seg = delta_y_storage[start_step : start_step + W, :]
+        fig, axs = plt.subplots(n_outputs + 1, 1, figsize=(8.2, 4.0 + 2.0 * n_outputs), sharex=True)
+        for idx in range(n_outputs):
+            axs[idx].plot(t_step, dy_seg[:, idx])
+            shade_test_regions(axs[idx], spans, delta_t)
+            axs[idx].set_ylabel(f"e{idx + 1}")
+            axs[idx].spines["top"].set_visible(False)
+            axs[idx].spines["right"].set_visible(False)
+            _make_axes_bold(axs[idx])
+        axs[-1].plot(t_step, np.linalg.norm(dy_seg, axis=1))
+        shade_test_regions(axs[-1], spans, delta_t)
+        axs[-1].set_ylabel(r"$||e||_2$")
+        axs[-1].set_xlabel("Time (h)")
+        axs[-1].spines["top"].set_visible(False)
+        axs[-1].spines["right"].set_visible(False)
+        _make_axes_bold(axs[-1])
+        _save_fig(fig, out_dir, "fig_mpc_tracking_error", save_pdf=save_pdf)
+
+    delta_u_storage = bundle.get("delta_u_storage")
+    if delta_u_storage is not None:
+        du_seg = delta_u_storage[start_step : start_step + W, :]
+        fig, axs = plt.subplots(n_inputs, 1, figsize=(8.2, 3.0 + 2.1 * max(1, n_inputs - 1)), sharex=True)
+        if n_inputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.step(t_step, du_seg[:, idx], where="post")
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(rf"$\Delta u_{{{idx + 1}}}$")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Time (h)")
+        _save_fig(fig, out_dir, "fig_mpc_delta_u", save_pdf=save_pdf)
+
+    if bundle.get("yhat") is not None:
+        yhat_seg = bundle["yhat"][:, start_step : start_step + W].T
+        y_meas_seg = y_line[1 : 1 + W, :]
+        fig, axs = plt.subplots(n_outputs, 1, figsize=(8.2, 3.0 + 2.4 * max(1, n_outputs - 1)), sharex=True)
+        if n_outputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.plot(t_step, y_meas_seg[:, idx], label="Measured")
+            ax.plot(t_step, yhat_seg[:, idx], linestyle="--", label="Observer")
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(output_labels[idx])
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Time (h)")
+        axs[0].legend(loc="best")
+        _save_fig(fig, out_dir, "fig_mpc_observer_overlay", save_pdf=save_pdf)
+
+    if bundle.get("disturbance_profile") is not None:
+        disturbance = bundle["disturbance_profile"]
+        fig, axs = plt.subplots(3, 1, figsize=(8.2, 7.0), sharex=True)
+        keys = [("qi", r"$Q_i$"), ("qs", r"$Q_s$"), ("ha", r"$hA$")]
+        for ax, (key, label) in zip(axs, keys):
+            ax.plot(t_step, np.asarray(disturbance[key], float)[start_step : start_step + W])
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Time (h)")
+        _save_fig(fig, out_dir, "fig_mpc_disturbance_profile", save_pdf=save_pdf)
+
+    stored_bundle = build_storage_bundle(bundle, start_episode)
+    save_bundle_pickle(out_dir, stored_bundle)
+    return out_dir
 
 
 def plot_horizon_results_core(result_bundle, plot_cfg):

@@ -23,6 +23,7 @@
 ## First migration boundary
 
 - New shared runtime path:
+  - `utils/mpc_baseline_runner.py`
   - `utils/horizon_runner.py`
   - `utils/combined_runner.py`
   - `utils/matrix_runner.py`
@@ -33,12 +34,15 @@
   - `utils/state_features.py`
   - `utils/plotting_core.py`
 - New notebook entrypoint:
+  - `MPCOffsetFree_unified.ipynb`
   - `RL_assisted_MPC_combined_unified.ipynb`
   - `RL_assisted_MPC_horizons_unified.ipynb`
   - `RL_assisted_MPC_matrices_unified.ipynb`
   - `RL_assisted_MPC_residual_unified.ipynb`
   - `RL_assisted_MPC_weights_unified.ipynb`
 - Frozen references for validation:
+  - `MPCOffsetFree.ipynb`
+  - `MPCOffsetFreeDist.ipynb`
   - `RL_assisted_MPC_horizons.ipynb`
   - `RL_assisted_MPC_horizons_dist.ipynb`
   - `RL_assisted_MPC_matrices.ipynb`
@@ -61,6 +65,7 @@
 ## Next migration targets
 
 - decide whether the mismatch-state mode should eventually become the default for any unified notebook family, or remain an explicit opt-in switch
+- decide whether `MPCOffsetFreeDist2.ipynb` is a distinct enough legacy baseline to justify a second shared baseline profile, or should remain an archived variant
 - retire the typo-named `RL_assisted_MPC_matrices_dsit_SAC.ipynb` as a frozen legacy reference rather than a canonical entrypoint
 - keep `RL_assisted_MPC_residual_model_mismatch_multi.ipynb` as a frozen legacy combined method; it remains out of scope for the residual-correction unification
 - decide whether saved-run ablation overlays should be added on top of the new baseline-only combined comparison flow

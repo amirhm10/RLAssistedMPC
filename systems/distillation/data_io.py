@@ -36,18 +36,24 @@ def ensure_distillation_directories(repo_root):
 
 def copy_legacy_distillation_data(repo_root, overwrite=False):
     repo_root = Path(repo_root)
-    src_dir = repo_root / ARCHIVED_DISTILLATION_ROOT / "Data"
+    src_candidates = [
+        repo_root / DISTILLATION_DATA_SUBDIR,
+        repo_root / "Data" / "distillation",
+        repo_root / ARCHIVED_DISTILLATION_ROOT / "Data",
+    ]
     data_dir, result_dir = ensure_distillation_directories(repo_root)
     copied = []
     for src_name, dst_name in LEGACY_FILE_MAP.items():
-        src = src_dir / src_name
-        dst = data_dir / dst_name
-        if not src.exists():
-            continue
-        if dst.exists() and not overwrite:
-            continue
-        shutil.copy2(src, dst)
-        copied.append((src, dst))
+        for src_dir in src_candidates:
+            src = src_dir / src_name
+            if not src.exists():
+                continue
+            dst = data_dir / dst_name
+            if dst.exists() and not overwrite:
+                break
+            shutil.copy2(src, dst)
+            copied.append((src, dst))
+            break
     return {"data_dir": data_dir, "result_dir": result_dir, "copied": copied}
 
 
@@ -80,4 +86,3 @@ def load_distillation_system_data(repo_root, steady_states, setpoint_y, u_min, u
         scaling_factor_filename="scaling_factor.pickle",
         min_max_states_filename="min_max_states.pickle",
     )
-

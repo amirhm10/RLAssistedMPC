@@ -2494,11 +2494,19 @@ def plot_rl_results_multiagent_dqnstyle(
     return out_dir
 
 
-from utils.plotting_core import compare_mpc_rl_from_dirs_core, plot_horizon_results_core
+from utils.plotting_core import (
+    compare_mpc_rl_from_dirs_core,
+    plot_horizon_results_core,
+    plot_matrix_multiplier_results_core,
+)
 
 
 def plot_horizon_results(result_bundle, plot_cfg):
     return plot_horizon_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+
+
+def plot_matrix_multiplier_results(result_bundle, plot_cfg):
+    return plot_matrix_multiplier_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
 
 
 def compare_mpc_rl_from_dirs(
@@ -2575,6 +2583,53 @@ def plot_rl_results_dqn(
         "save_pdf": save_pdf,
     }
     return plot_horizon_results(result_bundle=result_bundle, plot_cfg=plot_cfg)
+
+
+def plot_rl_results_td3_multipliers_dqnstyle(
+    y_sp,
+    steady_states,
+    nFE,
+    delta_t,
+    time_in_sub_episodes,
+    y_rl,
+    u_rl,
+    avg_rewards,
+    data_min,
+    data_max,
+    reward_fn=None,
+    coef_alpha=None,
+    coef_delta=None,
+    low_coef=None,
+    high_coef=None,
+    start_episode=1,
+    prefix_name="agent_result",
+    directory=None,
+    save_pdf=False,
+):
+    del reward_fn
+    result_bundle = {
+        "y_sp": y_sp,
+        "steady_states": steady_states,
+        "nFE": nFE,
+        "delta_t": delta_t,
+        "time_in_sub_episodes": time_in_sub_episodes,
+        "y": y_rl,
+        "u": u_rl,
+        "avg_rewards": avg_rewards,
+        "data_min": data_min,
+        "data_max": data_max,
+        "alpha_log": coef_alpha,
+        "delta_log": coef_delta,
+        "low_coef": low_coef,
+        "high_coef": high_coef,
+    }
+    plot_cfg = {
+        "directory": directory if directory is not None else __import__("os").getcwd(),
+        "prefix_name": prefix_name,
+        "start_episode": start_episode,
+        "save_pdf": save_pdf,
+    }
+    return plot_matrix_multiplier_results(result_bundle=result_bundle, plot_cfg=plot_cfg)
 
 
 def compare_mpc_rl_nominal_from_dirs(

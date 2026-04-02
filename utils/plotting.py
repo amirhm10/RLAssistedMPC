@@ -2492,3 +2492,136 @@ def plot_rl_results_multiagent_dqnstyle(
         pickle.dump(input_data, f)
 
     return out_dir
+
+
+from utils.plotting_core import compare_mpc_rl_from_dirs_core, plot_horizon_results_core
+
+
+def plot_horizon_results(result_bundle, plot_cfg):
+    return plot_horizon_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+
+
+def compare_mpc_rl_from_dirs(
+    rl_dir,
+    mpc_path_or_dir,
+    reward_fn,
+    directory,
+    prefix_name,
+    compare_mode="nominal",
+    start_episode=1,
+    start_idx=None,
+    n_inputs=2,
+    save_pdf=False,
+):
+    del start_idx
+    return compare_mpc_rl_from_dirs_core(
+        rl_dir=rl_dir,
+        mpc_path_or_dir=mpc_path_or_dir,
+        reward_fn=reward_fn,
+        directory=directory,
+        prefix_name=prefix_name,
+        compare_mode=compare_mode,
+        start_episode=start_episode,
+        n_inputs=n_inputs,
+        save_pdf=save_pdf,
+    )
+
+
+def plot_rl_results_dqn(
+    y_sp,
+    steady_states,
+    nFE,
+    delta_t,
+    time_in_sub_episodes,
+    y_mpc,
+    u_mpc,
+    avg_rewards,
+    data_min,
+    data_max,
+    reward_fn=None,
+    horizon_trace=None,
+    mpc_horizons=None,
+    recipe_counts=True,
+    start_episode=1,
+    prefix_name="agent_result",
+    directory=None,
+    save_pdf=False,
+):
+    result_bundle = {
+        "y_sp": y_sp,
+        "steady_states": steady_states,
+        "nFE": nFE,
+        "delta_t": delta_t,
+        "time_in_sub_episodes": time_in_sub_episodes,
+        "y": y_mpc,
+        "u": u_mpc,
+        "avg_rewards": avg_rewards,
+        "data_min": data_min,
+        "data_max": data_max,
+        "rewards_step": None,
+        "delta_y_storage": None,
+        "delta_u_storage": None,
+        "horizon_trace": horizon_trace,
+        "action_trace": None,
+        "yhat": None,
+        "xhatdhat": None,
+        "mpc_horizons": mpc_horizons,
+    }
+    plot_cfg = {
+        "directory": directory if directory is not None else __import__("os").getcwd(),
+        "prefix_name": prefix_name,
+        "start_episode": start_episode,
+        "recipe_counts": recipe_counts,
+        "save_pdf": save_pdf,
+    }
+    return plot_horizon_results(result_bundle=result_bundle, plot_cfg=plot_cfg)
+
+
+def compare_mpc_rl_nominal_from_dirs(
+    rl_dir,
+    mpc_path_or_dir,
+    reward_fn,
+    directory,
+    prefix_name,
+    start_episode=1,
+    start_idx=None,
+    n_inputs=2,
+    save_pdf=False,
+):
+    return compare_mpc_rl_from_dirs(
+        rl_dir=rl_dir,
+        mpc_path_or_dir=mpc_path_or_dir,
+        reward_fn=reward_fn,
+        directory=directory,
+        prefix_name=prefix_name,
+        compare_mode="nominal",
+        start_episode=start_episode,
+        start_idx=start_idx,
+        n_inputs=n_inputs,
+        save_pdf=save_pdf,
+    )
+
+
+def compare_mpc_rl_disturb_from_dirs(
+    rl_dir,
+    mpc_path_or_dir,
+    reward_fn,
+    directory,
+    prefix_name,
+    start_episode=1,
+    start_idx=None,
+    n_inputs=2,
+    save_pdf=False,
+):
+    return compare_mpc_rl_from_dirs(
+        rl_dir=rl_dir,
+        mpc_path_or_dir=mpc_path_or_dir,
+        reward_fn=reward_fn,
+        directory=directory,
+        prefix_name=prefix_name,
+        compare_mode="disturb",
+        start_episode=start_episode,
+        start_idx=start_idx,
+        n_inputs=n_inputs,
+        save_pdf=save_pdf,
+    )

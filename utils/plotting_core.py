@@ -1990,6 +1990,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
     directory = os.fspath(plot_cfg["directory"])
     prefix_name = plot_cfg.get("prefix_name", "combined_result")
     start_episode = int(plot_cfg.get("start_episode", 1))
+    compare_start_episode = int(plot_cfg.get("compare_start_episode", start_episode))
     save_pdf = bool(plot_cfg.get("save_pdf", False))
     reward_fn = plot_cfg.get("reward_fn")
     include_baseline_compare = bool(plot_cfg.get("include_baseline_compare", True))
@@ -2422,7 +2423,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             directory=out_dir,
             prefix_name=compare_prefix,
             compare_mode=compare_mode,
-            start_episode=start_episode,
+            start_episode=compare_start_episode,
             n_inputs=n_inputs,
             save_pdf=save_pdf,
             style_profile=style_profile,

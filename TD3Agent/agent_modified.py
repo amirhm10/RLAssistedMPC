@@ -202,7 +202,7 @@ class TD3Agent(nn.Module):
     @torch.no_grad()
     def act_eval(self, state: np.ndarray, sigma_eval: float = 0.0) -> np.ndarray:
         s = torch.as_tensor(state, dtype=torch.float32, device=self.device)
-        a = self.actor_target(s)
+        a = self.actor(s)
         if sigma_eval > 0.0:
             a = a + torch.randn_like(a) * sigma_eval
         return a.clamp(-self.max_action, self.max_action).cpu().numpy()

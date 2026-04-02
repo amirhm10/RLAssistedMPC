@@ -2489,6 +2489,19 @@ def compare_mpc_rl_from_dirs_core(
     t_line_blk = np.linspace(0.0, tail * delta_t, tail + 1)
     t_step_blk = t_line_blk[:-1]
 
+    # The "last episode" comparison must always mean:
+    # final episode of the RL run vs final episode of the MPC run,
+    # not the tail of the currently selected overlap window.
+    last_episode_steps = int(min(max(1, time_in_sub_episodes), steps_rl, steps_mpc, nFE_sp))
+    last_episode_steps = int(max(1, last_episode_steps))
+    t_line_last = np.linspace(0.0, last_episode_steps * delta_t, last_episode_steps + 1)
+    t_step_last = t_line_last[:-1]
+    rl_y_last = rl_y[-(last_episode_steps + 1) :, :]
+    mpc_y_last = mpc_y[-(last_episode_steps + 1) :, :]
+    rl_u_last = rl_u[-last_episode_steps:, :]
+    mpc_u_last = mpc_u[-last_episode_steps:, :]
+    sp_last = y_sp_phys_full[-last_episode_steps:, :]
+
     fig, axs = plt.subplots(rl_y_seg.shape[1], 1, figsize=(8.6, 3.0 + 2.5 * max(1, rl_y_seg.shape[1] - 1)), sharex=True)
     if rl_y_seg.shape[1] == 1:
         axs = [axs]
@@ -2508,30 +2521,30 @@ def compare_mpc_rl_from_dirs_core(
     if rl_y_seg.shape[1] == 1:
         axs = [axs]
     for idx, ax in enumerate(axs):
-        ax.plot(t_line_blk, rl_y_seg[tail_start : tail_start + tail + 1, idx], label="RL")
-        ax.plot(t_line_blk, mpc_y_seg[tail_start : tail_start + tail + 1, idx], linestyle="--", label="MPC")
-        ax.step(t_step_blk, y_sp_phys[tail_start : tail_start + tail, idx], where="post", linestyle=":", label="Setpoint")
+        ax.plot(t_line_last, rl_y_last[:, idx], label="RL")
+        ax.plot(t_line_last, mpc_y_last[:, idx], linestyle="--", label="MPC")
+        ax.step(t_step_last, sp_last[:, idx], where="post", linestyle=":", label="Setpoint")
         ax.set_ylabel(f"y{idx + 1}")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
     axs[-1].set_xlabel("Time (h)")
     axs[0].legend(loc="best")
-    _save_fig(fig, out_dir, "compare_outputs_last_block", save_pdf=save_pdf)
+    _save_fig(fig, out_dir, "compare_outputs_last_episode", save_pdf=save_pdf)
 
     fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
     if n_inputs == 1:
         axs = [axs]
     for idx, ax in enumerate(axs):
-        ax.step(t_step_blk, rl_u_seg[tail_start : tail_start + tail, idx], where="post", label="RL")
-        ax.step(t_step_blk, mpc_u_seg[tail_start : tail_start + tail, idx], where="post", linestyle="--", label="MPC")
+        ax.step(t_step_last, rl_u_last[:, idx], where="post", label="RL")
+        ax.step(t_step_last, mpc_u_last[:, idx], where="post", linestyle="--", label="MPC")
         ax.set_ylabel(f"u{idx + 1}")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
     axs[-1].set_xlabel("Time (h)")
     axs[0].legend(loc="best")
-    _save_fig(fig, out_dir, "compare_inputs_last_block", save_pdf=save_pdf)
+    _save_fig(fig, out_dir, "compare_inputs_last_episode", save_pdf=save_pdf)
 
     rl_rewards, _, _ = recompute_step_rewards(
         rl_bundle["y_line_full"],

@@ -3,11 +3,11 @@ import scipy.optimize as spo
 
 from utils.helpers import (
     apply_min_max,
-    apply_rl_scaled,
     generate_setpoints_training_rl_gradually,
     reverse_min_max,
 )
 from utils.observer import compute_observer_gain
+from utils.state_features import build_rl_state
 
 
 def _map_to_bounds(action, low, high):
@@ -45,6 +45,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
     agent_kind = str(matrix_cfg["agent_kind"]).lower()
     run_mode = str(matrix_cfg["run_mode"]).lower()
+    state_mode = str(matrix_cfg.get("state_mode", "standard")).lower()
     if run_mode not in {"nominal", "disturb"}:
         raise ValueError("matrix_cfg['run_mode'] must be 'nominal' or 'disturb'.")
     if agent_kind not in {"td3", "sac"}:
@@ -96,6 +97,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     delta_u_storage = np.zeros((nFE, n_inputs))
     alpha_log = np.zeros(nFE)
     delta_log = np.zeros((nFE, n_inputs))
+    innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
 
     A_base = np.asarray(mpc_obj.A, float).copy()
     B_base = np.asarray(mpc_obj.B, float).copy()
@@ -117,12 +120,20 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
         scaled_current_input = apply_min_max(system.current_input, data_min[:n_inputs], data_max[:n_inputs])
         scaled_current_input_dev = scaled_current_input - ss_scaled_inputs
-        current_rl_state = apply_rl_scaled(
-            min_max_dict,
-            xhatdhat[:, i],
-            y_sp[i, :],
-            scaled_current_input_dev,
-        ).astype(np.float32)
+        y_prev_scaled = apply_min_max(y_system[i, :], data_min[n_inputs:], data_max[n_inputs:]) - y_ss_scaled
+        yhat_pred = mpc_obj.C @ xhatdhat[:, i]
+        current_rl_state, state_debug = build_rl_state(
+            min_max_dict=min_max_dict,
+            x_d_states=xhatdhat[:, i],
+            y_sp=y_sp[i, :],
+            u=scaled_current_input_dev,
+            state_mode=state_mode,
+            y_prev_scaled=y_prev_scaled,
+            yhat_pred=yhat_pred,
+        )
+        if innovation_log is not None:
+            innovation_log[i, :] = state_debug["innovation"]
+            tracking_error_log[i, :] = state_debug["tracking_error"]
 
         if i > warm_start_step:
             if not test:
@@ -167,11 +178,10 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         y_system[i + 1, :] = np.asarray(system.current_output, float)
 
         y_current_scaled = apply_min_max(y_system[i + 1, :], data_min[n_inputs:], data_max[n_inputs:]) - y_ss_scaled
-        y_prev_scaled = apply_min_max(y_system[i, :], data_min[n_inputs:], data_max[n_inputs:]) - y_ss_scaled
         delta_y = y_current_scaled - y_sp[i, :]
         delta_y_storage[i, :] = delta_y
 
-        yhat[:, i] = mpc_obj.C @ xhatdhat[:, i]
+        yhat[:, i] = yhat_pred
         xhatdhat[:, i + 1] = (
             mpc_obj.A @ xhatdhat[:, i]
             + mpc_obj.B @ (u_mpc[i, :] - ss_scaled_inputs)
@@ -183,7 +193,16 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         rewards[i] = reward
 
         next_u_dev = u_mpc[i, :] - ss_scaled_inputs
-        next_rl_state = apply_rl_scaled(min_max_dict, xhatdhat[:, i + 1], y_sp[i, :], next_u_dev).astype(np.float32)
+        yhat_next_pred = mpc_obj.C @ xhatdhat[:, i + 1]
+        next_rl_state, _ = build_rl_state(
+            min_max_dict=min_max_dict,
+            x_d_states=xhatdhat[:, i + 1],
+            y_sp=y_sp[i, :],
+            u=next_u_dev,
+            state_mode=state_mode,
+            y_prev_scaled=y_current_scaled,
+            yhat_pred=yhat_next_pred,
+        )
 
         if not test:
             agent.push(
@@ -224,6 +243,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     result_bundle = {
         "agent_kind": agent_kind,
         "run_mode": run_mode,
+        "state_mode": state_mode,
         "y_sp": y_sp,
         "steady_states": steady_states,
         "nFE": int(nFE),
@@ -247,6 +267,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "sub_episodes_changes_dict": sub_episodes_changes_dict,
         "disturbance_profile": disturbance_profile,
         "warm_start_step": int(warm_start_step),
+        "innovation_log": innovation_log,
+        "tracking_error_log": tracking_error_log,
         "mpc_horizons": (
             int(matrix_cfg["predict_h"]),
             int(matrix_cfg["cont_h"]),

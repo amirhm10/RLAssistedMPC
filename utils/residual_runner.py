@@ -3,11 +3,11 @@ import scipy.optimize as spo
 
 from utils.helpers import (
     apply_min_max,
-    apply_rl_scaled,
     generate_setpoints_training_rl_gradually,
     reverse_min_max,
 )
 from utils.observer import compute_observer_gain
+from utils.state_features import build_rl_state
 
 
 def _map_to_bounds(action, low, high):
@@ -22,6 +22,17 @@ def _map_from_bounds(value, low, high):
     low = np.asarray(low, float)
     high = np.asarray(high, float)
     return 2.0 * (value - low) / (high - low) - 1.0
+
+
+def _compute_band_scaled(y_sp_phys, data_min, data_max, n_inputs, k_rel, band_floor_phys):
+    data_min = np.asarray(data_min, float)
+    data_max = np.asarray(data_max, float)
+    dy = np.maximum(data_max[n_inputs:] - data_min[n_inputs:], 1e-12)
+    y_sp_phys = np.asarray(y_sp_phys, float)
+    k_rel = np.asarray(k_rel, float)
+    band_floor_phys = np.asarray(band_floor_phys, float)
+    band_phys = np.maximum(k_rel * np.abs(y_sp_phys), band_floor_phys)
+    return band_phys / dy
 
 
 def run_residual_supervisor(residual_cfg, runtime_ctx):
@@ -52,6 +63,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
 
     agent_kind = str(residual_cfg["agent_kind"]).lower()
     run_mode = str(residual_cfg["run_mode"]).lower()
+    state_mode = str(residual_cfg.get("state_mode", "standard")).lower()
     if agent_kind not in {"td3", "sac"}:
         raise ValueError("residual_cfg['agent_kind'] must be 'td3' or 'sac'.")
     if run_mode not in {"nominal", "disturb"}:
@@ -100,6 +112,12 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     u_min_scaled_abs = np.asarray(residual_cfg["b_min"], float) + ss_scaled_inputs
     u_max_scaled_abs = np.asarray(residual_cfg["b_max"], float) + ss_scaled_inputs
     L = compute_observer_gain(mpc_obj.A, mpc_obj.C, poles)
+    reward_params = runtime_ctx.get("reward_params", {})
+    k_rel = np.asarray(reward_params.get("k_rel", np.array([0.003, 0.0003])), float)
+    band_floor_phys = np.asarray(reward_params.get("band_floor_phys", np.array([0.006, 0.07])), float)
+    beta_res = np.array([0.5, 0.5], dtype=np.float32)
+    du0_res = np.array([0.001, 0.001], dtype=np.float32)
+    eta_tol = 0.3
 
     cont_h = int(residual_cfg.get("cont_h", 1))
     bounds = tuple(
@@ -121,6 +139,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     delta_u_storage = np.zeros((nFE, n_inputs))
     residual_raw_log = np.zeros((nFE, n_inputs))
     residual_exec_log = np.zeros((nFE, n_inputs))
+    innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     test = False
 
     for i in range(nFE):
@@ -129,12 +149,20 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
 
         scaled_current_input = apply_min_max(system.current_input, data_min[:n_inputs], data_max[:n_inputs])
         scaled_current_input_dev = scaled_current_input - ss_scaled_inputs
-        current_rl_state = apply_rl_scaled(
-            min_max_dict,
-            xhatdhat[:, i],
-            y_sp[i, :],
-            scaled_current_input_dev,
-        ).astype(np.float32)
+        y_prev_scaled = apply_min_max(y_system[i, :], data_min[n_inputs:], data_max[n_inputs:]) - y_ss_scaled
+        yhat_pred = mpc_obj.C @ xhatdhat[:, i]
+        current_rl_state, state_debug = build_rl_state(
+            min_max_dict=min_max_dict,
+            x_d_states=xhatdhat[:, i],
+            y_sp=y_sp[i, :],
+            u=scaled_current_input_dev,
+            state_mode=state_mode,
+            y_prev_scaled=y_prev_scaled,
+            yhat_pred=yhat_pred,
+        )
+        if innovation_log is not None:
+            innovation_log[i, :] = state_debug["innovation"]
+            tracking_error_log[i, :] = state_debug["tracking_error"]
 
         if i > warm_start_step:
             if not test:
@@ -161,9 +189,36 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         u_base = np.clip(u_base, u_min_scaled_abs, u_max_scaled_abs)
         u_base_scaled[i, :] = u_base
 
-        low_headroom = u_min_scaled_abs - u_base
-        high_headroom = u_max_scaled_abs - u_base
-        residual_exec = np.clip(residual_raw, np.maximum(low_coef, low_headroom), np.minimum(high_coef, high_headroom))
+        low_headroom = (u_min_scaled_abs - u_base).astype(np.float32)
+        high_headroom = (u_max_scaled_abs - u_base).astype(np.float32)
+        if state_mode == "mismatch":
+            y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
+            band_scaled = _compute_band_scaled(
+                y_sp_phys=y_sp_phys,
+                data_min=data_min,
+                data_max=data_max,
+                n_inputs=n_inputs,
+                k_rel=k_rel,
+                band_floor_phys=band_floor_phys,
+            ).astype(np.float32)
+            e_track = state_debug["tracking_error"]
+            delta_u_mpc = (u_base - scaled_current_input).astype(np.float32)
+            eps_i = (eta_tol * band_scaled).astype(np.float32)
+            rho = float(np.clip(np.max(np.abs(e_track) / np.maximum(eps_i, 1e-12)), 0.0, 1.0))
+            mag = (rho * beta_res) * (np.abs(delta_u_mpc) + du0_res)
+            low_bound = np.maximum(-mag, low_headroom)
+            high_bound = np.minimum(mag, high_headroom)
+            bad = low_bound > high_bound
+            if np.any(bad):
+                low_bound[bad] = 0.0
+                high_bound[bad] = 0.0
+            residual_exec = np.clip(residual_raw, low_bound, high_bound)
+        else:
+            residual_exec = np.clip(
+                residual_raw,
+                np.maximum(low_coef, low_headroom),
+                np.minimum(high_coef, high_headroom),
+            )
         u_applied_scaled_abs = np.clip(u_base + residual_exec, u_min_scaled_abs, u_max_scaled_abs)
         residual_exec = u_applied_scaled_abs - u_base
         residual_exec_log[i, :] = residual_exec
@@ -185,11 +240,10 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         y_system[i + 1, :] = np.asarray(system.current_output, float)
 
         y_current_scaled = apply_min_max(y_system[i + 1, :], data_min[n_inputs:], data_max[n_inputs:]) - y_ss_scaled
-        y_prev_scaled = apply_min_max(y_system[i, :], data_min[n_inputs:], data_max[n_inputs:]) - y_ss_scaled
         delta_y = y_current_scaled - y_sp[i, :]
         delta_y_storage[i, :] = delta_y
 
-        yhat[:, i] = mpc_obj.C @ xhatdhat[:, i]
+        yhat[:, i] = yhat_pred
         xhatdhat[:, i + 1] = (
             mpc_obj.A @ xhatdhat[:, i]
             + mpc_obj.B @ (u_applied_scaled_abs - ss_scaled_inputs)
@@ -201,7 +255,16 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         rewards[i] = reward
 
         next_u_dev = u_applied_scaled_abs - ss_scaled_inputs
-        next_rl_state = apply_rl_scaled(min_max_dict, xhatdhat[:, i + 1], y_sp[i, :], next_u_dev).astype(np.float32)
+        yhat_next_pred = mpc_obj.C @ xhatdhat[:, i + 1]
+        next_rl_state, _ = build_rl_state(
+            min_max_dict=min_max_dict,
+            x_d_states=xhatdhat[:, i + 1],
+            y_sp=y_sp[i, :],
+            u=next_u_dev,
+            state_mode=state_mode,
+            y_prev_scaled=y_current_scaled,
+            yhat_pred=yhat_next_pred,
+        )
 
         if not test:
             agent.push(
@@ -236,6 +299,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     result_bundle = {
         "agent_kind": agent_kind,
         "run_mode": run_mode,
+        "state_mode": state_mode,
         "y_sp": y_sp,
         "steady_states": steady_states,
         "nFE": int(nFE),
@@ -256,6 +320,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "residual_exec_log": residual_exec_log,
         "low_coef": low_coef,
         "high_coef": high_coef,
+        "innovation_log": innovation_log,
+        "tracking_error_log": tracking_error_log,
         "test_train_dict": test_train_dict,
         "sub_episodes_changes_dict": sub_episodes_changes_dict,
         "disturbance_profile": disturbance_profile,

@@ -1550,23 +1550,31 @@ def compare_mpc_rl_from_dirs_core(
     mpc_y = mpc_bundle["y_line_full"]
     mpc_u = mpc_bundle["u_step_full"]
 
-    nFE = min(rl_bundle["nFE"], mpc_bundle["nFE"])
     delta_t = rl_bundle["delta_t"]
     time_in_sub_episodes = rl_bundle["time_in_sub_episodes"]
-    start_step = int(min(max(0, (start_episode - 1) * time_in_sub_episodes), max(0, nFE - 1)))
-    W = int(max(1, nFE - start_step))
-
-    rl_y_seg = rl_y[start_step : start_step + W + 1, :]
-    mpc_y_seg = mpc_y[start_step : start_step + W + 1, :]
-    rl_u_seg = rl_u[start_step : start_step + W, :]
-    mpc_u_seg = mpc_u[start_step : start_step + W, :]
-    y_sp_phys = ysp_scaled_dev_to_phys(
-        rl_bundle["y_sp"][start_step : start_step + W, :],
+    y_sp_phys_full = ysp_scaled_dev_to_phys(
+        rl_bundle["y_sp"],
         rl_bundle["steady_states"],
         rl_bundle["data_min"],
         rl_bundle["data_max"],
         rl_u.shape[1],
     )
+    nFE_sp = int(len(y_sp_phys_full))
+    steps_rl = int(max(1, rl_y.shape[0] - 1))
+    steps_mpc = int(max(1, mpc_y.shape[0] - 1))
+
+    start_step = int(min(max(0, (start_episode - 1) * time_in_sub_episodes), max(0, nFE_sp - 1)))
+    max_start = int(max(0, min(nFE_sp, steps_rl, steps_mpc) - 1))
+    start_step = int(min(start_step, max_start))
+
+    W = int(min(nFE_sp - start_step, max(1, steps_rl - start_step), max(1, steps_mpc - start_step)))
+    W = int(max(1, W))
+
+    rl_y_seg = rl_y[start_step : start_step + W + 1, :]
+    mpc_y_seg = mpc_y[start_step : start_step + W + 1, :]
+    rl_u_seg = rl_u[start_step : start_step + W, :]
+    mpc_u_seg = mpc_u[start_step : start_step + W, :]
+    y_sp_phys = y_sp_phys_full[start_step : start_step + W, :]
 
     t_line = np.linspace(0.0, W * delta_t, W + 1)
     t_step = t_line[:-1]

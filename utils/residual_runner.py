@@ -64,6 +64,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     agent_kind = str(residual_cfg["agent_kind"]).lower()
     run_mode = str(residual_cfg["run_mode"]).lower()
     state_mode = str(residual_cfg.get("state_mode", "standard")).lower()
+    use_rho_authority = bool(residual_cfg.get("use_rho_authority", True))
     if agent_kind not in {"td3", "sac"}:
         raise ValueError("residual_cfg['agent_kind'] must be 'td3' or 'sac'.")
     if run_mode not in {"nominal", "disturb"}:
@@ -139,6 +140,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     delta_u_storage = np.zeros((nFE, n_inputs))
     residual_raw_log = np.zeros((nFE, n_inputs))
     residual_exec_log = np.zeros((nFE, n_inputs))
+    rho_log = np.zeros(nFE) if state_mode == "mismatch" else None
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     test = False
@@ -205,7 +207,9 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             delta_u_mpc = (u_base - scaled_current_input).astype(np.float32)
             eps_i = (eta_tol * band_scaled).astype(np.float32)
             rho = float(np.clip(np.max(np.abs(e_track) / np.maximum(eps_i, 1e-12)), 0.0, 1.0))
-            mag = (rho * beta_res) * (np.abs(delta_u_mpc) + du0_res)
+            rho_log[i] = rho
+            authority_scale = rho if use_rho_authority else 1.0
+            mag = (authority_scale * beta_res) * (np.abs(delta_u_mpc) + du0_res)
             low_bound = np.maximum(-mag, low_headroom)
             high_bound = np.minimum(mag, high_headroom)
             bad = low_bound > high_bound
@@ -300,6 +304,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "agent_kind": agent_kind,
         "run_mode": run_mode,
         "state_mode": state_mode,
+        "use_rho_authority": use_rho_authority,
         "y_sp": y_sp,
         "steady_states": steady_states,
         "nFE": int(nFE),
@@ -318,6 +323,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "xhatdhat": xhatdhat,
         "residual_raw_log": residual_raw_log,
         "residual_exec_log": residual_exec_log,
+        "rho_log": rho_log,
         "low_coef": low_coef,
         "high_coef": high_coef,
         "innovation_log": innovation_log,

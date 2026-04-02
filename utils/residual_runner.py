@@ -7,6 +7,7 @@ from utils.helpers import (
     disturbance_profile_from_schedule,
     generate_setpoints_training_rl_gradually,
     reverse_min_max,
+    shift_control_sequence,
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
@@ -198,6 +199,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             bounds=bounds,
             constraints=[],
         )
+        ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
 
         u_base = np.asarray(sol.x[:n_inputs], float) + ss_scaled_inputs
         u_base = np.clip(u_base, u_min_scaled_abs, u_max_scaled_abs)

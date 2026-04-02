@@ -7,6 +7,7 @@ from utils.helpers import (
     disturbance_profile_from_schedule,
     generate_setpoints_training_rl_gradually,
     reverse_min_max,
+    shift_control_sequence,
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
@@ -124,7 +125,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         for _ in range(cont_h)
         for j in range(n_inputs)
     )
-    IC_opt = np.zeros(n_inputs * cont_h)
+    ic_opt = np.zeros(n_inputs * cont_h)
 
     for i in range(nFE):
         if i in test_train_dict:
@@ -170,10 +171,11 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
         sol = spo.minimize(
             lambda x: mpc_obj.mpc_opt_fun(x, y_sp[i, :], scaled_current_input_dev, xhatdhat[:, i]),
-            IC_opt,
+            ic_opt,
             bounds=bnds,
             constraints=[],
         )
+        ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
 
         u_mpc[i, :] = sol.x[:n_inputs] + ss_scaled_inputs
         u_plant = reverse_min_max(u_mpc[i, :], data_min[:n_inputs], data_max[:n_inputs])

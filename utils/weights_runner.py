@@ -7,6 +7,7 @@ from utils.helpers import (
     disturbance_profile_from_schedule,
     generate_setpoints_training_rl_gradually,
     reverse_min_max,
+    shift_control_sequence,
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
@@ -197,6 +198,7 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             bounds=bnds,
             constraints=[],
         )
+        ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
 
         u_mpc[i, :] = sol.x[:n_inputs] + ss_scaled_inputs
         u_plant = reverse_min_max(u_mpc[i, :], data_min[:n_inputs], data_max[:n_inputs])

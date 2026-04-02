@@ -81,6 +81,46 @@ def _save_fig(fig, out_dir, fname_base, save_pdf=False):
     plt.close(fig)
 
 
+def _default_system_metadata(n_outputs, n_inputs):
+    return {
+        "system_name": "polymer",
+        "output_labels": [r"$\eta$ (L/g)", r"$T$ (K)"] if n_outputs == 2 else [f"y{idx + 1}" for idx in range(n_outputs)],
+        "input_labels": [r"$Q_c$ (L/h)", r"$Q_m$ (L/h)"] if n_inputs == 2 else [f"u{idx + 1}" for idx in range(n_inputs)],
+        "time_label": "Time (h)",
+        "disturbance_labels": None,
+    }
+
+
+def resolve_system_metadata(bundle=None, plot_cfg=None, n_outputs=None, n_inputs=None):
+    bundle = bundle or {}
+    plot_cfg = plot_cfg or {}
+    metadata = _default_system_metadata(int(n_outputs), int(n_inputs))
+    metadata.update(dict(bundle.get("system_metadata") or {}))
+    metadata.update(dict(plot_cfg.get("system_metadata") or {}))
+
+    output_labels = list(metadata.get("output_labels") or metadata["output_labels"])
+    input_labels = list(metadata.get("input_labels") or metadata["input_labels"])
+    time_label = str(metadata.get("time_label") or "Time (h)")
+    disturbance_labels = metadata.get("disturbance_labels")
+    if disturbance_labels is not None:
+        disturbance_labels = list(disturbance_labels)
+    metadata["output_labels"] = output_labels
+    metadata["input_labels"] = input_labels
+    metadata["time_label"] = time_label
+    metadata["disturbance_labels"] = disturbance_labels
+    return metadata
+
+
+def disturbance_plot_items(disturbance_profile, disturbance_labels=None):
+    if not disturbance_profile:
+        return []
+    label_lookup = {}
+    if disturbance_labels:
+        keys = list(disturbance_profile.keys())
+        label_lookup = {key: disturbance_labels[idx] for idx, key in enumerate(keys[: len(disturbance_labels)])}
+    return [(key, label_lookup.get(key, key), np.asarray(value, float)) for key, value in disturbance_profile.items()]
+
+
 def normalize_result_bundle(result_bundle):
     bundle = dict(result_bundle)
 
@@ -194,6 +234,7 @@ def normalize_result_bundle(result_bundle):
         None if bundle.get("residual_high_coef") is None else np.asarray(bundle["residual_high_coef"], float).reshape(-1)
     )
     bundle["state_mode"] = str(bundle.get("state_mode", "standard")).lower()
+    bundle["system_metadata"] = dict(bundle.get("system_metadata") or {})
 
     if bundle["y"].shape[0] == bundle["nFE"]:
         bundle["y_line_full"] = np.vstack([bundle["y"], bundle["y"][-1:, :]])
@@ -431,6 +472,10 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
     time_in_sub_episodes = bundle["time_in_sub_episodes"]
     n_inputs = bundle["n_inputs"]
     n_outputs = bundle["n_outputs"]
+    metadata = resolve_system_metadata(bundle=bundle, plot_cfg=plot_cfg, n_outputs=n_outputs, n_inputs=n_inputs)
+    output_labels = metadata["output_labels"]
+    input_labels = metadata["input_labels"]
+    time_label = metadata["time_label"]
 
     y_sp_phys_full = ysp_scaled_dev_to_phys(
         bundle["y_sp"],
@@ -454,9 +499,6 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
     t_step_blk = t_line_blk[:-1]
     spans = episode_spans(bundle.get("test_train_dict"), nFE)
 
-    output_labels = [r"$\eta$ (L/g)", r"$T$ (K)"] if n_outputs == 2 else [f"y{idx + 1}" for idx in range(n_outputs)]
-    input_labels = [r"$Q_c$ (L/h)", r"$Q_m$ (L/h)"] if n_inputs == 2 else [f"u{idx + 1}" for idx in range(n_inputs)]
-
     fig, axs = plt.subplots(n_outputs, 1, figsize=(8.2, 3.0 + 2.4 * max(1, n_outputs - 1)), sharex=True)
     if n_outputs == 1:
         axs = [axs]
@@ -468,7 +510,7 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "fig_mpc_outputs_full", save_pdf=save_pdf)
 
@@ -488,7 +530,7 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "fig_mpc_outputs_last_block", save_pdf=save_pdf)
 
@@ -502,7 +544,7 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     _save_fig(fig, out_dir, "fig_mpc_inputs_full", save_pdf=save_pdf)
 
     fig, axs = plt.subplots(n_inputs, 1, figsize=(8.2, 3.0 + 2.1 * max(1, n_inputs - 1)), sharex=True)
@@ -514,7 +556,7 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     _save_fig(fig, out_dir, "fig_mpc_inputs_last_block", save_pdf=save_pdf)
 
     n_ep_total = int(nFE // time_in_sub_episodes) if time_in_sub_episodes > 0 else 0
@@ -541,7 +583,7 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
         ax.plot(t_step, rewards_seg, label="Shared reward")
         shade_test_regions(ax, spans, delta_t)
         ax.set_ylabel("Reward")
-        ax.set_xlabel("Time (h)")
+        ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
@@ -554,7 +596,7 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
         ax.plot(t_step, rewards_mpc_seg, label="Quadratic MPC reward")
         shade_test_regions(ax, spans, delta_t)
         ax.set_ylabel("Reward")
-        ax.set_xlabel("Time (h)")
+        ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
@@ -574,7 +616,7 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
         axs[-1].plot(t_step, np.linalg.norm(dy_seg, axis=1))
         shade_test_regions(axs[-1], spans, delta_t)
         axs[-1].set_ylabel(r"$||e||_2$")
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[-1].spines["top"].set_visible(False)
         axs[-1].spines["right"].set_visible(False)
         _make_axes_bold(axs[-1])
@@ -593,7 +635,7 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_mpc_delta_u", save_pdf=save_pdf)
 
     if bundle.get("yhat") is not None:
@@ -615,18 +657,20 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
         _save_fig(fig, out_dir, "fig_mpc_observer_overlay", save_pdf=save_pdf)
 
     if bundle.get("disturbance_profile") is not None:
-        disturbance = bundle["disturbance_profile"]
-        fig, axs = plt.subplots(3, 1, figsize=(8.2, 7.0), sharex=True)
-        keys = [("qi", r"$Q_i$"), ("qs", r"$Q_s$"), ("ha", r"$hA$")]
-        for ax, (key, label) in zip(axs, keys):
-            ax.plot(t_step, np.asarray(disturbance[key], float)[start_step : start_step + W])
-            shade_test_regions(ax, spans, delta_t)
-            ax.set_ylabel(label)
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
-        _save_fig(fig, out_dir, "fig_mpc_disturbance_profile", save_pdf=save_pdf)
+        disturbance_items = disturbance_plot_items(bundle["disturbance_profile"], metadata.get("disturbance_labels"))
+        if disturbance_items:
+            fig, axs = plt.subplots(len(disturbance_items), 1, figsize=(8.2, 3.0 + 2.0 * max(1, len(disturbance_items) - 1)), sharex=True)
+            if len(disturbance_items) == 1:
+                axs = [axs]
+            for ax, (_, label, series) in zip(axs, disturbance_items):
+                ax.plot(t_step, series[start_step : start_step + W])
+                shade_test_regions(ax, spans, delta_t)
+                ax.set_ylabel(label)
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel(time_label)
+            _save_fig(fig, out_dir, "fig_mpc_disturbance_profile", save_pdf=save_pdf)
 
     stored_bundle = build_storage_bundle(bundle, start_episode)
     save_bundle_pickle(out_dir, stored_bundle)
@@ -634,7 +678,7 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
 
 
 def plot_horizon_results_core(result_bundle, plot_cfg):
-    _set_plot_style()
+    _set_plot_style(style_profile=plot_cfg.get("style_profile", "hybrid"))
     bundle = normalize_result_bundle(result_bundle)
 
     directory = os.fspath(plot_cfg["directory"])
@@ -651,6 +695,10 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
     time_in_sub_episodes = bundle["time_in_sub_episodes"]
     n_inputs = bundle["n_inputs"]
     n_outputs = bundle["n_outputs"]
+    metadata = resolve_system_metadata(bundle=bundle, plot_cfg=plot_cfg, n_outputs=n_outputs, n_inputs=n_inputs)
+    output_labels = metadata["output_labels"]
+    input_labels = metadata["input_labels"]
+    time_label = metadata["time_label"]
 
     y_sp_phys_full = ysp_scaled_dev_to_phys(
         bundle["y_sp"],
@@ -681,11 +729,11 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
         ax.plot(t_line, y_line[:, idx], label="RL")
         ax.step(t_step, y_sp_phys[:, idx], where="post", linestyle="--", label="Setpoint")
         shade_test_regions(ax, spans, delta_t)
-        ax.set_ylabel(f"y{idx + 1}")
+        ax.set_ylabel(output_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "fig_horizon_outputs_full", save_pdf=save_pdf)
 
@@ -701,11 +749,11 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
             linestyle="--",
             label="Setpoint",
         )
-        ax.set_ylabel(f"y{idx + 1}")
+        ax.set_ylabel(output_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "fig_horizon_outputs_last_block", save_pdf=save_pdf)
 
@@ -715,11 +763,11 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
     for idx, ax in enumerate(axs):
         ax.step(t_step, u_line[:, idx], where="post")
         shade_test_regions(ax, spans, delta_t)
-        ax.set_ylabel(f"u{idx + 1}")
+        ax.set_ylabel(input_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     _save_fig(fig, out_dir, "fig_horizon_inputs_full", save_pdf=save_pdf)
 
     fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
@@ -727,11 +775,11 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
         axs = [axs]
     for idx, ax in enumerate(axs):
         ax.step(t_step_blk, u_line[s_last : s_last + last_steps, idx], where="post")
-        ax.set_ylabel(f"u{idx + 1}")
+        ax.set_ylabel(input_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     _save_fig(fig, out_dir, "fig_horizon_inputs_last_block", save_pdf=save_pdf)
 
     n_ep_total = int(nFE // time_in_sub_episodes) if time_in_sub_episodes > 0 else 0
@@ -754,7 +802,7 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
         ax.plot(t_step, rewards_seg)
         shade_test_regions(ax, spans, delta_t)
         ax.set_ylabel("Reward")
-        ax.set_xlabel("Time (h)")
+        ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
@@ -775,7 +823,7 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
         axs[-1].plot(t_step, err_norm)
         shade_test_regions(axs[-1], spans, delta_t)
         axs[-1].set_ylabel("||e||")
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[-1].spines["top"].set_visible(False)
         axs[-1].spines["right"].set_visible(False)
         _make_axes_bold(axs[-1])
@@ -794,7 +842,7 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_horizon_delta_u", save_pdf=save_pdf)
 
     horizon_trace = bundle.get("horizon_trace")
@@ -869,7 +917,7 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
         ax.step(t_step, action_seg, where="post")
         shade_test_regions(ax, spans, delta_t)
         ax.set_ylabel("Action")
-        ax.set_xlabel("Time (h)")
+        ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
@@ -893,30 +941,29 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
             ax.plot(t_step, np.asarray(yhat[idx, start_step : start_step + W], float), label="Observer")
             ax.plot(t_step, meas_scaled[start_step : start_step + W], linestyle="--", label="Measurement")
             shade_test_regions(ax, spans, delta_t)
-            ax.set_ylabel(f"yhat{idx + 1}")
+            ax.set_ylabel(output_labels[idx])
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_horizon_observer_overlay", save_pdf=save_pdf)
 
     disturbance_profile = bundle.get("disturbance_profile")
     if disturbance_profile:
-        keys = [key for key in ("qi", "qs", "ha") if key in disturbance_profile]
-        if keys:
-            fig, axs = plt.subplots(len(keys), 1, figsize=(8.6, 3.0 + 2.0 * max(1, len(keys) - 1)), sharex=True)
-            if len(keys) == 1:
+        disturbance_items = disturbance_plot_items(disturbance_profile, metadata.get("disturbance_labels"))
+        if disturbance_items:
+            fig, axs = plt.subplots(len(disturbance_items), 1, figsize=(8.6, 3.0 + 2.0 * max(1, len(disturbance_items) - 1)), sharex=True)
+            if len(disturbance_items) == 1:
                 axs = [axs]
-            for idx, key in enumerate(keys):
-                series = np.asarray(disturbance_profile[key], float)[start_step : start_step + W]
-                axs[idx].plot(t_step, series)
+            for idx, (_, label, series) in enumerate(disturbance_items):
+                axs[idx].plot(t_step, series[start_step : start_step + W])
                 shade_test_regions(axs[idx], spans, delta_t)
-                axs[idx].set_ylabel(key)
+                axs[idx].set_ylabel(label)
                 axs[idx].spines["top"].set_visible(False)
                 axs[idx].spines["right"].set_visible(False)
                 _make_axes_bold(axs[idx])
-            axs[-1].set_xlabel("Time (h)")
+            axs[-1].set_xlabel(time_label)
             _save_fig(fig, out_dir, "fig_horizon_disturbance_profile", save_pdf=save_pdf)
 
     _plot_mismatch_diagnostics(
@@ -940,7 +987,8 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
 
 
 def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
-    _set_plot_style()
+    style_profile = str(plot_cfg.get("style_profile", "hybrid")).lower()
+    _set_plot_style(style_profile=style_profile)
     bundle = normalize_result_bundle(result_bundle)
 
     directory = os.fspath(plot_cfg["directory"])
@@ -956,6 +1004,10 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
     time_in_sub_episodes = bundle["time_in_sub_episodes"]
     n_inputs = bundle["n_inputs"]
     n_outputs = bundle["n_outputs"]
+    metadata = resolve_system_metadata(bundle=bundle, plot_cfg=plot_cfg, n_outputs=n_outputs, n_inputs=n_inputs)
+    output_labels = metadata["output_labels"]
+    input_labels = metadata["input_labels"]
+    time_label = metadata["time_label"]
 
     y_sp_phys_full = ysp_scaled_dev_to_phys(
         bundle["y_sp"],
@@ -986,11 +1038,11 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
         ax.plot(t_line, y_line[:, idx], label="RL")
         ax.step(t_step, y_sp_phys[:, idx], where="post", linestyle="--", label="Setpoint")
         shade_test_regions(ax, spans, delta_t)
-        ax.set_ylabel(f"y{idx + 1}")
+        ax.set_ylabel(output_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "fig_matrix_outputs_full", save_pdf=save_pdf)
 
@@ -1006,11 +1058,11 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
             linestyle="--",
             label="Setpoint",
         )
-        ax.set_ylabel(f"y{idx + 1}")
+        ax.set_ylabel(output_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "fig_matrix_outputs_last_block", save_pdf=save_pdf)
 
@@ -1020,11 +1072,11 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
     for idx, ax in enumerate(axs):
         ax.step(t_step, u_line[:, idx], where="post")
         shade_test_regions(ax, spans, delta_t)
-        ax.set_ylabel(f"u{idx + 1}")
+        ax.set_ylabel(input_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     _save_fig(fig, out_dir, "fig_matrix_inputs_full", save_pdf=save_pdf)
 
     fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
@@ -1032,11 +1084,11 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
         axs = [axs]
     for idx, ax in enumerate(axs):
         ax.step(t_step_blk, u_line[s_last : s_last + last_steps, idx], where="post")
-        ax.set_ylabel(f"u{idx + 1}")
+        ax.set_ylabel(input_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     _save_fig(fig, out_dir, "fig_matrix_inputs_last_block", save_pdf=save_pdf)
 
     n_ep_total = int(nFE // time_in_sub_episodes) if time_in_sub_episodes > 0 else 0
@@ -1059,7 +1111,7 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
         ax.plot(t_step, rewards_seg)
         shade_test_regions(ax, spans, delta_t)
         ax.set_ylabel("Reward")
-        ax.set_xlabel("Time (h)")
+        ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
@@ -1072,7 +1124,7 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
         for idx in range(n_outputs):
             axs[idx].plot(t_step, err_seg[:, idx])
             shade_test_regions(axs[idx], spans, delta_t)
-            axs[idx].set_ylabel(f"e{idx + 1}")
+            axs[idx].set_ylabel(f"e[{idx + 1}]")
             axs[idx].spines["top"].set_visible(False)
             axs[idx].spines["right"].set_visible(False)
             _make_axes_bold(axs[idx])
@@ -1080,7 +1132,7 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
         axs[-1].plot(t_step, err_norm)
         shade_test_regions(axs[-1], spans, delta_t)
         axs[-1].set_ylabel("||e||")
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[-1].spines["top"].set_visible(False)
         axs[-1].spines["right"].set_visible(False)
         _make_axes_bold(axs[-1])
@@ -1095,11 +1147,11 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
         for idx, ax in enumerate(axs):
             ax.step(t_step, du_seg[:, idx], where="post")
             shade_test_regions(ax, spans, delta_t)
-            ax.set_ylabel(f"du{idx + 1}")
+            ax.set_ylabel(rf"$\Delta u_{{{idx + 1}}}$")
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_matrix_delta_u", save_pdf=save_pdf)
 
     alpha_log = bundle.get("alpha_log")
@@ -1116,7 +1168,7 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
         ax.step(t_step, alpha_seg, where="post")
         shade_test_regions(ax, spans, delta_t)
         ax.set_ylabel("alpha")
-        ax.set_xlabel("Time (h)")
+        ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
@@ -1129,7 +1181,7 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
             ax.axhline(float(high_coef[0]), color="tab:blue", linestyle="--", linewidth=1.2)
         ax.step(t_step_blk, alpha_seg[s_last : s_last + last_steps], where="post")
         ax.set_ylabel("alpha")
-        ax.set_xlabel("Time (h)")
+        ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
@@ -1154,11 +1206,11 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
                 ax.axhline(float(high_coef[idx + 1]), color="tab:green", linestyle="--", linewidth=1.2)
             ax.step(t_step, delta_seg[:, idx], where="post")
             shade_test_regions(ax, spans, delta_t)
-            ax.set_ylabel(f"delta{idx + 1}")
+            ax.set_ylabel(rf"$\delta_{{{idx + 1}}}$")
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_matrix_delta_full", save_pdf=save_pdf)
 
         fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
@@ -1177,11 +1229,11 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
                 ax.axhline(float(low_coef[idx + 1]), color="tab:green", linestyle="--", linewidth=1.2)
                 ax.axhline(float(high_coef[idx + 1]), color="tab:green", linestyle="--", linewidth=1.2)
             ax.step(t_step_blk, delta_seg[s_last : s_last + last_steps, idx], where="post")
-            ax.set_ylabel(f"delta{idx + 1}")
+            ax.set_ylabel(rf"$\delta_{{{idx + 1}}}$")
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_matrix_delta_last_block", save_pdf=save_pdf)
 
     yhat = bundle.get("yhat")
@@ -1202,30 +1254,34 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
             ax.plot(t_step, np.asarray(yhat[idx, start_step : start_step + W], float), label="Observer")
             ax.plot(t_step, meas_scaled[start_step : start_step + W], linestyle="--", label="Measurement")
             shade_test_regions(ax, spans, delta_t)
-            ax.set_ylabel(f"yhat{idx + 1}")
+            ax.set_ylabel(output_labels[idx])
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_matrix_observer_overlay", save_pdf=save_pdf)
 
     disturbance_profile = bundle.get("disturbance_profile")
     if disturbance_profile:
-        keys = [key for key in ("qi", "qs", "ha") if key in disturbance_profile]
-        if keys:
-            fig, axs = plt.subplots(len(keys), 1, figsize=(8.6, 3.0 + 2.0 * max(1, len(keys) - 1)), sharex=True)
-            if len(keys) == 1:
+        disturbance_items = disturbance_plot_items(disturbance_profile, metadata.get("disturbance_labels"))
+        if disturbance_items:
+            fig, axs = plt.subplots(
+                len(disturbance_items),
+                1,
+                figsize=(8.6, 3.0 + 2.0 * max(1, len(disturbance_items) - 1)),
+                sharex=True,
+            )
+            if len(disturbance_items) == 1:
                 axs = [axs]
-            for idx, key in enumerate(keys):
-                series = np.asarray(disturbance_profile[key], float)[start_step : start_step + W]
-                axs[idx].plot(t_step, series)
+            for idx, (label, series) in enumerate(disturbance_items):
+                axs[idx].plot(t_step, np.asarray(series, float)[start_step : start_step + W])
                 shade_test_regions(axs[idx], spans, delta_t)
-                axs[idx].set_ylabel(key)
+                axs[idx].set_ylabel(label)
                 axs[idx].spines["top"].set_visible(False)
                 axs[idx].spines["right"].set_visible(False)
                 _make_axes_bold(axs[idx])
-            axs[-1].set_xlabel("Time (h)")
+            axs[-1].set_xlabel(time_label)
             _save_fig(fig, out_dir, "fig_matrix_disturbance_profile", save_pdf=save_pdf)
 
     _plot_mismatch_diagnostics(
@@ -1288,7 +1344,8 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
 
 
 def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
-    _set_plot_style()
+    style_profile = str(plot_cfg.get("style_profile", "hybrid")).lower()
+    _set_plot_style(style_profile=style_profile)
     bundle = normalize_result_bundle(result_bundle)
 
     directory = os.fspath(plot_cfg["directory"])
@@ -1304,6 +1361,10 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
     time_in_sub_episodes = bundle["time_in_sub_episodes"]
     n_inputs = bundle["n_inputs"]
     n_outputs = bundle["n_outputs"]
+    metadata = resolve_system_metadata(bundle=bundle, plot_cfg=plot_cfg, n_outputs=n_outputs, n_inputs=n_inputs)
+    output_labels = metadata["output_labels"]
+    input_labels = metadata["input_labels"]
+    time_label = metadata["time_label"]
 
     y_sp_phys_full = ysp_scaled_dev_to_phys(
         bundle["y_sp"],
@@ -1334,11 +1395,11 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
         ax.plot(t_line, y_line[:, idx], label="RL")
         ax.step(t_step, y_sp_phys[:, idx], where="post", linestyle="--", label="Setpoint")
         shade_test_regions(ax, spans, delta_t)
-        ax.set_ylabel(f"y{idx + 1}")
+        ax.set_ylabel(output_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "fig_weights_outputs_full", save_pdf=save_pdf)
 
@@ -1354,11 +1415,11 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
             linestyle="--",
             label="Setpoint",
         )
-        ax.set_ylabel(f"y{idx + 1}")
+        ax.set_ylabel(output_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "fig_weights_outputs_last_block", save_pdf=save_pdf)
 
@@ -1368,11 +1429,11 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
     for idx, ax in enumerate(axs):
         ax.step(t_step, u_line[:, idx], where="post")
         shade_test_regions(ax, spans, delta_t)
-        ax.set_ylabel(f"u{idx + 1}")
+        ax.set_ylabel(input_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     _save_fig(fig, out_dir, "fig_weights_inputs_full", save_pdf=save_pdf)
 
     fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
@@ -1380,11 +1441,11 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
         axs = [axs]
     for idx, ax in enumerate(axs):
         ax.step(t_step_blk, u_line[s_last : s_last + last_steps, idx], where="post")
-        ax.set_ylabel(f"u{idx + 1}")
+        ax.set_ylabel(input_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     _save_fig(fig, out_dir, "fig_weights_inputs_last_block", save_pdf=save_pdf)
 
     n_ep_total = int(nFE // time_in_sub_episodes) if time_in_sub_episodes > 0 else 0
@@ -1407,7 +1468,7 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
         ax.plot(t_step, rewards_seg)
         shade_test_regions(ax, spans, delta_t)
         ax.set_ylabel("Reward")
-        ax.set_xlabel("Time (h)")
+        ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
@@ -1420,7 +1481,7 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
         for idx in range(n_outputs):
             axs[idx].plot(t_step, err_seg[:, idx])
             shade_test_regions(axs[idx], spans, delta_t)
-            axs[idx].set_ylabel(f"e{idx + 1}")
+            axs[idx].set_ylabel(f"e[{idx + 1}]")
             axs[idx].spines["top"].set_visible(False)
             axs[idx].spines["right"].set_visible(False)
             _make_axes_bold(axs[idx])
@@ -1428,7 +1489,7 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
         axs[-1].plot(t_step, err_norm)
         shade_test_regions(axs[-1], spans, delta_t)
         axs[-1].set_ylabel("||e||")
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[-1].spines["top"].set_visible(False)
         axs[-1].spines["right"].set_visible(False)
         _make_axes_bold(axs[-1])
@@ -1443,11 +1504,11 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
         for idx, ax in enumerate(axs):
             ax.step(t_step, du_seg[:, idx], where="post")
             shade_test_regions(ax, spans, delta_t)
-            ax.set_ylabel(f"du{idx + 1}")
+            ax.set_ylabel(rf"$\Delta u_{{{idx + 1}}}$")
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_weights_delta_u", save_pdf=save_pdf)
 
     weight_log = bundle.get("weight_log")
@@ -1475,7 +1536,7 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_weights_multipliers_full", save_pdf=save_pdf)
 
         fig, axs = plt.subplots(4, 1, figsize=(8.2, 9.0), sharex=True)
@@ -1496,7 +1557,7 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_weights_multipliers_last_block", save_pdf=save_pdf)
 
     yhat = bundle.get("yhat")
@@ -1517,30 +1578,34 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
             ax.plot(t_step, np.asarray(yhat[idx, start_step : start_step + W], float), label="Observer")
             ax.plot(t_step, meas_scaled[start_step : start_step + W], linestyle="--", label="Measurement")
             shade_test_regions(ax, spans, delta_t)
-            ax.set_ylabel(f"yhat{idx + 1}")
+            ax.set_ylabel(output_labels[idx])
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_weights_observer_overlay", save_pdf=save_pdf)
 
     disturbance_profile = bundle.get("disturbance_profile")
     if disturbance_profile:
-        keys = [key for key in ("qi", "qs", "ha") if key in disturbance_profile]
-        if keys:
-            fig, axs = plt.subplots(len(keys), 1, figsize=(8.6, 3.0 + 2.0 * max(1, len(keys) - 1)), sharex=True)
-            if len(keys) == 1:
+        disturbance_items = disturbance_plot_items(disturbance_profile, metadata.get("disturbance_labels"))
+        if disturbance_items:
+            fig, axs = plt.subplots(
+                len(disturbance_items),
+                1,
+                figsize=(8.6, 3.0 + 2.0 * max(1, len(disturbance_items) - 1)),
+                sharex=True,
+            )
+            if len(disturbance_items) == 1:
                 axs = [axs]
-            for idx, key in enumerate(keys):
-                series = np.asarray(disturbance_profile[key], float)[start_step : start_step + W]
-                axs[idx].plot(t_step, series)
+            for idx, (label, series) in enumerate(disturbance_items):
+                axs[idx].plot(t_step, np.asarray(series, float)[start_step : start_step + W])
                 shade_test_regions(axs[idx], spans, delta_t)
-                axs[idx].set_ylabel(key)
+                axs[idx].set_ylabel(label)
                 axs[idx].spines["top"].set_visible(False)
                 axs[idx].spines["right"].set_visible(False)
                 _make_axes_bold(axs[idx])
-            axs[-1].set_xlabel("Time (h)")
+            axs[-1].set_xlabel(time_label)
             _save_fig(fig, out_dir, "fig_weights_disturbance_profile", save_pdf=save_pdf)
 
     _plot_mismatch_diagnostics(
@@ -1602,7 +1667,8 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
 
 
 def plot_residual_results_core(result_bundle, plot_cfg):
-    _set_plot_style()
+    style_profile = str(plot_cfg.get("style_profile", "hybrid")).lower()
+    _set_plot_style(style_profile=style_profile)
     bundle = normalize_result_bundle(result_bundle)
 
     directory = os.fspath(plot_cfg["directory"])
@@ -1618,6 +1684,10 @@ def plot_residual_results_core(result_bundle, plot_cfg):
     time_in_sub_episodes = bundle["time_in_sub_episodes"]
     n_inputs = bundle["n_inputs"]
     n_outputs = bundle["n_outputs"]
+    metadata = resolve_system_metadata(bundle=bundle, plot_cfg=plot_cfg, n_outputs=n_outputs, n_inputs=n_inputs)
+    output_labels = metadata["output_labels"]
+    input_labels = metadata["input_labels"]
+    time_label = metadata["time_label"]
 
     y_sp_phys_full = ysp_scaled_dev_to_phys(
         bundle["y_sp"],
@@ -1648,11 +1718,11 @@ def plot_residual_results_core(result_bundle, plot_cfg):
         ax.plot(t_line, y_line[:, idx], label="RL")
         ax.step(t_step, y_sp_phys[:, idx], where="post", linestyle="--", label="Setpoint")
         shade_test_regions(ax, spans, delta_t)
-        ax.set_ylabel(f"y{idx + 1}")
+        ax.set_ylabel(output_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "fig_residual_outputs_full", save_pdf=save_pdf)
 
@@ -1668,11 +1738,11 @@ def plot_residual_results_core(result_bundle, plot_cfg):
             linestyle="--",
             label="Setpoint",
         )
-        ax.set_ylabel(f"y{idx + 1}")
+        ax.set_ylabel(output_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "fig_residual_outputs_last_block", save_pdf=save_pdf)
 
@@ -1682,11 +1752,11 @@ def plot_residual_results_core(result_bundle, plot_cfg):
     for idx, ax in enumerate(axs):
         ax.step(t_step, u_line[:, idx], where="post")
         shade_test_regions(ax, spans, delta_t)
-        ax.set_ylabel(f"u{idx + 1}")
+        ax.set_ylabel(input_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     _save_fig(fig, out_dir, "fig_residual_inputs_full", save_pdf=save_pdf)
 
     fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
@@ -1694,11 +1764,11 @@ def plot_residual_results_core(result_bundle, plot_cfg):
         axs = [axs]
     for idx, ax in enumerate(axs):
         ax.step(t_step_blk, u_line[s_last : s_last + last_steps, idx], where="post")
-        ax.set_ylabel(f"u{idx + 1}")
+        ax.set_ylabel(input_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     _save_fig(fig, out_dir, "fig_residual_inputs_last_block", save_pdf=save_pdf)
 
     u_base = bundle.get("u_base")
@@ -1711,11 +1781,11 @@ def plot_residual_results_core(result_bundle, plot_cfg):
             ax.step(t_step, u_line[:, idx], where="post", label="Applied")
             ax.step(t_step, u_base_seg[:, idx], where="post", linestyle="--", label="MPC baseline")
             shade_test_regions(ax, spans, delta_t)
-            ax.set_ylabel(f"u{idx + 1}")
+            ax.set_ylabel(input_labels[idx])
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_residual_inputs_overlay_full", save_pdf=save_pdf)
 
@@ -1731,11 +1801,11 @@ def plot_residual_results_core(result_bundle, plot_cfg):
                 linestyle="--",
                 label="MPC baseline",
             )
-            ax.set_ylabel(f"u{idx + 1}")
+            ax.set_ylabel(input_labels[idx])
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_residual_inputs_overlay_last_block", save_pdf=save_pdf)
 
@@ -1759,7 +1829,7 @@ def plot_residual_results_core(result_bundle, plot_cfg):
         ax.plot(t_step, rewards_seg)
         shade_test_regions(ax, spans, delta_t)
         ax.set_ylabel("Reward")
-        ax.set_xlabel("Time (h)")
+        ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
@@ -1772,7 +1842,7 @@ def plot_residual_results_core(result_bundle, plot_cfg):
         for idx in range(n_outputs):
             axs[idx].plot(t_step, err_seg[:, idx])
             shade_test_regions(axs[idx], spans, delta_t)
-            axs[idx].set_ylabel(f"e{idx + 1}")
+            axs[idx].set_ylabel(f"e[{idx + 1}]")
             axs[idx].spines["top"].set_visible(False)
             axs[idx].spines["right"].set_visible(False)
             _make_axes_bold(axs[idx])
@@ -1780,7 +1850,7 @@ def plot_residual_results_core(result_bundle, plot_cfg):
         axs[-1].plot(t_step, err_norm)
         shade_test_regions(axs[-1], spans, delta_t)
         axs[-1].set_ylabel("||e||")
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[-1].spines["top"].set_visible(False)
         axs[-1].spines["right"].set_visible(False)
         _make_axes_bold(axs[-1])
@@ -1795,11 +1865,11 @@ def plot_residual_results_core(result_bundle, plot_cfg):
         for idx, ax in enumerate(axs):
             ax.step(t_step, du_seg[:, idx], where="post")
             shade_test_regions(ax, spans, delta_t)
-            ax.set_ylabel(f"du{idx + 1}")
+            ax.set_ylabel(rf"$\Delta u_{{{idx + 1}}}$")
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_residual_delta_u", save_pdf=save_pdf)
 
     residual_exec_log = bundle.get("residual_exec_log")
@@ -1828,11 +1898,11 @@ def plot_residual_results_core(result_bundle, plot_cfg):
                 ax.step(t_step, raw_seg[:, idx], where="post", linestyle=":", label="Raw")
             ax.step(t_step, exec_seg[:, idx], where="post", label="Executed")
             shade_test_regions(ax, spans, delta_t)
-            ax.set_ylabel(f"r{idx + 1}")
+            ax.set_ylabel(rf"$u^r_{{{idx + 1}}}$")
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_residual_correction_full", save_pdf=save_pdf)
 
@@ -1865,11 +1935,11 @@ def plot_residual_results_core(result_bundle, plot_cfg):
                 where="post",
                 label="Executed",
             )
-            ax.set_ylabel(f"r{idx + 1}")
+            ax.set_ylabel(rf"$u^r_{{{idx + 1}}}$")
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_residual_correction_last_block", save_pdf=save_pdf)
 
@@ -1891,30 +1961,34 @@ def plot_residual_results_core(result_bundle, plot_cfg):
             ax.plot(t_step, np.asarray(yhat[idx, start_step : start_step + W], float), label="Observer")
             ax.plot(t_step, meas_scaled[start_step : start_step + W], linestyle="--", label="Measurement")
             shade_test_regions(ax, spans, delta_t)
-            ax.set_ylabel(f"yhat{idx + 1}")
+            ax.set_ylabel(output_labels[idx])
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_residual_observer_overlay", save_pdf=save_pdf)
 
     disturbance_profile = bundle.get("disturbance_profile")
     if disturbance_profile:
-        keys = [key for key in ("qi", "qs", "ha") if key in disturbance_profile]
-        if keys:
-            fig, axs = plt.subplots(len(keys), 1, figsize=(8.6, 3.0 + 2.0 * max(1, len(keys) - 1)), sharex=True)
-            if len(keys) == 1:
+        disturbance_items = disturbance_plot_items(disturbance_profile, metadata.get("disturbance_labels"))
+        if disturbance_items:
+            fig, axs = plt.subplots(
+                len(disturbance_items),
+                1,
+                figsize=(8.6, 3.0 + 2.0 * max(1, len(disturbance_items) - 1)),
+                sharex=True,
+            )
+            if len(disturbance_items) == 1:
                 axs = [axs]
-            for idx, key in enumerate(keys):
-                series = np.asarray(disturbance_profile[key], float)[start_step : start_step + W]
-                axs[idx].plot(t_step, series)
+            for idx, (label, series) in enumerate(disturbance_items):
+                axs[idx].plot(t_step, np.asarray(series, float)[start_step : start_step + W])
                 shade_test_regions(axs[idx], spans, delta_t)
-                axs[idx].set_ylabel(key)
+                axs[idx].set_ylabel(label)
                 axs[idx].spines["top"].set_visible(False)
                 axs[idx].spines["right"].set_visible(False)
                 _make_axes_bold(axs[idx])
-            axs[-1].set_xlabel("Time (h)")
+            axs[-1].set_xlabel(time_label)
             _save_fig(fig, out_dir, "fig_residual_disturbance_profile", save_pdf=save_pdf)
 
     _plot_mismatch_diagnostics(
@@ -2028,9 +2102,10 @@ def plot_combined_results_core(result_bundle, plot_cfg):
     t_step_blk = t_line_blk[:-1]
     spans = episode_spans(bundle.get("test_train_dict"), nFE)
     debug_mode = style_profile == "debug"
-
-    output_labels = [r"$\eta$ (L/g)", r"$T$ (K)"] if n_outputs == 2 else [f"y{idx + 1}" for idx in range(n_outputs)]
-    input_labels = [r"$Q_c$ (L/h)", r"$Q_m$ (L/h)"] if n_inputs == 2 else [f"u{idx + 1}" for idx in range(n_inputs)]
+    metadata = resolve_system_metadata(bundle=bundle, plot_cfg=plot_cfg, n_outputs=n_outputs, n_inputs=n_inputs)
+    output_labels = metadata["output_labels"]
+    input_labels = metadata["input_labels"]
+    time_label = metadata["time_label"]
 
     def shade_segment(ax, segment_start, segment_len):
         for span_start, span_end, is_test in spans:
@@ -2059,7 +2134,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, prefix, save_pdf=save_pdf)
 
@@ -2074,7 +2149,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, prefix, save_pdf=save_pdf)
 
     plot_outputs("fig_combined_outputs_full", y_line, y_sp_phys, t_line, t_step, start_step, W)
@@ -2116,7 +2191,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
         ax.plot(t_step, rewards_seg)
         shade_segment(ax, start_step, W)
         ax.set_ylabel("Reward")
-        ax.set_xlabel("Time (h)")
+        ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
@@ -2136,7 +2211,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
         axs[-1].plot(t_step, np.linalg.norm(dy_seg, axis=1))
         shade_segment(axs[-1], start_step, W)
         axs[-1].set_ylabel(r"$||e||_2$")
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[-1].spines["top"].set_visible(False)
         axs[-1].spines["right"].set_visible(False)
         _make_axes_bold(axs[-1])
@@ -2155,7 +2230,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_combined_delta_u", save_pdf=save_pdf)
 
     if bundle.get("yhat") is not None:
@@ -2177,18 +2252,25 @@ def plot_combined_results_core(result_bundle, plot_cfg):
         _save_fig(fig, out_dir, "fig_combined_observer_overlay", save_pdf=save_pdf)
 
     if bundle.get("disturbance_profile") is not None:
-        disturbance = bundle["disturbance_profile"]
-        fig, axs = plt.subplots(3, 1, figsize=(8.3, 7.2), sharex=True)
-        keys = [("qi", r"$Q_i$"), ("qs", r"$Q_s$"), ("ha", r"$hA$")]
-        for ax, (key, label) in zip(axs, keys):
-            ax.plot(t_step, np.asarray(disturbance[key], float)[start_step : start_step + W])
-            shade_segment(ax, start_step, W)
-            ax.set_ylabel(label)
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
-        _save_fig(fig, out_dir, "fig_combined_disturbance_profile", save_pdf=save_pdf)
+        disturbance_items = disturbance_plot_items(bundle["disturbance_profile"], metadata.get("disturbance_labels"))
+        if disturbance_items:
+            fig, axs = plt.subplots(
+                len(disturbance_items),
+                1,
+                figsize=(8.3, 3.2 + 2.0 * max(1, len(disturbance_items) - 1)),
+                sharex=True,
+            )
+            if len(disturbance_items) == 1:
+                axs = [axs]
+            for ax, (label, series) in zip(axs, disturbance_items):
+                ax.plot(t_step, np.asarray(series, float)[start_step : start_step + W])
+                shade_segment(ax, start_step, W)
+                ax.set_ylabel(label)
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel(time_label)
+            _save_fig(fig, out_dir, "fig_combined_disturbance_profile", save_pdf=save_pdf)
 
     if active_agents.get("horizon") and bundle.get("horizon_trace") is not None:
         horizon_trace = np.asarray(bundle["horizon_trace"], float)
@@ -2203,7 +2285,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
         axs[1].step(t_step, ht_seg[:, 1], where="post")
         shade_segment(axs[1], start_step, W)
         axs[1].set_ylabel("Hc")
-        axs[1].set_xlabel("Time (h)")
+        axs[1].set_xlabel(time_label)
         axs[1].spines["top"].set_visible(False)
         axs[1].spines["right"].set_visible(False)
         _make_axes_bold(axs[1])
@@ -2215,7 +2297,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             ax.step(t_step, a_seg, where="post")
             shade_segment(ax, start_step, W)
             ax.set_ylabel("Action Index")
-            ax.set_xlabel("Time (h)")
+            ax.set_xlabel(time_label)
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
@@ -2259,7 +2341,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             axs[idx + 1].spines["top"].set_visible(False)
             axs[idx + 1].spines["right"].set_visible(False)
             _make_axes_bold(axs[idx + 1])
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_combined_matrix_multipliers", save_pdf=save_pdf)
 
     if active_agents.get("weights") and bundle.get("weight_log") is not None:
@@ -2276,7 +2358,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_combined_weight_multipliers", save_pdf=save_pdf)
 
     if active_agents.get("residual") and bundle.get("residual_exec_log") is not None:
@@ -2296,7 +2378,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_combined_residual_traces", save_pdf=save_pdf)
 
@@ -2313,7 +2395,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
                 ax.spines["top"].set_visible(False)
                 ax.spines["right"].set_visible(False)
                 _make_axes_bold(ax)
-            axs[-1].set_xlabel("Time (h)")
+            axs[-1].set_xlabel(time_label)
             axs[0].legend(loc="best")
             _save_fig(fig, out_dir, "fig_combined_residual_input_overlay", save_pdf=save_pdf)
 
@@ -2342,7 +2424,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Time (h)")
+        axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_combined_decision_timeline", save_pdf=save_pdf)
 
     if debug_mode and bundle.get("rho_log") is not None:
@@ -2351,7 +2433,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
         ax.plot(t_step, rho_seg)
         shade_segment(ax, start_step, W)
         ax.set_ylabel(r"$\rho$")
-        ax.set_xlabel("Time (h)")
+        ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
@@ -2379,7 +2461,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
                     ax.spines["top"].set_visible(False)
                     ax.spines["right"].set_visible(False)
                     _make_axes_bold(ax)
-                axs[-1].set_xlabel("Time (h)")
+                axs[-1].set_xlabel(time_label)
                 _save_fig(fig, out_dir, f"fig_combined_{fname}", save_pdf=save_pdf)
 
         for key in ("horizon", "matrix", "weight", "residual"):
@@ -2455,6 +2537,10 @@ def compare_mpc_rl_from_dirs_core(
     rl_u = rl_bundle["u_step_full"]
     mpc_y = mpc_bundle["y_line_full"]
     mpc_u = mpc_bundle["u_step_full"]
+    metadata = resolve_system_metadata(bundle=rl_bundle, plot_cfg={}, n_outputs=rl_bundle["n_outputs"], n_inputs=rl_bundle["n_inputs"])
+    output_labels = metadata["output_labels"]
+    input_labels = metadata["input_labels"]
+    time_label = metadata["time_label"]
 
     delta_t = rl_bundle["delta_t"]
     time_in_sub_episodes = rl_bundle["time_in_sub_episodes"]
@@ -2509,11 +2595,11 @@ def compare_mpc_rl_from_dirs_core(
         ax.plot(t_line, rl_y_seg[:, idx], label="RL")
         ax.plot(t_line, mpc_y_seg[:, idx], linestyle="--", label="MPC")
         ax.step(t_step, y_sp_phys[:, idx], where="post", linestyle=":", label="Setpoint")
-        ax.set_ylabel(f"y{idx + 1}")
+        ax.set_ylabel(output_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "compare_outputs_full", save_pdf=save_pdf)
 
@@ -2524,11 +2610,11 @@ def compare_mpc_rl_from_dirs_core(
         ax.plot(t_line_last, rl_y_last[:, idx], label="RL")
         ax.plot(t_line_last, mpc_y_last[:, idx], linestyle="--", label="MPC")
         ax.step(t_step_last, sp_last[:, idx], where="post", linestyle=":", label="Setpoint")
-        ax.set_ylabel(f"y{idx + 1}")
+        ax.set_ylabel(output_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "compare_outputs_last_episode", save_pdf=save_pdf)
 
@@ -2538,11 +2624,11 @@ def compare_mpc_rl_from_dirs_core(
     for idx, ax in enumerate(axs):
         ax.step(t_step_last, rl_u_last[:, idx], where="post", label="RL")
         ax.step(t_step_last, mpc_u_last[:, idx], where="post", linestyle="--", label="MPC")
-        ax.set_ylabel(f"u{idx + 1}")
+        ax.set_ylabel(input_labels[idx])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
-    axs[-1].set_xlabel("Time (h)")
+    axs[-1].set_xlabel(time_label)
     axs[0].legend(loc="best")
     _save_fig(fig, out_dir, "compare_inputs_last_episode", save_pdf=save_pdf)
 

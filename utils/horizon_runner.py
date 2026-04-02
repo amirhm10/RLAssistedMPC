@@ -5,8 +5,11 @@ from Simulation.mpc import MpcSolverGeneral
 from utils.helpers import (
     action_to_horizons,
     apply_min_max,
+    build_polymer_disturbance_schedule,
+    disturbance_profile_from_schedule,
     generate_setpoints_training_rl_gradually,
     reverse_min_max,
+    step_system_with_disturbance,
 )
 from utils.state_features import build_rl_state
 
@@ -42,6 +45,9 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     data_max = np.asarray(runtime_ctx["data_max"], float)
     h_recipes = list(runtime_ctx["horizon_recipes"])
     reward_fn = runtime_ctx["reward_fn"]
+    system_stepper = runtime_ctx.get("system_stepper")
+    system_metadata = runtime_ctx.get("system_metadata")
+    disturbance_labels = runtime_ctx.get("disturbance_labels")
 
     mode = horizon_cfg["mode"]
     state_mode = str(horizon_cfg.get("state_mode", "standard")).lower()
@@ -65,6 +71,12 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
             float(horizon_cfg["ha_change"]),
         )
     )
+
+    disturbance_schedule = None
+    if mode == "disturb":
+        disturbance_schedule = runtime_ctx.get("disturbance_schedule")
+        if disturbance_schedule is None:
+            disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
 
     n_inputs = B_aug.shape[1]
     n_outputs = C_aug.shape[0]
@@ -179,11 +191,12 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         delta_u_storage[i, :] = delta_u
 
         system.current_input = u_plant
-        system.step()
-        if mode == "disturb":
-            system.hA = ha[i]
-            system.Qs = qs[i]
-            system.Qi = qi[i]
+        step_system_with_disturbance(
+            system,
+            idx=i,
+            disturbance_schedule=disturbance_schedule,
+            system_stepper=system_stepper,
+        )
 
         y_system[i + 1, :] = system.current_output
 
@@ -240,17 +253,15 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
             )
 
     u_rl = reverse_min_max(u_mpc, data_min[:n_inputs], data_max[:n_inputs])
-    disturbance_profile = None
-    if mode == "disturb":
-        disturbance_profile = {
-            "qi": np.asarray(qi, float),
-            "qs": np.asarray(qs, float),
-            "ha": np.asarray(ha, float),
-        }
+    disturbance_profile = disturbance_profile_from_schedule(
+        disturbance_schedule if mode == "disturb" else None,
+        disturbance_labels=disturbance_labels,
+    )
 
     return {
         "mode": mode,
         "state_mode": state_mode,
+        "system_metadata": system_metadata,
         "y_sp": y_sp,
         "steady_states": steady_states,
         "nFE": int(nFE),

@@ -2496,6 +2496,7 @@ def plot_rl_results_multiagent_dqnstyle(
 
 from utils.plotting_core import (
     compare_mpc_rl_from_dirs_core,
+    plot_combined_results_core,
     plot_horizon_results_core,
     plot_matrix_multiplier_results_core,
     plot_residual_results_core,
@@ -2519,6 +2520,10 @@ def plot_residual_results(result_bundle, plot_cfg):
     return plot_residual_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
 
 
+def plot_combined_results(result_bundle, plot_cfg):
+    return plot_combined_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+
+
 def compare_mpc_rl_from_dirs(
     rl_dir,
     mpc_path_or_dir,
@@ -2530,6 +2535,7 @@ def compare_mpc_rl_from_dirs(
     start_idx=None,
     n_inputs=2,
     save_pdf=False,
+    style_profile="hybrid",
 ):
     del start_idx
     return compare_mpc_rl_from_dirs_core(
@@ -2542,6 +2548,7 @@ def compare_mpc_rl_from_dirs(
         start_episode=start_episode,
         n_inputs=n_inputs,
         save_pdf=save_pdf,
+        style_profile=style_profile,
     )
 
 
@@ -2735,3 +2742,99 @@ def compare_mpc_rl_disturb_from_dirs(
         n_inputs=n_inputs,
         save_pdf=save_pdf,
     )
+
+
+def plot_rl_results_multiagent_dqnstyle(
+    y_sp,
+    steady_states,
+    nFE,
+    delta_t,
+    time_in_sub_episodes,
+    y_rl,
+    u_rl,
+    avg_rewards,
+    data_min,
+    data_max,
+    reward_fn=None,
+    horizon_trace=None,
+    mpc_horizons=None,
+    recipe_counts=True,
+    horizon_recipes=None,
+    alpha_log=None,
+    delta_log=None,
+    weight_log=None,
+    model_low=None,
+    model_high=None,
+    weights_low=None,
+    weights_high=None,
+    mpc_path_or_dir=None,
+    mpc_reward_mode="auto",
+    start_episode=1,
+    prefix_name="multi_agent_run",
+    directory=None,
+    save_pdf=False,
+    residual_raw_log=None,
+    residual_exec_log=None,
+    u_base=None,
+    residual_low=None,
+    residual_high=None,
+    style_profile="hybrid",
+):
+    del recipe_counts
+    del mpc_reward_mode
+    result_bundle = {
+        "y_sp": y_sp,
+        "steady_states": steady_states,
+        "nFE": nFE,
+        "delta_t": delta_t,
+        "time_in_sub_episodes": time_in_sub_episodes,
+        "y": y_rl,
+        "u": u_rl,
+        "avg_rewards": avg_rewards,
+        "data_min": data_min,
+        "data_max": data_max,
+        "horizon_trace": horizon_trace,
+        "horizon_action_trace": None,
+        "horizon_agent_kind": "dqn" if horizon_trace is not None else None,
+        "horizon_state_mode": "standard",
+        "horizon_recipes": horizon_recipes,
+        "matrix_alpha_log": alpha_log,
+        "matrix_delta_log": delta_log,
+        "matrix_low_coef": model_low,
+        "matrix_high_coef": model_high,
+        "matrix_agent_kind": "td3" if alpha_log is not None else None,
+        "matrix_state_mode": "standard",
+        "weight_log": weight_log,
+        "weight_low_coef": weights_low,
+        "weight_high_coef": weights_high,
+        "weight_agent_kind": "td3" if weight_log is not None else None,
+        "weight_state_mode": "standard",
+        "residual_raw_log": residual_raw_log,
+        "residual_exec_log": residual_exec_log,
+        "residual_low_coef": residual_low,
+        "residual_high_coef": residual_high,
+        "residual_agent_kind": "td3" if residual_exec_log is not None else None,
+        "residual_state_mode": "standard",
+        "u_base": u_base,
+        "active_agents": {
+            "horizon": horizon_trace is not None,
+            "matrix": alpha_log is not None,
+            "weights": weight_log is not None,
+            "residual": residual_exec_log is not None,
+        },
+        "mpc_horizons": mpc_horizons,
+        "mpc_path_or_dir": mpc_path_or_dir,
+    }
+    plot_cfg = {
+        "directory": directory if directory is not None else __import__("os").getcwd(),
+        "prefix_name": prefix_name,
+        "start_episode": start_episode,
+        "save_pdf": save_pdf,
+        "style_profile": style_profile,
+        "reward_fn": reward_fn,
+        "include_baseline_compare": mpc_path_or_dir is not None and reward_fn is not None,
+        "compare_mode": "disturb" if "dist" in str(prefix_name).lower() else "nominal",
+        "compare_prefix": "baseline_compare",
+        "mpc_path_or_dir": mpc_path_or_dir,
+    }
+    return plot_combined_results(result_bundle=result_bundle, plot_cfg=plot_cfg)

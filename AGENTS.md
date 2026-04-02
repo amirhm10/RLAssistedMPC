@@ -151,8 +151,9 @@ Disturbance-oriented notebooks commonly vary `Qi`, `Qs`, and `hA`. Some mismatch
 
 - There is no repo-level `README`, `pyproject.toml`, `requirements.txt`, or environment file in the current tree.
 - Do not claim the repo has a reproducible shell environment unless the user adds one.
-- The shell `python` available in this workspace is not the same environment used to run the notebooks. During review, the shell interpreter did not have `numpy` installed.
-- Notebook metadata currently reports a Python 3 kernel name, but `language_info` still says Python `2.7.6`. Treat that metadata as stale.
+- The intended notebook/runtime environment is the Conda environment `rl-env`.
+- The Jupyter kernel name for this repo should be `rl-env` with display name `Python (rl-env)`.
+- When running Python-based checks from the terminal, prefer `C:\Users\HAMEDI\miniconda3\envs\rl-env\python.exe` instead of the shell `python`, because the shell interpreter may not have the scientific stack installed.
 - Because the environment is not declared in-repo, prefer documenting observed behavior over inventing setup commands.
 
 ## Known Codebase Caveats

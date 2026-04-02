@@ -9,6 +9,7 @@ from utils.helpers import (
     disturbance_profile_from_schedule,
     generate_setpoints_training_rl_gradually,
     reverse_min_max,
+    shift_control_sequence,
     step_system_with_disturbance,
 )
 from utils.state_features import build_rl_state
@@ -131,6 +132,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     if not default_action:
         raise ValueError("Default (predict_h, cont_h) is not present in horizon_recipes.")
     default_action = int(default_action[0])
+    current_ic_opt = np.zeros(n_inputs * int(current_Hc))
 
     for i in range(nFE):
         if i in test_train_dict:
@@ -163,6 +165,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
                 if (Hp, Hc) != (current_Hp, current_Hc):
                     mpc_obj = rebuild_mpc(Hp, Hc)
                     current_Hp, current_Hc = Hp, Hc
+                    current_ic_opt = np.zeros(n_inputs * int(current_Hc))
                 last_action = a_idx
             else:
                 a_idx = int(last_action)
@@ -175,14 +178,14 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         horizon_trace[i] = (Hp, Hc)
 
         bnds = (b1, b2) * int(Hc)
-        IC_opt = np.zeros(n_inputs * int(Hc))
 
         sol = spo.minimize(
             lambda x: mpc_obj.mpc_opt_fun(x, y_sp[i, :], scaled_current_input_dev, xhatdhat[:, i]),
-            IC_opt,
+            current_ic_opt,
             bounds=bnds,
             constraints=cons,
         )
+        current_ic_opt = shift_control_sequence(sol.x[: n_inputs * int(current_Hc)], n_inputs, int(current_Hc))
 
         u_mpc[i, :] = sol.x[:n_inputs] + ss_scaled_inputs
         u_plant = reverse_min_max(u_mpc[i, :], data_min[:n_inputs], data_max[:n_inputs])

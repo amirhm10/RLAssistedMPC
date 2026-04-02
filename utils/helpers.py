@@ -73,6 +73,38 @@ def reverse_min_max(scaled_data, min_val, max_val):
     return original_data
 
 
+def shift_control_sequence(opt_sequence, n_inputs, control_horizon):
+    """
+    Shift an MPC control sequence forward by one step and repeat the last move.
+
+    Parameters
+    ----------
+    opt_sequence : array-like
+        Flat optimization vector containing the control sequence.
+    n_inputs : int
+        Number of manipulated inputs.
+    control_horizon : int
+        Number of control moves in the sequence.
+
+    Returns
+    -------
+    np.ndarray
+        Flat warm-start vector with the first move discarded and the last move
+        repeated once.
+    """
+    control_horizon = int(control_horizon)
+    n_inputs = int(n_inputs)
+    if control_horizon <= 0 or n_inputs <= 0:
+        raise ValueError("control_horizon and n_inputs must be positive.")
+
+    seq = np.asarray(opt_sequence, float).reshape(control_horizon, n_inputs)
+    if control_horizon == 1:
+        return seq.reshape(-1).copy()
+
+    shifted = np.vstack((seq[1:, :], seq[-1:, :]))
+    return shifted.reshape(-1)
+
+
 def apply_rl_scaled(min_max_dict, x_d_states, y_sp, u):
     """
     This function will apply RL scaling for the neural networks

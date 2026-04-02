@@ -9,6 +9,7 @@ from utils.helpers import (
     disturbance_profile_from_schedule,
     generate_setpoints_training_rl_gradually,
     reverse_min_max,
+    shift_control_sequence,
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
@@ -262,6 +263,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         NC=current_Hc,
     )
     L = compute_observer_gain(MPC_obj.A, MPC_obj.C, poles)
+    current_ic_opt = np.zeros(n_inputs * current_Hc)
 
     last_horizon_idx = None
     last_model_raw = None
@@ -382,6 +384,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                 NC=int(Hc),
             )
             current_Hp, current_Hc = int(Hp), int(Hc)
+            current_ic_opt = np.zeros(n_inputs * current_Hc)
         else:
             MPC_obj.A = A_now
             MPC_obj.B = B_now
@@ -396,14 +399,14 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             for _ in range(current_Hc)
             for j in range(n_inputs)
         )
-        ic_opt = np.zeros(n_inputs * current_Hc)
 
         sol = spo.minimize(
             lambda x: MPC_obj.mpc_opt_fun(x, y_sp[i, :], scaled_current_input_dev, xhatdhat[:, i]),
-            ic_opt,
+            current_ic_opt,
             bounds=bounds,
             constraints=[],
         )
+        current_ic_opt = shift_control_sequence(sol.x[: n_inputs * current_Hc], n_inputs, current_Hc)
 
         u_base = np.asarray(sol.x[:n_inputs], float) + ss_scaled_inputs
         u_base = np.clip(u_base, u_min_scaled_abs, u_max_scaled_abs)

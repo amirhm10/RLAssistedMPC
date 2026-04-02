@@ -2,11 +2,15 @@
 
 ## Project Intent
 
-This repository studies RL-assisted MPC for a polymer CSTR workflow.
+This repository studies RL-assisted MPC across two canonical workflows:
 
-- The nonlinear plant is the polymer reactor model in `Simulation/system_functions.py`.
-- The main controlled outputs are viscosity (`eta`) and reactor temperature (`T`).
-- The main manipulated inputs are coolant flow `Qc` and monomer flow `Qm`.
+- polymer CSTR
+- distillation column
+
+- The polymer nonlinear plant is the reactor model in `Simulation/system_functions.py`.
+- The distillation nonlinear plant adapter is in `systems/distillation/plant.py`.
+- Polymer controlled outputs are viscosity (`eta`) and reactor temperature (`T`), with manipulated inputs coolant flow `Qc` and monomer flow `Qm`.
+- Distillation controlled outputs are tray-24 ethane composition and tray-85 temperature, with manipulated inputs reflux flow and reboiler duty.
 - The project uses system identification data and scaling artifacts in `Data/` to build a linear offset-free MPC model, then layers RL supervisors on top of that baseline.
 - Current RL families in the repo are TD3, SAC, and DQN.
 
@@ -41,6 +45,8 @@ Treat the repo as three layers: reusable modules, notebook experiment entrypoint
   Shared neural-network builder and activation initialization utilities.
 - `utils/plotting.py`
   Current plotting and comparison entrypoints for TD3, SAC, DQN, and multi-agent runs.
+- `systems/distillation/`
+  Distillation-specific canonical layer for plant access, data I/O, scenario generation, label metadata, and system-identification helpers.
 - `BasicFunctions/`
   Older helper code and plotting/pretraining utilities. Useful for legacy context, but not the first place to extend current experiments.
 
@@ -64,6 +70,8 @@ The root `.ipynb` files are not just reports. Many contain experiment-local supe
   Multi-agent supervisor experiments that combine horizon, model, and weight decisions.
 - `RL_assisted_MPC_*model_mismatch*.ipynb`
   Model-mismatch and residual-policy variants.
+- `distillation_*_unified.ipynb`
+  Canonical distillation notebook entrypoints built on the shared runner and plotting layer.
 
 Notebook-local functions currently matter. Examples discovered in the repo include:
 
@@ -78,8 +86,12 @@ Assume these directories are outputs unless the user explicitly says otherwise.
 
 - `Data/`
   Baseline MPC results, stored pickles, scaling artifacts, and many single-agent experiment runs.
+- `Data/distillation/`
+  Canonical distillation system-identification assets, baseline MPC pickles, and distillation experiment runs.
 - `Result/`
   Comparison plots across experiments.
+- `Result/distillation/`
+  Canonical distillation comparisons and plot outputs.
 - `Results/`
   Combined multi-agent outputs and comparisons.
 
@@ -110,16 +122,30 @@ Use this map when locating the active notebook entrypoints.
   Generates and analyzes step-test data used for model identification and scaling.
 - `MPCOffsetFree_unified.ipynb`
   Canonical offset-free MPC baseline with shared `RUN_MODE = "nominal" | "disturb"`.
+- `distillation_systemIdentification_unified.ipynb`
+  Canonical distillation system-identification workflow.
+- `distillation_MPCOffsetFree_unified.ipynb`
+  Canonical distillation offset-free MPC baseline with `RUN_MODE` and `DISTURBANCE_PROFILE`.
 - `RL_assisted_MPC_horizons_unified.ipynb`
   Canonical DQN horizon-selection workflow with shared nominal/disturbance handling.
+- `distillation_RL_assisted_MPC_horizons_unified.ipynb`
+  Canonical distillation DQN horizon-selection workflow with distillation-specific disturbance profiles.
 - `RL_assisted_MPC_matrices_unified.ipynb`
   Canonical matrix-multiplier workflow with TD3/SAC selection and shared mismatch-state mode.
+- `distillation_RL_assisted_MPC_matrices_unified.ipynb`
+  Canonical distillation matrix-multiplier workflow with TD3/SAC selection and shared mismatch-state mode.
 - `RL_assisted_MPC_weights_unified.ipynb`
   Canonical penalty-multiplier workflow with TD3/SAC selection and shared mismatch-state mode.
+- `distillation_RL_assisted_MPC_weights_unified.ipynb`
+  Canonical distillation penalty-multiplier workflow with TD3/SAC selection and shared mismatch-state mode.
 - `RL_assisted_MPC_residual_unified.ipynb`
   Canonical residual-correction workflow with TD3/SAC selection, mismatch-state mode, and optional `rho` authority.
+- `distillation_RL_assisted_MPC_residual_unified.ipynb`
+  Canonical distillation residual-correction workflow with TD3/SAC selection, mismatch-state mode, and optional `rho` authority.
 - `RL_assisted_MPC_combined_unified.ipynb`
   Canonical four-agent supervisor combining horizon, matrix, weight, and residual agents.
+- `distillation_RL_assisted_MPC_combined_unified.ipynb`
+  Canonical distillation four-agent supervisor combining horizon, matrix, weight, and residual agents.
 - `RL_assisted_MPC_Poles.ipynb`
   Observer-pole variation study.
 
@@ -156,3 +182,4 @@ Legacy split notebooks were removed after the unified migration. Historical mism
 - There are parallel TD3 implementations in `TD3Agent/agent.py` and `TD3Agent/agent_modified.py`, plus matching replay-buffer variants. Verify which module a notebook imports before changing TD3 behavior.
 - Git history is minimal, so experiment provenance is easier to reconstruct from notebook families and timestamped run folders than from commits.
 - The current worktree is dirty. Assume some notebooks and result artifacts are mid-experiment, not finalized baselines.
+- The archived distillation subtree at `DIstillation Column Case/RL_assisted_MPC_DL/` should be treated as a read-only reference during migration. Do not extend it when adding new distillation work; add new code under `systems/distillation/`, `Data/distillation/`, `Result/distillation/`, and the root `distillation_*_unified.ipynb` entrypoints instead.

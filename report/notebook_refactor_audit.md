@@ -33,6 +33,7 @@
   - `utils/observer.py`
   - `utils/state_features.py`
   - `utils/plotting_core.py`
+  - `systems/distillation/`
 - New notebook entrypoint:
   - `MPCOffsetFree_unified.ipynb`
   - `RL_assisted_MPC_combined_unified.ipynb`
@@ -40,6 +41,25 @@
   - `RL_assisted_MPC_matrices_unified.ipynb`
   - `RL_assisted_MPC_residual_unified.ipynb`
   - `RL_assisted_MPC_weights_unified.ipynb`
+  - `distillation_systemIdentification_unified.ipynb`
+  - `distillation_MPCOffsetFree_unified.ipynb`
+  - `distillation_RL_assisted_MPC_horizons_unified.ipynb`
+  - `distillation_RL_assisted_MPC_matrices_unified.ipynb`
+  - `distillation_RL_assisted_MPC_weights_unified.ipynb`
+  - `distillation_RL_assisted_MPC_residual_unified.ipynb`
+  - `distillation_RL_assisted_MPC_combined_unified.ipynb`
+
+## Distillation migration notes
+
+- The canonical distillation system now lives under `systems/distillation/` with:
+  - plant adapter
+  - canonical scenario generation
+  - canonical data/result naming
+  - label metadata for plotting
+  - system-identification helpers
+- Canonical distillation data now lives under `Data/distillation/`.
+- Canonical distillation plot output now lives under `Result/distillation/`.
+- The archived subtree `DIstillation Column Case/RL_assisted_MPC_DL/` remains a read-only reference and should not receive new work.
 
 ## Removed legacy notebook families
 

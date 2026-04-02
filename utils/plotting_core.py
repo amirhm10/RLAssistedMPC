@@ -2498,11 +2498,12 @@ def plot_combined_results_core(result_bundle, plot_cfg):
 
     mpc_path_or_dir = plot_cfg.get("mpc_path_or_dir", bundle.get("mpc_path_or_dir"))
     if include_baseline_compare and reward_fn is not None and mpc_path_or_dir is not None:
+        compare_directory = os.fspath(plot_cfg.get("compare_directory", directory))
         compare_mpc_rl_from_dirs_core(
             rl_dir=out_dir,
             mpc_path_or_dir=mpc_path_or_dir,
             reward_fn=reward_fn,
-            directory=out_dir,
+            directory=compare_directory,
             prefix_name=compare_prefix,
             compare_mode=compare_mode,
             start_episode=compare_start_episode,

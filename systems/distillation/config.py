@@ -57,6 +57,7 @@ RL_REWARD_DEFAULTS = {
     "bonus_k": 12.0,
     "bonus_p": 0.6,
     "bonus_c": 20.0,
+    "reward_scale": 1.0,
 }
 
 ARCHIVED_DISTILLATION_ROOT = Path("DIstillation Column Case") / "RL_assisted_MPC_DL"

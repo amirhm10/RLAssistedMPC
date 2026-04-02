@@ -54,7 +54,6 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     predict_h = int(horizon_cfg["predict_h"])
     cont_h = int(horizon_cfg["cont_h"])
     decision_interval = int(horizon_cfg["decision_interval"])
-    reward_scale = float(horizon_cfg.get("reward_scale", 1.0))
 
     y_sp, nFE, sub_episodes_changes_dict, time_in_sub_episodes, test_train_dict, warm_start_step, qi, qs, ha = (
         generate_setpoints_training_rl_gradually(
@@ -212,7 +211,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         )
 
         y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
-        reward = reward_fn(delta_y, delta_u, y_sp_phys) * reward_scale
+        reward = reward_fn(delta_y, delta_u, y_sp_phys)
         rewards[i] = reward
 
         next_u_dev = u_mpc[i, :] - ss_scaled_inputs
@@ -285,7 +284,6 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         "disturbance_profile": disturbance_profile,
         "mpc_horizons": (predict_h, cont_h),
         "warm_start_step": int(warm_start_step),
-        "reward_scale": reward_scale,
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
     }

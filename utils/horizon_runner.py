@@ -54,7 +54,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     predict_h = int(horizon_cfg["predict_h"])
     cont_h = int(horizon_cfg["cont_h"])
     decision_interval = int(horizon_cfg["decision_interval"])
-    reward_scale = float(horizon_cfg.get("reward_scale", 0.01))
+    reward_scale = float(horizon_cfg.get("reward_scale", 1.0))
 
     y_sp, nFE, sub_episodes_changes_dict, time_in_sub_episodes, test_train_dict, warm_start_step, qi, qs, ha = (
         generate_setpoints_training_rl_gradually(

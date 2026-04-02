@@ -20,7 +20,7 @@
   - `run_rl_train_disturbance_gradually` appears in 12 TD3/SAC/residual/weight notebooks
   - the horizon supervisor, matrix-multiplier supervisor, weight-multiplier supervisor, and residual-correction supervisor are now migrated
 
-## First migration boundary
+## Active unified surface
 
 - New shared runtime path:
   - `utils/mpc_baseline_runner.py`
@@ -40,20 +40,15 @@
   - `RL_assisted_MPC_matrices_unified.ipynb`
   - `RL_assisted_MPC_residual_unified.ipynb`
   - `RL_assisted_MPC_weights_unified.ipynb`
-- Frozen references for validation:
-  - `MPCOffsetFree.ipynb`
-  - `MPCOffsetFreeDist.ipynb`
-  - `RL_assisted_MPC_horizons.ipynb`
-  - `RL_assisted_MPC_horizons_dist.ipynb`
-  - `RL_assisted_MPC_matrices.ipynb`
-  - `RL_assisted_MPC_matrices_dist.ipynb`
-  - `RL_assisted_MPC_matrices_SAC.ipynb`
-  - `RL_assisted_MPC_matrices_dsit_SAC.ipynb`
-  - `RL_assisted_MPC_weights.ipynb`
-  - `RL_assisted_MPC_weights_dist.ipynb`
-  - `RL_assisted_MPC_residual_model_mismatch.ipynb`
-  - `RL_assisted_MPC_residual_model_mismatch1.ipynb`
-  - `RL_assisted_MPC_residual_model_mismatch2.ipynb`
+
+## Removed legacy notebook families
+
+- Split baseline MPC notebooks were removed after `MPCOffsetFree_unified.ipynb` was added.
+- Split horizon notebooks were removed after `RL_assisted_MPC_horizons_unified.ipynb` was added.
+- Split matrix notebooks, including the typo-named SAC variant, were removed after `RL_assisted_MPC_matrices_unified.ipynb` was added.
+- Split weight notebooks were removed after `RL_assisted_MPC_weights_unified.ipynb` was added.
+- Legacy residual mismatch notebooks were removed after mismatch-state mode and residual mismatch authority were restored in `RL_assisted_MPC_residual_unified.ipynb`.
+- Legacy combined notebooks were removed after `RL_assisted_MPC_combined_unified.ipynb` was added.
 
 ## Plotting direction
 
@@ -65,7 +60,4 @@
 ## Next migration targets
 
 - decide whether the mismatch-state mode should eventually become the default for any unified notebook family, or remain an explicit opt-in switch
-- decide whether `MPCOffsetFreeDist2.ipynb` is a distinct enough legacy baseline to justify a second shared baseline profile, or should remain an archived variant
-- retire the typo-named `RL_assisted_MPC_matrices_dsit_SAC.ipynb` as a frozen legacy reference rather than a canonical entrypoint
-- keep `RL_assisted_MPC_residual_model_mismatch_multi.ipynb` as a frozen legacy combined method; it remains out of scope for the residual-correction unification
 - decide whether saved-run ablation overlays should be added on top of the new baseline-only combined comparison flow

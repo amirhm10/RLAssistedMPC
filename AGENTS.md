@@ -104,35 +104,26 @@ Most run folders contain `input_data.pkl` plus derived `.png` figures.
 
 ## Experiment Map
 
-Use this map when locating the relevant experiment family.
+Use this map when locating the active notebook entrypoints.
 
 - `systemIdentification.ipynb`
   Generates and analyzes step-test data used for model identification and scaling.
-- `MPCOffsetFree.ipynb`
-  Nominal offset-free MPC baseline.
-- `MPCOffsetFreeDist.ipynb`, `MPCOffsetFreeDist1.ipynb`, `MPCOffsetFreeDist2.ipynb`
-  Disturbance and gradual-mismatch MPC baselines.
-- `RL_assisted_MPC_horizons.ipynb`, `RL_assisted_MPC_horizons_dist.ipynb`
-  DQN selects `(Hp, Hc)` horizon recipes for the MPC.
-- `RL_assisted_MPC_matrices.ipynb`, `RL_assisted_MPC_matrices_dist.ipynb`
-  TD3 learns model multipliers applied to the MPC state-space matrices.
-- `RL_assisted_MPC_matrices_SAC.ipynb`, `RL_assisted_MPC_matrices_dsit_SAC.ipynb`
-  SAC versions of the model-multiplier experiments.
-- `RL_assisted_MPC_weights.ipynb`, `RL_assisted_MPC_weights_dist.ipynb`
-  TD3 adjusts MPC output/input weighting terms.
+- `MPCOffsetFree_unified.ipynb`
+  Canonical offset-free MPC baseline with shared `RUN_MODE = "nominal" | "disturb"`.
+- `RL_assisted_MPC_horizons_unified.ipynb`
+  Canonical DQN horizon-selection workflow with shared nominal/disturbance handling.
+- `RL_assisted_MPC_matrices_unified.ipynb`
+  Canonical matrix-multiplier workflow with TD3/SAC selection and shared mismatch-state mode.
+- `RL_assisted_MPC_weights_unified.ipynb`
+  Canonical penalty-multiplier workflow with TD3/SAC selection and shared mismatch-state mode.
+- `RL_assisted_MPC_residual_unified.ipynb`
+  Canonical residual-correction workflow with TD3/SAC selection, mismatch-state mode, and optional `rho` authority.
+- `RL_assisted_MPC_combined_unified.ipynb`
+  Canonical four-agent supervisor combining horizon, matrix, weight, and residual agents.
 - `RL_assisted_MPC_Poles.ipynb`
   Observer-pole variation study.
-- `RL_assisted_MPC_combined.ipynb`, `RL_assisted_MPC_combined_dist.ipynb`
-  Multi-agent supervisor combining horizon, model, and weight actions.
-- `RL_assisted_MPC_matrices_model_mismatch.ipynb`
-  Model-mismatch study layered on multiplier logic.
-- `RL_assisted_MPC_residual_model_mismatch.ipynb`
-- `RL_assisted_MPC_residual_model_mismatch1.ipynb`
-- `RL_assisted_MPC_residual_model_mismatch2.ipynb`
-- `RL_assisted_MPC_residual_model_mismatch_multi.ipynb`
-  Residual-policy and mismatch variants that extend the notebook-local supervisor logic further.
 
-Disturbance-oriented notebooks commonly vary `Qi`, `Qs`, and `hA`. Some mismatch/residual variants also introduce additional notebook-local disturbance terms beyond the reusable module layer.
+Legacy split notebooks were removed after the unified migration. Historical mismatch behavior is documented in `report/model_mismatch_usage.md` rather than preserved as active notebook entrypoints.
 
 ## Working Rules For Agents
 

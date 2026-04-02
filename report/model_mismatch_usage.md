@@ -1,6 +1,6 @@
 # Model Mismatch Usage In The Legacy Mismatch Notebooks
 
-This note explains what "mismatch" means in the old mismatch notebooks and how it is actually used in the code.
+This note explains what "mismatch" meant in the old mismatch notebooks and how it was used in the code before those notebooks were removed from the active repo surface.
 
 ## Notebooks covered
 

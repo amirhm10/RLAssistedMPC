@@ -42,8 +42,6 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
     if run_mode not in {"nominal", "disturb"}:
         raise ValueError("mpc_cfg['run_mode'] must be 'nominal' or 'disturb'.")
 
-    reward_scale = float(mpc_cfg.get("reward_scale", 1.0))
-
     (
         y_sp,
         nFE,
@@ -141,7 +139,7 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
 
         y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
         reward = float(reward_fn(delta_y, delta_u, y_sp_phys))
-        rewards[i] = reward * reward_scale
+        rewards[i] = reward
         rewards_mpc[i] = -(
             float(mpc_cfg["Q1_penalty"]) * delta_y[0] ** 2
             + float(mpc_cfg["Q2_penalty"]) * delta_y[1] ** 2

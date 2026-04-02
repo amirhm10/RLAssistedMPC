@@ -19,12 +19,13 @@ def make_reward_fn_relative_QR(
     bonus_k=12.0,
     bonus_p=0.6,
     bonus_c=20.0,
+    reward_scale=0.01,
 ):
     """
     Reward with relative tracking bands in physical output space.
 
-    The returned reward function matches the notebook behavior and keeps the
-    final *0.01 scaling that is already present in the current experiments.
+    The returned reward function matches the notebook behavior, with an
+    explicit final reward scale so each system can keep its legacy range.
     """
 
     data_min = np.asarray(data_min, float)
@@ -94,7 +95,7 @@ def make_reward_fn_relative_QR(
         phi = _phi(z)
         bonus = w_in * beta * np.sum(qb2 * phi)
 
-        return (-(err_eff + move + lin_out + lin_in) + bonus) * 0.01
+        return (-(err_eff + move + lin_out + lin_in) + bonus) * float(reward_scale)
 
     params = {
         "k_rel": k_rel,
@@ -112,5 +113,6 @@ def make_reward_fn_relative_QR(
         "bonus_k": bonus_k,
         "bonus_p": bonus_p,
         "bonus_c": bonus_c,
+        "reward_scale": float(reward_scale),
     }
     return params, reward_fn

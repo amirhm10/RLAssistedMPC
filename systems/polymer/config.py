@@ -47,4 +47,5 @@ RL_REWARD_DEFAULTS = {
     "bonus_k": 12.0,
     "bonus_p": 0.6,
     "bonus_c": 20.0,
+    "reward_scale": 0.01,
 }

@@ -75,6 +75,13 @@ def normalize_result_bundle(result_bundle):
     bundle["alpha_log"] = None if bundle.get("alpha_log") is None else np.asarray(bundle["alpha_log"], float).reshape(-1)
     bundle["delta_log"] = None if bundle.get("delta_log") is None else np.asarray(bundle["delta_log"], float)
     bundle["weight_log"] = None if bundle.get("weight_log") is None else np.asarray(bundle["weight_log"], float)
+    bundle["residual_exec_log"] = (
+        None if bundle.get("residual_exec_log") is None else np.asarray(bundle["residual_exec_log"], float)
+    )
+    bundle["residual_raw_log"] = (
+        None if bundle.get("residual_raw_log") is None else np.asarray(bundle["residual_raw_log"], float)
+    )
+    bundle["u_base"] = None if bundle.get("u_base") is None else np.asarray(bundle["u_base"], float)
     bundle["actor_losses"] = None if bundle.get("actor_losses") is None else np.asarray(bundle["actor_losses"], float).reshape(-1)
     bundle["critic_losses"] = None if bundle.get("critic_losses") is None else np.asarray(bundle["critic_losses"], float).reshape(-1)
     bundle["alpha_losses"] = None if bundle.get("alpha_losses") is None else np.asarray(bundle["alpha_losses"], float).reshape(-1)
@@ -105,6 +112,22 @@ def normalize_result_bundle(result_bundle):
             bundle["weight_log"] = bundle["weight_log"][:, None]
         if bundle["weight_log"].shape[0] > bundle["nFE"]:
             bundle["weight_log"] = bundle["weight_log"][: bundle["nFE"], :]
+
+    if bundle["residual_exec_log"] is not None:
+        if bundle["residual_exec_log"].ndim == 1:
+            bundle["residual_exec_log"] = bundle["residual_exec_log"][:, None]
+        if bundle["residual_exec_log"].shape[0] > bundle["nFE"]:
+            bundle["residual_exec_log"] = bundle["residual_exec_log"][: bundle["nFE"], :]
+
+    if bundle["residual_raw_log"] is not None:
+        if bundle["residual_raw_log"].ndim == 1:
+            bundle["residual_raw_log"] = bundle["residual_raw_log"][:, None]
+        if bundle["residual_raw_log"].shape[0] > bundle["nFE"]:
+            bundle["residual_raw_log"] = bundle["residual_raw_log"][: bundle["nFE"], :]
+
+    if bundle["u_base"] is not None:
+        if bundle["u_base"].shape[0] > bundle["nFE"]:
+            bundle["u_base"] = bundle["u_base"][: bundle["nFE"], :]
 
     return bundle
 
@@ -1121,6 +1144,372 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
     stored_bundle.update(
         {
             "weight_log": bundle.get("weight_log"),
+            "low_coef": bundle.get("low_coef"),
+            "high_coef": bundle.get("high_coef"),
+            "agent_kind": bundle.get("agent_kind"),
+            "run_mode": bundle.get("run_mode"),
+            "test_train_dict": bundle.get("test_train_dict"),
+            "disturbance_profile": bundle.get("disturbance_profile"),
+            "actor_losses": bundle.get("actor_losses"),
+            "critic_losses": bundle.get("critic_losses"),
+            "alpha_losses": bundle.get("alpha_losses"),
+            "alphas": bundle.get("alphas"),
+            "mpc_path_or_dir": bundle.get("mpc_path_or_dir"),
+        }
+    )
+    save_bundle_pickle(out_dir, stored_bundle)
+    return out_dir
+
+
+def plot_residual_results_core(result_bundle, plot_cfg):
+    _set_plot_style()
+    bundle = normalize_result_bundle(result_bundle)
+
+    directory = os.fspath(plot_cfg["directory"])
+    prefix_name = plot_cfg.get("prefix_name", "residual_result")
+    start_episode = int(plot_cfg.get("start_episode", 1))
+    save_pdf = bool(plot_cfg.get("save_pdf", False))
+    out_dir = create_output_dir(directory, prefix_name)
+
+    y_line_full = bundle["y_line_full"]
+    u_step_full = bundle["u_step_full"]
+    nFE = bundle["nFE"]
+    delta_t = bundle["delta_t"]
+    time_in_sub_episodes = bundle["time_in_sub_episodes"]
+    n_inputs = bundle["n_inputs"]
+    n_outputs = bundle["n_outputs"]
+
+    y_sp_phys_full = ysp_scaled_dev_to_phys(
+        bundle["y_sp"],
+        bundle["steady_states"],
+        bundle["data_min"],
+        bundle["data_max"],
+        n_inputs=n_inputs,
+    )
+
+    start_step = int(min(max(0, (start_episode - 1) * time_in_sub_episodes), max(0, nFE - 1)))
+    W = int(len(y_sp_phys_full[start_step:, :]))
+    y_line = y_line_full[start_step:, :]
+    y_sp_phys = y_sp_phys_full[start_step:, :]
+    u_line = u_step_full[start_step:, :]
+
+    t_line = np.linspace(0.0, W * delta_t, W + 1)
+    t_step = t_line[:-1]
+    last_steps = int(min(max(20, time_in_sub_episodes), W))
+    s_last = max(0, W - last_steps)
+    t_line_blk = np.linspace(0.0, last_steps * delta_t, last_steps + 1)
+    t_step_blk = t_line_blk[:-1]
+    spans = episode_spans(bundle.get("test_train_dict"), nFE)
+
+    fig, axs = plt.subplots(n_outputs, 1, figsize=(8.6, 3.0 + 2.5 * max(1, n_outputs - 1)), sharex=True)
+    if n_outputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.plot(t_line, y_line[:, idx], label="RL")
+        ax.step(t_step, y_sp_phys[:, idx], where="post", linestyle="--", label="Setpoint")
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel(f"y{idx + 1}")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel("Time (h)")
+    axs[0].legend(loc="best")
+    _save_fig(fig, out_dir, "fig_residual_outputs_full", save_pdf=save_pdf)
+
+    fig, axs = plt.subplots(n_outputs, 1, figsize=(8.6, 3.0 + 2.5 * max(1, n_outputs - 1)), sharex=True)
+    if n_outputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.plot(t_line_blk, y_line[s_last : s_last + last_steps + 1, idx], label="RL")
+        ax.step(
+            t_step_blk,
+            y_sp_phys[s_last : s_last + last_steps, idx],
+            where="post",
+            linestyle="--",
+            label="Setpoint",
+        )
+        ax.set_ylabel(f"y{idx + 1}")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel("Time (h)")
+    axs[0].legend(loc="best")
+    _save_fig(fig, out_dir, "fig_residual_outputs_last_block", save_pdf=save_pdf)
+
+    fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
+    if n_inputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.step(t_step, u_line[:, idx], where="post")
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel(f"u{idx + 1}")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel("Time (h)")
+    _save_fig(fig, out_dir, "fig_residual_inputs_full", save_pdf=save_pdf)
+
+    fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
+    if n_inputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.step(t_step_blk, u_line[s_last : s_last + last_steps, idx], where="post")
+        ax.set_ylabel(f"u{idx + 1}")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel("Time (h)")
+    _save_fig(fig, out_dir, "fig_residual_inputs_last_block", save_pdf=save_pdf)
+
+    u_base = bundle.get("u_base")
+    if u_base is not None:
+        u_base_seg = u_base[start_step : start_step + W, :]
+        fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.2 + 2.2 * max(1, n_inputs - 1)), sharex=True)
+        if n_inputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.step(t_step, u_line[:, idx], where="post", label="Applied")
+            ax.step(t_step, u_base_seg[:, idx], where="post", linestyle="--", label="MPC baseline")
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(f"u{idx + 1}")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Time (h)")
+        axs[0].legend(loc="best")
+        _save_fig(fig, out_dir, "fig_residual_inputs_overlay_full", save_pdf=save_pdf)
+
+        fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.2 + 2.2 * max(1, n_inputs - 1)), sharex=True)
+        if n_inputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.step(t_step_blk, u_line[s_last : s_last + last_steps, idx], where="post", label="Applied")
+            ax.step(
+                t_step_blk,
+                u_base_seg[s_last : s_last + last_steps, idx],
+                where="post",
+                linestyle="--",
+                label="MPC baseline",
+            )
+            ax.set_ylabel(f"u{idx + 1}")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Time (h)")
+        axs[0].legend(loc="best")
+        _save_fig(fig, out_dir, "fig_residual_inputs_overlay_last_block", save_pdf=save_pdf)
+
+    n_ep_total = int(nFE // time_in_sub_episodes) if time_in_sub_episodes > 0 else 0
+    x_ep, y_ep = slice_avg_rewards(bundle["avg_rewards"], n_ep_total, start_episode)
+    fig, ax = plt.subplots(figsize=(7.8, 5.0))
+    if len(y_ep) > 0:
+        ax.plot(x_ep, y_ep, "o-")
+    ax.set_ylabel("Avg. Reward")
+    ax.set_xlabel("Episode #")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.xaxis.set_major_locator(mtick.MaxNLocator(8, integer=True))
+    _make_axes_bold(ax)
+    _save_fig(fig, out_dir, "fig_residual_avg_rewards", save_pdf=save_pdf)
+
+    rewards_step = bundle.get("rewards_step")
+    if rewards_step is not None:
+        rewards_seg = rewards_step[start_step : start_step + W]
+        fig, ax = plt.subplots(figsize=(8.4, 4.8))
+        ax.plot(t_step, rewards_seg)
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel("Reward")
+        ax.set_xlabel("Time (h)")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_residual_step_rewards", save_pdf=save_pdf)
+
+    delta_y_storage = bundle.get("delta_y_storage")
+    if delta_y_storage is not None:
+        err_seg = delta_y_storage[start_step : start_step + W, :]
+        fig, axs = plt.subplots(n_outputs + 1, 1, figsize=(8.6, 3.2 + 2.3 * n_outputs), sharex=True)
+        for idx in range(n_outputs):
+            axs[idx].plot(t_step, err_seg[:, idx])
+            shade_test_regions(axs[idx], spans, delta_t)
+            axs[idx].set_ylabel(f"e{idx + 1}")
+            axs[idx].spines["top"].set_visible(False)
+            axs[idx].spines["right"].set_visible(False)
+            _make_axes_bold(axs[idx])
+        err_norm = np.linalg.norm(err_seg, axis=1)
+        axs[-1].plot(t_step, err_norm)
+        shade_test_regions(axs[-1], spans, delta_t)
+        axs[-1].set_ylabel("||e||")
+        axs[-1].set_xlabel("Time (h)")
+        axs[-1].spines["top"].set_visible(False)
+        axs[-1].spines["right"].set_visible(False)
+        _make_axes_bold(axs[-1])
+        _save_fig(fig, out_dir, "fig_residual_tracking_error", save_pdf=save_pdf)
+
+    delta_u_storage = bundle.get("delta_u_storage")
+    if delta_u_storage is not None:
+        du_seg = delta_u_storage[start_step : start_step + W, :]
+        fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
+        if n_inputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.step(t_step, du_seg[:, idx], where="post")
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(f"du{idx + 1}")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Time (h)")
+        _save_fig(fig, out_dir, "fig_residual_delta_u", save_pdf=save_pdf)
+
+    residual_exec_log = bundle.get("residual_exec_log")
+    residual_raw_log = bundle.get("residual_raw_log")
+    low_coef = bundle.get("low_coef")
+    high_coef = bundle.get("high_coef")
+    if residual_exec_log is not None:
+        exec_seg = residual_exec_log[start_step : start_step + W, :]
+        raw_seg = None if residual_raw_log is None else residual_raw_log[start_step : start_step + W, :]
+        fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
+        if n_inputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            if low_coef is not None and high_coef is not None and low_coef.size == n_inputs and high_coef.size == n_inputs:
+                ax.fill_between(
+                    t_step,
+                    float(low_coef[idx]),
+                    float(high_coef[idx]),
+                    color="tab:green",
+                    alpha=0.12,
+                    step="post",
+                )
+                ax.axhline(float(low_coef[idx]), color="tab:green", linestyle="--", linewidth=1.2)
+                ax.axhline(float(high_coef[idx]), color="tab:green", linestyle="--", linewidth=1.2)
+            if raw_seg is not None:
+                ax.step(t_step, raw_seg[:, idx], where="post", linestyle=":", label="Raw")
+            ax.step(t_step, exec_seg[:, idx], where="post", label="Executed")
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(f"r{idx + 1}")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Time (h)")
+        axs[0].legend(loc="best")
+        _save_fig(fig, out_dir, "fig_residual_correction_full", save_pdf=save_pdf)
+
+        fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
+        if n_inputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            if low_coef is not None and high_coef is not None and low_coef.size == n_inputs and high_coef.size == n_inputs:
+                ax.fill_between(
+                    t_step_blk,
+                    float(low_coef[idx]),
+                    float(high_coef[idx]),
+                    color="tab:green",
+                    alpha=0.12,
+                    step="post",
+                )
+                ax.axhline(float(low_coef[idx]), color="tab:green", linestyle="--", linewidth=1.2)
+                ax.axhline(float(high_coef[idx]), color="tab:green", linestyle="--", linewidth=1.2)
+            if raw_seg is not None:
+                ax.step(
+                    t_step_blk,
+                    raw_seg[s_last : s_last + last_steps, idx],
+                    where="post",
+                    linestyle=":",
+                    label="Raw",
+                )
+            ax.step(
+                t_step_blk,
+                exec_seg[s_last : s_last + last_steps, idx],
+                where="post",
+                label="Executed",
+            )
+            ax.set_ylabel(f"r{idx + 1}")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Time (h)")
+        axs[0].legend(loc="best")
+        _save_fig(fig, out_dir, "fig_residual_correction_last_block", save_pdf=save_pdf)
+
+    yhat = bundle.get("yhat")
+    if yhat is not None:
+        fig, axs = plt.subplots(n_outputs, 1, figsize=(8.6, 3.0 + 2.5 * max(1, n_outputs - 1)), sharex=True)
+        if n_outputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            meas_scaled = apply_min_max(
+                y_line_full[1:, idx],
+                bundle["data_min"][n_inputs + idx],
+                bundle["data_max"][n_inputs + idx],
+            ) - apply_min_max(
+                bundle["steady_states"]["y_ss"][idx],
+                bundle["data_min"][n_inputs + idx],
+                bundle["data_max"][n_inputs + idx],
+            )
+            ax.plot(t_step, np.asarray(yhat[idx, start_step : start_step + W], float), label="Observer")
+            ax.plot(t_step, meas_scaled[start_step : start_step + W], linestyle="--", label="Measurement")
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(f"yhat{idx + 1}")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Time (h)")
+        axs[0].legend(loc="best")
+        _save_fig(fig, out_dir, "fig_residual_observer_overlay", save_pdf=save_pdf)
+
+    disturbance_profile = bundle.get("disturbance_profile")
+    if disturbance_profile:
+        keys = [key for key in ("qi", "qs", "ha") if key in disturbance_profile]
+        if keys:
+            fig, axs = plt.subplots(len(keys), 1, figsize=(8.6, 3.0 + 2.0 * max(1, len(keys) - 1)), sharex=True)
+            if len(keys) == 1:
+                axs = [axs]
+            for idx, key in enumerate(keys):
+                series = np.asarray(disturbance_profile[key], float)[start_step : start_step + W]
+                axs[idx].plot(t_step, series)
+                shade_test_regions(axs[idx], spans, delta_t)
+                axs[idx].set_ylabel(key)
+                axs[idx].spines["top"].set_visible(False)
+                axs[idx].spines["right"].set_visible(False)
+                _make_axes_bold(axs[idx])
+            axs[-1].set_xlabel("Time (h)")
+            _save_fig(fig, out_dir, "fig_residual_disturbance_profile", save_pdf=save_pdf)
+
+    diag_series = []
+    if bundle.get("actor_losses") is not None and len(bundle["actor_losses"]) > 0:
+        diag_series.append(("actor_loss", bundle["actor_losses"]))
+    if bundle.get("critic_losses") is not None and len(bundle["critic_losses"]) > 0:
+        diag_series.append(("critic_loss", bundle["critic_losses"]))
+    if bundle.get("alphas") is not None and len(bundle["alphas"]) > 0:
+        diag_series.append(("sac_alpha", bundle["alphas"]))
+    if bundle.get("alpha_losses") is not None and len(bundle["alpha_losses"]) > 0:
+        diag_series.append(("sac_alpha_loss", bundle["alpha_losses"]))
+    if diag_series:
+        fig, axs = plt.subplots(
+            len(diag_series),
+            1,
+            figsize=(8.4, 3.0 + 2.2 * max(1, len(diag_series) - 1)),
+            sharex=False,
+        )
+        if len(diag_series) == 1:
+            axs = [axs]
+        for ax, (label, series) in zip(axs, diag_series):
+            ax.plot(np.arange(1, len(series) + 1), series)
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Update #")
+        _save_fig(fig, out_dir, "fig_residual_training_diagnostics", save_pdf=save_pdf)
+
+    stored_bundle = build_storage_bundle(bundle, start_episode)
+    stored_bundle.update(
+        {
+            "residual_exec_log": bundle.get("residual_exec_log"),
+            "residual_raw_log": bundle.get("residual_raw_log"),
+            "u_base": bundle.get("u_base"),
             "low_coef": bundle.get("low_coef"),
             "high_coef": bundle.get("high_coef"),
             "agent_kind": bundle.get("agent_kind"),

@@ -2498,6 +2498,7 @@ from utils.plotting_core import (
     compare_mpc_rl_from_dirs_core,
     plot_horizon_results_core,
     plot_matrix_multiplier_results_core,
+    plot_residual_results_core,
     plot_weight_multiplier_results_core,
 )
 
@@ -2512,6 +2513,10 @@ def plot_matrix_multiplier_results(result_bundle, plot_cfg):
 
 def plot_weight_multiplier_results(result_bundle, plot_cfg):
     return plot_weight_multiplier_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+
+
+def plot_residual_results(result_bundle, plot_cfg):
+    return plot_residual_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
 
 
 def compare_mpc_rl_from_dirs(

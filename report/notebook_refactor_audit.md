@@ -14,19 +14,23 @@
 - notebook-local supervisor functions
   - `run_dqn_mpc_horizon_supervisor` appears in the two horizon notebooks
   - `run_rl_train_disturbance_gradually` appears in 12 TD3/SAC/residual/weight notebooks
-  - the horizon supervisor and the matrix-multiplier supervisor are now migrated
+  - the horizon supervisor, matrix-multiplier supervisor, weight-multiplier supervisor, and residual-correction supervisor are now migrated
 
 ## First migration boundary
 
 - New shared runtime path:
   - `utils/horizon_runner.py`
   - `utils/matrix_runner.py`
+  - `utils/residual_runner.py`
+  - `utils/weights_runner.py`
   - `utils/rewards.py`
   - `utils/observer.py`
   - `utils/plotting_core.py`
 - New notebook entrypoint:
   - `RL_assisted_MPC_horizons_unified.ipynb`
   - `RL_assisted_MPC_matrices_unified.ipynb`
+  - `RL_assisted_MPC_residual_unified.ipynb`
+  - `RL_assisted_MPC_weights_unified.ipynb`
 - Frozen references for validation:
   - `RL_assisted_MPC_horizons.ipynb`
   - `RL_assisted_MPC_horizons_dist.ipynb`
@@ -34,16 +38,21 @@
   - `RL_assisted_MPC_matrices_dist.ipynb`
   - `RL_assisted_MPC_matrices_SAC.ipynb`
   - `RL_assisted_MPC_matrices_dsit_SAC.ipynb`
+  - `RL_assisted_MPC_weights.ipynb`
+  - `RL_assisted_MPC_weights_dist.ipynb`
+  - `RL_assisted_MPC_residual_model_mismatch.ipynb`
+  - `RL_assisted_MPC_residual_model_mismatch1.ipynb`
+  - `RL_assisted_MPC_residual_model_mismatch2.ipynb`
 
 ## Plotting direction
 
 - `utils/plotting.py` remains the notebook-facing import surface.
-- The new horizon and matrix plots now delegate to `utils/plotting_core.py`.
+- The new horizon, matrix, weight, and residual plots now delegate to `utils/plotting_core.py`.
 - The TD3-named matrix plotting entrypoint remains available through `utils/plotting.py` as a compatibility wrapper.
 - `BasicFunctions/plot_fns.py` should be treated as legacy and should not receive new work.
 
 ## Next migration targets
 
-- move the weight supervisor family out of notebooks into a shared runner module
-- migrate residual and combined supervisors onto the same normalized result bundle shape
+- migrate the combined supervisor onto the same normalized result bundle shape
 - retire the typo-named `RL_assisted_MPC_matrices_dsit_SAC.ipynb` as a frozen legacy reference rather than a canonical entrypoint
+- keep `RL_assisted_MPC_residual_model_mismatch_multi.ipynb` as a frozen legacy combined method; it remains out of scope for the residual-correction unification

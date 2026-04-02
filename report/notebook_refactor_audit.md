@@ -11,6 +11,10 @@
 - `generate_setpoints_training_rl_gradually`
   - already shared in `utils/helpers.py`
   - should remain the single source for gradual schedule generation
+- RL state construction
+  - the unified notebooks previously duplicated the standard state-dimension formula
+  - `utils/state_features.py` is now the shared home for `get_rl_state_dim(...)` and `build_rl_state(...)`
+  - the unified notebooks now expose `STATE_MODE = "standard" | "mismatch"` and use the shared builder
 - notebook-local supervisor functions
   - `run_dqn_mpc_horizon_supervisor` appears in the two horizon notebooks
   - `run_rl_train_disturbance_gradually` appears in 12 TD3/SAC/residual/weight notebooks
@@ -25,6 +29,7 @@
   - `utils/weights_runner.py`
   - `utils/rewards.py`
   - `utils/observer.py`
+  - `utils/state_features.py`
   - `utils/plotting_core.py`
 - New notebook entrypoint:
   - `RL_assisted_MPC_horizons_unified.ipynb`
@@ -54,5 +59,6 @@
 ## Next migration targets
 
 - migrate the combined supervisor onto the same normalized result bundle shape
+- decide whether the mismatch-state mode should eventually become the default for any unified notebook family, or remain an explicit opt-in switch
 - retire the typo-named `RL_assisted_MPC_matrices_dsit_SAC.ipynb` as a frozen legacy reference rather than a canonical entrypoint
 - keep `RL_assisted_MPC_residual_model_mismatch_multi.ipynb` as a frozen legacy combined method; it remains out of scope for the residual-correction unification

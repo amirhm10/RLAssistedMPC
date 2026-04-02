@@ -81,6 +81,10 @@ def normalize_result_bundle(result_bundle):
     bundle["residual_raw_log"] = (
         None if bundle.get("residual_raw_log") is None else np.asarray(bundle["residual_raw_log"], float)
     )
+    bundle["innovation_log"] = None if bundle.get("innovation_log") is None else np.asarray(bundle["innovation_log"], float)
+    bundle["tracking_error_log"] = (
+        None if bundle.get("tracking_error_log") is None else np.asarray(bundle["tracking_error_log"], float)
+    )
     bundle["u_base"] = None if bundle.get("u_base") is None else np.asarray(bundle["u_base"], float)
     bundle["actor_losses"] = None if bundle.get("actor_losses") is None else np.asarray(bundle["actor_losses"], float).reshape(-1)
     bundle["critic_losses"] = None if bundle.get("critic_losses") is None else np.asarray(bundle["critic_losses"], float).reshape(-1)
@@ -88,6 +92,7 @@ def normalize_result_bundle(result_bundle):
     bundle["alphas"] = None if bundle.get("alphas") is None else np.asarray(bundle["alphas"], float).reshape(-1)
     bundle["low_coef"] = None if bundle.get("low_coef") is None else np.asarray(bundle["low_coef"], float).reshape(-1)
     bundle["high_coef"] = None if bundle.get("high_coef") is None else np.asarray(bundle["high_coef"], float).reshape(-1)
+    bundle["state_mode"] = str(bundle.get("state_mode", "standard")).lower()
 
     if bundle["y"].shape[0] == bundle["nFE"]:
         bundle["y_line_full"] = np.vstack([bundle["y"], bundle["y"][-1:, :]])
@@ -128,6 +133,13 @@ def normalize_result_bundle(result_bundle):
     if bundle["u_base"] is not None:
         if bundle["u_base"].shape[0] > bundle["nFE"]:
             bundle["u_base"] = bundle["u_base"][: bundle["nFE"], :]
+
+    for key in ("innovation_log", "tracking_error_log"):
+        if bundle[key] is not None:
+            if bundle[key].ndim == 1:
+                bundle[key] = bundle[key][:, None]
+            if bundle[key].shape[0] > bundle["nFE"]:
+                bundle[key] = bundle[key][: bundle["nFE"], :]
 
     return bundle
 
@@ -236,6 +248,46 @@ def recompute_step_rewards(y_line_full, u_step, y_sp, steady_states, data_min, d
     for idx in range(nFE):
         rewards[idx] = reward_fn(delta_y[idx], delta_u[idx], y_sp_phys=y_sp_phys[idx])
     return rewards, delta_y, delta_u
+
+
+def _plot_mismatch_diagnostics(bundle, out_dir, prefix, t_step, t_step_blk, start_step, W, s_last, last_steps, spans, delta_t, save_pdf):
+    innovation_log = bundle.get("innovation_log")
+    tracking_error_log = bundle.get("tracking_error_log")
+    if innovation_log is None and tracking_error_log is None:
+        return
+
+    n_outputs = bundle["n_outputs"]
+
+    def _plot_series(series, ylabel_stem, title_stem, fname_base, t_axis):
+        fig, axs = plt.subplots(n_outputs, 1, figsize=(8.6, 3.0 + 2.3 * max(1, n_outputs - 1)), sharex=True)
+        if n_outputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.plot(t_axis, series[:, idx])
+            if len(t_axis) == len(t_step):
+                shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(f"{ylabel_stem}{idx + 1}")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Time (h)")
+        _save_fig(fig, out_dir, f"{prefix}_{fname_base}", save_pdf=save_pdf)
+
+    if innovation_log is not None:
+        innov_seg = innovation_log[start_step : start_step + W, :]
+        _plot_series(innov_seg, "innov", "Innovation", "innovation_full", t_step)
+        _plot_series(innov_seg[s_last : s_last + last_steps, :], "innov", "Innovation", "innovation_last_block", t_step_blk)
+
+    if tracking_error_log is not None:
+        terr_seg = tracking_error_log[start_step : start_step + W, :]
+        _plot_series(terr_seg, "etrack", "Tracking Error", "tracking_state_full", t_step)
+        _plot_series(
+            terr_seg[s_last : s_last + last_steps, :],
+            "etrack",
+            "Tracking Error",
+            "tracking_state_last_block",
+            t_step_blk,
+        )
 
 
 def plot_horizon_results_core(result_bundle, plot_cfg):
@@ -523,6 +575,21 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
                 _make_axes_bold(axs[idx])
             axs[-1].set_xlabel("Time (h)")
             _save_fig(fig, out_dir, "fig_horizon_disturbance_profile", save_pdf=save_pdf)
+
+    _plot_mismatch_diagnostics(
+        bundle=bundle,
+        out_dir=out_dir,
+        prefix="fig_horizon",
+        t_step=t_step,
+        t_step_blk=t_step_blk,
+        start_step=start_step,
+        W=W,
+        s_last=s_last,
+        last_steps=last_steps,
+        spans=spans,
+        delta_t=delta_t,
+        save_pdf=save_pdf,
+    )
 
     stored_bundle = build_storage_bundle(bundle, start_episode)
     save_bundle_pickle(out_dir, stored_bundle)
@@ -817,6 +884,21 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
                 _make_axes_bold(axs[idx])
             axs[-1].set_xlabel("Time (h)")
             _save_fig(fig, out_dir, "fig_matrix_disturbance_profile", save_pdf=save_pdf)
+
+    _plot_mismatch_diagnostics(
+        bundle=bundle,
+        out_dir=out_dir,
+        prefix="fig_matrix",
+        t_step=t_step,
+        t_step_blk=t_step_blk,
+        start_step=start_step,
+        W=W,
+        s_last=s_last,
+        last_steps=last_steps,
+        spans=spans,
+        delta_t=delta_t,
+        save_pdf=save_pdf,
+    )
 
     diag_series = []
     if bundle.get("actor_losses") is not None and len(bundle["actor_losses"]) > 0:
@@ -1117,6 +1199,21 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
                 _make_axes_bold(axs[idx])
             axs[-1].set_xlabel("Time (h)")
             _save_fig(fig, out_dir, "fig_weights_disturbance_profile", save_pdf=save_pdf)
+
+    _plot_mismatch_diagnostics(
+        bundle=bundle,
+        out_dir=out_dir,
+        prefix="fig_weights",
+        t_step=t_step,
+        t_step_blk=t_step_blk,
+        start_step=start_step,
+        W=W,
+        s_last=s_last,
+        last_steps=last_steps,
+        spans=spans,
+        delta_t=delta_t,
+        save_pdf=save_pdf,
+    )
 
     diag_series = []
     if bundle.get("actor_losses") is not None and len(bundle["actor_losses"]) > 0:
@@ -1476,6 +1573,21 @@ def plot_residual_results_core(result_bundle, plot_cfg):
                 _make_axes_bold(axs[idx])
             axs[-1].set_xlabel("Time (h)")
             _save_fig(fig, out_dir, "fig_residual_disturbance_profile", save_pdf=save_pdf)
+
+    _plot_mismatch_diagnostics(
+        bundle=bundle,
+        out_dir=out_dir,
+        prefix="fig_residual",
+        t_step=t_step,
+        t_step_blk=t_step_blk,
+        start_step=start_step,
+        W=W,
+        s_last=s_last,
+        last_steps=last_steps,
+        spans=spans,
+        delta_t=delta_t,
+        save_pdf=save_pdf,
+    )
 
     diag_series = []
     if bundle.get("actor_losses") is not None and len(bundle["actor_losses"]) > 0:

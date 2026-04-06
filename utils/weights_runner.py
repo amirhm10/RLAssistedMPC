@@ -85,6 +85,7 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         raise ValueError("weight_cfg['agent_kind'] must be 'td3' or 'sac'.")
     if run_mode not in {"nominal", "disturb"}:
         raise ValueError("weight_cfg['run_mode'] must be 'nominal' or 'disturb'.")
+    use_shifted_mpc_warm_start = bool(weight_cfg.get("use_shifted_mpc_warm_start", False))
 
     low_coef = np.asarray(weight_cfg["low_coef"], float).reshape(-1)
     high_coef = np.asarray(weight_cfg["high_coef"], float).reshape(-1)
@@ -192,13 +193,18 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         weight_log[i, :] = multipliers
         _set_penalties(mpc_obj, q_base, r_base, multipliers)
 
+        ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
+
         sol = spo.minimize(
             lambda x: mpc_obj.mpc_opt_fun(x, y_sp[i, :], scaled_current_input_dev, xhatdhat[:, i]),
-            ic_opt,
+            ic_opt_step,
             bounds=bnds,
             constraints=[],
         )
-        ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
+        if use_shifted_mpc_warm_start:
+            ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
+        else:
+            ic_opt = np.zeros(n_inputs * cont_h)
 
         u_mpc[i, :] = sol.x[:n_inputs] + ss_scaled_inputs
         u_plant = reverse_min_max(u_mpc[i, :], data_min[:n_inputs], data_max[:n_inputs])
@@ -299,6 +305,7 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         "sub_episodes_changes_dict": sub_episodes_changes_dict,
         "disturbance_profile": disturbance_profile,
         "warm_start_step": int(warm_start_step),
+        "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
         "mpc_horizons": (

@@ -61,6 +61,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     predict_h = int(horizon_cfg["predict_h"])
     cont_h = int(horizon_cfg["cont_h"])
     decision_interval = int(horizon_cfg["decision_interval"])
+    use_shifted_mpc_warm_start = bool(horizon_cfg.get("use_shifted_mpc_warm_start", True))
 
     y_sp, nFE, sub_episodes_changes_dict, time_in_sub_episodes, test_train_dict, warm_start_step, qi, qs, ha = (
         generate_setpoints_training_rl_gradually(
@@ -185,13 +186,18 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
 
         bnds = (b1, b2) * int(Hc)
 
+        ic_opt = current_ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * int(Hc))
+
         sol = spo.minimize(
             lambda x: mpc_obj.mpc_opt_fun(x, y_sp[i, :], scaled_current_input_dev, xhatdhat[:, i]),
-            current_ic_opt,
+            ic_opt,
             bounds=bnds,
             constraints=cons,
         )
-        current_ic_opt = shift_control_sequence(sol.x[: n_inputs * int(current_Hc)], n_inputs, int(current_Hc))
+        if use_shifted_mpc_warm_start:
+            current_ic_opt = shift_control_sequence(sol.x[: n_inputs * int(current_Hc)], n_inputs, int(current_Hc))
+        else:
+            current_ic_opt = np.zeros(n_inputs * int(current_Hc))
 
         u_mpc[i, :] = sol.x[:n_inputs] + ss_scaled_inputs
         u_plant = reverse_min_max(u_mpc[i, :], data_min[:n_inputs], data_max[:n_inputs])
@@ -292,6 +298,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         "sub_episodes_changes_dict": sub_episodes_changes_dict,
         "disturbance_profile": disturbance_profile,
         "mpc_horizons": (predict_h, cont_h),
+        "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "warm_start_step": int(warm_start_step),
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,

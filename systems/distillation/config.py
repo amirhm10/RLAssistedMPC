@@ -52,7 +52,8 @@ RL_REWARD_DEFAULTS = {
     "tau_frac": 0.7,
     "gamma_out": 0.5,
     "gamma_in": 0.5,
-    "beta": 7.0,
+    # Match the archived distillation horizon notebook defaults.
+    "beta": 5.0,
     "gate": "geom",
     "lam_in": 1.0,
     "bonus_kind": "exp",

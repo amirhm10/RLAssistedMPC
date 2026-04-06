@@ -61,7 +61,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     predict_h = int(horizon_cfg["predict_h"])
     cont_h = int(horizon_cfg["cont_h"])
     decision_interval = int(horizon_cfg["decision_interval"])
-    use_shifted_mpc_warm_start = bool(horizon_cfg.get("use_shifted_mpc_warm_start", True))
+    use_shifted_mpc_warm_start = bool(horizon_cfg.get("use_shifted_mpc_warm_start", False))
 
     y_sp, nFE, sub_episodes_changes_dict, time_in_sub_episodes, test_train_dict, warm_start_step, qi, qs, ha = (
         generate_setpoints_training_rl_gradually(

@@ -197,6 +197,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     residual_state_mode = _normalize_state_mode(residual_cfg)
     horizon_state_mode = _normalize_state_mode(horizon_cfg)
     use_rho_authority = bool(residual_cfg.get("use_rho_authority", True))
+    use_shifted_mpc_warm_start = bool(combined_cfg.get("use_shifted_mpc_warm_start", False))
 
     k_rel = np.asarray(reward_params.get("k_rel", np.array([0.003, 0.0003])), float)
     band_floor_phys = np.asarray(reward_params.get("band_floor_phys", np.array([0.006, 0.07])), float)
@@ -400,13 +401,18 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             for j in range(n_inputs)
         )
 
+        ic_opt_step = current_ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * current_Hc)
+
         sol = spo.minimize(
             lambda x: MPC_obj.mpc_opt_fun(x, y_sp[i, :], scaled_current_input_dev, xhatdhat[:, i]),
-            current_ic_opt,
+            ic_opt_step,
             bounds=bounds,
             constraints=[],
         )
-        current_ic_opt = shift_control_sequence(sol.x[: n_inputs * current_Hc], n_inputs, current_Hc)
+        if use_shifted_mpc_warm_start:
+            current_ic_opt = shift_control_sequence(sol.x[: n_inputs * current_Hc], n_inputs, current_Hc)
+        else:
+            current_ic_opt = np.zeros(n_inputs * current_Hc)
 
         u_base = np.asarray(sol.x[:n_inputs], float) + ss_scaled_inputs
         u_base = np.clip(u_base, u_min_scaled_abs, u_max_scaled_abs)
@@ -645,6 +651,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "residual_low_coef": residual_low,
         "residual_high_coef": residual_high,
         "use_rho_authority": use_rho_authority,
+        "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "rho_log": rho_log,
         "horizon_innovation_log": mismatch_logs["horizon"]["innovation"],
         "horizon_tracking_error_log": mismatch_logs["horizon"]["tracking_error"],

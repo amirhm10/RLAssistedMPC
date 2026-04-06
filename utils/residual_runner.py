@@ -76,6 +76,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         raise ValueError("residual_cfg['agent_kind'] must be 'td3' or 'sac'.")
     if run_mode not in {"nominal", "disturb"}:
         raise ValueError("residual_cfg['run_mode'] must be 'nominal' or 'disturb'.")
+    use_shifted_mpc_warm_start = bool(residual_cfg.get("use_shifted_mpc_warm_start", False))
 
     low_coef = np.asarray(residual_cfg["low_coef"], float).reshape(-1)
     high_coef = np.asarray(residual_cfg["high_coef"], float).reshape(-1)
@@ -193,13 +194,18 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         residual_raw = _map_to_bounds(action, low_coef, high_coef).reshape(-1)
         residual_raw_log[i, :] = residual_raw
 
+        ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
+
         sol = spo.minimize(
             lambda x: mpc_obj.mpc_opt_fun(x, y_sp[i, :], scaled_current_input_dev, xhatdhat[:, i]),
-            ic_opt,
+            ic_opt_step,
             bounds=bounds,
             constraints=[],
         )
-        ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
+        if use_shifted_mpc_warm_start:
+            ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
+        else:
+            ic_opt = np.zeros(n_inputs * cont_h)
 
         u_base = np.asarray(sol.x[:n_inputs], float) + ss_scaled_inputs
         u_base = np.clip(u_base, u_min_scaled_abs, u_max_scaled_abs)
@@ -345,6 +351,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "sub_episodes_changes_dict": sub_episodes_changes_dict,
         "disturbance_profile": disturbance_profile,
         "warm_start_step": int(warm_start_step),
+        "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "mpc_horizons": (
             int(residual_cfg["predict_h"]),
             int(residual_cfg["cont_h"]),

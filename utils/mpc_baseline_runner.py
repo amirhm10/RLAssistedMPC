@@ -10,6 +10,7 @@ from utils.helpers import (
     shift_control_sequence,
     step_system_with_disturbance,
 )
+from utils.observer import compute_observer_gain
 
 
 def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
@@ -34,7 +35,12 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
     C_aug = np.asarray(runtime_ctx["C_aug"], float)
     y_sp_scenario = np.asarray(runtime_ctx["y_sp_scenario"], float)
     reward_fn = runtime_ctx["reward_fn"]
-    L = np.asarray(runtime_ctx["L"], float)
+    L = runtime_ctx.get("L")
+    if L is None:
+        poles = np.asarray(runtime_ctx["poles"], float)
+        L = compute_observer_gain(A_aug, C_aug, poles)
+    else:
+        L = np.asarray(L, float)
     system_stepper = runtime_ctx.get("system_stepper")
     system_metadata = runtime_ctx.get("system_metadata")
     disturbance_labels = runtime_ctx.get("disturbance_labels")

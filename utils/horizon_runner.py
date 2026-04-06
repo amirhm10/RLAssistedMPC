@@ -12,6 +12,7 @@ from utils.helpers import (
     shift_control_sequence,
     step_system_with_disturbance,
 )
+from utils.observer import compute_observer_gain
 from utils.state_features import build_rl_state
 
 
@@ -30,7 +31,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     runtime_ctx : dict
         Prepared objects and shared data. Required keys:
         system, y_sp_scenario, steady_states, min_max_dict, agent,
-        A_aug, B_aug, C_aug, L, data_min, data_max, horizon_recipes, reward_fn.
+        A_aug, B_aug, C_aug, poles/L, data_min, data_max, horizon_recipes, reward_fn.
     """
 
     system = runtime_ctx["system"]
@@ -41,7 +42,12 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     A_aug = np.asarray(runtime_ctx["A_aug"], float)
     B_aug = np.asarray(runtime_ctx["B_aug"], float)
     C_aug = np.asarray(runtime_ctx["C_aug"], float)
-    L = np.asarray(runtime_ctx["L"], float)
+    L = runtime_ctx.get("L")
+    if L is None:
+        poles = np.asarray(runtime_ctx["poles"], float)
+        L = compute_observer_gain(A_aug, C_aug, poles)
+    else:
+        L = np.asarray(L, float)
     data_min = np.asarray(runtime_ctx["data_min"], float)
     data_max = np.asarray(runtime_ctx["data_max"], float)
     h_recipes = list(runtime_ctx["horizon_recipes"])

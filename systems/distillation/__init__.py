@@ -27,6 +27,7 @@ from .data_io import (
     resolve_distillation_result_dir,
 )
 from .labels import DISTILLATION_SYSTEM_METADATA
+from .notebook_params import get_distillation_notebook_defaults
 from .plant import DistillationColumnAspen, build_distillation_system, distillation_system_stepper
 from .scenarios import (
     build_distillation_disturbance_schedule,

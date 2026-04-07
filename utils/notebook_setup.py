@@ -59,3 +59,11 @@ def print_notebook_summary(title, items):
     print(title)
     for key, value in items.items():
         print(f"  {key:<20}: {value}")
+
+
+def print_grouped_notebook_summary(title, groups):
+    print(title)
+    for group_name, items in groups.items():
+        print(f"\n[{group_name}]")
+        for key, value in items.items():
+            print(f"  {key:<20}: {value}")

@@ -10,6 +10,7 @@ import torch.optim as optim
 
 from DQN.replay_buffer import PERRecentReplayBuffer
 from DuelingDQN.qnetwork import DuelingQNetwork
+from utils.nstep import NStepAccumulator
 from utils.noisy_layers import mean_module_abs_sigma
 
 
@@ -70,6 +71,7 @@ class DuelingDQNAgent(nn.Module):
         lr: float = 1e-4,
         batch_size: int = 128,
         buffer_size: int = 40_000,
+        n_step: int = 1,
         grad_clip_norm: float = 10.0,
         double_dqn: bool = True,
         target_update: Literal["soft", "hard"] = "hard",
@@ -97,6 +99,7 @@ class DuelingDQNAgent(nn.Module):
         self.device = device if device is not None else get_device()
         self.gamma = float(gamma)
         self.batch_size = int(batch_size)
+        self.n_step = int(n_step)
         self.grad_clip_norm = grad_clip_norm
         self.double_dqn = bool(double_dqn)
         self.target_update = str(target_update).lower()
@@ -139,7 +142,8 @@ class DuelingDQNAgent(nn.Module):
 
         self.optimizer = optim.Adam(self.online.parameters(), lr=lr)
         self.loss_fn = make_loss_fn(self.loss_type)
-        self.buffer = PERRecentReplayBuffer(buffer_size, state_dim)
+        self.buffer = PERRecentReplayBuffer(buffer_size, state_dim, default_discount=self.gamma)
+        self.nstep_accumulator = NStepAccumulator(gamma=self.gamma, n_step=self.n_step)
 
         self.steps = 0
         self.train_steps = 0
@@ -162,6 +166,11 @@ class DuelingDQNAgent(nn.Module):
         self.avg_advantage_spread_trace = []
         self.avg_chosen_q_trace = []
         self.noisy_sigma_trace = []
+        self.reward_n_mean_trace = []
+        self.discount_n_mean_trace = []
+        self.bootstrap_q_mean_trace = []
+        self.n_actual_mean_trace = []
+        self.truncated_fraction_trace = []
 
     def _set_eval_noise(self):
         self.online.set_noise_enabled(False)
@@ -207,14 +216,24 @@ class DuelingDQNAgent(nn.Module):
         return self._greedy_action(state)
 
     def push(self, state, action, reward, next_state, done):
-        self.buffer.push(state, action, reward, next_state, done)
+        ready = self.nstep_accumulator.append(state, action, reward, next_state, bool(done))
+        for transition in ready:
+            self.buffer.push(
+                transition.state,
+                transition.action,
+                transition.reward_n,
+                transition.next_state_n,
+                transition.done_n,
+                discount_n=transition.discount_n,
+                n_actual=transition.n_actual,
+            )
 
     def train_step(self) -> Optional[float]:
         if len(self.buffer) < self.batch_size:
             return None
 
         self._set_training_noise()
-        state, action_idx, reward, next_state, done, sample_idx, is_w = self.buffer.sample(
+        state, action_idx, reward, next_state, done, discount_n, n_actual, sample_idx, is_w = self.buffer.sample(
             self.batch_size,
             device=self.device,
             frac_per=self.replay_frac_per,
@@ -226,6 +245,8 @@ class DuelingDQNAgent(nn.Module):
         reward = reward.float()
         next_state = next_state.float()
         done = done.float()
+        discount_n = discount_n.float()
+        n_actual = n_actual.float()
         is_w = is_w.float()
 
         q_values, values, advantages = self.online.forward_with_streams(state)
@@ -238,7 +259,8 @@ class DuelingDQNAgent(nn.Module):
                 next_q = target_q_values.gather(1, next_actions.view(-1, 1)).squeeze(1)
             else:
                 next_q = self.target(next_state).max(dim=1).values
-            y = reward + self.gamma * next_q * (1.0 - done)
+            bootstrap_q = next_q * (1.0 - done)
+            y = reward + discount_n * bootstrap_q
 
         td_error = y - q_sa
         per_sample_loss = self.loss_fn(q_sa, y)
@@ -270,5 +292,10 @@ class DuelingDQNAgent(nn.Module):
         self.avg_advantage_spread_trace.append(float(advantage_spread.mean().item()))
         self.avg_chosen_q_trace.append(float(q_sa.mean().item()))
         self.noisy_sigma_trace.append(float(mean_module_abs_sigma(self.online)))
+        self.reward_n_mean_trace.append(float(reward.mean().item()))
+        self.discount_n_mean_trace.append(float(discount_n.mean().item()))
+        self.bootstrap_q_mean_trace.append(float(bootstrap_q.mean().item()))
+        self.n_actual_mean_trace.append(float(n_actual.mean().item()))
+        self.truncated_fraction_trace.append(float((n_actual < float(self.n_step)).float().mean().item()))
 
         return float(loss.item())

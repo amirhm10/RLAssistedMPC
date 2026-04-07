@@ -13,6 +13,7 @@ import torch.nn.functional as F
 from TD3Agent.critic import Critic
 from SACAgent.gaussian_actor import GaussianActor
 from TD3Agent.replay_buffer import PERRecentReplayBuffer, ReplayBuffer
+from utils.nstep import NStepAccumulator
 
 import os
 from datetime import datetime
@@ -70,6 +71,7 @@ class SACAgent(nn.Module):
             critic_lr: float = 1e-3,
             alpha_lr: float = 1e-4,
             batch_size: int = 256,
+            n_step: int = 1,
             grad_clip_norm: Optional[float] = 10.0,
             # entropy/ temperature
             init_alpha: float = 0.2,
@@ -99,6 +101,7 @@ class SACAgent(nn.Module):
         # hparams
         self.gamma = gamma
         self.batch_size = batch_size
+        self.n_step = int(n_step)
         self.grad_clip_norm = grad_clip_norm
         self.target_update = target_update
         self.tau = tau
@@ -171,9 +174,10 @@ class SACAgent(nn.Module):
 
         # ---- replay buffer ----
         if use_per:
-            self.buffer = PERRecentReplayBuffer(buffer_size, state_dim, action_dim)
+            self.buffer = PERRecentReplayBuffer(buffer_size, state_dim, action_dim, default_discount=self.gamma)
         else:
-            self.buffer = ReplayBuffer(buffer_size, state_dim, action_dim)
+            self.buffer = ReplayBuffer(buffer_size, state_dim, action_dim, default_discount=self.gamma)
+        self.nstep_accumulator = NStepAccumulator(gamma=self.gamma, n_step=self.n_step)
 
         # ---- counters / logs ----
         self.train_steps = 0
@@ -184,6 +188,11 @@ class SACAgent(nn.Module):
         self.alphas = []
         self.entropy_trace = []
         self.mean_log_prob_trace = []
+        self.reward_n_mean_trace = []
+        self.discount_n_mean_trace = []
+        self.bootstrap_q_mean_trace = []
+        self.n_actual_mean_trace = []
+        self.truncated_fraction_trace = []
 
     # ---- interactions ----
     @torch.no_grad()
@@ -219,8 +228,17 @@ class SACAgent(nn.Module):
         """
         store an experience into the buffer
         """
-
-        self.buffer.push(s, a, r, ns, done)
+        ready = self.nstep_accumulator.append(s, a, r, ns, bool(done))
+        for transition in ready:
+            self.buffer.push(
+                transition.state,
+                transition.action,
+                transition.reward_n,
+                transition.next_state_n,
+                transition.done_n,
+                discount_n=transition.discount_n,
+                n_actual=transition.n_actual,
+            )
 
     def pretrain_push(self, s, a, r, ns):
         """
@@ -260,11 +278,11 @@ class SACAgent(nn.Module):
         for it in range(1, num_updates + 1):
             # sample batch (PER or uniform)
             if not self.use_per:
-                s, a, r, ns, done = self.buffer.sample(self.batch_size, device=self.device)
+                s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
                 idx = None
                 is_w = torch.ones((self.batch_size, 1), device=self.device)
             else:
-                s, a, r, ns, done, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
+                s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
                 is_w = col(is_w.to(self.device, non_blocking=True).float())
 
             s = s.to(self.device, non_blocking=True).float()
@@ -272,6 +290,7 @@ class SACAgent(nn.Module):
             r = col(r.to(self.device, non_blocking=True).float())
             ns = ns.to(self.device, non_blocking=True).float()
             done = col(done.to(self.device, non_blocking=True).float())
+            discount_n = col(discount_n.to(self.device, non_blocking=True).float())
 
             # ----- critic target -----
             with torch.no_grad():
@@ -279,7 +298,7 @@ class SACAgent(nn.Module):
                 q_next = self.critic_target.combined_forward(ns, next_action, mode="min")
                 q_next = col(q_next)
                 alpha = self.log_alpha.exp()
-                y = r + self.gamma * (1.0 - done) * (q_next - alpha * logp_next)
+                y = r + discount_n * ((q_next - alpha * logp_next) * (1.0 - done))
 
             # critic update
             q1, q2 = self.critic(s, a)
@@ -361,11 +380,11 @@ class SACAgent(nn.Module):
             return None
 
         if not self.use_per:
-            s, a, r, ns, done = self.buffer.sample(self.batch_size, device=self.device)
+            s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
             idx = None
             is_w = torch.ones((self.batch_size, 1), device=self.device)
         else:
-            s, a, r, ns, done, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
+            s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
             is_w = col(is_w.to(self.device, non_blocking=True).float())  # [B, 1]
 
         s = s.to(self.device, non_blocking=True).float()  # [B, S]
@@ -373,6 +392,8 @@ class SACAgent(nn.Module):
         r = col(r.to(self.device, non_blocking=True).float())  # [B, 1]
         ns = ns.to(self.device, non_blocking=True).float()  # [B, S]
         done = col(done.to(self.device, non_blocking=True).float())  # [B, 1]
+        discount_n = col(discount_n.to(self.device, non_blocking=True).float())  # [B, 1]
+        n_actual = col(n_actual.to(self.device, non_blocking=True).float())  # [B, 1]
 
         # ----- critic target y: r + gamma * (Q_tgt - alpha * log_pi) -----
         with torch.no_grad():
@@ -383,7 +404,8 @@ class SACAgent(nn.Module):
             q_next = col(q_next)
             alpha = self.log_alpha.exp()
             # soft target
-            y = r + self.gamma * (1.0 - done) * (q_next - alpha * logp_next)
+            bootstrap_q = (q_next - alpha * logp_next) * (1.0 - done)
+            y = r + discount_n * bootstrap_q
 
         # critic update
         q1, q2 = self.critic(s, a)
@@ -450,6 +472,11 @@ class SACAgent(nn.Module):
         self.alphas.append(float(self.log_alpha.exp().item()))
         self.mean_log_prob_trace.append(float(logp_new.mean().item()))
         self.entropy_trace.append(float((-logp_new).mean().item()))
+        self.reward_n_mean_trace.append(float(r.mean().item()))
+        self.discount_n_mean_trace.append(float(discount_n.mean().item()))
+        self.bootstrap_q_mean_trace.append(float(bootstrap_q.mean().item()))
+        self.n_actual_mean_trace.append(float(n_actual.mean().item()))
+        self.truncated_fraction_trace.append(float((n_actual < float(self.n_step)).float().mean().item()))
 
         return float(critic_loss.item()), float(actor_loss.item()), float(self.log_alpha.exp().item())
 
@@ -506,6 +533,7 @@ class SACAgent(nn.Module):
             "alpha",
             "alpha_lr",
             "target_entropy",
+            "n_step",
         ]:
             if hasattr(self, name):
                 val = getattr(self, name)

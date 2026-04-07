@@ -223,6 +223,23 @@ def normalize_result_bundle(result_bundle):
     bundle["noisy_sigma_trace"] = (
         None if bundle.get("noisy_sigma_trace") is None else np.asarray(bundle["noisy_sigma_trace"], float).reshape(-1)
     )
+    bundle["reward_n_mean_trace"] = (
+        None if bundle.get("reward_n_mean_trace") is None else np.asarray(bundle["reward_n_mean_trace"], float).reshape(-1)
+    )
+    bundle["discount_n_mean_trace"] = (
+        None if bundle.get("discount_n_mean_trace") is None else np.asarray(bundle["discount_n_mean_trace"], float).reshape(-1)
+    )
+    bundle["bootstrap_q_mean_trace"] = (
+        None if bundle.get("bootstrap_q_mean_trace") is None else np.asarray(bundle["bootstrap_q_mean_trace"], float).reshape(-1)
+    )
+    bundle["n_actual_mean_trace"] = (
+        None if bundle.get("n_actual_mean_trace") is None else np.asarray(bundle["n_actual_mean_trace"], float).reshape(-1)
+    )
+    bundle["truncated_fraction_trace"] = (
+        None
+        if bundle.get("truncated_fraction_trace") is None
+        else np.asarray(bundle["truncated_fraction_trace"], float).reshape(-1)
+    )
     bundle["critic_q1_trace"] = (
         None if bundle.get("critic_q1_trace") is None else np.asarray(bundle["critic_q1_trace"], float).reshape(-1)
     )
@@ -302,6 +319,26 @@ def normalize_result_bundle(result_bundle):
         "horizon_avg_advantage_spread_trace",
         "horizon_avg_chosen_q_trace",
         "horizon_noisy_sigma_trace",
+        "horizon_reward_n_mean_trace",
+        "horizon_discount_n_mean_trace",
+        "horizon_bootstrap_q_mean_trace",
+        "horizon_n_actual_mean_trace",
+        "horizon_truncated_fraction_trace",
+        "matrix_reward_n_mean_trace",
+        "matrix_discount_n_mean_trace",
+        "matrix_bootstrap_q_mean_trace",
+        "matrix_n_actual_mean_trace",
+        "matrix_truncated_fraction_trace",
+        "weight_reward_n_mean_trace",
+        "weight_discount_n_mean_trace",
+        "weight_bootstrap_q_mean_trace",
+        "weight_n_actual_mean_trace",
+        "weight_truncated_fraction_trace",
+        "residual_reward_n_mean_trace",
+        "residual_discount_n_mean_trace",
+        "residual_bootstrap_q_mean_trace",
+        "residual_n_actual_mean_trace",
+        "residual_truncated_fraction_trace",
     ):
         bundle[key] = None if bundle.get(key) is None else np.asarray(bundle[key], float).reshape(-1)
     bundle["low_coef"] = None if bundle.get("low_coef") is None else np.asarray(bundle["low_coef"], float).reshape(-1)
@@ -324,6 +361,7 @@ def normalize_result_bundle(result_bundle):
     bundle["residual_high_coef"] = (
         None if bundle.get("residual_high_coef") is None else np.asarray(bundle["residual_high_coef"], float).reshape(-1)
     )
+    bundle["n_step"] = int(bundle.get("n_step", 1) or 1)
     bundle["state_mode"] = str(bundle.get("state_mode", "standard")).lower()
     bundle["system_metadata"] = dict(bundle.get("system_metadata") or {})
 
@@ -543,6 +581,31 @@ def _plot_mismatch_diagnostics(bundle, out_dir, prefix, t_step, t_step_blk, star
             "tracking_state_last_block",
             t_step_blk,
         )
+
+
+def _plot_nstep_diagnostics(out_dir, fname_base, bundle, save_pdf):
+    traces = [
+        ("reward_n", bundle.get("reward_n_mean_trace")),
+        ("discount_n", bundle.get("discount_n_mean_trace")),
+        ("bootstrap", bundle.get("bootstrap_q_mean_trace")),
+        ("n_actual", bundle.get("n_actual_mean_trace")),
+        ("truncated", bundle.get("truncated_fraction_trace")),
+    ]
+    active = [(label, np.asarray(values, float).reshape(-1)) for label, values in traces if values is not None and len(values) > 0]
+    if not active:
+        return
+
+    fig, axs = plt.subplots(len(active), 1, figsize=(8.4, 3.0 + 2.0 * max(1, len(active) - 1)), sharex=True)
+    if len(active) == 1:
+        axs = [axs]
+    for ax, (label, values) in zip(axs, active):
+        ax.plot(np.arange(1, len(values) + 1), values)
+        ax.set_ylabel(label)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel("Update #")
+    _save_fig(fig, out_dir, fname_base, save_pdf=save_pdf)
 
 
 def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
@@ -1023,6 +1086,11 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
     value_trace = bundle.get("avg_value_trace")
     adv_spread_trace = bundle.get("avg_advantage_spread_trace")
     noisy_sigma_trace = bundle.get("noisy_sigma_trace")
+    reward_n_trace = bundle.get("reward_n_mean_trace")
+    discount_n_trace = bundle.get("discount_n_mean_trace")
+    bootstrap_q_trace = bundle.get("bootstrap_q_mean_trace")
+    n_actual_trace = bundle.get("n_actual_mean_trace")
+    truncated_fraction_trace = bundle.get("truncated_fraction_trace")
     if any(trace is not None and len(trace) > 0 for trace in (loss_trace, exploration_trace, td_trace, max_q_trace, chosen_q_trace, value_trace, adv_spread_trace, noisy_sigma_trace)):
         traces = [
             ("Loss", loss_trace),
@@ -1033,6 +1101,11 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
             ("Avg V(s)", value_trace),
             ("Avg adv spread", adv_spread_trace),
             ("Noisy sigma", noisy_sigma_trace),
+            ("Reward_n", reward_n_trace),
+            ("Discount_n", discount_n_trace),
+            ("Bootstrap Q", bootstrap_q_trace),
+            ("n_actual", n_actual_trace),
+            ("Truncated", truncated_fraction_trace),
         ]
         active_traces = [(label, np.asarray(trace, float).reshape(-1)) for label, trace in traces if trace is not None and len(trace) > 0]
         fig, axs = plt.subplots(len(active_traces), 1, figsize=(8.6, 3.0 + 2.0 * max(1, len(active_traces) - 1)), sharex=True)
@@ -1057,6 +1130,8 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
         _save_fig(fig, out_dir, "fig_horizon_epsilon_trace", save_pdf=save_pdf)
+
+    _plot_nstep_diagnostics(out_dir, "fig_horizon_nstep_decomposition", bundle, save_pdf)
 
     yhat = bundle.get("yhat")
     if yhat is not None:
@@ -1472,6 +1547,8 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
         axs[-1].set_xlabel("Update #")
         _save_fig(fig, out_dir, "fig_matrix_training_diagnostics", save_pdf=save_pdf)
 
+    _plot_nstep_diagnostics(out_dir, "fig_matrix_nstep_decomposition", bundle, save_pdf)
+
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(
         {
@@ -1811,6 +1888,8 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
         axs[-1].set_xlabel("Update #")
         _save_fig(fig, out_dir, "fig_weights_training_diagnostics", save_pdf=save_pdf)
+
+    _plot_nstep_diagnostics(out_dir, "fig_weights_nstep_decomposition", bundle, save_pdf)
 
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(
@@ -2215,6 +2294,8 @@ def plot_residual_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
         axs[-1].set_xlabel("Update #")
         _save_fig(fig, out_dir, "fig_residual_training_diagnostics", save_pdf=save_pdf)
+
+    _plot_nstep_diagnostics(out_dir, "fig_residual_nstep_decomposition", bundle, save_pdf)
 
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(

@@ -322,6 +322,7 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         "disturbance_profile": disturbance_profile,
         "warm_start_step": int(warm_start_step),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
+        "n_step": int(getattr(agent, "n_step", 1)),
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
         "mismatch_scale": mismatch_scale,
@@ -348,6 +349,11 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         "action_saturation_trace",
         "entropy_trace",
         "mean_log_prob_trace",
+        "reward_n_mean_trace",
+        "discount_n_mean_trace",
+        "bootstrap_q_mean_trace",
+        "n_actual_mean_trace",
+        "truncated_fraction_trace",
     ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)

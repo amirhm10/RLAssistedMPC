@@ -10,6 +10,7 @@ import torch.optim as optim
 
 from DQN.qnetwork import DiscreteQNetwork
 from DQN.replay_buffer import PERRecentReplayBuffer
+from utils.nstep import NStepAccumulator
 from utils.noisy_layers import mean_module_abs_sigma
 
 
@@ -70,6 +71,7 @@ class DQNAgent(nn.Module):
         lr: float = 1e-3,
         batch_size: int = 128,
         buffer_size: int = 50_000,
+        n_step: int = 1,
         grad_clip_norm: float = 10.0,
         double_dqn: bool = True,
         target_update: Literal["soft", "hard"] = "soft",
@@ -96,6 +98,7 @@ class DQNAgent(nn.Module):
         self.device = device if device is not None else get_device()
         self.gamma = float(gamma)
         self.batch_size = int(batch_size)
+        self.n_step = int(n_step)
         self.grad_clip_norm = grad_clip_norm
         self.double_dqn = bool(double_dqn)
         self.target_update = str(target_update).lower()
@@ -134,7 +137,8 @@ class DQNAgent(nn.Module):
 
         self.optimizer = optim.Adam(self.online.parameters(), lr=lr)
         self.loss_fn = make_loss_fn(self.loss_type)
-        self.buffer = PERRecentReplayBuffer(buffer_size, state_dim)
+        self.buffer = PERRecentReplayBuffer(buffer_size, state_dim, default_discount=self.gamma)
+        self.nstep_accumulator = NStepAccumulator(gamma=self.gamma, n_step=self.n_step)
 
         self.action_dim = int(action_dim)
         self.steps = 0
@@ -156,6 +160,11 @@ class DQNAgent(nn.Module):
         self.avg_max_q_trace = []
         self.avg_chosen_q_trace = []
         self.noisy_sigma_trace = []
+        self.reward_n_mean_trace = []
+        self.discount_n_mean_trace = []
+        self.bootstrap_q_mean_trace = []
+        self.n_actual_mean_trace = []
+        self.truncated_fraction_trace = []
 
     def _set_eval_noise(self):
         self.online.set_noise_enabled(False)
@@ -196,7 +205,17 @@ class DQNAgent(nn.Module):
         return self._greedy_action(state)
 
     def push(self, s, a, r, ns, done):
-        self.buffer.push(s, a, r, ns, done)
+        ready = self.nstep_accumulator.append(s, a, r, ns, bool(done))
+        for transition in ready:
+            self.buffer.push(
+                transition.state,
+                transition.action,
+                transition.reward_n,
+                transition.next_state_n,
+                transition.done_n,
+                discount_n=transition.discount_n,
+                n_actual=transition.n_actual,
+            )
 
     @torch.no_grad()
     def act_eval(self, state: np.ndarray) -> int:
@@ -208,12 +227,14 @@ class DQNAgent(nn.Module):
             return None
 
         self._set_training_noise()
-        s, a_idx, r, ns, done, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
+        s, a_idx, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
         s = s.to(self.device, non_blocking=True).float()
         a = a_idx.to(self.device, non_blocking=True).long()
         r = r.to(self.device, non_blocking=True).float()
         ns = ns.to(self.device, non_blocking=True).float()
         done = done.to(self.device, non_blocking=True).float()
+        discount_n = discount_n.to(self.device, non_blocking=True).float()
+        n_actual = n_actual.to(self.device, non_blocking=True).float()
         is_w = is_w.to(self.device, non_blocking=True).float()
 
         q_online = self.online(s)
@@ -226,7 +247,8 @@ class DQNAgent(nn.Module):
                 q_next = q_target.gather(1, next_actions.view(-1, 1)).squeeze(1)
             else:
                 q_next = self.target(ns).max(dim=1).values
-            y = r + self.gamma * q_next * (1.0 - done)
+            bootstrap_q = q_next * (1.0 - done)
+            y = r + discount_n * bootstrap_q
 
         td = y - q_sa
         per_sample = self.loss_fn(q_sa, y)
@@ -255,5 +277,10 @@ class DQNAgent(nn.Module):
         self.avg_max_q_trace.append(float(q_online.max(dim=1).values.mean().item()))
         self.avg_chosen_q_trace.append(float(q_sa.mean().item()))
         self.noisy_sigma_trace.append(float(mean_module_abs_sigma(self.online)))
+        self.reward_n_mean_trace.append(float(r.mean().item()))
+        self.discount_n_mean_trace.append(float(discount_n.mean().item()))
+        self.bootstrap_q_mean_trace.append(float(bootstrap_q.mean().item()))
+        self.n_actual_mean_trace.append(float(n_actual.mean().item()))
+        self.truncated_fraction_trace.append(float((n_actual < float(self.n_step)).float().mean().item()))
 
         return float(loss.item())

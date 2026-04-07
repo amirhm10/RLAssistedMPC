@@ -14,6 +14,7 @@ import torch.nn.functional as F
 from TD3Agent.critic import Critic
 from TD3Agent.actor import Actor
 from TD3Agent.replay_buffer import PERRecentReplayBuffer, ReplayBuffer
+from utils.nstep import NStepAccumulator
 
 import os
 from datetime import datetime
@@ -89,6 +90,7 @@ class TD3Agent(nn.Module):
             actor_lr: float = 1e-4,
             critic_lr: float = 1e-3,
             batch_size: int = 256,
+            n_step: int = 1,
             grad_clip_norm: Optional[float] = 10.0,
             # TD3
             policy_delay: int = 2,
@@ -135,6 +137,7 @@ class TD3Agent(nn.Module):
         # --- hparams ---
         self.gamma = gamma
         self.batch_size = batch_size
+        self.n_step = int(n_step)
         self.grad_clip_norm = grad_clip_norm
         self.policy_delay = policy_delay
         self.t_std = target_policy_smoothing_noise_std
@@ -192,9 +195,10 @@ class TD3Agent(nn.Module):
 
         # Buffer initialization
         if self.mode == "mpc":
-            self.buffer = ReplayBuffer(buffer_size, state_dim, action_dim)
+            self.buffer = ReplayBuffer(buffer_size, state_dim, action_dim, default_discount=self.gamma)
         else:
-            self.buffer = PERRecentReplayBuffer(buffer_size, state_dim, action_dim)
+            self.buffer = PERRecentReplayBuffer(buffer_size, state_dim, action_dim, default_discount=self.gamma)
+        self.nstep_accumulator = NStepAccumulator(gamma=self.gamma, n_step=self.n_step)
 
         # logs
         self.actor_losses, self.critic_losses = [], []
@@ -203,6 +207,11 @@ class TD3Agent(nn.Module):
         self.exploration_magnitude_trace = []
         self.param_noise_scale_trace = []
         self.action_saturation_trace = []
+        self.reward_n_mean_trace = []
+        self.discount_n_mean_trace = []
+        self.bootstrap_q_mean_trace = []
+        self.n_actual_mean_trace = []
+        self.truncated_fraction_trace = []
 
         # decay scheduler
         self.expl_sched = exploration_schedule if exploration_schedule is not None else GaussianNoiseSchedule(
@@ -253,7 +262,17 @@ class TD3Agent(nn.Module):
 
 
     def push(self, s, a, r, ns, done):
-        self.buffer.push(s, a, r, ns, done)
+        ready = self.nstep_accumulator.append(s, a, r, ns, bool(done))
+        for transition in ready:
+            self.buffer.push(
+                transition.state,
+                transition.action,
+                transition.reward_n,
+                transition.next_state_n,
+                transition.done_n,
+                discount_n=transition.discount_n,
+                n_actual=transition.n_actual,
+            )
 
     def pretrain_push(self, s, a, r, ns,):
         self.buffer.pretrain_add(s, a, r, ns)
@@ -296,9 +315,9 @@ class TD3Agent(nn.Module):
             return None
 
         if self.mode == "mpc":
-            s, a, r, ns, done = self.buffer.sample(self.batch_size, device=self.device)
+            s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
         else:
-            s, a, r, ns, done, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
+            s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
             is_w = col(is_w.to(self.device, non_blocking=True).float())  # [B, 1]
 
         s = s.to(self.device, non_blocking=True).float()  # [B, S]
@@ -306,6 +325,8 @@ class TD3Agent(nn.Module):
         r = col(r.to(self.device, non_blocking=True).float())  # [B, 1]
         ns = ns.to(self.device, non_blocking=True).float()  # [B, S]
         done = col(done.to(self.device, non_blocking=True).float())  # [B, 1]
+        discount_n = col(discount_n.to(self.device, non_blocking=True).float())  # [B, 1]
+        n_actual = col(n_actual.to(self.device, non_blocking=True).float())  # [B, 1]
 
 
         with torch.no_grad():
@@ -317,10 +338,8 @@ class TD3Agent(nn.Module):
 
             # Next q value
             q_next = self.critic_target.combined_forward(ns, next_action, mode=self.target_combine)
-            if self.mode == "mpc":
-                y = r + self.gamma * q_next
-            else:
-                y = r + self.gamma * (1.0 - done) * q_next
+            bootstrap_q = q_next * (1.0 - done)
+            y = r + discount_n * bootstrap_q
 
 
 
@@ -345,6 +364,11 @@ class TD3Agent(nn.Module):
         self.critic_q1_trace.append(float(q1.mean().item()))
         self.critic_q2_trace.append(float(q2.mean().item()))
         self.critic_q_gap_trace.append(float((q1 - q2).abs().mean().item()))
+        self.reward_n_mean_trace.append(float(r.mean().item()))
+        self.discount_n_mean_trace.append(float(discount_n.mean().item()))
+        self.bootstrap_q_mean_trace.append(float(bootstrap_q.mean().item()))
+        self.n_actual_mean_trace.append(float(n_actual.mean().item()))
+        self.truncated_fraction_trace.append(float((n_actual < float(self.n_step)).float().mean().item()))
 
         # ------ Delayed actor + target update -------
         if self.total_it % self.policy_delay == 0:
@@ -399,9 +423,9 @@ class TD3Agent(nn.Module):
 
         for it in range(1, num_updates+1):
             if self.mode == "mpc":
-                s, a, r, ns, done = self.buffer.sample(self.batch_size, device=self.device)
+                s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
             else:
-                s, a, r, ns, done, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
+                s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
                 is_w = col(is_w.to(self.device, non_blocking=True).float())  # [B, 1]
 
             s = s.to(self.device, non_blocking=True).float()  # [B, S]
@@ -409,6 +433,7 @@ class TD3Agent(nn.Module):
             r = col(r.to(self.device, non_blocking=True).float())  # [B, 1]
             ns = ns.to(self.device, non_blocking=True).float()  # [B, S]
             done = col(done.to(self.device, non_blocking=True).float())  # [B, 1]
+            discount_n = col(discount_n.to(self.device, non_blocking=True).float())  # [B, 1]
 
             with torch.no_grad():
                 # target policy smoothing
@@ -422,10 +447,7 @@ class TD3Agent(nn.Module):
 
                 # Next q value
                 q_next = self.critic_target.combined_forward(ns, next_action, mode=self.target_combine)
-                if self.mode == "mpc":
-                    y = r + self.gamma * q_next
-                else:
-                    y = r + self.gamma * (1.0 - done) * q_next
+                y = r + discount_n * (q_next * (1.0 - done))
 
             # critic update
             q1, q2 = self.critic(s, a)
@@ -532,6 +554,7 @@ class TD3Agent(nn.Module):
                 "exploration_mode": self.exploration_mode,
                 "loss_type": self.loss_type,
                 "param_noise_resample_interval": self.param_noise_resample_interval,
+                "n_step": self.n_step,
                 "steps": self.steps,
                 "train_steps": self.train_steps,
                 "total_it": self.total_it,

@@ -311,6 +311,7 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
         "mpc_horizons": (predict_h, cont_h),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "warm_start_step": int(warm_start_step),
+        "n_step": int(getattr(agent, "n_step", 1)),
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
         "mismatch_scale": mismatch_scale,
@@ -327,6 +328,11 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
         "avg_value_trace": getattr(agent, "avg_value_trace", None),
         "avg_advantage_spread_trace": getattr(agent, "avg_advantage_spread_trace", None),
         "noisy_sigma_trace": getattr(agent, "noisy_sigma_trace", None),
+        "reward_n_mean_trace": getattr(agent, "reward_n_mean_trace", None),
+        "discount_n_mean_trace": getattr(agent, "discount_n_mean_trace", None),
+        "bootstrap_q_mean_trace": getattr(agent, "bootstrap_q_mean_trace", None),
+        "n_actual_mean_trace": getattr(agent, "n_actual_mean_trace", None),
+        "truncated_fraction_trace": getattr(agent, "truncated_fraction_trace", None),
     }
     for key, value in diagnostics.items():
         if value is not None:

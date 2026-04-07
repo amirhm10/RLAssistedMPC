@@ -97,3 +97,48 @@ The repo now has:
 \end{itemize}
 
 The existing unified runner structure and notebook families remain intact; this pass upgrades the learning components and diagnostics without redesigning the supervisory MPC workflow.
+
+\subsection{N-Step Credit Assignment Extension}
+The same unified stacks now support plain uncorrected $n$-step returns as an additive extension, with \texttt{n\_step = 1} kept as the canonical baseline. A shared accumulator forms endpoint transitions of the form
+\[
+\left(s_t,\; a_t,\; R_t^{(n)},\; s_{t+n},\; d_t^{(n)},\; \gamma_t^{(n)}\right),
+\]
+where
+\[
+R_t^{(n)} = \sum_{k=0}^{n_t-1} \gamma^k r_{t+k},
+\qquad
+\gamma_t^{(n)} =
+\begin{cases}
+0, & \text{if a terminal transition occurs before the bootstrap endpoint},\\
+\gamma^{n_t}, & \text{otherwise.}
+\end{cases}
+\]
+Here $n_t$ is the actual realized horizon, which may be smaller than the configured \texttt{n\_step} near the end of an episode.
+
+This extension is threaded through:
+\begin{itemize}
+  \item the standard DDQN baseline in \texttt{DQN/},
+  \item the dueling DDQN path in \texttt{DuelingDQN/},
+  \item TD3 in \texttt{TD3Agent/},
+  \item SAC in \texttt{SACAgent/},
+  \item the active polymer and distillation unified notebooks for horizon, matrices, weights, and residual control.
+\end{itemize}
+
+The endpoint targets preserve each algorithm's original bootstrap rule while replacing the one-step reward/discount pair:
+\begin{itemize}
+  \item DDQN / dueling DDQN:
+  \[
+  y_t = R_t^{(n)} + \gamma_t^{(n)} Q_{\theta^-}\!\left(s_{t+n}, \arg\max_a Q_{\theta}(s_{t+n}, a)\right).
+  \]
+  \item TD3:
+  \[
+  y_t = R_t^{(n)} + \gamma_t^{(n)} \min_{i \in \{1,2\}} Q_{\phi_i^-}\!\left(s_{t+n}, \tilde a_{t+n}\right),
+  \]
+  with the same target-policy smoothing used in the one-step implementation.
+  \item SAC:
+  \[
+  y_t = R_t^{(n)} + \gamma_t^{(n)} \left(\min_{i \in \{1,2\}} Q_{\phi_i^-}(s_{t+n}, a_{t+n}) - \alpha \log \pi(a_{t+n}\mid s_{t+n})\right).
+  \]
+\end{itemize}
+
+The saved bundles now include \texttt{n\_step} metadata and simple decomposition traces such as mean aggregated reward, mean effective discount, mean bootstrap value, mean realized step count, and the truncated-fraction trace. This keeps old bundles backward-compatible while allowing $n$-step analyses to be reproduced later from \texttt{input\_data.pkl} alone.

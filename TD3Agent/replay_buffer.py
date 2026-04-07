@@ -6,23 +6,28 @@ import torch
 # Simple Uniform Replay Buffer
 # ----------------------
 class ReplayBuffer:
-    def __init__(self, capacity: int, state_dim: int, action_dim: int):
+    def __init__(self, capacity: int, state_dim: int, action_dim: int, default_discount: float = 1.0):
         self.capacity = int(capacity)
         self.ptr = 0
         self.size = 0
+        self.default_discount = float(default_discount)
         self.states = np.zeros((capacity, state_dim), dtype=np.float32)
         self.actions = np.zeros((capacity, action_dim), dtype=np.float32)
         self.rewards = np.zeros((capacity,), dtype=np.float32)
         self.next_states = np.zeros((capacity, state_dim), dtype=np.float32)
         self.dones = np.zeros((capacity,), dtype=np.float32)  # 0/1 floating
+        self.discounts = np.zeros((capacity,), dtype=np.float32)
+        self.n_actual = np.ones((capacity,), dtype=np.int32)
 
-    def push(self, s, a, r, ns, done: bool):
+    def push(self, s, a, r, ns, done: bool, discount_n: float | None = None, n_actual: int = 1):
         i = self.ptr
         self.states[i] = s
         self.actions[i] = a
         self.rewards[i] = r
         self.next_states[i] = ns
         self.dones[i] = float(done)
+        self.discounts[i] = self.default_discount if discount_n is None else float(discount_n)
+        self.n_actual[i] = int(n_actual)
         self.ptr = (self.ptr + 1) % self.capacity
         self.size = min(self.size + 1, self.capacity)
 
@@ -34,6 +39,8 @@ class ReplayBuffer:
             torch.from_numpy(self.rewards[idx]).to(device),
             torch.from_numpy(self.next_states[idx]).to(device),
             torch.from_numpy(self.dones[idx].astype(np.float32)).to(device),
+            torch.from_numpy(self.discounts[idx]).to(device),
+            torch.from_numpy(self.n_actual[idx]).to(device),
         )
 
     def pretrain_add(self, states_p, actions_p, rewards_p, next_states_p):
@@ -45,6 +52,9 @@ class ReplayBuffer:
         self.actions[self.ptr: self.ptr + n] = actions_p
         self.rewards[self.ptr: self.ptr + n] = rewards_p
         self.next_states[self.ptr: self.ptr + n] = next_states_p
+        self.dones[self.ptr: self.ptr + n] = 0.0
+        self.discounts[self.ptr: self.ptr + n] = self.default_discount
+        self.n_actual[self.ptr: self.ptr + n] = 1
         self.ptr += n
         self.size = min(self.ptr, self.capacity)
 
@@ -61,6 +71,7 @@ class PERRecentReplayBuffer:
             capacity: int,
             state_dim: int,
             action_dim: int,
+            default_discount: float = 1.0,
             eps: float = 1e-6,
             alpha: float = 0.6,  # PER exponent (0 = uniform, 1 = full PER)
             beta_start: float = 0.4,  # IS correction starts small, anneals to 1.0
@@ -71,6 +82,7 @@ class PERRecentReplayBuffer:
         self.capacity = capacity
         self.state_dim = state_dim
         self.action_dim = action_dim
+        self.default_discount = float(default_discount)
 
         self.ptr = 0
         self.size = 0
@@ -81,6 +93,8 @@ class PERRecentReplayBuffer:
         self.rewards = np.zeros((self.capacity,), np.float32)
         self.next_states = np.zeros((self.capacity, self.state_dim), np.float32)
         self.dones = np.zeros((self.capacity,), np.float32)  # 0/1 floats
+        self.discounts = np.zeros((self.capacity,), np.float32)
+        self.n_actual = np.ones((self.capacity,), np.int32)
 
         # PER + recency
         self.birth_step = np.zeros(self.capacity, np.int64)
@@ -98,13 +112,15 @@ class PERRecentReplayBuffer:
         frac = min(1.0, self.beta_t / max(1, self.beta_steps))
         return self.beta_start + frac * (self.beta_end - self.beta_start)
 
-    def push(self, s, a, r, ns, done, p0=None):
+    def push(self, s, a, r, ns, done, p0=None, discount_n=None, n_actual=1):
         i = self.ptr
         self.states[i] = s
         self.actions[i] = a
         self.rewards[i] = r
         self.next_states[i] = ns
         self.dones[i] = float(done)
+        self.discounts[i] = self.default_discount if discount_n is None else float(discount_n)
+        self.n_actual[i] = int(n_actual)
 
         pri = float(p0) if (p0 is not None and p0 > 0) else self._max_priority
         self.priorities[i] = pri
@@ -170,9 +186,11 @@ class PERRecentReplayBuffer:
         r = torch.from_numpy(self.rewards[idx]).to(device)
         ns = torch.from_numpy(self.next_states[idx]).to(device)
         d = torch.from_numpy(self.dones[idx]).to(device)
+        discount = torch.from_numpy(self.discounts[idx]).to(device)
+        n_actual = torch.from_numpy(self.n_actual[idx]).to(device)
         is_w = torch.from_numpy(is_w).to(device)
 
-        return s, a, r, ns, d, idx, is_w
+        return s, a, r, ns, d, discount, n_actual, idx, is_w
 
     def update_priorities(self, idx, td_errors):
         # td errors

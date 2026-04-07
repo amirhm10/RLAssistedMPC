@@ -13,7 +13,7 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
-from utils.state_features import build_rl_state
+from utils.state_features import build_rl_state, default_mismatch_scale
 
 
 def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
@@ -53,6 +53,13 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
     cont_h = int(dueling_cfg["cont_h"])
     decision_interval = int(dueling_cfg["decision_interval"])
     use_shifted_mpc_warm_start = bool(dueling_cfg.get("use_shifted_mpc_warm_start", False))
+    mismatch_scale = None
+    mismatch_clip = dueling_cfg.get("mismatch_clip", 3.0)
+    if state_mode == "mismatch":
+        mismatch_scale = np.asarray(
+            dueling_cfg.get("mismatch_scale", default_mismatch_scale(min_max_dict)),
+            float,
+        )
 
     (
         y_sp,
@@ -156,6 +163,8 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_prev_scaled,
             yhat_pred=yhat_pred,
+            mismatch_scale=mismatch_scale,
+            mismatch_clip=mismatch_clip,
         )
         if innovation_log is not None:
             innovation_log[i, :] = state_debug["innovation"]
@@ -235,6 +244,8 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_current_scaled,
             yhat_pred=yhat_next_pred,
+            mismatch_scale=mismatch_scale,
+            mismatch_clip=mismatch_clip,
         )
         done = 0.0
 
@@ -273,6 +284,9 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
         "state_mode": state_mode,
         "algorithm": "dueling_ddqn",
         "system_metadata": system_metadata,
+        "notebook_source": dueling_cfg.get("notebook_source"),
+        "config_snapshot": dict(dueling_cfg),
+        "seed": dueling_cfg.get("seed"),
         "y_sp": y_sp,
         "steady_states": steady_states,
         "nFE": int(nFE),
@@ -299,15 +313,20 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
         "warm_start_step": int(warm_start_step),
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
+        "mismatch_scale": mismatch_scale,
+        "mismatch_clip": mismatch_clip,
     }
 
     diagnostics = {
         "dqn_loss_trace": getattr(agent, "loss_history", None),
+        "exploration_trace": getattr(agent, "exploration_trace", None),
         "epsilon_trace": getattr(agent, "epsilon_trace", None),
         "avg_td_error_trace": getattr(agent, "avg_td_error_trace", None),
         "avg_max_q_trace": getattr(agent, "avg_max_q_trace", None),
+        "avg_chosen_q_trace": getattr(agent, "avg_chosen_q_trace", None),
         "avg_value_trace": getattr(agent, "avg_value_trace", None),
         "avg_advantage_spread_trace": getattr(agent, "avg_advantage_spread_trace", None),
+        "noisy_sigma_trace": getattr(agent, "noisy_sigma_trace", None),
     }
     for key, value in diagnostics.items():
         if value is not None:

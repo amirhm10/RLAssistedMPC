@@ -1,66 +1,99 @@
-\section{Dueling Double DQN Horizon Supervisor}
+\section{Discrete Cleanup, Dueling DDQN, Exploration, And Diagnostics}
 
-\subsection{Motivation}
-The horizon-selection problem in RL-assisted MPC is a discrete supervisory control task: the agent selects a horizon recipe $(H_p, H_c)$ while the underlying offset-free MPC handles the continuous control move optimization. Near steady state, many horizon recipes can yield similar closed-loop performance, which makes a value--advantage decomposition attractive. In that setting, the state can still have high value even when the relative advantage between candidate horizon recipes is small. A dueling architecture is therefore a natural extension of the current discrete horizon supervisor.
+\subsection{Scope}
+This note documents the repo-wide reinforcement-learning cleanup performed for the unified MPC notebooks. The main goals are:
+\begin{itemize}
+  \item clean the standard discrete horizon baseline into a proper Double DQN,
+  \item keep the dueling horizon family as a separate upgraded discrete path,
+  \item add correct NoisyNet support for discrete exploration,
+  \item expose configurable loss and exploration choices in the continuous-control agents,
+  \item normalize mismatch features consistently, and
+  \item save enough diagnostics in \texttt{input\_data.pkl} to regenerate plots later.
+\end{itemize}
 
-\subsection{Method}
-Let the discrete action $a$ denote a horizon recipe index. The recipe library maps each index to one pair $(H_p, H_c)$, and the MPC solve uses that pair for the current supervisory interval.
-
-For state $s$, the dueling network estimates
+\subsection{Standard Horizon Baseline: Clean DDQN}
+The standard horizon baseline now uses one online Q-network and one target Q-network. The target is the usual Double DQN construction:
 \[
-V(s) \in \mathbb{R}, \qquad A(s,a) \in \mathbb{R}^{|\mathcal{A}|}.
+y_t = r_t + \gamma Q_{\theta^-}\!\left(s_{t+1}, \arg\max_a Q_{\theta}(s_{t+1}, a)\right)(1-d_t).
 \]
-The action-value estimate is formed as
+This removes the older dormant twin-discrete-Q behavior and keeps evaluation aligned with the online network:
+\[
+a_t^{\mathrm{eval}} = \arg\max_a Q_{\theta}(s_t, a).
+\]
+
+The standard polymer and distillation horizon notebooks remain the baseline family. Their defaults stay conservative:
+\begin{itemize}
+  \item \texttt{exploration\_mode = "epsilon"}
+  \item \texttt{loss\_type = "huber"}
+  \item the existing unified horizon runner semantics are preserved
+\end{itemize}
+
+\subsection{Dueling DDQN Horizon Family}
+The dueling path keeps the standard value--advantage decomposition:
 \[
 Q(s,a) = V(s) + A(s,a) - \frac{1}{|\mathcal{A}|}\sum_{a'} A(s,a').
 \]
-This avoids the non-identifiability of the naive $Q = V + A$ form.
-
-The Double DQN target is
+The target is still Double DQN:
 \[
-y = r + \gamma Q_{\text{target}}\!\left(s', \arg\max_a Q_{\text{online}}(s', a)\right)(1-d),
+y_t = r_t + \gamma Q_{\theta^-}\!\left(s_{t+1}, \arg\max_a Q_{\theta}(s_{t+1}, a)\right)(1-d_t).
 \]
-where $d$ is the done flag. The online network selects the next action and the target network evaluates it. Training uses the Huber loss
+
+Both polymer and distillation now have unified dueling horizon notebooks. The dueling defaults are research-facing:
+\begin{itemize}
+  \item \texttt{exploration\_mode = "noisy"}
+  \item \texttt{loss\_type = "huber"}
+  \item the same deep \texttt{[512,512,512,512,512]} backbone used for the standard horizon family
+\end{itemize}
+
+\subsection{NoisyNet Exploration}
+Discrete exploration now supports epsilon-greedy and NoisyNet. The shared noisy layer uses factorized Gaussian noise:
 \[
-\mathcal{L} = \operatorname{SmoothL1}\!\left(Q_{\text{online}}(s,a), y\right),
+W = \mu_W + \sigma_W \odot \epsilon_W,\qquad
+b = \mu_b + \sigma_b \odot \epsilon_b.
 \]
-with importance weights from the replay buffer when prioritized replay is active.
+Training and action collection use sampled noise when \texttt{exploration\_mode = "noisy"}, while evaluation disables noise and remains deterministic. This is implemented once and reused by both the standard DDQN and dueling DDQN stacks.
 
-\subsection{Mapping To This Repo}
-The dueling workflow is implemented for the polymer horizon notebook. The state is the same unified horizon state already used in the repo:
+\subsection{Continuous-Agent Exploration And Loss Options}
+The continuous stacks were extended without changing runner semantics:
 \begin{itemize}
-  \item standard mode: scaled observer state, scaled setpoint deviation, and scaled input deviation
-  \item mismatch mode: the standard state plus innovation and tracking-error terms
+  \item TD3 now supports \texttt{loss\_type = "huber" | "mse"} and \texttt{exploration\_mode = "gaussian" | "param\_noise"}.
+  \item Parameter-noise exploration perturbs only the data-collection actor and is resampled on a configurable cadence.
+  \item SAC now supports \texttt{loss\_type = "huber" | "mse"} and saves richer training diagnostics.
+  \item SAC evaluation stays deterministic through the mean action, while training remains stochastic.
 \end{itemize}
 
-The action is still a discrete horizon recipe index. The shared runner translates that index into $(H_p, H_c)$, rebuilds the MPC solver only when the selected horizon changes, and keeps the same reward path, decision interval logic, disturbance handling, and warm-start switch as the current unified horizon workflow.
+\subsection{Mismatch-State Normalization}
+Mismatch mode now scales innovation and tracking error by an explicit per-output supervisory range vector instead of using fixed raw clipping. The default scale comes from the existing setpoint-deviation bounds:
+\[
+\texttt{mismatch\_scale}_i = \max\!\left(|y_{\mathrm{sp,min},i}|,\; |y_{\mathrm{sp,max},i}|,\; \varepsilon\right).
+\]
+After normalization, an optional clip is applied, with default \texttt{mismatch\_clip = 3.0}. This preserves the original standard state path while making mismatch features comparable across systems and outputs.
 
-The notebook entrypoint is \texttt{RL\_assisted\_MPC\_horizons\_dueling\_unified.ipynb}. It uses the new runner \texttt{run\_dueling\_dqn\_mpc\_horizon\_supervisor} and stores the same normalized bundle fields as the current horizon path, with optional dueling-specific diagnostics added when available.
-
-\subsection{Comparison Against The Legacy DQN Path}
-The legacy repo path under \texttt{DQN/} remains unchanged and continues to serve as the baseline. That legacy path uses a twin discrete-Q structure, but in practice the current horizon notebook configuration relies on \texttt{q1} for action selection and target combination, so the second branch is not used as a fully symmetric twin learner. The new implementation therefore uses a standard and internally coherent dueling Double DQN design instead of trying to preserve that legacy twin-head structure.
-
-\subsection{Expected Benefits And Limitations}
-\textbf{Potential benefits:}
+\subsection{Diagnostics And Saved Bundles}
+The saved run bundles now store richer metadata and diagnostics, including:
 \begin{itemize}
-  \item cleaner representation when many horizon actions are nearly equivalent
-  \item more interpretable diagnostics via separate value and advantage statistics
-  \item standard Double DQN target construction for stable discrete control
+  \item method family, algorithm, notebook source, run mode, state mode, config snapshot, and seed,
+  \item discrete diagnostics such as loss, exploration, epsilon, TD error, max-Q, chosen-action Q, noisy sigma, and dueling value/advantage summaries,
+  \item continuous diagnostics such as actor/critic losses, critic-Q traces, exploration magnitude, parameter-noise scale, action saturation, and SAC entropy / log-prob summaries.
 \end{itemize}
 
-\textbf{Limitations:}
+The plotting layer was extended in a backward-compatible way so these saved bundles can drive:
 \begin{itemize}
-  \item the action space remains a finite recipe library, so performance still depends on the chosen horizon grid
-  \item reward design remains a dominant driver of the learned policy
-  \item MPC solve cost still dominates runtime even if the RL estimator improves
-  \item dueling structure is helpful only if state value and action advantage are meaningfully separable in this task
+  \item richer discrete and continuous diagnostics dashboards,
+  \item multi-run reward summaries with mean/std overlays,
+  \item simple summary tables exported from saved \texttt{input\_data.pkl} bundles.
 \end{itemize}
 
-\subsection{Hyperparameter Notes}
-The new defaults are chosen for slow supervisory MPC decisions rather than high-frequency benchmark environments:
+\subsection{Repo-Level Outcome}
+The repo now has:
 \begin{itemize}
-  \item linear epsilon decay for predictable exploration across a limited number of supervisory decisions
-  \item hard target updates by default for stable discrete Q-learning targets
-  \item Huber loss and gradient clipping for robustness to occasional large TD errors
-  \item reuse of the existing prioritized-plus-recent replay buffer to stay compatible with the current repo's experience distribution design
+  \item a clean DDQN baseline in \texttt{DQN/},
+  \item an upgraded dueling DDQN stack in \texttt{DuelingDQN/},
+  \item a polymer dueling unified horizon notebook,
+  \item a distillation dueling unified horizon notebook,
+  \item shared NoisyNet layers,
+  \item configurable exploration/loss settings in DDQN, dueling DDQN, TD3, and SAC,
+  \item richer result bundles and non-breaking plot extensions.
 \end{itemize}
+
+The existing unified runner structure and notebook families remain intact; this pass upgrades the learning components and diagnostics without redesigning the supervisory MPC workflow.

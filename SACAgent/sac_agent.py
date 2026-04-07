@@ -34,6 +34,15 @@ def col(x: torch.Tensor) -> torch.Tensor:
         return x.view(-1, 1)
     return x
 
+
+def make_loss_fn(loss_type: str):
+    loss_type = str(loss_type).lower()
+    if loss_type == "huber":
+        return nn.SmoothL1Loss(reduction="none")
+    if loss_type == "mse":
+        return nn.MSELoss(reduction="none")
+    raise ValueError("loss_type must be 'huber' or 'mse'.")
+
 @torch.no_grad()
 def hard_update(target: nn.Module, online: nn.Module) -> None:
     target.load_state_dict(online.state_dict())
@@ -82,6 +91,7 @@ class SACAgent(nn.Module):
             device: Optional[torch.device] = None,
             use_adamw: bool = True,
             actor_freeze: int = 0,
+            loss_type: Literal["huber", "mse"] = "huber",
     ):
         super(SACAgent, self).__init__()
         self.device = device if device is not None else get_device()
@@ -96,6 +106,11 @@ class SACAgent(nn.Module):
         self.max_action = float(max_action)
         self.use_per = use_per
         self.actor_freeze = int(actor_freeze)
+        self.loss_type = str(loss_type).lower()
+        self.actor_lr = float(actor_lr)
+        self.critic_lr = float(critic_lr)
+        self.alpha_lr = float(alpha_lr)
+        self.init_alpha = float(init_alpha)
 
         # ---- critic (double Q) ----
         self.critic = Critic(
@@ -118,7 +133,7 @@ class SACAgent(nn.Module):
 
         hard_update(self.critic_target, self.critic)
 
-        self.loss_fn_critic = nn.SmoothL1Loss(reduction="none")
+        self.loss_fn_critic = make_loss_fn(self.loss_type)
 
         # ---- actor (Gaussian policy) ----
         self.actor = GaussianActor(
@@ -167,6 +182,8 @@ class SACAgent(nn.Module):
         self.critic_losses = []
         self.alpha_losses = []
         self.alphas = []
+        self.entropy_trace = []
+        self.mean_log_prob_trace = []
 
     # ---- interactions ----
     @torch.no_grad()
@@ -194,10 +211,8 @@ class SACAgent(nn.Module):
 
     @torch.no_grad()
     def act_eval(self, state: np.ndarray, sigma_eval: float = 0.0) -> np.ndarray:
+        del sigma_eval
         a = self.act(state, eval_mode=True)
-        if sigma_eval > 0.0:
-            noise = np.random.randn(*a.shape) * sigma_eval
-            a = np.clip(a + noise, -self.max_action, self.max_action)
         return a
 
     def push(self, s, a, r, ns, done):
@@ -433,6 +448,8 @@ class SACAgent(nn.Module):
         self.critic_losses.append(float(critic_loss.item()))
         self.alpha_losses.append(float(alpha_loss.item()))
         self.alphas.append(float(self.log_alpha.exp().item()))
+        self.mean_log_prob_trace.append(float(logp_new.mean().item()))
+        self.entropy_trace.append(float((-logp_new).mean().item()))
 
         return float(critic_loss.item()), float(actor_loss.item()), float(self.log_alpha.exp().item())
 
@@ -471,6 +488,7 @@ class SACAgent(nn.Module):
             "critic_lr",
             "batch_size",
             "grad_clip_norm",
+            "loss_type",
             "policy_delay",
             "target_update",
             "tau",

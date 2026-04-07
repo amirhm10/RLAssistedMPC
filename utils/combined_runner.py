@@ -13,7 +13,7 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
-from utils.state_features import build_rl_state
+from utils.state_features import build_rl_state, default_mismatch_scale
 
 
 def _map_to_bounds(action, low, high):
@@ -56,9 +56,32 @@ def _extract_losses(agent, prefix):
     payload = {}
     if agent is None:
         return payload
-    for attr in ("actor_losses", "critic_losses", "alpha_losses", "alphas"):
+    attr_map = {
+        "actor_losses": f"{prefix}_actor_losses",
+        "critic_losses": f"{prefix}_critic_losses",
+        "alpha_losses": f"{prefix}_alpha_losses",
+        "alphas": f"{prefix}_alphas",
+        "critic_q1_trace": f"{prefix}_critic_q1_trace",
+        "critic_q2_trace": f"{prefix}_critic_q2_trace",
+        "critic_q_gap_trace": f"{prefix}_critic_q_gap_trace",
+        "exploration_trace": f"{prefix}_exploration_trace",
+        "exploration_magnitude_trace": f"{prefix}_exploration_magnitude_trace",
+        "param_noise_scale_trace": f"{prefix}_param_noise_scale_trace",
+        "action_saturation_trace": f"{prefix}_action_saturation_trace",
+        "entropy_trace": f"{prefix}_entropy_trace",
+        "mean_log_prob_trace": f"{prefix}_mean_log_prob_trace",
+        "loss_history": f"{prefix}_dqn_loss_trace",
+        "epsilon_trace": f"{prefix}_epsilon_trace",
+        "avg_td_error_trace": f"{prefix}_avg_td_error_trace",
+        "avg_max_q_trace": f"{prefix}_avg_max_q_trace",
+        "avg_value_trace": f"{prefix}_avg_value_trace",
+        "avg_advantage_spread_trace": f"{prefix}_avg_advantage_spread_trace",
+        "avg_chosen_q_trace": f"{prefix}_avg_chosen_q_trace",
+        "noisy_sigma_trace": f"{prefix}_noisy_sigma_trace",
+    }
+    for attr, key in attr_map.items():
         if hasattr(agent, attr):
-            payload[f"{prefix}_{attr}"] = np.asarray(getattr(agent, attr), float)
+            payload[key] = np.asarray(getattr(agent, attr), float)
     return payload
 
 
@@ -196,6 +219,18 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     weight_state_mode = _normalize_state_mode(weight_cfg)
     residual_state_mode = _normalize_state_mode(residual_cfg)
     horizon_state_mode = _normalize_state_mode(horizon_cfg)
+    mismatch_scales = {
+        "horizon": None if horizon_state_mode != "mismatch" else np.asarray(horizon_cfg.get("mismatch_scale", default_mismatch_scale(min_max_dict)), float),
+        "matrix": None if matrix_state_mode != "mismatch" else np.asarray(matrix_cfg.get("mismatch_scale", default_mismatch_scale(min_max_dict)), float),
+        "weights": None if weight_state_mode != "mismatch" else np.asarray(weight_cfg.get("mismatch_scale", default_mismatch_scale(min_max_dict)), float),
+        "residual": None if residual_state_mode != "mismatch" else np.asarray(residual_cfg.get("mismatch_scale", default_mismatch_scale(min_max_dict)), float),
+    }
+    mismatch_clips = {
+        "horizon": horizon_cfg.get("mismatch_clip", 3.0),
+        "matrix": matrix_cfg.get("mismatch_clip", 3.0),
+        "weights": weight_cfg.get("mismatch_clip", 3.0),
+        "residual": residual_cfg.get("mismatch_clip", 3.0),
+    }
     use_rho_authority = bool(residual_cfg.get("use_rho_authority", True))
     use_shifted_mpc_warm_start = bool(combined_cfg.get("use_shifted_mpc_warm_start", False))
 
@@ -293,6 +328,8 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                 state_mode=state_mode,
                 y_prev_scaled=y_prev_scaled,
                 yhat_pred=yhat_pred,
+                mismatch_scale=mismatch_scales[name],
+                mismatch_clip=mismatch_clips[name],
             )
             log_pack = mismatch_logs[name]
             if log_pack["innovation"] is not None:
@@ -509,7 +546,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         next_u_dev = u_applied_scaled_abs - ss_scaled_inputs
         yhat_next_pred = MPC_obj.C @ xhatdhat[:, i + 1]
 
-        def build_next_state(state_mode):
+        def build_next_state(name, state_mode):
             next_state, _ = build_rl_state(
                 min_max_dict=min_max_dict,
                 x_d_states=xhatdhat[:, i + 1],
@@ -518,12 +555,14 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                 state_mode=state_mode,
                 y_prev_scaled=y_current_scaled,
                 yhat_pred=yhat_next_pred,
+                mismatch_scale=mismatch_scales[name],
+                mismatch_clip=mismatch_clips[name],
             )
             return next_state
 
         if not test:
             if horizon_enabled and i > warm_start_step:
-                next_state = build_next_state(horizon_state_mode)
+                next_state = build_next_state("horizon", horizon_state_mode)
                 horizon_agent.push(
                     current_states["horizon"].astype(np.float32),
                     int(h_idx),
@@ -535,7 +574,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     horizon_agent.train_step()
 
             if matrix_enabled and i > warm_start_step:
-                next_state = build_next_state(matrix_state_mode)
+                next_state = build_next_state("matrix", matrix_state_mode)
                 matrix_agent.push(
                     current_states["matrix"].astype(np.float32),
                     np.asarray(model_raw, np.float32),
@@ -547,7 +586,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     matrix_agent.train_step()
 
             if weight_enabled and i > warm_start_step:
-                next_state = build_next_state(weight_state_mode)
+                next_state = build_next_state("weights", weight_state_mode)
                 weight_agent.push(
                     current_states["weights"].astype(np.float32),
                     np.asarray(weight_raw, np.float32),
@@ -559,7 +598,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     weight_agent.train_step()
 
             if residual_enabled and i > warm_start_step:
-                next_state = build_next_state(residual_state_mode)
+                next_state = build_next_state("residual", residual_state_mode)
                 residual_exec_action = _map_from_bounds(residual_exec, residual_low, residual_high).astype(np.float32)
                 residual_exec_action = np.clip(residual_exec_action, -1.0, 1.0)
                 residual_agent.push(
@@ -596,7 +635,12 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
 
     result_bundle = {
         "run_mode": run_mode,
+        "method_family": "combined",
+        "algorithm": "multi_agent",
         "system_metadata": system_metadata,
+        "notebook_source": combined_cfg.get("notebook_source"),
+        "config_snapshot": dict(combined_cfg),
+        "seed": combined_cfg.get("seed"),
         "decision_interval": int(decision_interval),
         "active_agents": {
             "horizon": horizon_enabled,
@@ -661,9 +705,14 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "weight_tracking_error_log": mismatch_logs["weights"]["tracking_error"],
         "residual_innovation_log": mismatch_logs["residual"]["innovation"],
         "residual_tracking_error_log": mismatch_logs["residual"]["tracking_error"],
+        "horizon_mismatch_scale": mismatch_scales["horizon"],
+        "matrix_mismatch_scale": mismatch_scales["matrix"],
+        "weight_mismatch_scale": mismatch_scales["weights"],
+        "residual_mismatch_scale": mismatch_scales["residual"],
         "mpc_horizons": (predict_h, cont_h),
     }
 
+    result_bundle.update(_extract_losses(horizon_agent, "horizon"))
     result_bundle.update(_extract_losses(matrix_agent, "matrix"))
     result_bundle.update(_extract_losses(weight_agent, "weight"))
     result_bundle.update(_extract_losses(residual_agent, "residual"))

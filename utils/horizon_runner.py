@@ -13,7 +13,7 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
-from utils.state_features import build_rl_state
+from utils.state_features import build_rl_state, default_mismatch_scale
 
 
 def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
@@ -62,6 +62,13 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     cont_h = int(horizon_cfg["cont_h"])
     decision_interval = int(horizon_cfg["decision_interval"])
     use_shifted_mpc_warm_start = bool(horizon_cfg.get("use_shifted_mpc_warm_start", False))
+    mismatch_scale = None
+    mismatch_clip = horizon_cfg.get("mismatch_clip", 3.0)
+    if state_mode == "mismatch":
+        mismatch_scale = np.asarray(
+            horizon_cfg.get("mismatch_scale", default_mismatch_scale(min_max_dict)),
+            float,
+        )
 
     y_sp, nFE, sub_episodes_changes_dict, time_in_sub_episodes, test_train_dict, warm_start_step, qi, qs, ha = (
         generate_setpoints_training_rl_gradually(
@@ -157,6 +164,8 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_prev_scaled,
             yhat_pred=yhat_pred,
+            mismatch_scale=mismatch_scale,
+            mismatch_clip=mismatch_clip,
         )
         if innovation_log is not None:
             innovation_log[i, :] = state_debug["innovation"]
@@ -239,6 +248,8 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_current_scaled,
             yhat_pred=yhat_next_pred,
+            mismatch_scale=mismatch_scale,
+            mismatch_clip=mismatch_clip,
         )
         done = 0.0
 
@@ -272,10 +283,16 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         disturbance_labels=disturbance_labels,
     )
 
-    return {
+    result_bundle = {
         "mode": mode,
+        "run_mode": mode,
+        "method_family": "horizon",
+        "algorithm": str(horizon_cfg.get("algorithm", "ddqn")).lower(),
         "state_mode": state_mode,
         "system_metadata": system_metadata,
+        "notebook_source": horizon_cfg.get("notebook_source"),
+        "config_snapshot": dict(horizon_cfg),
+        "seed": horizon_cfg.get("seed"),
         "y_sp": y_sp,
         "steady_states": steady_states,
         "nFE": int(nFE),
@@ -302,4 +319,21 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         "warm_start_step": int(warm_start_step),
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
+        "mismatch_scale": mismatch_scale,
+        "mismatch_clip": mismatch_clip,
     }
+
+    diagnostics = {
+        "dqn_loss_trace": getattr(agent, "loss_history", None),
+        "exploration_trace": getattr(agent, "exploration_trace", None),
+        "epsilon_trace": getattr(agent, "epsilon_trace", None),
+        "avg_td_error_trace": getattr(agent, "avg_td_error_trace", None),
+        "avg_max_q_trace": getattr(agent, "avg_max_q_trace", None),
+        "avg_chosen_q_trace": getattr(agent, "avg_chosen_q_trace", None),
+        "noisy_sigma_trace": getattr(agent, "noisy_sigma_trace", None),
+    }
+    for key, value in diagnostics.items():
+        if value is not None:
+            result_bundle[key] = np.asarray(value, float).reshape(-1)
+
+    return result_bundle

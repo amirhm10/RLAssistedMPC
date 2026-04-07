@@ -2495,7 +2495,12 @@ def plot_rl_results_multiagent_dqnstyle(
 
 
 from utils.plotting_core import (
+    _make_axes_bold,
+    _save_fig,
+    _set_plot_style,
     compare_mpc_rl_from_dirs_core,
+    create_output_dir,
+    normalize_result_bundle,
     plot_baseline_mpc_results_core,
     plot_combined_results_core,
     plot_horizon_results_core,
@@ -2555,6 +2560,155 @@ def compare_mpc_rl_from_dirs(
         save_pdf=save_pdf,
         style_profile=style_profile,
     )
+
+
+def load_result_bundle(path_or_dir):
+    import pickle
+    from pathlib import Path
+
+    path = Path(path_or_dir).expanduser()
+    if path.is_dir():
+        path = path / "input_data.pkl"
+    if not path.exists():
+        raise FileNotFoundError(f"Could not find saved bundle at {path}")
+    with open(path, "rb") as f:
+        bundle = pickle.load(f)
+    return normalize_result_bundle(bundle)
+
+
+def load_result_bundles(paths_or_dirs, labels=None):
+    from pathlib import Path
+
+    paths = [Path(p).expanduser() for p in paths_or_dirs]
+    labels = list(labels) if labels is not None else []
+    runs = []
+    for idx, path in enumerate(paths):
+        label = labels[idx] if idx < len(labels) else path.parent.name if path.name == "input_data.pkl" else path.name
+        runs.append(
+            {
+                "label": label,
+                "path": str(path),
+                "bundle": load_result_bundle(path),
+            }
+        )
+    return runs
+
+
+def summarize_result_bundles(paths_or_dirs, labels=None):
+    import numpy as np
+
+    runs = load_result_bundles(paths_or_dirs, labels=labels)
+    rows = []
+    for run in runs:
+        bundle = run["bundle"]
+        avg = np.asarray(bundle.get("avg_rewards", []), float).reshape(-1)
+        rows.append(
+            {
+                "label": run["label"],
+                "path": run["path"],
+                "method_family": bundle.get("method_family"),
+                "algorithm": bundle.get("algorithm"),
+                "run_mode": bundle.get("run_mode"),
+                "state_mode": bundle.get("state_mode"),
+                "nFE": int(bundle.get("nFE", 0) or 0),
+                "episodes": int(len(avg)),
+                "final_avg_reward": float(avg[-1]) if len(avg) else float("nan"),
+                "best_avg_reward": float(np.max(avg)) if len(avg) else float("nan"),
+                "mean_avg_reward": float(np.mean(avg)) if len(avg) else float("nan"),
+            }
+        )
+    return rows
+
+
+def plot_multi_run_reward_summary(paths_or_dirs, plot_cfg, labels=None):
+    import csv
+    import os
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    runs = load_result_bundles(paths_or_dirs, labels=labels)
+    if not runs:
+        raise ValueError("No runs provided.")
+
+    directory = plot_cfg.get("directory")
+    prefix_name = plot_cfg.get("prefix_name", "multi_run_reward_summary")
+    start_episode = int(max(1, plot_cfg.get("start_episode", 1)))
+    save_pdf = bool(plot_cfg.get("save_pdf", False))
+    style_profile = plot_cfg.get("style_profile", "hybrid")
+
+    out_dir = create_output_dir(directory if directory is not None else os.getcwd(), prefix_name)
+    _set_plot_style(style_profile)
+
+    aligned = []
+    final_rewards = []
+    best_rewards = []
+    labels_out = []
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+    for run in runs:
+        bundle = run["bundle"]
+        avg = np.asarray(bundle.get("avg_rewards", []), float).reshape(-1)
+        if len(avg) == 0:
+            continue
+        sliced = avg[start_episode - 1 :]
+        if len(sliced) == 0:
+            continue
+        x = np.arange(start_episode, start_episode + len(sliced))
+        ax.plot(x, sliced, alpha=0.6, label=run["label"])
+        aligned.append(sliced)
+        final_rewards.append(float(sliced[-1]))
+        best_rewards.append(float(np.max(sliced)))
+        labels_out.append(run["label"])
+
+    if aligned:
+        min_len = min(len(arr) for arr in aligned)
+        if min_len > 0:
+            stack = np.vstack([arr[:min_len] for arr in aligned])
+            x = np.arange(start_episode, start_episode + min_len)
+            mean = stack.mean(axis=0)
+            std = stack.std(axis=0)
+            ax.plot(x, mean, color="black", linewidth=2.5, label="Mean")
+            ax.fill_between(x, mean - std, mean + std, color="black", alpha=0.15, label="Mean ± std")
+
+    ax.set_xlabel("Episode")
+    ax.set_ylabel("Average reward")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    _make_axes_bold(ax)
+    if len(labels_out) <= 8:
+        ax.legend(frameon=False)
+    _save_fig(fig, out_dir, "fig_multi_run_avg_rewards", save_pdf=save_pdf)
+
+    if final_rewards:
+        fig, ax = plt.subplots(figsize=(9, 5))
+        positions = np.arange(1, len(final_rewards) + 1)
+        ax.boxplot([final_rewards, best_rewards], labels=["Final avg reward", "Best avg reward"], patch_artist=True)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_multi_run_reward_boxplots", save_pdf=save_pdf)
+
+        fig, ax = plt.subplots(figsize=(max(8, 0.7 * len(labels_out)), 5))
+        ax.bar(positions - 0.18, final_rewards, width=0.36, label="Final")
+        ax.bar(positions + 0.18, best_rewards, width=0.36, label="Best")
+        ax.set_xticks(positions)
+        ax.set_xticklabels(labels_out, rotation=30, ha="right")
+        ax.set_ylabel("Reward")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        ax.legend(frameon=False)
+        _save_fig(fig, out_dir, "fig_multi_run_reward_bars", save_pdf=save_pdf)
+
+    rows = summarize_result_bundles(paths_or_dirs, labels=labels)
+    if rows:
+        fieldnames = list(rows[0].keys())
+        with open(os.path.join(out_dir, "summary_table.csv"), "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+
+    return out_dir
 
 
 def plot_rl_results_dqn(

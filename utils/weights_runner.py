@@ -11,7 +11,7 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
-from utils.state_features import build_rl_state
+from utils.state_features import build_rl_state, default_mismatch_scale
 
 
 def _map_to_bounds(action, low, high):
@@ -86,6 +86,13 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     if run_mode not in {"nominal", "disturb"}:
         raise ValueError("weight_cfg['run_mode'] must be 'nominal' or 'disturb'.")
     use_shifted_mpc_warm_start = bool(weight_cfg.get("use_shifted_mpc_warm_start", False))
+    mismatch_scale = None
+    mismatch_clip = weight_cfg.get("mismatch_clip", 3.0)
+    if state_mode == "mismatch":
+        mismatch_scale = np.asarray(
+            weight_cfg.get("mismatch_scale", default_mismatch_scale(min_max_dict)),
+            float,
+        )
 
     low_coef = np.asarray(weight_cfg["low_coef"], float).reshape(-1)
     high_coef = np.asarray(weight_cfg["high_coef"], float).reshape(-1)
@@ -173,6 +180,8 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_prev_scaled,
             yhat_pred=yhat_pred,
+            mismatch_scale=mismatch_scale,
+            mismatch_clip=mismatch_clip,
         )
         if innovation_log is not None:
             innovation_log[i, :] = state_debug["innovation"]
@@ -246,6 +255,8 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_current_scaled,
             yhat_pred=yhat_next_pred,
+            mismatch_scale=mismatch_scale,
+            mismatch_clip=mismatch_clip,
         )
 
         if not test:
@@ -281,8 +292,13 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     result_bundle = {
         "agent_kind": agent_kind,
         "run_mode": run_mode,
+        "method_family": "weights",
+        "algorithm": agent_kind,
         "state_mode": state_mode,
         "system_metadata": system_metadata,
+        "notebook_source": weight_cfg.get("notebook_source"),
+        "config_snapshot": dict(weight_cfg),
+        "seed": weight_cfg.get("seed"),
         "y_sp": y_sp,
         "steady_states": steady_states,
         "nFE": int(nFE),
@@ -308,6 +324,8 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
+        "mismatch_scale": mismatch_scale,
+        "mismatch_clip": mismatch_clip,
         "mpc_horizons": (
             int(weight_cfg["predict_h"]),
             int(weight_cfg["cont_h"]),
@@ -316,7 +334,21 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         else None,
     }
 
-    for attr in ("actor_losses", "critic_losses", "alpha_losses", "alphas"):
+    for attr in (
+        "actor_losses",
+        "critic_losses",
+        "alpha_losses",
+        "alphas",
+        "critic_q1_trace",
+        "critic_q2_trace",
+        "critic_q_gap_trace",
+        "exploration_trace",
+        "exploration_magnitude_trace",
+        "param_noise_scale_trace",
+        "action_saturation_trace",
+        "entropy_trace",
+        "mean_log_prob_trace",
+    ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
 

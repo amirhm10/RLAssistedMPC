@@ -199,12 +199,18 @@ def normalize_result_bundle(result_bundle):
     bundle["alpha_losses"] = None if bundle.get("alpha_losses") is None else np.asarray(bundle["alpha_losses"], float).reshape(-1)
     bundle["alphas"] = None if bundle.get("alphas") is None else np.asarray(bundle["alphas"], float).reshape(-1)
     bundle["dqn_loss_trace"] = None if bundle.get("dqn_loss_trace") is None else np.asarray(bundle["dqn_loss_trace"], float).reshape(-1)
+    bundle["exploration_trace"] = (
+        None if bundle.get("exploration_trace") is None else np.asarray(bundle["exploration_trace"], float).reshape(-1)
+    )
     bundle["epsilon_trace"] = None if bundle.get("epsilon_trace") is None else np.asarray(bundle["epsilon_trace"], float).reshape(-1)
     bundle["avg_td_error_trace"] = (
         None if bundle.get("avg_td_error_trace") is None else np.asarray(bundle["avg_td_error_trace"], float).reshape(-1)
     )
     bundle["avg_max_q_trace"] = (
         None if bundle.get("avg_max_q_trace") is None else np.asarray(bundle["avg_max_q_trace"], float).reshape(-1)
+    )
+    bundle["avg_chosen_q_trace"] = (
+        None if bundle.get("avg_chosen_q_trace") is None else np.asarray(bundle["avg_chosen_q_trace"], float).reshape(-1)
     )
     bundle["avg_value_trace"] = (
         None if bundle.get("avg_value_trace") is None else np.asarray(bundle["avg_value_trace"], float).reshape(-1)
@@ -214,19 +220,88 @@ def normalize_result_bundle(result_bundle):
         if bundle.get("avg_advantage_spread_trace") is None
         else np.asarray(bundle["avg_advantage_spread_trace"], float).reshape(-1)
     )
+    bundle["noisy_sigma_trace"] = (
+        None if bundle.get("noisy_sigma_trace") is None else np.asarray(bundle["noisy_sigma_trace"], float).reshape(-1)
+    )
+    bundle["critic_q1_trace"] = (
+        None if bundle.get("critic_q1_trace") is None else np.asarray(bundle["critic_q1_trace"], float).reshape(-1)
+    )
+    bundle["critic_q2_trace"] = (
+        None if bundle.get("critic_q2_trace") is None else np.asarray(bundle["critic_q2_trace"], float).reshape(-1)
+    )
+    bundle["critic_q_gap_trace"] = (
+        None if bundle.get("critic_q_gap_trace") is None else np.asarray(bundle["critic_q_gap_trace"], float).reshape(-1)
+    )
+    bundle["exploration_magnitude_trace"] = (
+        None
+        if bundle.get("exploration_magnitude_trace") is None
+        else np.asarray(bundle["exploration_magnitude_trace"], float).reshape(-1)
+    )
+    bundle["param_noise_scale_trace"] = (
+        None
+        if bundle.get("param_noise_scale_trace") is None
+        else np.asarray(bundle["param_noise_scale_trace"], float).reshape(-1)
+    )
+    bundle["action_saturation_trace"] = (
+        None
+        if bundle.get("action_saturation_trace") is None
+        else np.asarray(bundle["action_saturation_trace"], float).reshape(-1)
+    )
+    bundle["entropy_trace"] = (
+        None if bundle.get("entropy_trace") is None else np.asarray(bundle["entropy_trace"], float).reshape(-1)
+    )
+    bundle["mean_log_prob_trace"] = (
+        None if bundle.get("mean_log_prob_trace") is None else np.asarray(bundle["mean_log_prob_trace"], float).reshape(-1)
+    )
     for key in (
         "matrix_actor_losses",
         "matrix_critic_losses",
         "matrix_alpha_losses",
         "matrix_alphas",
+        "matrix_critic_q1_trace",
+        "matrix_critic_q2_trace",
+        "matrix_critic_q_gap_trace",
+        "matrix_exploration_trace",
+        "matrix_exploration_magnitude_trace",
+        "matrix_param_noise_scale_trace",
+        "matrix_action_saturation_trace",
+        "matrix_entropy_trace",
+        "matrix_mean_log_prob_trace",
         "weight_actor_losses",
         "weight_critic_losses",
         "weight_alpha_losses",
         "weight_alphas",
+        "weight_critic_q1_trace",
+        "weight_critic_q2_trace",
+        "weight_critic_q_gap_trace",
+        "weight_exploration_trace",
+        "weight_exploration_magnitude_trace",
+        "weight_param_noise_scale_trace",
+        "weight_action_saturation_trace",
+        "weight_entropy_trace",
+        "weight_mean_log_prob_trace",
         "residual_actor_losses",
         "residual_critic_losses",
         "residual_alpha_losses",
         "residual_alphas",
+        "residual_critic_q1_trace",
+        "residual_critic_q2_trace",
+        "residual_critic_q_gap_trace",
+        "residual_exploration_trace",
+        "residual_exploration_magnitude_trace",
+        "residual_param_noise_scale_trace",
+        "residual_action_saturation_trace",
+        "residual_entropy_trace",
+        "residual_mean_log_prob_trace",
+        "horizon_dqn_loss_trace",
+        "horizon_exploration_trace",
+        "horizon_epsilon_trace",
+        "horizon_avg_td_error_trace",
+        "horizon_avg_max_q_trace",
+        "horizon_avg_value_trace",
+        "horizon_avg_advantage_spread_trace",
+        "horizon_avg_chosen_q_trace",
+        "horizon_noisy_sigma_trace",
     ):
         bundle[key] = None if bundle.get(key) is None else np.asarray(bundle[key], float).reshape(-1)
     bundle["low_coef"] = None if bundle.get("low_coef") is None else np.asarray(bundle["low_coef"], float).reshape(-1)
@@ -940,18 +1015,24 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
         _save_fig(fig, out_dir, "fig_horizon_action_trace", save_pdf=save_pdf)
 
     loss_trace = bundle.get("dqn_loss_trace")
+    exploration_trace = bundle.get("exploration_trace")
     epsilon_trace = bundle.get("epsilon_trace")
     td_trace = bundle.get("avg_td_error_trace")
     max_q_trace = bundle.get("avg_max_q_trace")
+    chosen_q_trace = bundle.get("avg_chosen_q_trace")
     value_trace = bundle.get("avg_value_trace")
     adv_spread_trace = bundle.get("avg_advantage_spread_trace")
-    if any(trace is not None and len(trace) > 0 for trace in (loss_trace, td_trace, max_q_trace, value_trace, adv_spread_trace)):
+    noisy_sigma_trace = bundle.get("noisy_sigma_trace")
+    if any(trace is not None and len(trace) > 0 for trace in (loss_trace, exploration_trace, td_trace, max_q_trace, chosen_q_trace, value_trace, adv_spread_trace, noisy_sigma_trace)):
         traces = [
             ("Loss", loss_trace),
+            ("Exploration", exploration_trace),
             ("Avg |TD|", td_trace),
             ("Avg max Q", max_q_trace),
+            ("Avg chosen Q", chosen_q_trace),
             ("Avg V(s)", value_trace),
             ("Avg adv spread", adv_spread_trace),
+            ("Noisy sigma", noisy_sigma_trace),
         ]
         active_traces = [(label, np.asarray(trace, float).reshape(-1)) for label, trace in traces if trace is not None and len(trace) > 0]
         fig, axs = plt.subplots(len(active_traces), 1, figsize=(8.6, 3.0 + 2.0 * max(1, len(active_traces) - 1)), sharex=True)
@@ -1362,6 +1443,22 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
         diag_series.append(("sac_alpha", bundle["alphas"]))
     if bundle.get("alpha_losses") is not None and len(bundle["alpha_losses"]) > 0:
         diag_series.append(("sac_alpha_loss", bundle["alpha_losses"]))
+    if bundle.get("critic_q1_trace") is not None and len(bundle["critic_q1_trace"]) > 0:
+        diag_series.append(("critic_q1", bundle["critic_q1_trace"]))
+    if bundle.get("critic_q2_trace") is not None and len(bundle["critic_q2_trace"]) > 0:
+        diag_series.append(("critic_q2", bundle["critic_q2_trace"]))
+    if bundle.get("critic_q_gap_trace") is not None and len(bundle["critic_q_gap_trace"]) > 0:
+        diag_series.append(("critic_q_gap", bundle["critic_q_gap_trace"]))
+    if bundle.get("exploration_magnitude_trace") is not None and len(bundle["exploration_magnitude_trace"]) > 0:
+        diag_series.append(("exploration_mag", bundle["exploration_magnitude_trace"]))
+    if bundle.get("param_noise_scale_trace") is not None and len(bundle["param_noise_scale_trace"]) > 0:
+        diag_series.append(("param_noise_scale", bundle["param_noise_scale_trace"]))
+    if bundle.get("action_saturation_trace") is not None and len(bundle["action_saturation_trace"]) > 0:
+        diag_series.append(("action_saturation", bundle["action_saturation_trace"]))
+    if bundle.get("entropy_trace") is not None and len(bundle["entropy_trace"]) > 0:
+        diag_series.append(("entropy", bundle["entropy_trace"]))
+    if bundle.get("mean_log_prob_trace") is not None and len(bundle["mean_log_prob_trace"]) > 0:
+        diag_series.append(("mean_log_prob", bundle["mean_log_prob_trace"]))
     if diag_series:
         fig, axs = plt.subplots(len(diag_series), 1, figsize=(8.4, 3.0 + 2.2 * max(1, len(diag_series) - 1)), sharex=False)
         if len(diag_series) == 1:
@@ -1686,6 +1783,22 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
         diag_series.append(("sac_alpha", bundle["alphas"]))
     if bundle.get("alpha_losses") is not None and len(bundle["alpha_losses"]) > 0:
         diag_series.append(("sac_alpha_loss", bundle["alpha_losses"]))
+    if bundle.get("critic_q1_trace") is not None and len(bundle["critic_q1_trace"]) > 0:
+        diag_series.append(("critic_q1", bundle["critic_q1_trace"]))
+    if bundle.get("critic_q2_trace") is not None and len(bundle["critic_q2_trace"]) > 0:
+        diag_series.append(("critic_q2", bundle["critic_q2_trace"]))
+    if bundle.get("critic_q_gap_trace") is not None and len(bundle["critic_q_gap_trace"]) > 0:
+        diag_series.append(("critic_q_gap", bundle["critic_q_gap_trace"]))
+    if bundle.get("exploration_magnitude_trace") is not None and len(bundle["exploration_magnitude_trace"]) > 0:
+        diag_series.append(("exploration_mag", bundle["exploration_magnitude_trace"]))
+    if bundle.get("param_noise_scale_trace") is not None and len(bundle["param_noise_scale_trace"]) > 0:
+        diag_series.append(("param_noise_scale", bundle["param_noise_scale_trace"]))
+    if bundle.get("action_saturation_trace") is not None and len(bundle["action_saturation_trace"]) > 0:
+        diag_series.append(("action_saturation", bundle["action_saturation_trace"]))
+    if bundle.get("entropy_trace") is not None and len(bundle["entropy_trace"]) > 0:
+        diag_series.append(("entropy", bundle["entropy_trace"]))
+    if bundle.get("mean_log_prob_trace") is not None and len(bundle["mean_log_prob_trace"]) > 0:
+        diag_series.append(("mean_log_prob", bundle["mean_log_prob_trace"]))
     if diag_series:
         fig, axs = plt.subplots(len(diag_series), 1, figsize=(8.4, 3.0 + 2.2 * max(1, len(diag_series) - 1)), sharex=False)
         if len(diag_series) == 1:
@@ -2069,6 +2182,22 @@ def plot_residual_results_core(result_bundle, plot_cfg):
         diag_series.append(("sac_alpha", bundle["alphas"]))
     if bundle.get("alpha_losses") is not None and len(bundle["alpha_losses"]) > 0:
         diag_series.append(("sac_alpha_loss", bundle["alpha_losses"]))
+    if bundle.get("critic_q1_trace") is not None and len(bundle["critic_q1_trace"]) > 0:
+        diag_series.append(("critic_q1", bundle["critic_q1_trace"]))
+    if bundle.get("critic_q2_trace") is not None and len(bundle["critic_q2_trace"]) > 0:
+        diag_series.append(("critic_q2", bundle["critic_q2_trace"]))
+    if bundle.get("critic_q_gap_trace") is not None and len(bundle["critic_q_gap_trace"]) > 0:
+        diag_series.append(("critic_q_gap", bundle["critic_q_gap_trace"]))
+    if bundle.get("exploration_magnitude_trace") is not None and len(bundle["exploration_magnitude_trace"]) > 0:
+        diag_series.append(("exploration_mag", bundle["exploration_magnitude_trace"]))
+    if bundle.get("param_noise_scale_trace") is not None and len(bundle["param_noise_scale_trace"]) > 0:
+        diag_series.append(("param_noise_scale", bundle["param_noise_scale_trace"]))
+    if bundle.get("action_saturation_trace") is not None and len(bundle["action_saturation_trace"]) > 0:
+        diag_series.append(("action_saturation", bundle["action_saturation_trace"]))
+    if bundle.get("entropy_trace") is not None and len(bundle["entropy_trace"]) > 0:
+        diag_series.append(("entropy", bundle["entropy_trace"]))
+    if bundle.get("mean_log_prob_trace") is not None and len(bundle["mean_log_prob_trace"]) > 0:
+        diag_series.append(("mean_log_prob", bundle["mean_log_prob_trace"]))
     if diag_series:
         fig, axs = plt.subplots(
             len(diag_series),
@@ -2522,15 +2651,19 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             plot_named_mismatch(key, key.capitalize())
 
         def plot_losses(prefix, label):
-            actor_losses = bundle.get(f"{prefix}_actor_losses")
-            critic_losses = bundle.get(f"{prefix}_critic_losses")
-            alpha_losses = bundle.get(f"{prefix}_alpha_losses")
-            alphas = bundle.get(f"{prefix}_alphas")
             plots = [
-                (actor_losses, f"{label} actor loss", f"fig_combined_{prefix}_actor_loss"),
-                (critic_losses, f"{label} critic loss", f"fig_combined_{prefix}_critic_loss"),
-                (alpha_losses, f"{label} alpha loss", f"fig_combined_{prefix}_alpha_loss"),
-                (alphas, f"{label} alpha", f"fig_combined_{prefix}_alpha_trace"),
+                (bundle.get(f"{prefix}_actor_losses"), f"{label} actor loss", f"fig_combined_{prefix}_actor_loss"),
+                (bundle.get(f"{prefix}_critic_losses"), f"{label} critic loss", f"fig_combined_{prefix}_critic_loss"),
+                (bundle.get(f"{prefix}_alpha_losses"), f"{label} alpha loss", f"fig_combined_{prefix}_alpha_loss"),
+                (bundle.get(f"{prefix}_alphas"), f"{label} alpha", f"fig_combined_{prefix}_alpha_trace"),
+                (bundle.get(f"{prefix}_critic_q1_trace"), f"{label} critic q1", f"fig_combined_{prefix}_critic_q1"),
+                (bundle.get(f"{prefix}_critic_q2_trace"), f"{label} critic q2", f"fig_combined_{prefix}_critic_q2"),
+                (bundle.get(f"{prefix}_critic_q_gap_trace"), f"{label} critic q gap", f"fig_combined_{prefix}_critic_q_gap"),
+                (bundle.get(f"{prefix}_exploration_magnitude_trace"), f"{label} exploration", f"fig_combined_{prefix}_exploration"),
+                (bundle.get(f"{prefix}_param_noise_scale_trace"), f"{label} param-noise scale", f"fig_combined_{prefix}_param_noise"),
+                (bundle.get(f"{prefix}_action_saturation_trace"), f"{label} action saturation", f"fig_combined_{prefix}_action_saturation"),
+                (bundle.get(f"{prefix}_entropy_trace"), f"{label} entropy", f"fig_combined_{prefix}_entropy"),
+                (bundle.get(f"{prefix}_mean_log_prob_trace"), f"{label} mean log-prob", f"fig_combined_{prefix}_mean_log_prob"),
             ]
             for values, ylabel, fname in plots:
                 if values is None or len(values) == 0:
@@ -2546,6 +2679,8 @@ def plot_combined_results_core(result_bundle, plot_cfg):
 
         for prefix, label in (("matrix", "Matrix"), ("weight", "Weights"), ("residual", "Residual")):
             plot_losses(prefix, label)
+
+        plot_losses("horizon", "Horizon")
 
     stored_bundle = build_storage_bundle(bundle, start_episode)
     save_bundle_pickle(out_dir, stored_bundle)

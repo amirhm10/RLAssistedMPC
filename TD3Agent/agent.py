@@ -6,6 +6,7 @@ import torch.optim as optim
 import numpy as np
 import pickle
 import math
+import copy
 from torch.nn.utils import parameters_to_vector, vector_to_parameters
 import torch.nn.functional as F
 
@@ -61,6 +62,15 @@ def col(x: torch.Tensor) -> torch.Tensor:
     return x if x.ndim == 2 else x.view(-1, 1)
 
 
+def make_loss_fn(loss_type: str):
+    loss_type = str(loss_type).lower()
+    if loss_type == "huber":
+        return nn.SmoothL1Loss(reduction="none")
+    if loss_type == "mse":
+        return nn.MSELoss(reduction="none")
+    raise ValueError("loss_type must be 'huber' or 'mse'.")
+
+
 def copy_params_by_order(new_model: nn.Module, old_model: nn.Module):
     with torch.no_grad():
         vec = parameters_to_vector(list(old_model.parameters()))
@@ -102,6 +112,14 @@ class TD3Agent(nn.Module):
             std_decay_rate: float = 0.99,
             std_decay_steps: int = 100_000,
             std_decay_mode: Literal["linear", "exp", "cosine"] = "exp",
+            exploration_mode: Literal["gaussian", "param_noise"] = "gaussian",
+            param_noise_std_start: float = 0.2,
+            param_noise_std_end: float = 0.02,
+            param_noise_decay_rate: float = 0.99995,
+            param_noise_decay_steps: int = 100_000,
+            param_noise_decay_mode: Literal["linear", "exp", "cosine"] = "exp",
+            param_noise_resample_interval: int = 1,
+            loss_type: Literal["huber", "mse"] = "huber",
             # buffer
             buffer_size: int = 1_000_000,
             # device/opt
@@ -128,10 +146,17 @@ class TD3Agent(nn.Module):
         self.target_combine = target_combine
         self.actor_lr = actor_lr
         self.critic_lr = critic_lr
+        self.exploration_mode = str(exploration_mode).lower()
+        self.loss_type = str(loss_type).lower()
+        self.param_noise_resample_interval = max(1, int(param_noise_resample_interval))
+        if self.exploration_mode not in {"gaussian", "param_noise"}:
+            raise ValueError("exploration_mode must be 'gaussian' or 'param_noise'.")
 
         self.steps = 0
         self.train_steps = 0
         self.total_it = 0
+        self.last_exploration_value = 0.0
+        self.last_param_noise_scale = 0.0
 
         self.actor_freeze = actor_freeze
 
@@ -160,7 +185,7 @@ class TD3Agent(nn.Module):
             self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=actor_lr)
             self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=critic_lr)
 
-        self.loss_fn_critic = nn.SmoothL1Loss(reduction="none")  # per-sample Huber
+        self.loss_fn_critic = make_loss_fn(self.loss_type)
 
         # Train with MPC reward or not
         self.mode = mode
@@ -173,6 +198,11 @@ class TD3Agent(nn.Module):
 
         # logs
         self.actor_losses, self.critic_losses = [], []
+        self.critic_q1_trace, self.critic_q2_trace, self.critic_q_gap_trace = [], [], []
+        self.exploration_trace = []
+        self.exploration_magnitude_trace = []
+        self.param_noise_scale_trace = []
+        self.action_saturation_trace = []
 
         # decay scheduler
         self.expl_sched = exploration_schedule if exploration_schedule is not None else GaussianNoiseSchedule(
@@ -180,26 +210,46 @@ class TD3Agent(nn.Module):
             decay_steps=std_decay_steps, mode=std_decay_mode,
             decay_rate=std_decay_rate,
         )
+        self.param_noise_sched = GaussianNoiseSchedule(
+            std_start=param_noise_std_start,
+            std_end=param_noise_std_end,
+            decay_steps=param_noise_decay_steps,
+            mode=param_noise_decay_mode,
+            decay_rate=param_noise_decay_rate,
+        )
+        self.perturbed_actor = None
 
 
     # -------- interactions ------
     @torch.no_grad()
     def act_eval(self, state: np.ndarray, sigma_eval: float = 0.0) -> np.ndarray:
+        del sigma_eval
         s = torch.as_tensor(state, dtype=torch.float32, device=self.device)
         a = self.actor(s)
-        if sigma_eval > 0.0:
-            a = a + torch.randn_like(a) * sigma_eval
         return a.clamp(-self.max_action, self.max_action).cpu().numpy()
 
     @torch.no_grad()
     def take_action(self, state: np.ndarray, explore: bool = False) -> np.ndarray:
         self.steps += 1
         s = torch.as_tensor(state, dtype=torch.float32, device=self.device)
-        a = self.actor(s).detach().cpu().numpy()
+        clean_action = self.actor(s).detach().cpu().numpy()
+        action = clean_action.copy()
+        self.last_exploration_value = 0.0
+        self.last_param_noise_scale = 0.0
         if explore:
-            self._expl_sigma = self.expl_sched.value(self.steps)
-            a = a + np.random.randn(*a.shape) * self._expl_sigma
-        return np.clip(a, -self.max_action, self.max_action)
+            if self.exploration_mode == "gaussian":
+                self._expl_sigma = self.expl_sched.value(self.steps)
+                noise = np.random.randn(*action.shape) * self._expl_sigma
+                action = action + noise
+                self.last_exploration_value = float(np.mean(np.abs(noise)))
+            else:
+                self._resample_param_noise_actor()
+                perturbed_action = self.perturbed_actor(s).detach().cpu().numpy()
+                action = perturbed_action
+                self.last_exploration_value = float(np.mean(np.abs(action - clean_action)))
+        action = np.clip(action, -self.max_action, self.max_action)
+        self._record_action_diagnostics(action, clean_action=clean_action if explore else None)
+        return action
 
 
     def push(self, s, a, r, ns, done):
@@ -213,6 +263,30 @@ class TD3Agent(nn.Module):
             g['lr'] = new_lr
         if self.total_it % 800 == 1:
             print(f"Actor learning rate changed to: {new_lr:.2e}")
+
+    def _resample_param_noise_actor(self, force: bool = False):
+        if self.exploration_mode != "param_noise":
+            return
+        if (not force) and self.perturbed_actor is not None and (self.steps % self.param_noise_resample_interval != 1):
+            return
+        self.perturbed_actor = copy.deepcopy(self.actor).to(self.device)
+        self.perturbed_actor.eval()
+        sigma = float(self.param_noise_sched.value(self.steps))
+        with torch.no_grad():
+            for param in self.perturbed_actor.parameters():
+                param.add_(torch.randn_like(param) * sigma)
+        self.last_param_noise_scale = sigma
+
+    def _record_action_diagnostics(self, action, clean_action=None):
+        action = np.asarray(action, float)
+        if clean_action is not None:
+            clean_action = np.asarray(clean_action, float)
+            self.last_exploration_value = float(np.mean(np.abs(action - clean_action)))
+        sat = float(np.mean(np.abs(action) >= (self.max_action - 1e-6)))
+        self.action_saturation_trace.append(sat)
+        self.exploration_trace.append(float(self.last_exploration_value))
+        self.exploration_magnitude_trace.append(float(self.last_exploration_value))
+        self.param_noise_scale_trace.append(float(self.last_param_noise_scale))
 
 
     # ------ training ------
@@ -268,6 +342,9 @@ class TD3Agent(nn.Module):
             nn.utils.clip_grad_norm_(self.critic.parameters(), self.grad_clip_norm)
         self.critic_optimizer.step()
         self.critic_losses.append(float(critic_loss.item()))
+        self.critic_q1_trace.append(float(q1.mean().item()))
+        self.critic_q2_trace.append(float(q2.mean().item()))
+        self.critic_q_gap_trace.append(float((q1 - q2).abs().mean().item()))
 
         # ------ Delayed actor + target update -------
         if self.total_it % self.policy_delay == 0:
@@ -452,6 +529,9 @@ class TD3Agent(nn.Module):
                 "max_action": self.max_action,
                 "actor_freeze": self.actor_freeze,
                 "mode": self.mode,
+                "exploration_mode": self.exploration_mode,
+                "loss_type": self.loss_type,
+                "param_noise_resample_interval": self.param_noise_resample_interval,
                 "steps": self.steps,
                 "train_steps": self.train_steps,
                 "total_it": self.total_it,

@@ -1,65 +1,83 @@
 from typing import List
+
 import torch
 import torch.nn as nn
-from utils.helpers_net import build_network
 
-# ------------------ Twin Discrete Q ----------------------
-class TwinDiscreteQNetwork(nn.Module):
+from utils.helpers_net import get_activation, init_layer
+from utils.noisy_layers import NoisyLinear, reset_module_noise, set_module_noise_enabled
+
+
+def _make_linear(in_dim, out_dim, activation, use_noisy, sigma_init):
+    if use_noisy:
+        return NoisyLinear(in_dim, out_dim, sigma_init=sigma_init)
+    layer = nn.Linear(in_dim, out_dim)
+    init_layer(layer, non_linearity=activation)
+    return layer
+
+
+class DiscreteQNetwork(nn.Module):
     """
-    Double Q Network for DQN
+    Standard discrete Q-network for DDQN.
     """
 
     def __init__(
-            self,
-            state_dim: int,
-            action_dim: int,
-            hidden_dims: List[int],
-            activation: str = "relu",
-            use_layernorm: bool = False,
-            dropout: float = 0.0,
+        self,
+        state_dim: int,
+        action_dim: int,
+        hidden_dims: List[int],
+        activation: str = "relu",
+        use_layernorm: bool = False,
+        dropout: float = 0.0,
+        use_noisy: bool = False,
+        noisy_sigma_init: float = 0.5,
     ):
         super().__init__()
-        self.state_dim = state_dim
-        self.action_dim = action_dim
-        self.hidden_dims = hidden_dims
+        self.state_dim = int(state_dim)
+        self.action_dim = int(action_dim)
+        self.hidden_dims = list(hidden_dims)
+        self.activation = str(activation)
+        self.use_layernorm = bool(use_layernorm)
+        self.dropout = float(dropout)
+        self.use_noisy = bool(use_noisy)
+        self.noisy_sigma_init = float(noisy_sigma_init)
 
-        self.q1_network = build_network(
-            in_dim=state_dim,
-            hidden_dims=hidden_dims,
-            out_dim=action_dim,
-            activation=activation,
-            use_layernorm=use_layernorm,
-            dropout=dropout,
-            prefix="q1"
+        layers = []
+        prev_dim = self.state_dim
+        for idx, hidden_dim in enumerate(self.hidden_dims):
+            layers.append(
+                _make_linear(
+                    in_dim=prev_dim,
+                    out_dim=int(hidden_dim),
+                    activation=self.activation,
+                    use_noisy=self.use_noisy,
+                    sigma_init=self.noisy_sigma_init,
+                )
+            )
+            if self.use_layernorm:
+                layers.append(nn.LayerNorm(int(hidden_dim)))
+            layers.append(get_activation(self.activation))
+            if self.dropout > 0.0:
+                layers.append(nn.Dropout(self.dropout))
+            prev_dim = int(hidden_dim)
+        layers.append(
+            _make_linear(
+                in_dim=prev_dim,
+                out_dim=self.action_dim,
+                activation="linear",
+                use_noisy=self.use_noisy,
+                sigma_init=self.noisy_sigma_init,
+            )
         )
+        self.network = nn.Sequential(*layers)
 
-        self.q2_network = build_network(
-            in_dim=state_dim,
-            hidden_dims=hidden_dims,
-            out_dim=action_dim,
-            activation=activation,
-            use_layernorm=use_layernorm,
-            dropout=dropout,
-            prefix="q2"
-        )
+    def forward(self, state: torch.Tensor) -> torch.Tensor:
+        return self.network(state)
 
+    def greedy_action(self, state: torch.Tensor) -> torch.Tensor:
+        return self.forward(state).argmax(dim=1)
 
-    def forward(self, state: torch.Tensor):
+    def reset_noise(self) -> None:
+        reset_module_noise(self)
 
-        q1_out = self.q1_network(state)
-        q2_out = self.q2_network(state)
-        return q1_out, q2_out
-
-    def q1_forward(self, state: torch.Tensor):
-
-        q1_out = self.q1_network(state)
-        return q1_out
-
-    def combined_forward(self, state: torch.Tensor, mode: str = "min"):
-
-        q1, q2 = self.forward(state)
-        if mode == "q1": return q1
-        if mode == "min": return torch.min(q1, q2)
-        if mode == "max": return torch.max(q1, q2)
-        if mode == "mean": return 0.5 * (q1 + q2)
-        raise ValueError("mode must be min/max/mean/q1")
+    def set_noise_enabled(self, enabled: bool) -> None:
+        set_module_noise_enabled(self, enabled)

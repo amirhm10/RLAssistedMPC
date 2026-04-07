@@ -198,6 +198,22 @@ def normalize_result_bundle(result_bundle):
     bundle["critic_losses"] = None if bundle.get("critic_losses") is None else np.asarray(bundle["critic_losses"], float).reshape(-1)
     bundle["alpha_losses"] = None if bundle.get("alpha_losses") is None else np.asarray(bundle["alpha_losses"], float).reshape(-1)
     bundle["alphas"] = None if bundle.get("alphas") is None else np.asarray(bundle["alphas"], float).reshape(-1)
+    bundle["dqn_loss_trace"] = None if bundle.get("dqn_loss_trace") is None else np.asarray(bundle["dqn_loss_trace"], float).reshape(-1)
+    bundle["epsilon_trace"] = None if bundle.get("epsilon_trace") is None else np.asarray(bundle["epsilon_trace"], float).reshape(-1)
+    bundle["avg_td_error_trace"] = (
+        None if bundle.get("avg_td_error_trace") is None else np.asarray(bundle["avg_td_error_trace"], float).reshape(-1)
+    )
+    bundle["avg_max_q_trace"] = (
+        None if bundle.get("avg_max_q_trace") is None else np.asarray(bundle["avg_max_q_trace"], float).reshape(-1)
+    )
+    bundle["avg_value_trace"] = (
+        None if bundle.get("avg_value_trace") is None else np.asarray(bundle["avg_value_trace"], float).reshape(-1)
+    )
+    bundle["avg_advantage_spread_trace"] = (
+        None
+        if bundle.get("avg_advantage_spread_trace") is None
+        else np.asarray(bundle["avg_advantage_spread_trace"], float).reshape(-1)
+    )
     for key in (
         "matrix_actor_losses",
         "matrix_critic_losses",
@@ -922,6 +938,44 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
         _save_fig(fig, out_dir, "fig_horizon_action_trace", save_pdf=save_pdf)
+
+    loss_trace = bundle.get("dqn_loss_trace")
+    epsilon_trace = bundle.get("epsilon_trace")
+    td_trace = bundle.get("avg_td_error_trace")
+    max_q_trace = bundle.get("avg_max_q_trace")
+    value_trace = bundle.get("avg_value_trace")
+    adv_spread_trace = bundle.get("avg_advantage_spread_trace")
+    if any(trace is not None and len(trace) > 0 for trace in (loss_trace, td_trace, max_q_trace, value_trace, adv_spread_trace)):
+        traces = [
+            ("Loss", loss_trace),
+            ("Avg |TD|", td_trace),
+            ("Avg max Q", max_q_trace),
+            ("Avg V(s)", value_trace),
+            ("Avg adv spread", adv_spread_trace),
+        ]
+        active_traces = [(label, np.asarray(trace, float).reshape(-1)) for label, trace in traces if trace is not None and len(trace) > 0]
+        fig, axs = plt.subplots(len(active_traces), 1, figsize=(8.6, 3.0 + 2.0 * max(1, len(active_traces) - 1)), sharex=True)
+        if len(active_traces) == 1:
+            axs = [axs]
+        for ax, (label, trace) in zip(axs, active_traces):
+            ax.plot(np.arange(1, len(trace) + 1), trace)
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Update #")
+        _save_fig(fig, out_dir, "fig_horizon_dqn_training_diagnostics", save_pdf=save_pdf)
+
+    if epsilon_trace is not None and len(epsilon_trace) > 0:
+        eps = np.asarray(epsilon_trace, float).reshape(-1)
+        fig, ax = plt.subplots(figsize=(8.0, 4.6))
+        ax.plot(np.arange(1, len(eps) + 1), eps)
+        ax.set_ylabel("Epsilon")
+        ax.set_xlabel("Update #")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_horizon_epsilon_trace", save_pdf=save_pdf)
 
     yhat = bundle.get("yhat")
     if yhat is not None:

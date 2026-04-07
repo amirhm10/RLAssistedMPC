@@ -18,17 +18,19 @@ LEGACY_FILE_MAP = {
 }
 
 
-def resolve_distillation_data_dir(repo_root):
-    return (Path(repo_root) / DISTILLATION_DATA_SUBDIR).resolve()
+def resolve_distillation_data_dir(repo_root, override=None):
+    path = Path(override) if override else Path(repo_root) / DISTILLATION_DATA_SUBDIR
+    return path.resolve()
 
 
-def resolve_distillation_result_dir(repo_root):
-    return (Path(repo_root) / DISTILLATION_RESULT_SUBDIR).resolve()
+def resolve_distillation_result_dir(repo_root, override=None):
+    path = Path(override) if override else Path(repo_root) / DISTILLATION_RESULT_SUBDIR
+    return path.resolve()
 
 
-def ensure_distillation_directories(repo_root):
-    data_dir = resolve_distillation_data_dir(repo_root)
-    result_dir = resolve_distillation_result_dir(repo_root)
+def ensure_distillation_directories(repo_root, data_override=None, result_override=None):
+    data_dir = resolve_distillation_data_dir(repo_root, override=data_override)
+    result_dir = resolve_distillation_result_dir(repo_root, override=result_override)
     data_dir.mkdir(parents=True, exist_ok=True)
     result_dir.mkdir(parents=True, exist_ok=True)
     return data_dir, result_dir
@@ -69,12 +71,23 @@ def canonical_baseline_filename(run_mode, disturbance_profile):
     raise ValueError("Disturbance distillation baseline must use 'ramp' or 'fluctuation'.")
 
 
-def canonical_baseline_path(repo_root, run_mode, disturbance_profile):
-    return resolve_distillation_data_dir(repo_root) / canonical_baseline_filename(run_mode, disturbance_profile)
+def canonical_baseline_path(repo_root, run_mode, disturbance_profile, data_override=None):
+    return resolve_distillation_data_dir(repo_root, override=data_override) / canonical_baseline_filename(
+        run_mode,
+        disturbance_profile,
+    )
 
 
-def load_distillation_system_data(repo_root, steady_states, setpoint_y, u_min, u_max, n_inputs=2):
-    data_dir = resolve_distillation_data_dir(repo_root)
+def load_distillation_system_data(
+    repo_root,
+    steady_states,
+    setpoint_y,
+    u_min,
+    u_max,
+    n_inputs=2,
+    data_override=None,
+):
+    data_dir = resolve_distillation_data_dir(repo_root, override=data_override)
     return load_and_prepare_system_data(
         steady_states=steady_states,
         setpoint_y=setpoint_y,

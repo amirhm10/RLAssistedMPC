@@ -1543,7 +1543,7 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
             )
             if len(disturbance_items) == 1:
                 axs = [axs]
-            for idx, (label, series) in enumerate(disturbance_items):
+            for idx, (_, label, series) in enumerate(disturbance_items):
                 axs[idx].plot(t_step, np.asarray(series, float)[start_step : start_step + W])
                 shade_test_regions(axs[idx], spans, delta_t)
                 axs[idx].set_ylabel(label)
@@ -1885,7 +1885,7 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
             )
             if len(disturbance_items) == 1:
                 axs = [axs]
-            for idx, (label, series) in enumerate(disturbance_items):
+            for idx, (_, label, series) in enumerate(disturbance_items):
                 axs[idx].plot(t_step, np.asarray(series, float)[start_step : start_step + W])
                 shade_test_regions(axs[idx], spans, delta_t)
                 axs[idx].set_ylabel(label)
@@ -2286,7 +2286,7 @@ def plot_residual_results_core(result_bundle, plot_cfg):
             )
             if len(disturbance_items) == 1:
                 axs = [axs]
-            for idx, (label, series) in enumerate(disturbance_items):
+            for idx, (_, label, series) in enumerate(disturbance_items):
                 axs[idx].plot(t_step, np.asarray(series, float)[start_step : start_step + W])
                 shade_test_regions(axs[idx], spans, delta_t)
                 axs[idx].set_ylabel(label)
@@ -2585,7 +2585,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             )
             if len(disturbance_items) == 1:
                 axs = [axs]
-            for ax, (label, series) in zip(axs, disturbance_items):
+            for ax, (_, label, series) in zip(axs, disturbance_items):
                 ax.plot(t_step, np.asarray(series, float)[start_step : start_step + W])
                 shade_segment(ax, start_step, W)
                 ax.set_ylabel(label)

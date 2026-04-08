@@ -14,6 +14,7 @@ from TD3Agent.critic import Critic
 from SACAgent.gaussian_actor import GaussianActor
 from TD3Agent.replay_buffer import PERRecentReplayBuffer, ReplayBuffer
 from utils.nstep import NStepAccumulator
+from utils.nstep_targets import build_endpoint_bootstrap_target, build_truncated_lambda_returns
 
 import os
 from datetime import datetime
@@ -44,6 +45,23 @@ def make_loss_fn(loss_type: str):
         return nn.MSELoss(reduction="none")
     raise ValueError("loss_type must be 'huber' or 'mse'.")
 
+
+def _sequence_discount_powers(seq_len: int, gamma: float, device: torch.device) -> torch.Tensor:
+    return torch.pow(torch.full((seq_len,), float(gamma), dtype=torch.float32, device=device), torch.arange(seq_len, device=device, dtype=torch.float32))
+
+
+def _sequence_endpoint_stats(rewards, dones, bootstrap_values, mask, gamma: float):
+    seq_len = rewards.shape[1]
+    powers = _sequence_discount_powers(seq_len, gamma, rewards.device).view(1, -1)
+    reward_prefix = (rewards * mask * powers).sum(dim=1)
+    lengths = mask.sum(dim=1).clamp_min(1.0)
+    last_idx = (lengths.long() - 1).clamp(min=0)
+    last_done = dones.gather(1, last_idx.view(-1, 1)).squeeze(1)
+    endpoint_discount = torch.pow(torch.full_like(lengths, float(gamma)), lengths) * (1.0 - last_done)
+    endpoint_bootstrap = bootstrap_values.gather(1, last_idx.view(-1, 1)).squeeze(1) * (1.0 - last_done)
+    truncated_fraction = (lengths < float(seq_len)).float().mean()
+    return reward_prefix, endpoint_discount, endpoint_bootstrap, lengths, truncated_fraction
+
 @torch.no_grad()
 def hard_update(target: nn.Module, online: nn.Module) -> None:
     target.load_state_dict(online.state_dict())
@@ -72,6 +90,8 @@ class SACAgent(nn.Module):
             alpha_lr: float = 1e-4,
             batch_size: int = 256,
             n_step: int = 1,
+            multistep_mode: Literal["one_step", "n_step", "sac_n", "lambda"] = "one_step",
+            lambda_value: float = 0.9,
             grad_clip_norm: Optional[float] = 10.0,
             # entropy/ temperature
             init_alpha: float = 0.2,
@@ -102,6 +122,9 @@ class SACAgent(nn.Module):
         self.gamma = gamma
         self.batch_size = batch_size
         self.n_step = int(n_step)
+        self.sequence_len = max(1, int(n_step))
+        self.multistep_mode = str(multistep_mode).lower()
+        self.lambda_value = float(lambda_value)
         self.grad_clip_norm = grad_clip_norm
         self.target_update = target_update
         self.tau = tau
@@ -110,6 +133,8 @@ class SACAgent(nn.Module):
         self.use_per = use_per
         self.actor_freeze = int(actor_freeze)
         self.loss_type = str(loss_type).lower()
+        if self.multistep_mode not in {"one_step", "n_step", "sac_n", "lambda"}:
+            raise ValueError("multistep_mode must be 'one_step', 'n_step', 'sac_n', or 'lambda'.")
         self.actor_lr = float(actor_lr)
         self.critic_lr = float(critic_lr)
         self.alpha_lr = float(alpha_lr)
@@ -193,6 +218,8 @@ class SACAgent(nn.Module):
         self.bootstrap_q_mean_trace = []
         self.n_actual_mean_trace = []
         self.truncated_fraction_trace = []
+        self.lambda_return_mean_trace = []
+        self.target_logprob_mean_trace = []
 
     # ---- interactions ----
     @torch.no_grad()
@@ -228,17 +255,20 @@ class SACAgent(nn.Module):
         """
         store an experience into the buffer
         """
-        ready = self.nstep_accumulator.append(s, a, r, ns, bool(done))
-        for transition in ready:
-            self.buffer.push(
-                transition.state,
-                transition.action,
-                transition.reward_n,
-                transition.next_state_n,
-                transition.done_n,
-                discount_n=transition.discount_n,
-                n_actual=transition.n_actual,
-            )
+        if self.multistep_mode in {"n_step", "sac_n"}:
+            ready = self.nstep_accumulator.append(s, a, r, ns, bool(done))
+            for transition in ready:
+                self.buffer.push(
+                    transition.state,
+                    transition.action,
+                    transition.reward_n,
+                    transition.next_state_n,
+                    transition.done_n,
+                    discount_n=transition.discount_n,
+                    n_actual=transition.n_actual,
+                )
+            return
+        self.buffer.push(s, a, r, ns, bool(done))
 
     def pretrain_push(self, s, a, r, ns):
         """
@@ -379,41 +409,102 @@ class SACAgent(nn.Module):
         if len(self.buffer) < self.batch_size:
             return None
 
-        if not self.use_per:
-            s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
-            idx = None
-            is_w = torch.ones((self.batch_size, 1), device=self.device)
+        if self.multistep_mode == "lambda":
+            seq = self.buffer.sample_sequence(self.batch_size, self.sequence_len, device=self.device)
+            states = seq["states"].float()
+            actions = seq["actions"].float()
+            rewards = seq["rewards"].float()
+            next_states = seq["next_states"].float()
+            dones = seq["dones"].float()
+            mask = seq["mask"].float()
+            start_indices = seq["start_indices"]
+            is_w = col(seq["is_w"].float())
+
+            batch_size = states.shape[0]
+            seq_len = states.shape[1]
+            state_dim = states.shape[2]
+            s = states[:, 0, :]
+            a = actions[:, 0, :]
+
+            next_states_flat = next_states.view(batch_size * seq_len, state_dim)
+            with torch.no_grad():
+                next_action_flat, logp_next_flat, _ = self.actor.sample(next_states_flat)
+                q_next_flat = self.critic_target.combined_forward(next_states_flat, next_action_flat, mode="min")
+                q_next_flat = col(q_next_flat)
+                alpha = self.log_alpha.exp()
+                bootstrap_values = (q_next_flat - alpha * logp_next_flat).view(batch_size, seq_len) * (1.0 - dones)
+                targets = build_truncated_lambda_returns(
+                    rewards=rewards,
+                    dones=dones,
+                    bootstrap_values=bootstrap_values,
+                    mask=mask,
+                    gamma=self.gamma,
+                    lambda_value=self.lambda_value,
+                )
+                y = col(targets)
+                target_logprob_seq = logp_next_flat.view(batch_size, seq_len)
+
+            q1, q2 = self.critic(s, a)
+            q1 = col(q1)
+            q2 = col(q2)
+            l1 = self.loss_fn_critic(q1, y)
+            l2 = self.loss_fn_critic(q2, y)
+            critic_loss = (is_w * (l1 + l2)).mean()
+
+            reward_prefix, endpoint_discount, endpoint_bootstrap, lengths, truncated_fraction = _sequence_endpoint_stats(
+                rewards, dones, bootstrap_values, mask, self.gamma
+            )
+            reward_trace_mean = float(reward_prefix.mean().item())
+            discount_trace_mean = float(endpoint_discount.mean().item())
+            bootstrap_trace_mean = float(endpoint_bootstrap.mean().item())
+            n_actual_mean = float(lengths.mean().item())
+            truncated_fraction_value = float(truncated_fraction.item())
+            lambda_return_mean = float(targets.mean().item())
+            target_logprob_mean = float(target_logprob_seq.mean().item())
+            priority_index = start_indices
         else:
-            s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
-            is_w = col(is_w.to(self.device, non_blocking=True).float())  # [B, 1]
+            if not self.use_per:
+                s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
+                idx = None
+                is_w = torch.ones((self.batch_size, 1), device=self.device)
+            else:
+                s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
+                is_w = col(is_w.to(self.device, non_blocking=True).float())
 
-        s = s.to(self.device, non_blocking=True).float()  # [B, S]
-        a = a.to(self.device, non_blocking=True).float()  # [B, A]
-        r = col(r.to(self.device, non_blocking=True).float())  # [B, 1]
-        ns = ns.to(self.device, non_blocking=True).float()  # [B, S]
-        done = col(done.to(self.device, non_blocking=True).float())  # [B, 1]
-        discount_n = col(discount_n.to(self.device, non_blocking=True).float())  # [B, 1]
-        n_actual = col(n_actual.to(self.device, non_blocking=True).float())  # [B, 1]
+            s = s.to(self.device, non_blocking=True).float()
+            a = a.to(self.device, non_blocking=True).float()
+            r = col(r.to(self.device, non_blocking=True).float())
+            ns = ns.to(self.device, non_blocking=True).float()
+            done = col(done.to(self.device, non_blocking=True).float())
+            discount_n = col(discount_n.to(self.device, non_blocking=True).float())
+            n_actual = col(n_actual.to(self.device, non_blocking=True).float())
 
-        # ----- critic target y: r + gamma * (Q_tgt - alpha * log_pi) -----
-        with torch.no_grad():
-            # sample a' and log_pi(a' | s')
-            next_action, logp_next, mean_next = self.actor.sample(ns)
-            # Q_target(s', a')
-            q_next = self.critic_target.combined_forward(ns, next_action, mode="min")
-            q_next = col(q_next)
-            alpha = self.log_alpha.exp()
-            # soft target
-            bootstrap_q = (q_next - alpha * logp_next) * (1.0 - done)
-            y = r + discount_n * bootstrap_q
+            with torch.no_grad():
+                next_action, logp_next, _ = self.actor.sample(ns)
+                q_next = self.critic_target.combined_forward(ns, next_action, mode="min")
+                q_next = col(q_next)
+                alpha = self.log_alpha.exp()
+                bootstrap_q = (q_next - alpha * logp_next) * (1.0 - done)
+                if self.multistep_mode == "sac_n":
+                    y = build_endpoint_bootstrap_target(r, discount_n, bootstrap_q)
+                else:
+                    y = r + discount_n * bootstrap_q
 
-        # critic update
-        q1, q2 = self.critic(s, a)
-        q1 = col(q1)
-        q2 = col(q2)
-        l1 = self.loss_fn_critic(q1, y)
-        l2 = self.loss_fn_critic(q2, y)
-        critic_loss = (is_w * (l1 + l2)).mean()
+            q1, q2 = self.critic(s, a)
+            q1 = col(q1)
+            q2 = col(q2)
+            l1 = self.loss_fn_critic(q1, y)
+            l2 = self.loss_fn_critic(q2, y)
+            critic_loss = (is_w * (l1 + l2)).mean()
+
+            reward_trace_mean = float(r.mean().item())
+            discount_trace_mean = float(discount_n.mean().item())
+            bootstrap_trace_mean = float(bootstrap_q.mean().item())
+            n_actual_mean = float(n_actual.mean().item())
+            truncated_fraction_value = float((n_actual < float(self.n_step)).float().mean().item())
+            lambda_return_mean = None
+            target_logprob_mean = float(logp_next.mean().item())
+            priority_index = idx
 
         self.critic_optimizer.zero_grad(set_to_none=True)
         critic_loss.backward()
@@ -422,9 +513,9 @@ class SACAgent(nn.Module):
         self.critic_optimizer.step()
 
         # TD errors for PER prority
-        if idx is not None and hasattr(self.buffer, "update_priorities"):
+        if priority_index is not None and hasattr(self.buffer, "update_priorities"):
             td_errors = (y - q1).detach().abs().view(-1)
-            self.buffer.update_priorities(idx, td_errors)
+            self.buffer.update_priorities(priority_index, td_errors)
 
         # ---- actor update ----
         # sample action from current policy for states s
@@ -472,11 +563,14 @@ class SACAgent(nn.Module):
         self.alphas.append(float(self.log_alpha.exp().item()))
         self.mean_log_prob_trace.append(float(logp_new.mean().item()))
         self.entropy_trace.append(float((-logp_new).mean().item()))
-        self.reward_n_mean_trace.append(float(r.mean().item()))
-        self.discount_n_mean_trace.append(float(discount_n.mean().item()))
-        self.bootstrap_q_mean_trace.append(float(bootstrap_q.mean().item()))
-        self.n_actual_mean_trace.append(float(n_actual.mean().item()))
-        self.truncated_fraction_trace.append(float((n_actual < float(self.n_step)).float().mean().item()))
+        self.reward_n_mean_trace.append(reward_trace_mean)
+        self.discount_n_mean_trace.append(discount_trace_mean)
+        self.bootstrap_q_mean_trace.append(bootstrap_trace_mean)
+        self.n_actual_mean_trace.append(n_actual_mean)
+        self.truncated_fraction_trace.append(truncated_fraction_value)
+        self.target_logprob_mean_trace.append(target_logprob_mean)
+        if lambda_return_mean is not None:
+            self.lambda_return_mean_trace.append(lambda_return_mean)
 
         return float(critic_loss.item()), float(actor_loss.item()), float(self.log_alpha.exp().item())
 
@@ -534,6 +628,8 @@ class SACAgent(nn.Module):
             "alpha_lr",
             "target_entropy",
             "n_step",
+            "multistep_mode",
+            "lambda_value",
         ]:
             if hasattr(self, name):
                 val = getattr(self, name)

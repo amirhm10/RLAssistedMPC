@@ -205,6 +205,8 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
         "buffer_size": 150_000,
         "gamma": 0.99,
         "n_step": 1,  # Positive integer. Keep 1 for the baseline; common DDQN ablations use 3.
+        "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda" | "retrace"
+        "lambda_value": 0.9,
         "lr": 1e-4,
         "batch_size": 128,
         "grad_clip_norm": 10.0,
@@ -251,6 +253,8 @@ DISTILLATION_HORIZON_DUELING_DEFAULTS = {
         "buffer_size": 150_000,
         "gamma": 0.99,
         "n_step": 1,
+        "multistep_mode": "n_step",
+        "lambda_value": 0.9,
         "lr": 1e-4,
         "batch_size": 128,
         "grad_clip_norm": 10.0,
@@ -311,6 +315,8 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "critic_hidden": [512, 512, 512],
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. Typical TD3 studies here use 1, 3, or 5.
+        "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda"
+        "lambda_value": 0.9,
         "actor_lr": 1e-4,
         "critic_lr": 1e-4,
         "batch_size": 128,
@@ -334,6 +340,8 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "critic_hidden": [512, 512, 512],
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. SAC often uses 3-step as the first extension.
+        "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "sac_n" | "lambda"
+        "lambda_value": 0.9,
         "actor_lr": 1e-4,
         "critic_lr": 1e-4,
         "alpha_lr": 1e-4,
@@ -392,6 +400,8 @@ DISTILLATION_WEIGHT_DEFAULTS = {
         "critic_hidden": [512, 512, 512, 512, 512],
         "gamma": 0.995,
         "n_step": 1,
+        "multistep_mode": "one_step",
+        "lambda_value": 0.9,
         "actor_lr": 1e-4,
         "critic_lr": 1e-4,
         "batch_size": 128,
@@ -415,6 +425,8 @@ DISTILLATION_WEIGHT_DEFAULTS = {
         "critic_hidden": [512, 512, 512, 512, 512],
         "gamma": 0.995,
         "n_step": 1,
+        "multistep_mode": "one_step",
+        "lambda_value": 0.9,
         "actor_lr": 1e-4,
         "critic_lr": 1e-4,
         "alpha_lr": 1e-4,

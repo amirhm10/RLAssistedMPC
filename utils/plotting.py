@@ -2611,6 +2611,8 @@ def summarize_result_bundles(paths_or_dirs, labels=None):
                 "run_mode": bundle.get("run_mode"),
                 "state_mode": bundle.get("state_mode"),
                 "n_step": int(bundle.get("n_step", 1) or 1),
+                "multistep_mode": bundle.get("multistep_mode"),
+                "lambda_value": bundle.get("lambda_value"),
                 "nFE": int(bundle.get("nFE", 0) or 0),
                 "episodes": int(len(avg)),
                 "final_avg_reward": float(avg[-1]) if len(avg) else float("nan"),

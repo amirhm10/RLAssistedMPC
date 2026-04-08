@@ -240,6 +240,36 @@ def normalize_result_bundle(result_bundle):
         if bundle.get("truncated_fraction_trace") is None
         else np.asarray(bundle["truncated_fraction_trace"], float).reshape(-1)
     )
+    bundle["lambda_return_mean_trace"] = (
+        None
+        if bundle.get("lambda_return_mean_trace") is None
+        else np.asarray(bundle["lambda_return_mean_trace"], float).reshape(-1)
+    )
+    bundle["offpolicy_rho_mean_trace"] = (
+        None
+        if bundle.get("offpolicy_rho_mean_trace") is None
+        else np.asarray(bundle["offpolicy_rho_mean_trace"], float).reshape(-1)
+    )
+    bundle["offpolicy_c_mean_trace"] = (
+        None
+        if bundle.get("offpolicy_c_mean_trace") is None
+        else np.asarray(bundle["offpolicy_c_mean_trace"], float).reshape(-1)
+    )
+    bundle["behavior_logprob_mean_trace"] = (
+        None
+        if bundle.get("behavior_logprob_mean_trace") is None
+        else np.asarray(bundle["behavior_logprob_mean_trace"], float).reshape(-1)
+    )
+    bundle["target_logprob_mean_trace"] = (
+        None
+        if bundle.get("target_logprob_mean_trace") is None
+        else np.asarray(bundle["target_logprob_mean_trace"], float).reshape(-1)
+    )
+    bundle["retrace_c_clip_fraction_trace"] = (
+        None
+        if bundle.get("retrace_c_clip_fraction_trace") is None
+        else np.asarray(bundle["retrace_c_clip_fraction_trace"], float).reshape(-1)
+    )
     bundle["critic_q1_trace"] = (
         None if bundle.get("critic_q1_trace") is None else np.asarray(bundle["critic_q1_trace"], float).reshape(-1)
     )
@@ -324,21 +354,32 @@ def normalize_result_bundle(result_bundle):
         "horizon_bootstrap_q_mean_trace",
         "horizon_n_actual_mean_trace",
         "horizon_truncated_fraction_trace",
+        "horizon_lambda_return_mean_trace",
+        "horizon_offpolicy_rho_mean_trace",
+        "horizon_offpolicy_c_mean_trace",
+        "horizon_behavior_logprob_mean_trace",
+        "horizon_retrace_c_clip_fraction_trace",
         "matrix_reward_n_mean_trace",
         "matrix_discount_n_mean_trace",
         "matrix_bootstrap_q_mean_trace",
         "matrix_n_actual_mean_trace",
         "matrix_truncated_fraction_trace",
+        "matrix_lambda_return_mean_trace",
+        "matrix_target_logprob_mean_trace",
         "weight_reward_n_mean_trace",
         "weight_discount_n_mean_trace",
         "weight_bootstrap_q_mean_trace",
         "weight_n_actual_mean_trace",
         "weight_truncated_fraction_trace",
+        "weight_lambda_return_mean_trace",
+        "weight_target_logprob_mean_trace",
         "residual_reward_n_mean_trace",
         "residual_discount_n_mean_trace",
         "residual_bootstrap_q_mean_trace",
         "residual_n_actual_mean_trace",
         "residual_truncated_fraction_trace",
+        "residual_lambda_return_mean_trace",
+        "residual_target_logprob_mean_trace",
     ):
         bundle[key] = None if bundle.get(key) is None else np.asarray(bundle[key], float).reshape(-1)
     bundle["low_coef"] = None if bundle.get("low_coef") is None else np.asarray(bundle["low_coef"], float).reshape(-1)
@@ -362,6 +403,8 @@ def normalize_result_bundle(result_bundle):
         None if bundle.get("residual_high_coef") is None else np.asarray(bundle["residual_high_coef"], float).reshape(-1)
     )
     bundle["n_step"] = int(bundle.get("n_step", 1) or 1)
+    bundle["multistep_mode"] = str(bundle.get("multistep_mode", "one_step"))
+    bundle["lambda_value"] = bundle.get("lambda_value", None)
     bundle["state_mode"] = str(bundle.get("state_mode", "standard")).lower()
     bundle["system_metadata"] = dict(bundle.get("system_metadata") or {})
 
@@ -590,6 +633,12 @@ def _plot_nstep_diagnostics(out_dir, fname_base, bundle, save_pdf):
         ("bootstrap", bundle.get("bootstrap_q_mean_trace")),
         ("n_actual", bundle.get("n_actual_mean_trace")),
         ("truncated", bundle.get("truncated_fraction_trace")),
+        ("lambda_return", bundle.get("lambda_return_mean_trace")),
+        ("rho", bundle.get("offpolicy_rho_mean_trace")),
+        ("c", bundle.get("offpolicy_c_mean_trace")),
+        ("behavior_logp", bundle.get("behavior_logprob_mean_trace")),
+        ("target_logp", bundle.get("target_logprob_mean_trace")),
+        ("retrace_clip", bundle.get("retrace_c_clip_fraction_trace")),
     ]
     active = [(label, np.asarray(values, float).reshape(-1)) for label, values in traces if values is not None and len(values) > 0]
     if not active:
@@ -1091,7 +1140,12 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
     bootstrap_q_trace = bundle.get("bootstrap_q_mean_trace")
     n_actual_trace = bundle.get("n_actual_mean_trace")
     truncated_fraction_trace = bundle.get("truncated_fraction_trace")
-    if any(trace is not None and len(trace) > 0 for trace in (loss_trace, exploration_trace, td_trace, max_q_trace, chosen_q_trace, value_trace, adv_spread_trace, noisy_sigma_trace)):
+    lambda_return_trace = bundle.get("lambda_return_mean_trace")
+    rho_trace = bundle.get("offpolicy_rho_mean_trace")
+    c_trace = bundle.get("offpolicy_c_mean_trace")
+    behavior_logprob_trace = bundle.get("behavior_logprob_mean_trace")
+    retrace_clip_trace = bundle.get("retrace_c_clip_fraction_trace")
+    if any(trace is not None and len(trace) > 0 for trace in (loss_trace, exploration_trace, td_trace, max_q_trace, chosen_q_trace, value_trace, adv_spread_trace, noisy_sigma_trace, lambda_return_trace, rho_trace, c_trace, behavior_logprob_trace, retrace_clip_trace)):
         traces = [
             ("Loss", loss_trace),
             ("Exploration", exploration_trace),
@@ -1106,6 +1160,11 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
             ("Bootstrap Q", bootstrap_q_trace),
             ("n_actual", n_actual_trace),
             ("Truncated", truncated_fraction_trace),
+            ("Lambda return", lambda_return_trace),
+            ("Retrace rho", rho_trace),
+            ("Retrace c", c_trace),
+            ("Behavior logp", behavior_logprob_trace),
+            ("Retrace clip", retrace_clip_trace),
         ]
         active_traces = [(label, np.asarray(trace, float).reshape(-1)) for label, trace in traces if trace is not None and len(trace) > 0]
         fig, axs = plt.subplots(len(active_traces), 1, figsize=(8.6, 3.0 + 2.0 * max(1, len(active_traces) - 1)), sharex=True)

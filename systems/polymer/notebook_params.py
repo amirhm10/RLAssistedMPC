@@ -225,6 +225,8 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
         "buffer_size": 150_000,
         "gamma": 0.99,
         "n_step": 1,  # Positive integer. Keep 1 for the baseline; common research values are 3 or decision_interval.
+        "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda" | "retrace"
+        "lambda_value": 0.9,  # Used when multistep_mode is "lambda" or "retrace"
         "lr": 1e-4,
         "batch_size": 128,
         "grad_clip_norm": 10.0,
@@ -302,6 +304,8 @@ POLYMER_HORIZON_DUELING_DEFAULTS = {
         "buffer_size": 150_000,
         "gamma": 0.99,
         "n_step": 1,
+        "multistep_mode": "n_step",  # Dueling defaults to the multistep research path
+        "lambda_value": 0.9,
         "lr": 1e-4,
         "batch_size": 128,
         "grad_clip_norm": 10.0,
@@ -362,6 +366,8 @@ POLYMER_MATRIX_DEFAULTS = {
         "critic_hidden": [512, 512, 512],
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. Typical TD3 ablations use 1, 3, or 5.
+        "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda"
+        "lambda_value": 0.9,
         "actor_lr": 1e-4,
         "critic_lr": 1e-4,
         "batch_size": 128,
@@ -385,6 +391,8 @@ POLYMER_MATRIX_DEFAULTS = {
         "critic_hidden": [512, 512, 512],
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. SAC often benefits from 3-step returns in this repo.
+        "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "sac_n" | "lambda"
+        "lambda_value": 0.9,
         "actor_lr": 1e-4,
         "critic_lr": 1e-4,
         "alpha_lr": 1e-4,
@@ -447,6 +455,8 @@ POLYMER_WEIGHT_DEFAULTS = {
         "critic_hidden": [512, 512, 512, 512, 512],
         "gamma": 0.995,
         "n_step": 1,
+        "multistep_mode": "one_step",
+        "lambda_value": 0.9,
         "actor_lr": 1e-4,
         "critic_lr": 1e-4,
         "batch_size": 128,
@@ -470,6 +480,8 @@ POLYMER_WEIGHT_DEFAULTS = {
         "critic_hidden": [512, 512, 512, 512, 512],
         "gamma": 0.995,
         "n_step": 1,
+        "multistep_mode": "one_step",
+        "lambda_value": 0.9,
         "actor_lr": 1e-4,
         "critic_lr": 1e-4,
         "alpha_lr": 1e-4,
@@ -533,6 +545,8 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "critic_hidden": [512, 512, 512],
         "gamma": 0.995,
         "n_step": 1,
+        "multistep_mode": "one_step",
+        "lambda_value": 0.9,
         "actor_lr": 1e-4,
         "critic_lr": 1e-4,
         "batch_size": 128,
@@ -556,6 +570,8 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "critic_hidden": [512, 512, 512],
         "gamma": 0.995,
         "n_step": 1,
+        "multistep_mode": "one_step",
+        "lambda_value": 0.9,
         "actor_lr": 1e-4,
         "critic_lr": 1e-4,
         "alpha_lr": 1e-4,

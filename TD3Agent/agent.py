@@ -15,6 +15,7 @@ from TD3Agent.critic import Critic
 from TD3Agent.actor import Actor
 from TD3Agent.replay_buffer import PERRecentReplayBuffer, ReplayBuffer
 from utils.nstep import NStepAccumulator
+from utils.nstep_targets import build_truncated_lambda_returns
 
 import os
 from datetime import datetime
@@ -72,6 +73,23 @@ def make_loss_fn(loss_type: str):
     raise ValueError("loss_type must be 'huber' or 'mse'.")
 
 
+def _sequence_discount_powers(seq_len: int, gamma: float, device: torch.device) -> torch.Tensor:
+    return torch.pow(torch.full((seq_len,), float(gamma), dtype=torch.float32, device=device), torch.arange(seq_len, device=device, dtype=torch.float32))
+
+
+def _sequence_endpoint_stats(rewards, dones, bootstrap_values, mask, gamma: float):
+    seq_len = rewards.shape[1]
+    powers = _sequence_discount_powers(seq_len, gamma, rewards.device).view(1, -1)
+    reward_prefix = (rewards * mask * powers).sum(dim=1)
+    lengths = mask.sum(dim=1).clamp_min(1.0)
+    last_idx = (lengths.long() - 1).clamp(min=0)
+    last_done = dones.gather(1, last_idx.view(-1, 1)).squeeze(1)
+    endpoint_discount = torch.pow(torch.full_like(lengths, float(gamma)), lengths) * (1.0 - last_done)
+    endpoint_bootstrap = bootstrap_values.gather(1, last_idx.view(-1, 1)).squeeze(1) * (1.0 - last_done)
+    truncated_fraction = (lengths < float(seq_len)).float().mean()
+    return reward_prefix, endpoint_discount, endpoint_bootstrap, lengths, truncated_fraction
+
+
 def copy_params_by_order(new_model: nn.Module, old_model: nn.Module):
     with torch.no_grad():
         vec = parameters_to_vector(list(old_model.parameters()))
@@ -91,6 +109,8 @@ class TD3Agent(nn.Module):
             critic_lr: float = 1e-3,
             batch_size: int = 256,
             n_step: int = 1,
+            multistep_mode: Literal["one_step", "n_step", "lambda"] = "one_step",
+            lambda_value: float = 0.9,
             grad_clip_norm: Optional[float] = 10.0,
             # TD3
             policy_delay: int = 2,
@@ -138,6 +158,9 @@ class TD3Agent(nn.Module):
         self.gamma = gamma
         self.batch_size = batch_size
         self.n_step = int(n_step)
+        self.sequence_len = max(1, int(n_step))
+        self.multistep_mode = str(multistep_mode).lower()
+        self.lambda_value = float(lambda_value)
         self.grad_clip_norm = grad_clip_norm
         self.policy_delay = policy_delay
         self.t_std = target_policy_smoothing_noise_std
@@ -154,6 +177,8 @@ class TD3Agent(nn.Module):
         self.param_noise_resample_interval = max(1, int(param_noise_resample_interval))
         if self.exploration_mode not in {"gaussian", "param_noise"}:
             raise ValueError("exploration_mode must be 'gaussian' or 'param_noise'.")
+        if self.multistep_mode not in {"one_step", "n_step", "lambda"}:
+            raise ValueError("multistep_mode must be 'one_step', 'n_step', or 'lambda'.")
 
         self.steps = 0
         self.train_steps = 0
@@ -212,6 +237,7 @@ class TD3Agent(nn.Module):
         self.bootstrap_q_mean_trace = []
         self.n_actual_mean_trace = []
         self.truncated_fraction_trace = []
+        self.lambda_return_mean_trace = []
 
         # decay scheduler
         self.expl_sched = exploration_schedule if exploration_schedule is not None else GaussianNoiseSchedule(
@@ -262,17 +288,20 @@ class TD3Agent(nn.Module):
 
 
     def push(self, s, a, r, ns, done):
-        ready = self.nstep_accumulator.append(s, a, r, ns, bool(done))
-        for transition in ready:
-            self.buffer.push(
-                transition.state,
-                transition.action,
-                transition.reward_n,
-                transition.next_state_n,
-                transition.done_n,
-                discount_n=transition.discount_n,
-                n_actual=transition.n_actual,
-            )
+        if self.multistep_mode == "n_step":
+            ready = self.nstep_accumulator.append(s, a, r, ns, bool(done))
+            for transition in ready:
+                self.buffer.push(
+                    transition.state,
+                    transition.action,
+                    transition.reward_n,
+                    transition.next_state_n,
+                    transition.done_n,
+                    discount_n=transition.discount_n,
+                    n_actual=transition.n_actual,
+                )
+            return
+        self.buffer.push(s, a, r, ns, bool(done))
 
     def pretrain_push(self, s, a, r, ns,):
         self.buffer.pretrain_add(s, a, r, ns)
@@ -314,46 +343,103 @@ class TD3Agent(nn.Module):
         if len(self.buffer) < self.batch_size:
             return None
 
-        if self.mode == "mpc":
-            s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
-        else:
-            s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
-            is_w = col(is_w.to(self.device, non_blocking=True).float())  # [B, 1]
+        if self.multistep_mode == "lambda":
+            seq = self.buffer.sample_sequence(self.batch_size, self.sequence_len, device=self.device)
+            states = seq["states"].float()
+            actions = seq["actions"].float()
+            rewards = seq["rewards"].float()
+            next_states = seq["next_states"].float()
+            dones = seq["dones"].float()
+            mask = seq["mask"].float()
+            start_indices = seq["start_indices"]
+            is_w = col(seq["is_w"].float())
 
-        s = s.to(self.device, non_blocking=True).float()  # [B, S]
-        a = a.to(self.device, non_blocking=True).float()  # [B, A]
-        r = col(r.to(self.device, non_blocking=True).float())  # [B, 1]
-        ns = ns.to(self.device, non_blocking=True).float()  # [B, S]
-        done = col(done.to(self.device, non_blocking=True).float())  # [B, 1]
-        discount_n = col(discount_n.to(self.device, non_blocking=True).float())  # [B, 1]
-        n_actual = col(n_actual.to(self.device, non_blocking=True).float())  # [B, 1]
+            batch_size = states.shape[0]
+            seq_len = states.shape[1]
+            state_dim = states.shape[2]
+            s = states[:, 0, :]
+            a = actions[:, 0, :]
 
+            next_states_flat = next_states.view(batch_size * seq_len, state_dim)
+            with torch.no_grad():
+                base_next = self.actor_target(next_states_flat)
+                noise = torch.empty_like(base_next).normal_(0.0, self.t_std)
+                noise.clamp_(-self.noise_clip, self.noise_clip)
+                next_action_flat = (base_next + noise).clip(-self.max_action, self.max_action)
+                q_next_all = self.critic_target.combined_forward(next_states_flat, next_action_flat, mode=self.target_combine)
+                bootstrap_values = q_next_all.view(batch_size, seq_len) * (1.0 - dones)
+                targets = build_truncated_lambda_returns(
+                    rewards=rewards,
+                    dones=dones,
+                    bootstrap_values=bootstrap_values,
+                    mask=mask,
+                    gamma=self.gamma,
+                    lambda_value=self.lambda_value,
+                )
+                y = col(targets)
 
-        with torch.no_grad():
-            # target policy smoothing
-            base_next = self.actor_target(ns)
-            noise = torch.empty_like(base_next).normal_(0.0, self.t_std)
-            noise.clamp_(-self.noise_clip, self.noise_clip)
-            next_action = (base_next + noise).clip(-self.max_action, self.max_action)
-
-            # Next q value
-            q_next = self.critic_target.combined_forward(ns, next_action, mode=self.target_combine)
-            bootstrap_q = q_next * (1.0 - done)
-            y = r + discount_n * bootstrap_q
-
-
-
-        # critic update
-        q1, q2 = self.critic(s, a)
-        q1 = col(q1)
-        q2 = col(q2)
-        td = (y - q1).detach().abs().view(-1)
-        l1 = self.loss_fn_critic(q1, y)
-        l2 = self.loss_fn_critic(q2, y)
-        if self.mode == "mpc":
-            critic_loss = (l1 + l2).mean()
-        else:
+            q1, q2 = self.critic(s, a)
+            q1 = col(q1)
+            q2 = col(q2)
+            td = (y - q1).detach().abs().view(-1)
+            l1 = self.loss_fn_critic(q1, y)
+            l2 = self.loss_fn_critic(q2, y)
             critic_loss = (is_w * (l1 + l2)).mean()
+
+            reward_prefix, endpoint_discount, endpoint_bootstrap, lengths, truncated_fraction = _sequence_endpoint_stats(
+                rewards, dones, bootstrap_values, mask, self.gamma
+            )
+            reward_trace_mean = float(reward_prefix.mean().item())
+            discount_trace_mean = float(endpoint_discount.mean().item())
+            bootstrap_trace_mean = float(endpoint_bootstrap.mean().item())
+            n_actual_mean = float(lengths.mean().item())
+            truncated_fraction_value = float(truncated_fraction.item())
+            lambda_return_mean = float(targets.mean().item())
+            priority_index = start_indices
+        else:
+            if self.mode == "mpc":
+                s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
+                idx = None
+                is_w = None
+            else:
+                s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
+                is_w = col(is_w.to(self.device, non_blocking=True).float())
+
+            s = s.to(self.device, non_blocking=True).float()
+            a = a.to(self.device, non_blocking=True).float()
+            r = col(r.to(self.device, non_blocking=True).float())
+            ns = ns.to(self.device, non_blocking=True).float()
+            done = col(done.to(self.device, non_blocking=True).float())
+            discount_n = col(discount_n.to(self.device, non_blocking=True).float())
+            n_actual = col(n_actual.to(self.device, non_blocking=True).float())
+
+            with torch.no_grad():
+                base_next = self.actor_target(ns)
+                noise = torch.empty_like(base_next).normal_(0.0, self.t_std)
+                noise.clamp_(-self.noise_clip, self.noise_clip)
+                next_action = (base_next + noise).clip(-self.max_action, self.max_action)
+                q_next = self.critic_target.combined_forward(ns, next_action, mode=self.target_combine)
+                bootstrap_q = q_next * (1.0 - done)
+                y = r + discount_n * bootstrap_q
+
+            q1, q2 = self.critic(s, a)
+            q1 = col(q1)
+            q2 = col(q2)
+            td = (y - q1).detach().abs().view(-1)
+            l1 = self.loss_fn_critic(q1, y)
+            l2 = self.loss_fn_critic(q2, y)
+            if self.mode == "mpc":
+                critic_loss = (l1 + l2).mean()
+            else:
+                critic_loss = (is_w * (l1 + l2)).mean()
+
+            reward_trace_mean = float(r.mean().item())
+            discount_trace_mean = float(discount_n.mean().item())
+            bootstrap_trace_mean = float(bootstrap_q.mean().item())
+            n_actual_mean = float(n_actual.mean().item())
+            truncated_fraction_value = float((n_actual < float(self.n_step)).float().mean().item())
+            lambda_return_mean = None
+            priority_index = idx
 
         self.critic_optimizer.zero_grad(set_to_none=True)
         critic_loss.backward()
@@ -364,11 +450,13 @@ class TD3Agent(nn.Module):
         self.critic_q1_trace.append(float(q1.mean().item()))
         self.critic_q2_trace.append(float(q2.mean().item()))
         self.critic_q_gap_trace.append(float((q1 - q2).abs().mean().item()))
-        self.reward_n_mean_trace.append(float(r.mean().item()))
-        self.discount_n_mean_trace.append(float(discount_n.mean().item()))
-        self.bootstrap_q_mean_trace.append(float(bootstrap_q.mean().item()))
-        self.n_actual_mean_trace.append(float(n_actual.mean().item()))
-        self.truncated_fraction_trace.append(float((n_actual < float(self.n_step)).float().mean().item()))
+        self.reward_n_mean_trace.append(reward_trace_mean)
+        self.discount_n_mean_trace.append(discount_trace_mean)
+        self.bootstrap_q_mean_trace.append(bootstrap_trace_mean)
+        self.n_actual_mean_trace.append(n_actual_mean)
+        self.truncated_fraction_trace.append(truncated_fraction_value)
+        if lambda_return_mean is not None:
+            self.lambda_return_mean_trace.append(lambda_return_mean)
 
         # ------ Delayed actor + target update -------
         if self.total_it % self.policy_delay == 0:
@@ -398,7 +486,7 @@ class TD3Agent(nn.Module):
         # --------- PER: update priorities from |TD| ----------
         if self.mode != "mpc":
             if hasattr(self.buffer, "update_priorities"):
-                self.buffer.update_priorities(idx, td.abs())
+                self.buffer.update_priorities(priority_index, td.abs())
 
         return float(critic_loss.item())
 
@@ -555,6 +643,8 @@ class TD3Agent(nn.Module):
                 "loss_type": self.loss_type,
                 "param_noise_resample_interval": self.param_noise_resample_interval,
                 "n_step": self.n_step,
+                "multistep_mode": self.multistep_mode,
+                "lambda_value": self.lambda_value,
                 "steps": self.steps,
                 "train_steps": self.train_steps,
                 "total_it": self.total_it,

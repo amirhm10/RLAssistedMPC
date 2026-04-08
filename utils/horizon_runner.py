@@ -318,6 +318,8 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "warm_start_step": int(warm_start_step),
         "n_step": int(getattr(agent, "n_step", 1)),
+        "multistep_mode": str(getattr(agent, "multistep_mode", "one_step")),
+        "lambda_value": getattr(agent, "lambda_value", None),
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
         "mismatch_scale": mismatch_scale,
@@ -337,6 +339,11 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         "bootstrap_q_mean_trace": getattr(agent, "bootstrap_q_mean_trace", None),
         "n_actual_mean_trace": getattr(agent, "n_actual_mean_trace", None),
         "truncated_fraction_trace": getattr(agent, "truncated_fraction_trace", None),
+        "lambda_return_mean_trace": getattr(agent, "lambda_return_mean_trace", None),
+        "offpolicy_rho_mean_trace": getattr(agent, "offpolicy_rho_mean_trace", None),
+        "offpolicy_c_mean_trace": getattr(agent, "offpolicy_c_mean_trace", None),
+        "behavior_logprob_mean_trace": getattr(agent, "behavior_logprob_mean_trace", None),
+        "retrace_c_clip_fraction_trace": getattr(agent, "retrace_c_clip_fraction_trace", None),
     }
     for key, value in diagnostics.items():
         if value is not None:

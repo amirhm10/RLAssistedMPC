@@ -303,6 +303,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
         },
         "mismatch_clip": 3.0,
         "use_shifted_mpc_warm_start": False,
+        "recalculate_observer_on_matrix_change": False,  # Recompute observer gain L after each matrix update. Options: False | True. Keep False to preserve the legacy observer path.
         "nominal_qi": 0.0,
         "nominal_qs": 0.0,
         "nominal_ha": 0.0,
@@ -530,6 +531,7 @@ DISTILLATION_COMBINED_DEFAULTS = {
         "residual_high": np.asarray(RESIDUAL_BOUNDS["high"], float).copy(),
         "mismatch_clip": 3.0,
         "use_shifted_mpc_warm_start": False,
+        "recalculate_observer_on_matrix_change": False,  # Recompute observer gain L after each matrix update in the combined loop. Options: False | True.
         "nominal_qi": 0.0,
         "nominal_qs": 0.0,
         "nominal_ha": 0.0,

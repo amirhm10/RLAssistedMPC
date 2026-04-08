@@ -304,6 +304,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "warm_start_step": int(warm_start_step),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "n_step": int(getattr(agent, "n_step", 1)),
+        "multistep_mode": str(getattr(agent, "multistep_mode", "one_step")),
+        "lambda_value": getattr(agent, "lambda_value", None),
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
         "mismatch_scale": mismatch_scale,
@@ -335,6 +337,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "bootstrap_q_mean_trace",
         "n_actual_mean_trace",
         "truncated_fraction_trace",
+        "lambda_return_mean_trace",
+        "target_logprob_mean_trace",
     ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)

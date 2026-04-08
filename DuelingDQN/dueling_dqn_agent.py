@@ -11,6 +11,7 @@ import torch.optim as optim
 from DQN.replay_buffer import PERRecentReplayBuffer
 from DuelingDQN.qnetwork import DuelingQNetwork
 from utils.nstep import NStepAccumulator
+from utils.nstep_targets import build_discrete_retrace_targets, build_truncated_lambda_returns
 from utils.noisy_layers import mean_module_abs_sigma
 
 
@@ -57,9 +58,26 @@ class EpsilonSchedule:
         raise ValueError(f"Unsupported epsilon schedule mode: {self.mode}")
 
 
+def _sequence_discount_powers(seq_len: int, gamma: float, device: torch.device) -> torch.Tensor:
+    return torch.pow(torch.full((seq_len,), float(gamma), dtype=torch.float32, device=device), torch.arange(seq_len, device=device, dtype=torch.float32))
+
+
+def _sequence_endpoint_stats(rewards, dones, bootstrap_values, mask, gamma: float):
+    seq_len = rewards.shape[1]
+    powers = _sequence_discount_powers(seq_len, gamma, rewards.device).view(1, -1)
+    reward_prefix = (rewards * mask * powers).sum(dim=1)
+    lengths = mask.sum(dim=1).clamp_min(1.0)
+    last_idx = (lengths.long() - 1).clamp(min=0)
+    last_done = dones.gather(1, last_idx.view(-1, 1)).squeeze(1)
+    endpoint_discount = torch.pow(torch.full_like(lengths, float(gamma)), lengths) * (1.0 - last_done)
+    endpoint_bootstrap = bootstrap_values.gather(1, last_idx.view(-1, 1)).squeeze(1) * (1.0 - last_done)
+    truncated_fraction = (lengths < float(seq_len)).float().mean()
+    return reward_prefix, endpoint_discount, endpoint_bootstrap, lengths, truncated_fraction
+
+
 class DuelingDQNAgent(nn.Module):
     """
-    Standard dueling Double DQN agent with optional NoisyNet exploration.
+    Standard dueling Double DQN agent with optional advanced multistep targets.
     """
 
     def __init__(
@@ -72,6 +90,8 @@ class DuelingDQNAgent(nn.Module):
         batch_size: int = 128,
         buffer_size: int = 40_000,
         n_step: int = 1,
+        multistep_mode: Literal["one_step", "n_step", "lambda", "retrace"] = "n_step",
+        lambda_value: float = 0.9,
         grad_clip_norm: float = 10.0,
         double_dqn: bool = True,
         target_update: Literal["soft", "hard"] = "hard",
@@ -100,6 +120,9 @@ class DuelingDQNAgent(nn.Module):
         self.gamma = float(gamma)
         self.batch_size = int(batch_size)
         self.n_step = int(n_step)
+        self.sequence_len = max(1, int(n_step))
+        self.multistep_mode = str(multistep_mode).lower()
+        self.lambda_value = float(lambda_value)
         self.grad_clip_norm = grad_clip_norm
         self.double_dqn = bool(double_dqn)
         self.target_update = str(target_update).lower()
@@ -114,6 +137,10 @@ class DuelingDQNAgent(nn.Module):
         self.noisy_sigma_init = float(noisy_sigma_init)
         if self.exploration_mode not in {"epsilon", "noisy"}:
             raise ValueError("exploration_mode must be 'epsilon' or 'noisy'.")
+        if self.multistep_mode not in {"one_step", "n_step", "lambda", "retrace"}:
+            raise ValueError("multistep_mode must be one of 'one_step', 'n_step', 'lambda', or 'retrace'.")
+        if self.multistep_mode == "retrace" and self.exploration_mode != "epsilon":
+            raise ValueError("Exact Retrace is only supported with exploration_mode='epsilon'.")
 
         use_noisy = self.exploration_mode == "noisy"
         self.online = DuelingQNetwork(
@@ -149,6 +176,8 @@ class DuelingDQNAgent(nn.Module):
         self.train_steps = 0
         self.last_epsilon = float(eps_start)
         self.last_exploration_value = 0.0
+        self.last_behavior_prob = 1.0
+        self.last_behavior_logprob = 0.0
         self.eps_schedule = eps_schedule if eps_schedule is not None else EpsilonSchedule(
             eps_start=eps_start,
             eps_end=eps_end,
@@ -171,6 +200,11 @@ class DuelingDQNAgent(nn.Module):
         self.bootstrap_q_mean_trace = []
         self.n_actual_mean_trace = []
         self.truncated_fraction_trace = []
+        self.lambda_return_mean_trace = []
+        self.offpolicy_rho_mean_trace = []
+        self.offpolicy_c_mean_trace = []
+        self.behavior_logprob_mean_trace = []
+        self.retrace_c_clip_fraction_trace = []
 
     def _set_eval_noise(self):
         self.online.set_noise_enabled(False)
@@ -201,13 +235,25 @@ class DuelingDQNAgent(nn.Module):
             epsilon = float(self.eps_schedule.value(self.steps))
             self.last_epsilon = epsilon
             self.last_exploration_value = epsilon
+            state_tensor = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
+            q_values = self.online(state_tensor)
+            greedy_action = int(q_values.argmax(dim=1).item())
             if random.random() < epsilon:
-                return random.randrange(self.action_dim)
-            return self._greedy_action(state)
+                action = random.randrange(self.action_dim)
+            else:
+                action = greedy_action
+            prob = epsilon / self.action_dim
+            if action == greedy_action:
+                prob += 1.0 - epsilon
+            self.last_behavior_prob = float(prob)
+            self.last_behavior_logprob = float(np.log(max(prob, 1e-12)))
+            return int(action)
 
         self._set_training_noise()
         self.last_epsilon = 0.0
         self.last_exploration_value = mean_module_abs_sigma(self.online)
+        self.last_behavior_prob = 1.0
+        self.last_behavior_logprob = 0.0
         return self._greedy_action(state)
 
     @torch.no_grad()
@@ -216,23 +262,38 @@ class DuelingDQNAgent(nn.Module):
         return self._greedy_action(state)
 
     def push(self, state, action, reward, next_state, done):
-        ready = self.nstep_accumulator.append(state, action, reward, next_state, bool(done))
-        for transition in ready:
-            self.buffer.push(
-                transition.state,
-                transition.action,
-                transition.reward_n,
-                transition.next_state_n,
-                transition.done_n,
-                discount_n=transition.discount_n,
-                n_actual=transition.n_actual,
-            )
+        if self.multistep_mode == "n_step":
+            ready = self.nstep_accumulator.append(state, action, reward, next_state, bool(done))
+            for transition in ready:
+                self.buffer.push(
+                    transition.state,
+                    transition.action,
+                    transition.reward_n,
+                    transition.next_state_n,
+                    transition.done_n,
+                    discount_n=transition.discount_n,
+                    n_actual=transition.n_actual,
+                )
+            return
 
-    def train_step(self) -> Optional[float]:
-        if len(self.buffer) < self.batch_size:
-            return None
+        self.buffer.push(
+            state,
+            action,
+            reward,
+            next_state,
+            bool(done),
+            behavior_prob=self.last_behavior_prob,
+            behavior_logprob=self.last_behavior_logprob,
+        )
 
-        self._set_training_noise()
+    def _update_target(self):
+        self.train_steps += 1
+        if self.target_update == "soft":
+            soft_update(self.target, self.online, tau=self.tau)
+        elif self.train_steps % self.hard_update_interval == 0:
+            hard_update(self.target, self.online)
+
+    def _train_endpoint_mode(self) -> float:
         state, action_idx, reward, next_state, done, discount_n, n_actual, sample_idx, is_w = self.buffer.sample(
             self.batch_size,
             device=self.device,
@@ -263,24 +324,14 @@ class DuelingDQNAgent(nn.Module):
             y = reward + discount_n * bootstrap_q
 
         td_error = y - q_sa
-        per_sample_loss = self.loss_fn(q_sa, y)
-        loss = (is_w * per_sample_loss).mean()
-
+        loss = (is_w * self.loss_fn(q_sa, y)).mean()
         self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
         if self.grad_clip_norm is not None:
             nn.utils.clip_grad_norm_(self.online.parameters(), self.grad_clip_norm)
         self.optimizer.step()
-
-        if hasattr(self.buffer, "update_priorities"):
-            self.buffer.update_priorities(sample_idx, td_error.abs())
-
-        self.train_steps += 1
-        if self.target_update == "soft":
-            soft_update(self.target, self.online, tau=self.tau)
-        else:
-            if self.train_steps % self.hard_update_interval == 0:
-                hard_update(self.target, self.online)
+        self.buffer.update_priorities(sample_idx, td_error.abs())
+        self._update_target()
 
         advantage_spread = advantages.max(dim=1).values - advantages.min(dim=1).values
         self.loss_history.append(float(loss.item()))
@@ -297,5 +348,179 @@ class DuelingDQNAgent(nn.Module):
         self.bootstrap_q_mean_trace.append(float(bootstrap_q.mean().item()))
         self.n_actual_mean_trace.append(float(n_actual.mean().item()))
         self.truncated_fraction_trace.append(float((n_actual < float(self.n_step)).float().mean().item()))
-
         return float(loss.item())
+
+    def _train_lambda_mode(self) -> float:
+        seq = self.buffer.sample_sequence(
+            self.batch_size,
+            self.sequence_len,
+            device=self.device,
+            frac_per=self.replay_frac_per,
+            frac_recent=self.replay_frac_recent,
+            recent_window=self.replay_recent_window,
+        )
+        states = seq["states"].float()
+        actions = seq["actions"].long()
+        rewards = seq["rewards"].float()
+        next_states = seq["next_states"].float()
+        dones = seq["dones"].float()
+        mask = seq["mask"].float()
+        is_w = seq["is_w"].float()
+        start_indices = seq["start_indices"]
+
+        batch_size, seq_len, state_dim = states.shape
+        states_flat = states.view(batch_size * seq_len, state_dim)
+        next_states_flat = next_states.view(batch_size * seq_len, state_dim)
+
+        q_values_all, values_all, advantages_all = self.online.forward_with_streams(states_flat)
+        q_values_all = q_values_all.view(batch_size, seq_len, self.action_dim)
+        values_all = values_all.view(batch_size, seq_len)
+        advantages_all = advantages_all.view(batch_size, seq_len, self.action_dim)
+        q_first = q_values_all[:, 0, :].gather(1, actions[:, :1]).squeeze(1)
+
+        with torch.no_grad():
+            if self.double_dqn:
+                next_actions = self.online(next_states_flat).view(batch_size, seq_len, self.action_dim).argmax(dim=2)
+                next_q_target = self.target(next_states_flat).view(batch_size, seq_len, self.action_dim)
+                bootstrap_values = next_q_target.gather(2, next_actions.unsqueeze(-1)).squeeze(-1) * (1.0 - dones)
+            else:
+                next_q_target = self.target(next_states_flat).view(batch_size, seq_len, self.action_dim)
+                bootstrap_values = next_q_target.max(dim=2).values * (1.0 - dones)
+            targets = build_truncated_lambda_returns(
+                rewards=rewards,
+                dones=dones,
+                bootstrap_values=bootstrap_values,
+                mask=mask,
+                gamma=self.gamma,
+                lambda_value=self.lambda_value,
+            )
+
+        td_error = targets - q_first
+        loss = (is_w * self.loss_fn(q_first, targets)).mean()
+        self.optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        if self.grad_clip_norm is not None:
+            nn.utils.clip_grad_norm_(self.online.parameters(), self.grad_clip_norm)
+        self.optimizer.step()
+        self.buffer.update_priorities(start_indices, td_error.abs())
+        self._update_target()
+
+        reward_prefix, endpoint_discount, endpoint_bootstrap, lengths, truncated_fraction = _sequence_endpoint_stats(
+            rewards, dones, bootstrap_values, mask, self.gamma
+        )
+        advantage_spread = advantages_all[:, 0, :].max(dim=1).values - advantages_all[:, 0, :].min(dim=1).values
+        self.loss_history.append(float(loss.item()))
+        self.exploration_trace.append(float(self.last_exploration_value))
+        self.epsilon_trace.append(float(self.last_epsilon))
+        self.avg_td_error_trace.append(float(td_error.abs().mean().item()))
+        self.avg_max_q_trace.append(float(q_values_all[:, 0, :].max(dim=1).values.mean().item()))
+        self.avg_value_trace.append(float(values_all[:, 0].mean().item()))
+        self.avg_advantage_spread_trace.append(float(advantage_spread.mean().item()))
+        self.avg_chosen_q_trace.append(float(q_first.mean().item()))
+        self.noisy_sigma_trace.append(float(mean_module_abs_sigma(self.online)))
+        self.reward_n_mean_trace.append(float(reward_prefix.mean().item()))
+        self.discount_n_mean_trace.append(float(endpoint_discount.mean().item()))
+        self.bootstrap_q_mean_trace.append(float(endpoint_bootstrap.mean().item()))
+        self.n_actual_mean_trace.append(float(lengths.mean().item()))
+        self.truncated_fraction_trace.append(float(truncated_fraction.item()))
+        self.lambda_return_mean_trace.append(float(targets.mean().item()))
+        return float(loss.item())
+
+    def _train_retrace_mode(self) -> float:
+        seq = self.buffer.sample_sequence(
+            self.batch_size,
+            self.sequence_len,
+            device=self.device,
+            frac_per=self.replay_frac_per,
+            frac_recent=self.replay_frac_recent,
+            recent_window=self.replay_recent_window,
+        )
+        states = seq["states"].float()
+        actions = seq["actions"].long()
+        rewards = seq["rewards"].float()
+        next_states = seq["next_states"].float()
+        dones = seq["dones"].float()
+        behavior_prob = seq["behavior_prob"].float()
+        behavior_logprob = seq["behavior_logprob"].float()
+        mask = seq["mask"].float()
+        is_w = seq["is_w"].float()
+        start_indices = seq["start_indices"]
+
+        batch_size, seq_len, state_dim = states.shape
+        states_flat = states.view(batch_size * seq_len, state_dim)
+        next_states_flat = next_states.view(batch_size * seq_len, state_dim)
+
+        q_values_all, values_all, advantages_all = self.online.forward_with_streams(states_flat)
+        q_values_all = q_values_all.view(batch_size, seq_len, self.action_dim)
+        values_all = values_all.view(batch_size, seq_len)
+        advantages_all = advantages_all.view(batch_size, seq_len, self.action_dim)
+        q_first = q_values_all[:, 0, :].gather(1, actions[:, :1]).squeeze(1)
+
+        with torch.no_grad():
+            online_greedy = q_values_all.detach().argmax(dim=2)
+            target_q_current = self.target(states_flat).view(batch_size, seq_len, self.action_dim)
+            q_taken_target = target_q_current.gather(2, actions.unsqueeze(-1)).squeeze(-1)
+            next_actions = self.online(next_states_flat).view(batch_size, seq_len, self.action_dim).argmax(dim=2)
+            next_q_target = self.target(next_states_flat).view(batch_size, seq_len, self.action_dim)
+            bootstrap_values = next_q_target.gather(2, next_actions.unsqueeze(-1)).squeeze(-1) * (1.0 - dones)
+            target_action_prob = (actions == online_greedy).float()
+            targets, rho, c = build_discrete_retrace_targets(
+                rewards=rewards,
+                dones=dones,
+                bootstrap_values=bootstrap_values,
+                q_taken=q_taken_target,
+                target_action_prob=target_action_prob,
+                behavior_prob=behavior_prob,
+                mask=mask,
+                gamma=self.gamma,
+                lambda_value=self.lambda_value,
+            )
+
+        td_error = targets - q_first
+        loss = (is_w * self.loss_fn(q_first, targets)).mean()
+        self.optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        if self.grad_clip_norm is not None:
+            nn.utils.clip_grad_norm_(self.online.parameters(), self.grad_clip_norm)
+        self.optimizer.step()
+        self.buffer.update_priorities(start_indices, td_error.abs())
+        self._update_target()
+
+        reward_prefix, endpoint_discount, endpoint_bootstrap, lengths, truncated_fraction = _sequence_endpoint_stats(
+            rewards, dones, bootstrap_values, mask, self.gamma
+        )
+        valid_mask = mask > 0.0
+        clipped_fraction = torch.where(valid_mask, (rho > 1.0).float(), torch.zeros_like(rho)).sum() / valid_mask.sum().clamp_min(1.0)
+        advantage_spread = advantages_all[:, 0, :].max(dim=1).values - advantages_all[:, 0, :].min(dim=1).values
+
+        self.loss_history.append(float(loss.item()))
+        self.exploration_trace.append(float(self.last_exploration_value))
+        self.epsilon_trace.append(float(self.last_epsilon))
+        self.avg_td_error_trace.append(float(td_error.abs().mean().item()))
+        self.avg_max_q_trace.append(float(q_values_all[:, 0, :].max(dim=1).values.mean().item()))
+        self.avg_value_trace.append(float(values_all[:, 0].mean().item()))
+        self.avg_advantage_spread_trace.append(float(advantage_spread.mean().item()))
+        self.avg_chosen_q_trace.append(float(q_first.mean().item()))
+        self.noisy_sigma_trace.append(float(mean_module_abs_sigma(self.online)))
+        self.reward_n_mean_trace.append(float(reward_prefix.mean().item()))
+        self.discount_n_mean_trace.append(float(endpoint_discount.mean().item()))
+        self.bootstrap_q_mean_trace.append(float(endpoint_bootstrap.mean().item()))
+        self.n_actual_mean_trace.append(float(lengths.mean().item()))
+        self.truncated_fraction_trace.append(float(truncated_fraction.item()))
+        self.lambda_return_mean_trace.append(float(targets.mean().item()))
+        self.offpolicy_rho_mean_trace.append(float(torch.where(valid_mask, rho, torch.zeros_like(rho)).sum().item() / valid_mask.sum().clamp_min(1.0).item()))
+        self.offpolicy_c_mean_trace.append(float(torch.where(valid_mask, c, torch.zeros_like(c)).sum().item() / valid_mask.sum().clamp_min(1.0).item()))
+        self.behavior_logprob_mean_trace.append(float(torch.where(valid_mask, behavior_logprob, torch.zeros_like(behavior_logprob)).sum().item() / valid_mask.sum().clamp_min(1.0).item()))
+        self.retrace_c_clip_fraction_trace.append(float(clipped_fraction.item()))
+        return float(loss.item())
+
+    def train_step(self) -> Optional[float]:
+        if len(self.buffer) < self.batch_size:
+            return None
+
+        self._set_training_noise()
+        if self.multistep_mode in {"one_step", "n_step"}:
+            return self._train_endpoint_mode()
+        if self.multistep_mode == "lambda":
+            return self._train_lambda_mode()
+        return self._train_retrace_mode()

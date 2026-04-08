@@ -142,3 +142,60 @@ The endpoint targets preserve each algorithm's original bootstrap rule while rep
 \end{itemize}
 
 The saved bundles now include \texttt{n\_step} metadata and simple decomposition traces such as mean aggregated reward, mean effective discount, mean bootstrap value, mean realized step count, and the truncated-fraction trace. This keeps old bundles backward-compatible while allowing $n$-step analyses to be reproduced later from \texttt{input\_data.pkl} alone.
+
+\subsection{Advanced Multistep Stage 1}
+The repo now extends the plain $n$-step path with a first-stage multistep research layer while preserving the original one-step defaults:
+\begin{itemize}
+  \item \texttt{multistep\_mode = "one\_step"} remains the default everywhere,
+  \item \texttt{n\_step = 1} remains the canonical baseline,
+  \item combined notebooks are intentionally left out of this first implementation pass.
+\end{itemize}
+
+Stage 1 adds three shared components:
+\begin{itemize}
+  \item contiguous local sequence sampling that respects episode boundaries,
+  \item truncated forward-view $\lambda$-return target builders,
+  \item exact discrete Retrace($\lambda$) support for epsilon-greedy DDQN and dueling DDQN only.
+\end{itemize}
+
+\paragraph{Sequence sampling.}
+The new sequence samplers operate on local replay windows without crossing terminal states or episode resets. They return sequence masks and realized lengths so truncated finite-horizon targets remain explicit and do not silently leak across boundaries.
+
+\paragraph{Lambda returns.}
+For DDQN, dueling DDQN, TD3, and SAC, the finite-horizon $\lambda$ target is constructed from replay sequences with explicit truncation. At a high level,
+\[
+G_t^{\lambda} = r_t + \gamma \bigl((1-\lambda)\hat V_{t+1} + \lambda G_{t+1}^{\lambda}\bigr),
+\]
+with the recursion truncated by either the sampled sequence end or an episode termination.
+
+\paragraph{Discrete Retrace.}
+For epsilon-greedy DDQN and dueling DDQN, the new Retrace target uses clipped importance ratios
+\[
+\rho_t = \frac{\pi(a_t \mid s_t)}{\mu(a_t \mid s_t)},
+\qquad
+c_t = \lambda \min(1,\rho_t),
+\]
+and a backward correction term built over the sampled replay segment. This mode is intentionally restricted to epsilon-greedy exploration because the behavior probability is exactly known there. If a user selects Retrace with NoisyNet exploration, the code now fails fast with a clear configuration error rather than silently using an invalid approximation.
+
+\paragraph{SAC-n.}
+SAC now exposes \texttt{multistep\_mode = "sac\_n"} as the explicit research-facing name for its endpoint multistep soft backup, while preserving the same soft-target structure at the bootstrap endpoint:
+\[
+y_t = R_t^{(n)} + \gamma_t^{(n)}\left(\min_i Q_{\phi_i^-}(s_{t+n}, a_{t+n}) - \alpha \log \pi(a_{t+n}\mid s_{t+n})\right).
+\]
+The generic \texttt{"n\_step"} mode remains available as the simpler endpoint multistep label, and \texttt{"lambda"} is now also supported for critic-target construction.
+
+\paragraph{Diagnostics and saved bundles.}
+The result bundles and plotting layer now tolerate and consume the new optional multistep traces:
+\begin{itemize}
+  \item \texttt{multistep\_mode}, \texttt{lambda\_value},
+  \item \texttt{lambda\_return\_mean\_trace},
+  \item \texttt{offpolicy\_rho\_mean\_trace},
+  \item \texttt{offpolicy\_c\_mean\_trace},
+  \item \texttt{behavior\_logprob\_mean\_trace},
+  \item \texttt{target\_logprob\_mean\_trace},
+  \item \texttt{retrace\_c\_clip\_fraction\_trace}.
+\end{itemize}
+Old bundles remain valid because these fields are optional.
+
+\paragraph{Deferred work.}
+V-trace is intentionally deferred in this stage. The current implementation prepares the shared target and sequence infrastructure needed for broader off-policy sequence methods later, but does not expose V-trace as a selectable notebook mode yet.

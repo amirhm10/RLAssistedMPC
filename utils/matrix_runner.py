@@ -58,6 +58,9 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     if agent_kind not in {"td3", "sac"}:
         raise ValueError("matrix_cfg['agent_kind'] must be 'td3' or 'sac'.")
     use_shifted_mpc_warm_start = bool(matrix_cfg.get("use_shifted_mpc_warm_start", False))
+    recalculate_observer_on_matrix_change = bool(
+        matrix_cfg.get("recalculate_observer_on_matrix_change", False)
+    )
     mismatch_scale = None
     mismatch_clip = matrix_cfg.get("mismatch_clip", 3.0)
     if state_mode == "mismatch":
@@ -178,6 +181,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         B_change[:n_phys, :] *= delta.reshape(1, -1)
         mpc_obj.A = A_change
         mpc_obj.B = B_change
+        if recalculate_observer_on_matrix_change:
+            L = compute_observer_gain(mpc_obj.A, mpc_obj.C, poles)
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
 
@@ -303,6 +308,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "disturbance_profile": disturbance_profile,
         "warm_start_step": int(warm_start_step),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
+        "recalculate_observer_on_matrix_change": recalculate_observer_on_matrix_change,
         "n_step": int(getattr(agent, "n_step", 1)),
         "multistep_mode": str(getattr(agent, "multistep_mode", "one_step")),
         "lambda_value": getattr(agent, "lambda_value", None),

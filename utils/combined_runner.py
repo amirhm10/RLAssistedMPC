@@ -233,6 +233,9 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     }
     use_rho_authority = bool(residual_cfg.get("use_rho_authority", True))
     use_shifted_mpc_warm_start = bool(combined_cfg.get("use_shifted_mpc_warm_start", False))
+    recalculate_observer_on_matrix_change = bool(
+        combined_cfg.get("recalculate_observer_on_matrix_change", False)
+    )
 
     k_rel = np.asarray(reward_params.get("k_rel", np.array([0.003, 0.0003])), float)
     band_floor_phys = np.asarray(reward_params.get("band_floor_phys", np.array([0.006, 0.07])), float)
@@ -428,6 +431,8 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             MPC_obj.B = B_now
             MPC_obj.Q_out = Q_now
             MPC_obj.R_in = R_now
+        if recalculate_observer_on_matrix_change:
+            L = compute_observer_gain(MPC_obj.A, MPC_obj.C, poles)
 
         horizon_trace[i, :] = (current_Hp, current_Hc)
         horizon_action_trace[i] = int(h_idx)
@@ -696,6 +701,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "residual_high_coef": residual_high,
         "use_rho_authority": use_rho_authority,
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
+        "recalculate_observer_on_matrix_change": recalculate_observer_on_matrix_change,
         "rho_log": rho_log,
         "horizon_innovation_log": mismatch_logs["horizon"]["innovation"],
         "horizon_tracking_error_log": mismatch_logs["horizon"]["tracking_error"],

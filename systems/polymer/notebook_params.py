@@ -352,6 +352,7 @@ POLYMER_MATRIX_DEFAULTS = {
         "R2_penalty": 1.0,
         "low_coef": np.array([0.95, 0.95, 0.95], float),
         "high_coef": np.array([1.05, 1.05, 1.05], float),
+        "recalculate_observer_on_matrix_change": False,  # Recompute observer gain L after each matrix update. Options: False | True. Keep False to preserve the legacy observer path.
         "mismatch_clip": 3.0,
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
@@ -639,6 +640,7 @@ POLYMER_COMBINED_DEFAULTS = {
         "residual_low": np.array([-0.5, -0.5], float),
         "residual_high": np.array([0.5, 0.5], float),
         "mismatch_clip": 3.0,
+        "recalculate_observer_on_matrix_change": False,  # Recompute observer gain L after each matrix update in the combined loop. Options: False | True.
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,

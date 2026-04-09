@@ -33,6 +33,28 @@ def _copy_reward_defaults():
     return {k: deepcopy(v) for k, v in _RL_REWARD_DEFAULTS.items()}
 
 
+def _copy_replay_defaults():
+    return {
+        # Replay buffer controls:
+        # - buffer_size: total transition capacity
+        # - replay_frac_per / replay_frac_recent: fraction of each batch drawn
+        #   from PER and the recent window; the remainder is uniform
+        # - replay_recent_window_mult: notebook helper multiplier used to derive
+        #   the effective recent window as min(buffer_size, mult * set_points_len)
+        # - replay_recent_window: explicit override; None keeps the derived value
+        # - replay_alpha / replay_beta_*: standard PER priority and IS-weight controls
+        "buffer_size": 40_000,
+        "replay_frac_per": 0.5,
+        "replay_frac_recent": 0.2,
+        "replay_recent_window_mult": 5,
+        "replay_recent_window": None,
+        "replay_alpha": 0.6,
+        "replay_beta_start": 0.4,
+        "replay_beta_end": 1.0,
+        "replay_beta_steps": 50_000,
+    }
+
+
 # -----------------------------------------------------------------------------
 # Distillation notebook defaults
 # -----------------------------------------------------------------------------
@@ -202,7 +224,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
     },
     "agent": {
         "hidden_layers": [512, 512, 512, 512, 512],
-        "buffer_size": 150_000,
+        **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,  # Positive integer. Keep 1 for the baseline; common DDQN ablations use 3.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda" | "retrace"
@@ -250,7 +272,7 @@ DISTILLATION_HORIZON_DUELING_DEFAULTS = {
     "agent": {
         "seed": 7,
         "hidden_layers": [512, 512, 512, 512, 512],
-        "buffer_size": 150_000,
+        **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,
         "multistep_mode": "n_step",
@@ -314,6 +336,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
     "td3_agent": {
         "actor_hidden": [512, 512, 512],
         "critic_hidden": [512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. Typical TD3 studies here use 1, 3, or 5.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda"
@@ -330,7 +353,6 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "std_end": 0.02,
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
-        "buffer_size": 150_000,
         "actor_freeze": 0,
         "exploration_mode": "param_noise",
         "loss_type": "huber",
@@ -339,6 +361,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
     "sac_agent": {
         "actor_hidden": [512, 512, 512],
         "critic_hidden": [512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. SAC often uses 3-step as the first extension.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "sac_n" | "lambda"
@@ -358,8 +381,6 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "use_layernorm": False,
         "dropout": 0.0,
         "max_action": 1.0,
-        "buffer_size": 150_000,
-        "use_per": True,
         "use_adamw": True,
         "actor_freeze": 0,
         "loss_type": "huber",
@@ -399,6 +420,7 @@ DISTILLATION_WEIGHT_DEFAULTS = {
     "td3_agent": {
         "actor_hidden": [512, 512, 512, 512, 512],
         "critic_hidden": [512, 512, 512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
         "multistep_mode": "one_step",
@@ -415,7 +437,6 @@ DISTILLATION_WEIGHT_DEFAULTS = {
         "std_end": 0.02,
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
-        "buffer_size": 150_000,
         "actor_freeze": 0,
         "exploration_mode": "param_noise",
         "loss_type": "huber",
@@ -424,6 +445,7 @@ DISTILLATION_WEIGHT_DEFAULTS = {
     "sac_agent": {
         "actor_hidden": [512, 512, 512, 512, 512],
         "critic_hidden": [512, 512, 512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
         "multistep_mode": "one_step",
@@ -443,8 +465,6 @@ DISTILLATION_WEIGHT_DEFAULTS = {
         "use_layernorm": False,
         "dropout": 0.0,
         "max_action": 1.0,
-        "buffer_size": 150_000,
-        "use_per": True,
         "use_adamw": True,
         "actor_freeze": 0,
         "loss_type": "huber",
@@ -505,7 +525,7 @@ DISTILLATION_COMBINED_DEFAULTS = {
     "weights_state_mode": "standard",
     "enable_residual": True,
     "residual_agent_kind": "td3",
-    "residual_state_mode": "standard",
+    "residual_state_mode": "mismatch",
     "use_rho_authority": True,
     "run_profiles": deepcopy(DISTILLATION_COMBINED_RUN_PROFILES),
     "controller": {

@@ -23,6 +23,28 @@ def _copy_reward_defaults():
     return {k: deepcopy(v) for k, v in _RL_REWARD_DEFAULTS.items()}
 
 
+def _copy_replay_defaults():
+    return {
+        # Replay buffer controls:
+        # - buffer_size: total transition capacity
+        # - replay_frac_per / replay_frac_recent: fraction of each batch drawn
+        #   from PER and the recent window; the remainder is uniform
+        # - replay_recent_window_mult: notebook helper multiplier used to derive
+        #   the effective recent window as min(buffer_size, mult * set_points_len)
+        # - replay_recent_window: explicit override; None keeps the derived value
+        # - replay_alpha / replay_beta_*: standard PER priority and IS-weight controls
+        "buffer_size": 40_000,
+        "replay_frac_per": 0.5,
+        "replay_frac_recent": 0.2,
+        "replay_recent_window_mult": 5,
+        "replay_recent_window": None,
+        "replay_alpha": 0.6,
+        "replay_beta_start": 0.4,
+        "replay_beta_end": 1.0,
+        "replay_beta_steps": 50_000,
+    }
+
+
 # -----------------------------------------------------------------------------
 # Polymer notebook defaults
 # -----------------------------------------------------------------------------
@@ -142,7 +164,7 @@ POLYMER_BASELINE_DEFAULTS = {
             "result_prefix": "mpc_offsetfree_disturb_unified",
             "plot_start_episode": 2,
             "n_tests": 200,
-            "set_points_len": 200,
+            "set_points_len": 400,
             "warm_start": 0,
             "test_cycle": [False, False, False, False, False],
             "nominal_qi": 108.0,
@@ -222,7 +244,7 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
     },
     "agent": {
         "hidden_layers": [512, 512, 512, 512, 512],
-        "buffer_size": 150_000,
+        **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,  # Positive integer. Keep 1 for the baseline; common research values are 3 or decision_interval.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda" | "retrace"
@@ -301,7 +323,7 @@ POLYMER_HORIZON_DUELING_DEFAULTS = {
     "agent": {
         "seed": 7,
         "hidden_layers": [512, 512, 512, 512, 512],
-        "buffer_size": 150_000,
+        **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,
         "multistep_mode": "n_step",  # Dueling defaults to the multistep research path
@@ -331,8 +353,8 @@ POLYMER_HORIZON_DUELING_DEFAULTS = {
 
 POLYMER_MATRIX_DEFAULTS = {
     "agent_kind": "td3",  # Options: "td3" | "sac"
-    "run_mode": "nominal",
-    "state_mode": "standard",
+    "run_mode": "disturb",
+    "state_mode": "mismatch",  # Options: "standard" | "mismatch". The latter feeds the authority error to the agent and normalizes it in the same way as the state features.
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
@@ -342,7 +364,7 @@ POLYMER_MATRIX_DEFAULTS = {
         ("sac", "nominal"): {"result_prefix": "sac_multipliers_nominal", "compare_prefix": "nominal_compare_sac_multipliers", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
         ("sac", "disturb"): {"result_prefix": "sac_multipliers_disturb", "compare_prefix": "disturb_compare_sac_multipliers", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
-    "episode_defaults": {"n_tests": 200, "set_points_len": 200, "warm_start": 0, "test_cycle": [False, False, False, False, False]},
+    "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
     "controller": {
         "predict_h": 9,
         "cont_h": 3,
@@ -352,9 +374,9 @@ POLYMER_MATRIX_DEFAULTS = {
         "R2_penalty": 1.0,
         "low_coef": np.array([0.95, 0.95, 0.95], float),
         "high_coef": np.array([1.05, 1.05, 1.05], float),
-        "recalculate_observer_on_matrix_change": False,  # Recompute observer gain L after each matrix update. Options: False | True. Keep False to preserve the legacy observer path.
         "mismatch_clip": 3.0,
         "use_shifted_mpc_warm_start": False,
+        "recalculate_observer_on_matrix_change": False,  # Recompute observer gain L after each matrix update. Options: False | True. Keep False to preserve the legacy observer path.
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
         "nominal_ha": 1.05e6,
@@ -365,6 +387,7 @@ POLYMER_MATRIX_DEFAULTS = {
     "td3_agent": {
         "actor_hidden": [512, 512, 512],
         "critic_hidden": [512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. Typical TD3 ablations use 1, 3, or 5.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda"
@@ -381,7 +404,6 @@ POLYMER_MATRIX_DEFAULTS = {
         "std_end": 0.02,
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
-        "buffer_size": 150_000,
         "actor_freeze": 0,
         "exploration_mode": "param_noise",  # Options: "gaussian" | "param_noise"
         "loss_type": "huber",
@@ -390,6 +412,7 @@ POLYMER_MATRIX_DEFAULTS = {
     "sac_agent": {
         "actor_hidden": [512, 512, 512],
         "critic_hidden": [512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. SAC often benefits from 3-step returns in this repo.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "sac_n" | "lambda"
@@ -409,8 +432,6 @@ POLYMER_MATRIX_DEFAULTS = {
         "use_layernorm": False,
         "dropout": 0.0,
         "max_action": 1.0,
-        "buffer_size": 150_000,
-        "use_per": True,
         "use_adamw": True,
         "actor_freeze": 0,
         "loss_type": "huber",
@@ -454,6 +475,7 @@ POLYMER_WEIGHT_DEFAULTS = {
     "td3_agent": {
         "actor_hidden": [512, 512, 512, 512, 512],
         "critic_hidden": [512, 512, 512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
         "multistep_mode": "one_step",
@@ -470,7 +492,6 @@ POLYMER_WEIGHT_DEFAULTS = {
         "std_end": 0.02,
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
-        "buffer_size": 150_000,
         "actor_freeze": 0,
         "exploration_mode": "param_noise",
         "loss_type": "huber",
@@ -479,6 +500,7 @@ POLYMER_WEIGHT_DEFAULTS = {
     "sac_agent": {
         "actor_hidden": [512, 512, 512, 512, 512],
         "critic_hidden": [512, 512, 512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
         "multistep_mode": "one_step",
@@ -498,8 +520,6 @@ POLYMER_WEIGHT_DEFAULTS = {
         "use_layernorm": False,
         "dropout": 0.0,
         "max_action": 1.0,
-        "buffer_size": 150_000,
-        "use_per": True,
         "use_adamw": True,
         "actor_freeze": 0,
         "loss_type": "huber",
@@ -544,6 +564,7 @@ POLYMER_RESIDUAL_DEFAULTS = {
     "td3_agent": {
         "actor_hidden": [512, 512, 512],
         "critic_hidden": [512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
         "multistep_mode": "one_step",
@@ -560,7 +581,6 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "std_end": 0.02,
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
-        "buffer_size": 150_000,
         "actor_freeze": 0,
         "exploration_mode": "param_noise",
         "loss_type": "huber",
@@ -569,6 +589,7 @@ POLYMER_RESIDUAL_DEFAULTS = {
     "sac_agent": {
         "actor_hidden": [512, 512, 512],
         "critic_hidden": [512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
         "multistep_mode": "one_step",
@@ -588,8 +609,6 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "use_layernorm": False,
         "dropout": 0.0,
         "max_action": 1.0,
-        "buffer_size": 150_000,
-        "use_per": True,
         "use_adamw": True,
         "actor_freeze": 0,
         "loss_type": "huber",
@@ -640,8 +659,8 @@ POLYMER_COMBINED_DEFAULTS = {
         "residual_low": np.array([-0.5, -0.5], float),
         "residual_high": np.array([0.5, 0.5], float),
         "mismatch_clip": 3.0,
-        "recalculate_observer_on_matrix_change": False,  # Recompute observer gain L after each matrix update in the combined loop. Options: False | True.
         "use_shifted_mpc_warm_start": False,
+        "recalculate_observer_on_matrix_change": False,  # Recompute observer gain L after each matrix update in the combined loop. Options: False | True.
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
         "nominal_ha": 1.05e6,
@@ -651,7 +670,7 @@ POLYMER_COMBINED_DEFAULTS = {
     },
     "horizon_agent": {
         "hidden_layers": [512, 512, 512, 512, 512],
-        "buffer_size": 150_000,
+        **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,
         "lr": 1e-4,
@@ -675,6 +694,7 @@ POLYMER_COMBINED_DEFAULTS = {
     "td3_agent": {
         "actor_hidden": [512, 512, 512],
         "critic_hidden": [512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
         "actor_lr": 1e-4,
@@ -689,7 +709,6 @@ POLYMER_COMBINED_DEFAULTS = {
         "std_end": 0.02,
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
-        "buffer_size": 150_000,
         "actor_freeze": 0,
         "exploration_mode": "param_noise",
         "loss_type": "huber",
@@ -698,6 +717,7 @@ POLYMER_COMBINED_DEFAULTS = {
     "sac_agent": {
         "actor_hidden": [512, 512, 512],
         "critic_hidden": [512, 512, 512],
+        **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
         "actor_lr": 1e-4,
@@ -715,8 +735,6 @@ POLYMER_COMBINED_DEFAULTS = {
         "use_layernorm": False,
         "dropout": 0.0,
         "max_action": 1.0,
-        "buffer_size": 150_000,
-        "use_per": True,
         "use_adamw": True,
         "actor_freeze": 0,
         "loss_type": "huber",
@@ -731,7 +749,7 @@ POLYMER_POLES_EXPERIMENT_DEFAULTS = {
     # replay-buffer or path defaults from drifting.
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
-    "buffer_capacity": 150_000,
+    "buffer_capacity": 40_000,
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
     "reward": _copy_reward_defaults(),
 }

@@ -282,6 +282,8 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             )
 
     _set_penalties(mpc_obj, q_base, r_base, np.ones(4, dtype=float))
+    if hasattr(agent, "flush_nstep"):
+        agent.flush_nstep()
     u_rl = reverse_min_max(u_mpc, data_min[:n_inputs], data_max[:n_inputs])
 
     disturbance_profile = disturbance_profile_from_schedule(

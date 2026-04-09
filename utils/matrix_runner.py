@@ -298,6 +298,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
     mpc_obj.A = A_base
     mpc_obj.B = B_base
+    if hasattr(agent, "flush_nstep"):
+        agent.flush_nstep()
     u_rl = reverse_min_max(u_mpc, data_min[:n_inputs], data_max[:n_inputs])
 
     disturbance_profile = disturbance_profile_from_schedule(

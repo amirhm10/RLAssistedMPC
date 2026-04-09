@@ -109,9 +109,13 @@ class DuelingDQNAgent(nn.Module):
         exploration_mode: Literal["epsilon", "noisy"] = "noisy",
         loss_type: Literal["huber", "mse"] = "huber",
         noisy_sigma_init: float = 0.5,
-        replay_frac_per: float = 0.6,
+        replay_frac_per: float = 0.5,
         replay_frac_recent: float = 0.2,
-        replay_recent_window: int = 5_000,
+        replay_recent_window: int = 1_000,
+        replay_alpha: float = 0.6,
+        replay_beta_start: float = 0.4,
+        replay_beta_end: float = 1.0,
+        replay_beta_steps: int = 50_000,
         device: Optional[torch.device] = None,
     ):
         super().__init__()
@@ -132,6 +136,10 @@ class DuelingDQNAgent(nn.Module):
         self.replay_frac_per = float(replay_frac_per)
         self.replay_frac_recent = float(replay_frac_recent)
         self.replay_recent_window = int(replay_recent_window)
+        self.replay_alpha = float(replay_alpha)
+        self.replay_beta_start = float(replay_beta_start)
+        self.replay_beta_end = float(replay_beta_end)
+        self.replay_beta_steps = int(replay_beta_steps)
         self.exploration_mode = str(exploration_mode).lower()
         self.loss_type = str(loss_type).lower()
         self.noisy_sigma_init = float(noisy_sigma_init)
@@ -169,7 +177,18 @@ class DuelingDQNAgent(nn.Module):
 
         self.optimizer = optim.Adam(self.online.parameters(), lr=lr)
         self.loss_fn = make_loss_fn(self.loss_type)
-        self.buffer = PERRecentReplayBuffer(buffer_size, state_dim, default_discount=self.gamma)
+        self.buffer = PERRecentReplayBuffer(
+            buffer_size,
+            state_dim,
+            default_discount=self.gamma,
+            alpha=self.replay_alpha,
+            beta_start=self.replay_beta_start,
+            beta_end=self.replay_beta_end,
+            beta_steps=self.replay_beta_steps,
+            frac_per=self.replay_frac_per,
+            frac_recent=self.replay_frac_recent,
+            recent_window=self.replay_recent_window,
+        )
         self.nstep_accumulator = NStepAccumulator(gamma=self.gamma, n_step=self.n_step)
 
         self.steps = 0

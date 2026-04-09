@@ -7,12 +7,11 @@ import numpy as np
 import pickle
 import math
 from torch.nn.utils import parameters_to_vector, vector_to_parameters
-import torch.nn.functional as F
 
 # importing nets and buffer
 from TD3Agent.critic import Critic
 from SACAgent.gaussian_actor import GaussianActor
-from TD3Agent.replay_buffer import PERRecentReplayBuffer, ReplayBuffer
+from TD3Agent.replay_buffer import PERRecentReplayBuffer
 from utils.nstep import NStepAccumulator
 from utils.nstep_targets import build_endpoint_bootstrap_target, build_truncated_lambda_returns
 
@@ -107,8 +106,14 @@ class SACAgent(nn.Module):
             dropout: float = 0.0,
             max_action: float = 1.0,
             # buffer
-            buffer_size: int = 1_000_000,
-            use_per: bool = True,
+            buffer_size: int = 40_000,
+            replay_frac_per: float = 0.5,
+            replay_frac_recent: float = 0.2,
+            replay_recent_window: int = 1_000,
+            replay_alpha: float = 0.6,
+            replay_beta_start: float = 0.4,
+            replay_beta_end: float = 1.0,
+            replay_beta_steps: int = 50_000,
             # device
             device: Optional[torch.device] = None,
             use_adamw: bool = True,
@@ -130,7 +135,13 @@ class SACAgent(nn.Module):
         self.tau = tau
         self.hard_update_interval = hard_update_interval
         self.max_action = float(max_action)
-        self.use_per = use_per
+        self.replay_frac_per = float(replay_frac_per)
+        self.replay_frac_recent = float(replay_frac_recent)
+        self.replay_recent_window = int(replay_recent_window)
+        self.replay_alpha = float(replay_alpha)
+        self.replay_beta_start = float(replay_beta_start)
+        self.replay_beta_end = float(replay_beta_end)
+        self.replay_beta_steps = int(replay_beta_steps)
         self.actor_freeze = int(actor_freeze)
         self.loss_type = str(loss_type).lower()
         if self.multistep_mode not in {"one_step", "n_step", "sac_n", "lambda"}:
@@ -198,10 +209,19 @@ class SACAgent(nn.Module):
             self.target_entropy = float(target_entropy)
 
         # ---- replay buffer ----
-        if use_per:
-            self.buffer = PERRecentReplayBuffer(buffer_size, state_dim, action_dim, default_discount=self.gamma)
-        else:
-            self.buffer = ReplayBuffer(buffer_size, state_dim, action_dim, default_discount=self.gamma)
+        self.buffer = PERRecentReplayBuffer(
+            buffer_size,
+            state_dim,
+            action_dim,
+            default_discount=self.gamma,
+            alpha=self.replay_alpha,
+            beta_start=self.replay_beta_start,
+            beta_end=self.replay_beta_end,
+            beta_steps=self.replay_beta_steps,
+            frac_per=self.replay_frac_per,
+            frac_recent=self.replay_frac_recent,
+            recent_window=self.replay_recent_window,
+        )
         self.nstep_accumulator = NStepAccumulator(gamma=self.gamma, n_step=self.n_step)
 
         # ---- counters / logs ----
@@ -270,129 +290,21 @@ class SACAgent(nn.Module):
             return
         self.buffer.push(s, a, r, ns, bool(done))
 
-    def pretrain_push(self, s, a, r, ns):
-        """
-        Pretraining: bulk insert (s, a, r, ns) from MPC into the buffer.
-        """
-        if not hasattr(self.buffer, "pretrain_add"):
-            raise RuntimeError("Replay buffer does not support pretrain_add (set use_per=False).")
-
-        self.buffer.pretrain_add(s, a, r, ns)
-
-
-    def pretrain_from_buffer(
-            self,
-            num_updates: int = 50000,
-            log_interval: int = 1000,
-    ):
-        """
-        Offline pretraining on the MPC dataset.
-
-        - Critic: SAC target y = r + gamma * (Q_tgt - alpha * log_pi).
-        - Actor: pure behavioral cloning of MPC actions (MSE on deterministic action).
-        - Alpha: optional update using the current policy entropy.
-        """
-
-        if len(self.buffer) < self.batch_size:
-            raise RuntimeError("Buffer is less than the batch size")
-
-        self.actor.train()
-        self.critic.train()
-
-        logs = {
-            "actor_bc_loss": [],
-            "critic_td_loss": [],
-            "alpha_loss": [],
-        }
-
-        for it in range(1, num_updates + 1):
-            # sample batch (PER or uniform)
-            if not self.use_per:
-                s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
-                idx = None
-                is_w = torch.ones((self.batch_size, 1), device=self.device)
-            else:
-                s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
-                is_w = col(is_w.to(self.device, non_blocking=True).float())
-
-            s = s.to(self.device, non_blocking=True).float()
-            a = a.to(self.device, non_blocking=True).float()
-            r = col(r.to(self.device, non_blocking=True).float())
-            ns = ns.to(self.device, non_blocking=True).float()
-            done = col(done.to(self.device, non_blocking=True).float())
-            discount_n = col(discount_n.to(self.device, non_blocking=True).float())
-
-            # ----- critic target -----
-            with torch.no_grad():
-                next_action, logp_next, mean_next = self.actor.sample(ns)
-                q_next = self.critic_target.combined_forward(ns, next_action, mode="min")
-                q_next = col(q_next)
-                alpha = self.log_alpha.exp()
-                y = r + discount_n * ((q_next - alpha * logp_next) * (1.0 - done))
-
-            # critic update
-            q1, q2 = self.critic(s, a)
-            q1 = col(q1)
-            q2 = col(q2)
-            l1 = self.loss_fn_critic(q1, y)
-            l2 = self.loss_fn_critic(q2, y)
-            critic_loss = (is_w * (l1 + l2)).mean()
-
-            self.critic_optimizer.zero_grad(set_to_none=True)
-            critic_loss.backward()
-            if self.grad_clip_norm is not None:
-                nn.utils.clip_grad_norm_(self.critic.parameters(), self.grad_clip_norm)
-            self.critic_optimizer.step()
-
-            # PER priorities based on TD error
-            if idx is not None and hasattr(self.buffer, "update_priorities"):
-                td_errors = (y - q1).detach().abs().view(-1)
-                self.buffer.update_priorities(idx, td_errors)
-
-            # ----- actor: behavioral cloning of MPC actions -----
-            mean_action = self.actor.deterministic_action(s)
-            bc_loss = F.mse_loss(mean_action, a)
-
-            self.actor_optimizer.zero_grad(set_to_none=True)
-            bc_loss.backward()
-            if self.grad_clip_norm is not None:
-                nn.utils.clip_grad_norm_(self.actor.parameters(), self.grad_clip_norm)
-            self.actor_optimizer.step()
-
-            # ----- temperature (alpha) update -----
-            if self.learn_alpha:
-                # only update alpha, not the policy, so detach logp
-                with torch.no_grad():
-                    _, logp_new, _ = self.actor.sample(s)
-                alpha_loss = -(self.log_alpha.exp() * (logp_new.detach() + self.target_entropy)).mean()
-
-                self.alpha_optimizer.zero_grad(set_to_none=True)
-                alpha_loss.backward()
-                self.alpha_optimizer.step()
-            else:
-                alpha_loss = torch.tensor(0.0, device=self.device)
-
-            # ----- target critic update -----
-            if self.target_update == "soft":
-                soft_update(self.critic_target, self.critic, self.tau)
-            else:
-                if it % self.hard_update_interval == 0:
-                    hard_update(self.critic_target, self.critic)
-
-            self.train_steps += 1
-            self.total_it += 1
-
-            logs["actor_bc_loss"].append(float(bc_loss.item()))
-            logs["critic_td_loss"].append(float(critic_loss.item()))
-            logs["alpha_loss"].append(float(alpha_loss.item()))
-
-            if log_interval and (it % log_interval == 0):
-                print(f"[SAC pretrain] it={it}  bc={bc_loss.item():.4e}  q={critic_loss.item():.4e}  alpha={self.log_alpha.exp().item():.3f}")
-
-        # keep critic target synced at the end
-        hard_update(self.critic_target, self.critic)
-
-        return logs
+    def flush_nstep(self):
+        if self.multistep_mode not in {"n_step", "sac_n"}:
+            return 0
+        flushed = self.nstep_accumulator.flush()
+        for transition in flushed:
+            self.buffer.push(
+                transition.state,
+                transition.action,
+                transition.reward_n,
+                transition.next_state_n,
+                transition.done_n,
+                discount_n=transition.discount_n,
+                n_actual=transition.n_actual,
+            )
+        return len(flushed)
 
 
     # ---- train step ----
@@ -463,13 +375,8 @@ class SACAgent(nn.Module):
             target_logprob_mean = float(target_logprob_seq.mean().item())
             priority_index = start_indices
         else:
-            if not self.use_per:
-                s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
-                idx = None
-                is_w = torch.ones((self.batch_size, 1), device=self.device)
-            else:
-                s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
-                is_w = col(is_w.to(self.device, non_blocking=True).float())
+            s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
+            is_w = col(is_w.to(self.device, non_blocking=True).float())
 
             s = s.to(self.device, non_blocking=True).float()
             a = a.to(self.device, non_blocking=True).float()
@@ -512,9 +419,11 @@ class SACAgent(nn.Module):
             nn.utils.clip_grad_norm_(self.critic.parameters(), self.grad_clip_norm)
         self.critic_optimizer.step()
 
-        # TD errors for PER prority
+        # TD errors for PER priority
         if priority_index is not None and hasattr(self.buffer, "update_priorities"):
-            td_errors = (y - q1).detach().abs().view(-1)
+            td1 = (y - q1).detach().abs().view(-1)
+            td2 = (y - q2).detach().abs().view(-1)
+            td_errors = 0.5 * (td1 + td2)
             self.buffer.update_priorities(priority_index, td_errors)
 
         # ---- actor update ----
@@ -619,7 +528,6 @@ class SACAgent(nn.Module):
             "noise_clip",
             "max_action",
             "actor_freeze",
-            "mode",
             "steps",
             "train_steps",
             "total_it",
@@ -630,6 +538,13 @@ class SACAgent(nn.Module):
             "n_step",
             "multistep_mode",
             "lambda_value",
+            "replay_frac_per",
+            "replay_frac_recent",
+            "replay_recent_window",
+            "replay_alpha",
+            "replay_beta_start",
+            "replay_beta_end",
+            "replay_beta_steps",
         ]:
             if hasattr(self, name):
                 val = getattr(self, name)

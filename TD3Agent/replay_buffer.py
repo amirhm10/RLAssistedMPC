@@ -87,24 +87,6 @@ class ReplayBuffer:
             "is_w": torch.from_numpy(batch.is_weights).to(device),
         }
 
-    def pretrain_add(self, states_p, actions_p, rewards_p, next_states_p):
-        n = int(states_p.shape[0])
-        if n + self.ptr > self.capacity:
-            raise ValueError("Pretraining Data exceeds buffer capacity")
-
-        start = self.ptr
-        end = self.ptr + n
-        self.states[start:end] = states_p
-        self.actions[start:end] = actions_p
-        self.rewards[start:end] = rewards_p
-        self.next_states[start:end] = next_states_p
-        self.dones[start:end] = 0.0
-        self.discounts[start:end] = self.default_discount
-        self.n_actual[start:end] = 1
-        self.episode_ids[start:end] = int(self.current_episode_id)
-        self.ptr += n
-        self.size = min(self.ptr, self.capacity)
-
     def __len__(self):
         return self.size
 
@@ -121,6 +103,9 @@ class PERRecentReplayBuffer:
         beta_start: float = 0.4,
         beta_end: float = 1.0,
         beta_steps: int = 50_000,
+        frac_per: float = 0.5,
+        frac_recent: float = 0.2,
+        recent_window: int = 1_000,
     ):
         self.capacity = int(capacity)
         self.state_dim = int(state_dim)
@@ -150,6 +135,9 @@ class PERRecentReplayBuffer:
         self.beta_steps = int(beta_steps)
         self.beta_t = 0
         self._max_priority = 1.0
+        self.frac_per = float(frac_per)
+        self.frac_recent = float(frac_recent)
+        self.recent_window = int(recent_window)
 
     def _beta(self):
         frac = min(1.0, self.beta_t / max(1, self.beta_steps))
@@ -185,11 +173,14 @@ class PERRecentReplayBuffer:
         self,
         batch_size: int,
         device="cpu",
-        frac_per: float = 0.5,
-        frac_recent: float = 0.2,
-        recent_window=1000,
+        frac_per: float | None = None,
+        frac_recent: float | None = None,
+        recent_window: int | None = None,
     ):
         assert self.size > 0
+        frac_per = self.frac_per if frac_per is None else float(frac_per)
+        frac_recent = self.frac_recent if frac_recent is None else float(frac_recent)
+        recent_window = self.recent_window if recent_window is None else int(recent_window)
         k_per = int(batch_size * frac_per)
         k_recent = int(batch_size * frac_recent)
         k_uniform = int(batch_size) - k_per - k_recent
@@ -240,10 +231,13 @@ class PERRecentReplayBuffer:
         batch_size: int,
         seq_len: int,
         device="cpu",
-        frac_per: float = 0.5,
-        frac_recent: float = 0.2,
-        recent_window: int = 1000,
+        frac_per: float | None = None,
+        frac_recent: float | None = None,
+        recent_window: int | None = None,
     ):
+        frac_per = self.frac_per if frac_per is None else float(frac_per)
+        frac_recent = self.frac_recent if frac_recent is None else float(frac_recent)
+        recent_window = self.recent_window if recent_window is None else int(recent_window)
         ordered_indices = self._ordered_indices()
         ordered_priorities = self.priorities[ordered_indices]
         beta = self._beta()

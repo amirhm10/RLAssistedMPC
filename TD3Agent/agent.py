@@ -6,14 +6,11 @@ import torch.optim as optim
 import numpy as np
 import pickle
 import math
-import copy
-from torch.nn.utils import parameters_to_vector, vector_to_parameters
-import torch.nn.functional as F
 
 # importing nets and buffer
 from TD3Agent.critic import Critic
 from TD3Agent.actor import Actor
-from TD3Agent.replay_buffer import PERRecentReplayBuffer, ReplayBuffer
+from TD3Agent.replay_buffer import PERRecentReplayBuffer
 from utils.nstep import NStepAccumulator
 from utils.nstep_targets import build_truncated_lambda_returns
 
@@ -90,12 +87,6 @@ def _sequence_endpoint_stats(rewards, dones, bootstrap_values, mask, gamma: floa
     return reward_prefix, endpoint_discount, endpoint_bootstrap, lengths, truncated_fraction
 
 
-def copy_params_by_order(new_model: nn.Module, old_model: nn.Module):
-    with torch.no_grad():
-        vec = parameters_to_vector(list(old_model.parameters()))
-        vector_to_parameters(vec, list(new_model.parameters()))
-
-
 class TD3Agent(nn.Module):
     def __init__(
             self,
@@ -143,13 +134,19 @@ class TD3Agent(nn.Module):
             param_noise_resample_interval: int = 1,
             loss_type: Literal["huber", "mse"] = "huber",
             # buffer
-            buffer_size: int = 1_000_000,
+            buffer_size: int = 40_000,
+            replay_frac_per: float = 0.5,
+            replay_frac_recent: float = 0.2,
+            replay_recent_window: int = 1_000,
+            replay_alpha: float = 0.6,
+            replay_beta_start: float = 0.4,
+            replay_beta_end: float = 1.0,
+            replay_beta_steps: int = 50_000,
             # device/opt
             device: Optional[torch.device] = None,
             use_adamw: bool = True,
             # actor freeze
             actor_freeze: int = 0,
-            mode: str = None,
     ):
         super(TD3Agent, self).__init__()
         self.device = device if device is not None else get_device()
@@ -175,6 +172,13 @@ class TD3Agent(nn.Module):
         self.exploration_mode = str(exploration_mode).lower()
         self.loss_type = str(loss_type).lower()
         self.param_noise_resample_interval = max(1, int(param_noise_resample_interval))
+        self.replay_frac_per = float(replay_frac_per)
+        self.replay_frac_recent = float(replay_frac_recent)
+        self.replay_recent_window = int(replay_recent_window)
+        self.replay_alpha = float(replay_alpha)
+        self.replay_beta_start = float(replay_beta_start)
+        self.replay_beta_end = float(replay_beta_end)
+        self.replay_beta_steps = int(replay_beta_steps)
         if self.exploration_mode not in {"gaussian", "param_noise"}:
             raise ValueError("exploration_mode must be 'gaussian' or 'param_noise'.")
         if self.multistep_mode not in {"one_step", "n_step", "lambda"}:
@@ -215,14 +219,20 @@ class TD3Agent(nn.Module):
 
         self.loss_fn_critic = make_loss_fn(self.loss_type)
 
-        # Train with MPC reward or not
-        self.mode = mode
-
-        # Buffer initialization
-        if self.mode == "mpc":
-            self.buffer = ReplayBuffer(buffer_size, state_dim, action_dim, default_discount=self.gamma)
-        else:
-            self.buffer = PERRecentReplayBuffer(buffer_size, state_dim, action_dim, default_discount=self.gamma)
+        # Buffer initialization: the active TD3 path always uses the mixed PER/recent buffer.
+        self.buffer = PERRecentReplayBuffer(
+            buffer_size,
+            state_dim,
+            action_dim,
+            default_discount=self.gamma,
+            alpha=self.replay_alpha,
+            beta_start=self.replay_beta_start,
+            beta_end=self.replay_beta_end,
+            beta_steps=self.replay_beta_steps,
+            frac_per=self.replay_frac_per,
+            frac_recent=self.replay_frac_recent,
+            recent_window=self.replay_recent_window,
+        )
         self.nstep_accumulator = NStepAccumulator(gamma=self.gamma, n_step=self.n_step)
 
         # logs
@@ -303,8 +313,21 @@ class TD3Agent(nn.Module):
             return
         self.buffer.push(s, a, r, ns, bool(done))
 
-    def pretrain_push(self, s, a, r, ns,):
-        self.buffer.pretrain_add(s, a, r, ns)
+    def flush_nstep(self):
+        if self.multistep_mode != "n_step":
+            return 0
+        flushed = self.nstep_accumulator.flush()
+        for transition in flushed:
+            self.buffer.push(
+                transition.state,
+                transition.action,
+                transition.reward_n,
+                transition.next_state_n,
+                transition.done_n,
+                discount_n=transition.discount_n,
+                n_actual=transition.n_actual,
+            )
+        return len(flushed)
 
     def set_actor_lr(self, new_lr: float):
         for g in self.actor_optimizer.param_groups:
@@ -381,7 +404,9 @@ class TD3Agent(nn.Module):
             q1, q2 = self.critic(s, a)
             q1 = col(q1)
             q2 = col(q2)
-            td = (y - q1).detach().abs().view(-1)
+            td1 = (y - q1).detach().abs().view(-1)
+            td2 = (y - q2).detach().abs().view(-1)
+            td = 0.5 * (td1 + td2)
             l1 = self.loss_fn_critic(q1, y)
             l2 = self.loss_fn_critic(q2, y)
             critic_loss = (is_w * (l1 + l2)).mean()
@@ -397,13 +422,8 @@ class TD3Agent(nn.Module):
             lambda_return_mean = float(targets.mean().item())
             priority_index = start_indices
         else:
-            if self.mode == "mpc":
-                s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
-                idx = None
-                is_w = None
-            else:
-                s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
-                is_w = col(is_w.to(self.device, non_blocking=True).float())
+            s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
+            is_w = col(is_w.to(self.device, non_blocking=True).float())
 
             s = s.to(self.device, non_blocking=True).float()
             a = a.to(self.device, non_blocking=True).float()
@@ -425,13 +445,12 @@ class TD3Agent(nn.Module):
             q1, q2 = self.critic(s, a)
             q1 = col(q1)
             q2 = col(q2)
-            td = (y - q1).detach().abs().view(-1)
+            td1 = (y - q1).detach().abs().view(-1)
+            td2 = (y - q2).detach().abs().view(-1)
+            td = 0.5 * (td1 + td2)
             l1 = self.loss_fn_critic(q1, y)
             l2 = self.loss_fn_critic(q2, y)
-            if self.mode == "mpc":
-                critic_loss = (l1 + l2).mean()
-            else:
-                critic_loss = (is_w * (l1 + l2)).mean()
+            critic_loss = (is_w * (l1 + l2)).mean()
 
             reward_trace_mean = float(r.mean().item())
             discount_trace_mean = float(discount_n.mean().item())
@@ -483,103 +502,11 @@ class TD3Agent(nn.Module):
         self.total_it += 1
         self.train_steps += 1
 
-        # --------- PER: update priorities from |TD| ----------
-        if self.mode != "mpc":
-            if hasattr(self.buffer, "update_priorities"):
-                self.buffer.update_priorities(priority_index, td.abs())
+        # --------- PER: update priorities from twin-critic |TD| ----------
+        if hasattr(self.buffer, "update_priorities"):
+            self.buffer.update_priorities(priority_index, td)
 
         return float(critic_loss.item())
-
-    def pretrain_from_buffer(self,
-                             num_updates: int=50000,
-                             use_target_noise: bool=True,
-                             log_interval: int=1000,
-                             mode: str="mpc",):
-
-        self.mode = mode
-
-        if len(self.buffer) < self.batch_size:
-           raise RuntimeError("Buffer is less than the batch size")
-
-        self.actor.train()
-        self.critic.train()
-
-        logs = {
-            "actor_bc_loss": [],
-            "critic_td_loss": []
-        }
-
-        for it in range(1, num_updates+1):
-            if self.mode == "mpc":
-                s, a, r, ns, done, discount_n, n_actual = self.buffer.sample(self.batch_size, device=self.device)
-            else:
-                s, a, r, ns, done, discount_n, n_actual, idx, is_w = self.buffer.sample(self.batch_size, device=self.device)
-                is_w = col(is_w.to(self.device, non_blocking=True).float())  # [B, 1]
-
-            s = s.to(self.device, non_blocking=True).float()  # [B, S]
-            a = a.to(self.device, non_blocking=True).float()  # [B, A]
-            r = col(r.to(self.device, non_blocking=True).float())  # [B, 1]
-            ns = ns.to(self.device, non_blocking=True).float()  # [B, S]
-            done = col(done.to(self.device, non_blocking=True).float())  # [B, 1]
-            discount_n = col(discount_n.to(self.device, non_blocking=True).float())  # [B, 1]
-
-            with torch.no_grad():
-                # target policy smoothing
-                base_next = self.actor_target(ns)
-                if use_target_noise:
-                    noise = torch.empty_like(base_next).normal_(0.0, self.t_std)
-                    noise.clamp_(-self.noise_clip, self.noise_clip)
-                    next_action = (base_next + noise).clip(-self.max_action, self.max_action)
-                else:
-                    next_action = base_next.clip(-self.max_action, self.max_action)
-
-                # Next q value
-                q_next = self.critic_target.combined_forward(ns, next_action, mode=self.target_combine)
-                y = r + discount_n * (q_next * (1.0 - done))
-
-            # critic update
-            q1, q2 = self.critic(s, a)
-            q1 = col(q1)
-            q2 = col(q2)
-            l1 = self.loss_fn_critic(q1, y)
-            l2 = self.loss_fn_critic(q2, y)
-            critic_loss = (l1 + l2).mean()
-
-            self.critic_optimizer.zero_grad(set_to_none=True)
-            critic_loss.backward()
-            if self.grad_clip_norm is not None:
-                nn.utils.clip_grad_norm_(self.critic.parameters(), self.grad_clip_norm)
-            self.critic_optimizer.step()
-
-            # ----- Actor behavioral cloning
-            pred_actions = self.actor(s)
-            bc_loss = F.mse_loss(pred_actions, a)
-            self.actor_optimizer.zero_grad(set_to_none=True)
-            bc_loss.backward()
-            if self.grad_clip_norm is not None:
-                nn.utils.clip_grad_norm_(self.actor.parameters(), self.grad_clip_norm)
-            self.actor_optimizer.step()
-
-            if self.target_update == "soft":
-                soft_update(self.actor_target, self.actor, self.tau)
-                soft_update(self.critic_target, self.critic, self.tau)
-            else:
-                if it % self.hard_update_interval == 0:
-                    hard_update(self.actor_target, self.actor)
-                    hard_update(self.critic_target, self.critic)
-
-            # logging and printing
-            logs["actor_bc_loss"].append(float(bc_loss.item()))
-            logs["critic_td_loss"].append(float(critic_loss.item()))
-
-            if log_interval and (it % log_interval == 0):
-                print(f"[pretrain] it={it}  bc={bc_loss.item():.4e}  q={critic_loss.item():.4e}")
-
-        # keep targets synced at the end
-        hard_update(self.actor_target, self.actor)
-        hard_update(self.critic_target, self.critic)
-
-
 
     def load(self, path: str):
         with open(path, 'rb') as f:
@@ -638,13 +565,19 @@ class TD3Agent(nn.Module):
                 "noise_clip": self.noise_clip,
                 "max_action": self.max_action,
                 "actor_freeze": self.actor_freeze,
-                "mode": self.mode,
                 "exploration_mode": self.exploration_mode,
                 "loss_type": self.loss_type,
                 "param_noise_resample_interval": self.param_noise_resample_interval,
                 "n_step": self.n_step,
                 "multistep_mode": self.multistep_mode,
                 "lambda_value": self.lambda_value,
+                "replay_frac_per": self.replay_frac_per,
+                "replay_frac_recent": self.replay_frac_recent,
+                "replay_recent_window": self.replay_recent_window,
+                "replay_alpha": self.replay_alpha,
+                "replay_beta_start": self.replay_beta_start,
+                "replay_beta_end": self.replay_beta_end,
+                "replay_beta_steps": self.replay_beta_steps,
                 "steps": self.steps,
                 "train_steps": self.train_steps,
                 "total_it": self.total_it,

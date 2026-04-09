@@ -440,6 +440,49 @@ POLYMER_MATRIX_DEFAULTS = {
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
 }
 
+POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
+    "agent_kind": "td3",  # Options: "td3" | "sac"
+    "run_mode": "disturb",
+    "state_mode": "mismatch",  # Options: "standard" | "mismatch"
+    **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
+    **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
+    **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
+    "run_profiles": {
+        ("td3", "nominal"): {"result_prefix": "td3_structured_matrices_nominal", "compare_prefix": "nominal_compare_td3_structured_matrices", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("td3", "disturb"): {"result_prefix": "td3_structured_matrices_disturb", "compare_prefix": "disturb_compare_td3_structured_matrices", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("sac", "nominal"): {"result_prefix": "sac_structured_matrices_nominal", "compare_prefix": "nominal_compare_sac_structured_matrices", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("sac", "disturb"): {"result_prefix": "sac_structured_matrices_disturb", "compare_prefix": "disturb_compare_sac_structured_matrices", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+    },
+    "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
+    "controller": {
+        "predict_h": 9,
+        "cont_h": 3,
+        "Q1_penalty": 5.0,
+        "Q2_penalty": 1.0,
+        "R1_penalty": 1.0,
+        "R2_penalty": 1.0,
+        "mismatch_clip": 3.0,
+        "use_shifted_mpc_warm_start": False,
+        "recalculate_observer_on_matrix_change": False,  # Options: False | True. Keep False to preserve the current observer path.
+        "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
+        "range_profile": "tight",  # Options: "tight" | "default" | "wide". Tight is the safe first default.
+        "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
+        "block_groups": None,  # Optional explicit 0-based physical-state partition, e.g. [[0, 1], [2, 3], [4, 5, 6]].
+        "band_offsets": [0, 1, 2],  # Non-negative offsets used in band mode. Must include 0.
+        "log_spectral_radius": True,  # Options: False | True. True logs the physical-model spectral radius each step.
+        "nominal_qi": 108.0,
+        "nominal_qs": 459.0,
+        "nominal_ha": 1.05e6,
+        "qi_change": 0.85,
+        "qs_change": 1.3,
+        "ha_change": 0.85,
+    },
+    "td3_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
+    "sac_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["sac_agent"]),
+    "reward": _copy_reward_defaults(),
+    "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
+}
+
 POLYMER_WEIGHT_DEFAULTS = {
     "agent_kind": "td3",
     "run_mode": "nominal",
@@ -760,6 +803,7 @@ POLYMER_NOTEBOOK_DEFAULTS = {
     "horizon_standard": POLYMER_HORIZON_STANDARD_DEFAULTS,
     "horizon_dueling": POLYMER_HORIZON_DUELING_DEFAULTS,
     "matrix": POLYMER_MATRIX_DEFAULTS,
+    "structured_matrix": POLYMER_STRUCTURED_MATRIX_DEFAULTS,
     "weights": POLYMER_WEIGHT_DEFAULTS,
     "residual": POLYMER_RESIDUAL_DEFAULTS,
     "combined": POLYMER_COMBINED_DEFAULTS,

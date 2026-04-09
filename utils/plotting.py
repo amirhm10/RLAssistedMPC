@@ -2506,6 +2506,7 @@ from utils.plotting_core import (
     plot_horizon_results_core,
     plot_matrix_multiplier_results_core,
     plot_residual_results_core,
+    plot_structured_matrix_results_core,
     plot_weight_multiplier_results_core,
 )
 
@@ -2520,6 +2521,10 @@ def plot_horizon_results(result_bundle, plot_cfg):
 
 def plot_matrix_multiplier_results(result_bundle, plot_cfg):
     return plot_matrix_multiplier_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+
+
+def plot_structured_matrix_results(result_bundle, plot_cfg):
+    return plot_structured_matrix_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
 
 
 def plot_weight_multiplier_results(result_bundle, plot_cfg):

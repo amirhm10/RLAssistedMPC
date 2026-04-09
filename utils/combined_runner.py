@@ -662,6 +662,9 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         disturbance_schedule if run_mode == "disturb" else None,
         disturbance_labels=disturbance_labels,
     )
+    for continuous_agent in (matrix_agent, weight_agent, residual_agent):
+        if continuous_agent is not None and hasattr(continuous_agent, "flush_nstep"):
+            continuous_agent.flush_nstep()
 
     result_bundle = {
         "run_mode": run_mode,

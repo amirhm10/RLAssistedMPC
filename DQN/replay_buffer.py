@@ -123,6 +123,9 @@ class PERRecentReplayBuffer(ReplayBuffer):
         beta_start: float = 0.4,
         beta_end: float = 1.0,
         beta_steps: int = 300_000,
+        frac_per: float = 0.5,
+        frac_recent: float = 0.2,
+        recent_window: int = 1_000,
     ):
         super().__init__(capacity=capacity, state_dim=state_dim, default_discount=default_discount)
         self.step_counter = 0
@@ -135,6 +138,9 @@ class PERRecentReplayBuffer(ReplayBuffer):
         self.beta_steps = int(beta_steps)
         self.beta_t = 0
         self._max_priority = 1.0
+        self.frac_per = float(frac_per)
+        self.frac_recent = float(frac_recent)
+        self.recent_window = int(recent_window)
 
     def _beta(self):
         frac = min(1.0, self.beta_t / max(1, self.beta_steps))
@@ -175,11 +181,14 @@ class PERRecentReplayBuffer(ReplayBuffer):
         self,
         batch_size: int,
         device="cpu",
-        frac_per: float = 0.6,
-        frac_recent: float = 0.2,
-        recent_window=5000,
+        frac_per: float | None = None,
+        frac_recent: float | None = None,
+        recent_window: int | None = None,
     ):
         assert self.size > 0
+        frac_per = self.frac_per if frac_per is None else float(frac_per)
+        frac_recent = self.frac_recent if frac_recent is None else float(frac_recent)
+        recent_window = self.recent_window if recent_window is None else int(recent_window)
         k_per = int(batch_size * frac_per)
         k_recent = int(batch_size * frac_recent)
         k_uniform = int(batch_size) - k_per - k_recent
@@ -230,10 +239,13 @@ class PERRecentReplayBuffer(ReplayBuffer):
         batch_size: int,
         seq_len: int,
         device="cpu",
-        frac_per: float = 0.6,
-        frac_recent: float = 0.2,
-        recent_window: int = 5000,
+        frac_per: float | None = None,
+        frac_recent: float | None = None,
+        recent_window: int | None = None,
     ):
+        frac_per = self.frac_per if frac_per is None else float(frac_per)
+        frac_recent = self.frac_recent if frac_recent is None else float(frac_recent)
+        recent_window = self.recent_window if recent_window is None else int(recent_window)
         ordered_indices = self._ordered_indices()
         ordered_priorities = self.priorities[ordered_indices]
         beta = self._beta()

@@ -328,6 +328,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         disturbance_schedule if run_mode == "disturb" else None,
         disturbance_labels=disturbance_labels,
     )
+    if hasattr(agent, "flush_nstep"):
+        agent.flush_nstep()
 
     result_bundle = {
         "agent_kind": agent_kind,

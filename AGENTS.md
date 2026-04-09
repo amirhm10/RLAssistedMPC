@@ -34,7 +34,7 @@ Treat the repo as three layers: reusable modules, notebook experiment entrypoint
 - `Simulation/mpc.py`
   Offset-free MPC solver, observer-gain helpers, baseline MPC rollout functions, and disturbance-aware MPC variants.
 - `TD3Agent/`
-  Continuous-control TD3 actor, critic, replay buffer, and checkpoint helpers. This folder also contains parallel variants such as `agent_modified.py` and `replay_buffer_modified.py`.
+  Continuous-control TD3 actor, critic, replay buffer, and checkpoint helpers.
 - `SACAgent/`
   Continuous-control SAC implementation built on the shared critic structure.
 - `DQN/`
@@ -179,7 +179,6 @@ Legacy split notebooks were removed after the unified migration. Historical mism
 - Logic is duplicated across reusable modules and notebooks. Do not assume one copy has been fully migrated into the other.
 - `Simulation/rl_sim.py` appears legacy or stale relative to the current TD3/SAC/DQN agent APIs. It still references patterns such as `agent.replay_buffer.add`, `agent.train(...)`, and `agent.exploration_noise_std`, while the current agent modules use `buffer`, `push`, `train_step`, and newer scheduling logic.
 - `BasicFunctions/plot_fns.py` also reflects an older plotting/output style than `utils/plotting.py`.
-- There are parallel TD3 implementations in `TD3Agent/agent.py` and `TD3Agent/agent_modified.py`, plus matching replay-buffer variants. Verify which module a notebook imports before changing TD3 behavior.
 - Git history is minimal, so experiment provenance is easier to reconstruct from notebook families and timestamped run folders than from commits.
 - The current worktree is dirty. Assume some notebooks and result artifacts are mid-experiment, not finalized baselines.
 - The archived distillation subtree at `DIstillation Column Case/RL_assisted_MPC_DL/` should be treated as a read-only reference during migration. Do not extend it when adding new distillation work; add new code under `systems/distillation/`, `Data/distillation/`, `Result/distillation/`, and the root `distillation_*_unified.ipynb` entrypoints instead.

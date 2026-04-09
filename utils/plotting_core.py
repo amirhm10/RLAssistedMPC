@@ -1630,6 +1630,172 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
     return out_dir
 
 
+def plot_structured_matrix_results_core(result_bundle, plot_cfg):
+    out_dir = plot_matrix_multiplier_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+    bundle = normalize_result_bundle(result_bundle)
+    save_pdf = bool(plot_cfg.get("save_pdf", False))
+
+    action_labels = list(bundle.get("action_labels") or [])
+    theta_a_labels = list(bundle.get("theta_a_labels") or [])
+    theta_b_labels = list(bundle.get("theta_b_labels") or [])
+    low_bounds = bundle.get("structured_low_bounds")
+    high_bounds = bundle.get("structured_high_bounds")
+    mapped_multiplier_log = bundle.get("mapped_multiplier_log")
+    A_ratio = bundle.get("A_model_delta_ratio_log")
+    B_ratio = bundle.get("B_model_delta_ratio_log")
+    spectral_radius = bundle.get("spectral_radius_log")
+    action_saturation = bundle.get("action_saturation_fraction_log")
+    near_bound = bundle.get("near_bound_fraction_log")
+    episode_avg_theta_a = bundle.get("episode_avg_theta_a")
+    episode_avg_theta_b = bundle.get("episode_avg_theta_b")
+
+    if mapped_multiplier_log is not None and low_bounds is not None and high_bounds is not None and action_labels:
+        mapped_multiplier_log = np.asarray(mapped_multiplier_log, float)
+        low_bounds = np.asarray(low_bounds, float)
+        high_bounds = np.asarray(high_bounds, float)
+        t_idx = np.arange(1, mapped_multiplier_log.shape[0] + 1)
+        fig, axs = plt.subplots(
+            mapped_multiplier_log.shape[1],
+            1,
+            figsize=(9.0, 3.0 + 1.9 * max(1, mapped_multiplier_log.shape[1] - 1)),
+            sharex=True,
+        )
+        if mapped_multiplier_log.shape[1] == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.fill_between(
+                t_idx,
+                float(low_bounds[idx]),
+                float(high_bounds[idx]),
+                color="tab:blue",
+                alpha=0.12,
+                step="post",
+            )
+            ax.axhline(float(low_bounds[idx]), color="tab:blue", linestyle="--", linewidth=1.0)
+            ax.axhline(float(high_bounds[idx]), color="tab:blue", linestyle="--", linewidth=1.0)
+            ax.step(t_idx, mapped_multiplier_log[:, idx], where="post")
+            ax.set_ylabel(action_labels[idx] if idx < len(action_labels) else f"theta_{idx + 1}")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Step")
+        _save_fig(fig, out_dir, "fig_structured_matrix_multipliers_full", save_pdf=save_pdf)
+
+    if A_ratio is not None or B_ratio is not None or spectral_radius is not None:
+        metrics = []
+        if A_ratio is not None:
+            metrics.append(("A Fro ratio", np.asarray(A_ratio, float)))
+        if B_ratio is not None:
+            metrics.append(("B Fro ratio", np.asarray(B_ratio, float)))
+        if spectral_radius is not None:
+            metrics.append(("Spectral radius", np.asarray(spectral_radius, float)))
+        fig, axs = plt.subplots(len(metrics), 1, figsize=(8.6, 3.0 + 2.2 * max(1, len(metrics) - 1)), sharex=True)
+        if len(metrics) == 1:
+            axs = [axs]
+        for ax, (label, series) in zip(axs, metrics):
+            ax.plot(np.arange(1, len(series) + 1), series)
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Step")
+        _save_fig(fig, out_dir, "fig_structured_matrix_model_delta_metrics", save_pdf=save_pdf)
+
+    if action_saturation is not None or near_bound is not None:
+        metrics = []
+        if action_saturation is not None:
+            metrics.append(("Action saturation", np.asarray(action_saturation, float)))
+        if near_bound is not None:
+            metrics.append(("Near-bound frac", np.asarray(near_bound, float)))
+        fig, axs = plt.subplots(len(metrics), 1, figsize=(8.4, 3.0 + 2.1 * max(1, len(metrics) - 1)), sharex=True)
+        if len(metrics) == 1:
+            axs = [axs]
+        for ax, (label, series) in zip(axs, metrics):
+            ax.plot(np.arange(1, len(series) + 1), series)
+            ax.set_ylabel(label)
+            ax.set_ylim(bottom=0.0)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Step")
+        _save_fig(fig, out_dir, "fig_structured_matrix_action_health", save_pdf=save_pdf)
+
+    episode_labels = np.arange(1, len(np.asarray(bundle.get("avg_rewards", []), float)) + 1)
+    if episode_labels.size > 0 and (
+        (episode_avg_theta_a is not None and np.asarray(episode_avg_theta_a).size > 0)
+        or (episode_avg_theta_b is not None and np.asarray(episode_avg_theta_b).size > 0)
+    ):
+        series_specs = []
+        if episode_avg_theta_a is not None and np.asarray(episode_avg_theta_a).size > 0:
+            arr = np.asarray(episode_avg_theta_a, float)
+            for idx in range(arr.shape[1]):
+                label = theta_a_labels[idx] if idx < len(theta_a_labels) else f"theta_A_{idx + 1}"
+                series_specs.append((label, arr[:, idx]))
+        if episode_avg_theta_b is not None and np.asarray(episode_avg_theta_b).size > 0:
+            arr = np.asarray(episode_avg_theta_b, float)
+            for idx in range(arr.shape[1]):
+                label = theta_b_labels[idx] if idx < len(theta_b_labels) else f"theta_B_{idx + 1}"
+                series_specs.append((label, arr[:, idx]))
+        fig, axs = plt.subplots(len(series_specs), 1, figsize=(8.8, 3.0 + 2.0 * max(1, len(series_specs) - 1)), sharex=True)
+        if len(series_specs) == 1:
+            axs = [axs]
+        for ax, (label, series) in zip(axs, series_specs):
+            ax.plot(episode_labels[: len(series)], series, marker="o")
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Sub-episode")
+        _save_fig(fig, out_dir, "fig_structured_matrix_episode_average_multipliers", save_pdf=save_pdf)
+
+    stored_path = os.path.join(out_dir, "input_data.pkl")
+    if os.path.exists(stored_path):
+        with open(stored_path, "rb") as handle:
+            stored_bundle = pickle.load(handle)
+    else:
+        stored_bundle = {}
+    for key in (
+        "update_family",
+        "range_profile",
+        "structured_action_dim",
+        "structured_a_dim",
+        "structured_b_dim",
+        "action_labels",
+        "theta_a_labels",
+        "theta_b_labels",
+        "structured_low_bounds",
+        "structured_high_bounds",
+        "structured_low_a",
+        "structured_high_a",
+        "structured_low_b",
+        "structured_high_b",
+        "block_cfg",
+        "band_cfg",
+        "raw_action_log",
+        "mapped_multiplier_log",
+        "theta_a_log",
+        "theta_b_log",
+        "A_model_delta_ratio_log",
+        "B_model_delta_ratio_log",
+        "spectral_radius_log",
+        "action_saturation_fraction_log",
+        "near_bound_fraction_log",
+        "near_bound_relative_tolerance",
+        "action_saturation_threshold",
+        "episode_avg_theta_a",
+        "episode_avg_theta_b",
+        "episode_avg_action_saturation",
+        "episode_avg_near_bound",
+        "episode_avg_A_model_delta_ratio",
+        "episode_avg_B_model_delta_ratio",
+        "structured_update_fallback_count",
+    ):
+        if key in bundle:
+            stored_bundle[key] = bundle[key]
+    save_bundle_pickle(out_dir, stored_bundle)
+    return out_dir
+
+
 def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
     style_profile = str(plot_cfg.get("style_profile", "hybrid")).lower()
     _set_plot_style(style_profile=style_profile)

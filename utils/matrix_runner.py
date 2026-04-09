@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import scipy.optimize as spo
 
@@ -19,6 +21,13 @@ def _map_to_bounds(action, low, high):
     low = np.asarray(low, float)
     high = np.asarray(high, float)
     return low + ((action + 1.0) / 2.0) * (high - low)
+
+
+def _map_from_bounds(value, low, high):
+    value = np.asarray(value, float)
+    low = np.asarray(low, float)
+    high = np.asarray(high, float)
+    return 2.0 * (value - low) / (high - low) - 1.0
 
 
 def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
@@ -72,6 +81,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     low_coef = np.asarray(matrix_cfg["low_coef"], float)
     high_coef = np.asarray(matrix_cfg["high_coef"], float)
     action_dim = int(low_coef.size)
+    matrix_baseline_raw = _map_from_bounds(np.ones(action_dim, dtype=float), low_coef, high_coef)
 
     (
         y_sp,
@@ -129,6 +139,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     L = compute_observer_gain(mpc_obj.A, mpc_obj.C, poles)
     n_phys = n_states - n_outputs
     test = False
+    nonfinite_matrix_action_count = 0
+    observer_recalc_fallback_count = 0
 
     cont_h = int(matrix_cfg.get("cont_h", 1))
     bnds = tuple(
@@ -169,6 +181,13 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         else:
             action = np.zeros(action_dim, dtype=float)
 
+        if not np.all(np.isfinite(action)):
+            warnings.warn(
+                "Matrix agent produced a non-finite action; falling back to the nominal matrix action for this step."
+            )
+            action = matrix_baseline_raw.copy()
+            nonfinite_matrix_action_count += 1
+
         action_mapped = _map_to_bounds(action, low_coef, high_coef)
         alpha = float(np.ravel(action_mapped[:1])[0])
         delta = np.asarray(action_mapped[-n_inputs:], float)
@@ -182,7 +201,19 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         mpc_obj.A = A_change
         mpc_obj.B = B_change
         if recalculate_observer_on_matrix_change:
-            L = compute_observer_gain(mpc_obj.A, mpc_obj.C, poles)
+            if np.all(np.isfinite(mpc_obj.A)) and np.all(np.isfinite(mpc_obj.C)):
+                try:
+                    L = compute_observer_gain(mpc_obj.A, mpc_obj.C, poles)
+                except Exception:
+                    warnings.warn(
+                        "Observer gain recalculation failed for the updated matrix model; keeping the previous observer gain."
+                    )
+                    observer_recalc_fallback_count += 1
+            else:
+                warnings.warn(
+                    "Updated matrix model contains non-finite values; keeping the previous observer gain."
+                )
+                observer_recalc_fallback_count += 1
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
 
@@ -309,6 +340,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "warm_start_step": int(warm_start_step),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "recalculate_observer_on_matrix_change": recalculate_observer_on_matrix_change,
+        "nonfinite_matrix_action_count": int(nonfinite_matrix_action_count),
+        "observer_recalc_fallback_count": int(observer_recalc_fallback_count),
         "n_step": int(getattr(agent, "n_step", 1)),
         "multistep_mode": str(getattr(agent, "multistep_mode", "one_step")),
         "lambda_value": getattr(agent, "lambda_value", None),

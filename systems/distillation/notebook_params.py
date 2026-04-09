@@ -389,6 +389,45 @@ DISTILLATION_MATRIX_DEFAULTS = {
     "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
 }
 
+DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
+    "agent_kind": "td3",  # "td3" | "sac"
+    "run_mode": "nominal",
+    "disturbance_profile": "none",
+    "state_mode": "standard",
+    **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
+    **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
+    **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
+    **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
+    "run_profiles": deepcopy(DISTILLATION_MATRIX_RUN_PROFILES),
+    "controller": {
+        "predict_h": 6,
+        "cont_h": 3,
+        "Q1_penalty": 1.0,
+        "Q2_penalty": 1.0,
+        "R1_penalty": 1.0,
+        "R2_penalty": 1.0,
+        "mismatch_clip": 3.0,
+        "use_shifted_mpc_warm_start": False,
+        "recalculate_observer_on_matrix_change": False,  # Options: False | True. Keep False to preserve the current observer path.
+        "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
+        "range_profile": "tight",  # Options: "tight" | "default" | "wide". Tight is the safe first default.
+        "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
+        "block_groups": None,  # Optional explicit 0-based physical-state partition.
+        "band_offsets": [0, 1, 2],  # Non-negative offsets used in band mode. Must include 0.
+        "log_spectral_radius": True,  # Options: False | True. True logs the physical-model spectral radius each step.
+        "nominal_qi": 0.0,
+        "nominal_qs": 0.0,
+        "nominal_ha": 0.0,
+        "qi_change": 1.0,
+        "qs_change": 1.0,
+        "ha_change": 1.0,
+    },
+    "td3_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["td3_agent"]),
+    "sac_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["sac_agent"]),
+    "reward": _copy_reward_defaults(),
+    "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
+}
+
 DISTILLATION_WEIGHT_DEFAULTS = {
     "agent_kind": "td3",
     "run_mode": "nominal",
@@ -572,6 +611,7 @@ DISTILLATION_NOTEBOOK_DEFAULTS = {
     "horizon_standard": DISTILLATION_HORIZON_STANDARD_DEFAULTS,
     "horizon_dueling": DISTILLATION_HORIZON_DUELING_DEFAULTS,
     "matrix": DISTILLATION_MATRIX_DEFAULTS,
+    "structured_matrix": DISTILLATION_STRUCTURED_MATRIX_DEFAULTS,
     "weights": DISTILLATION_WEIGHT_DEFAULTS,
     "residual": DISTILLATION_RESIDUAL_DEFAULTS,
     "combined": DISTILLATION_COMBINED_DEFAULTS,

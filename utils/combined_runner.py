@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import scipy.optimize as spo
 
@@ -309,6 +311,8 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     last_weight_raw = None
     last_residual_raw = None
     test = False
+    nonfinite_matrix_action_count = 0
+    observer_recalc_fallback_count = 0
 
     current_states = {}
     current_state_debugs = {}
@@ -381,6 +385,15 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         else:
             model_raw = model_baseline_raw.copy()
         model_raw = np.asarray(model_raw, float).reshape(-1)
+        if not np.all(np.isfinite(model_raw)):
+            warnings.warn(
+                "Combined matrix agent produced a non-finite action; falling back to the last valid or nominal matrix action."
+            )
+            if last_model_raw is not None and np.all(np.isfinite(last_model_raw)):
+                model_raw = last_model_raw.copy()
+            else:
+                model_raw = model_baseline_raw.copy()
+            nonfinite_matrix_action_count += 1
         model_mapped = _map_to_bounds(model_raw, model_low, model_high)
         alpha = float(model_mapped[0])
         delta = np.asarray(model_mapped[1 : 1 + n_inputs], float).reshape(-1)
@@ -432,7 +445,19 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             MPC_obj.Q_out = Q_now
             MPC_obj.R_in = R_now
         if recalculate_observer_on_matrix_change:
-            L = compute_observer_gain(MPC_obj.A, MPC_obj.C, poles)
+            if np.all(np.isfinite(MPC_obj.A)) and np.all(np.isfinite(MPC_obj.C)):
+                try:
+                    L = compute_observer_gain(MPC_obj.A, MPC_obj.C, poles)
+                except Exception:
+                    warnings.warn(
+                        "Observer gain recalculation failed for the combined matrix update; keeping the previous observer gain."
+                    )
+                    observer_recalc_fallback_count += 1
+            else:
+                warnings.warn(
+                    "Combined matrix update produced non-finite model entries; keeping the previous observer gain."
+                )
+                observer_recalc_fallback_count += 1
 
         horizon_trace[i, :] = (current_Hp, current_Hc)
         horizon_action_trace[i] = int(h_idx)
@@ -702,6 +727,8 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "use_rho_authority": use_rho_authority,
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "recalculate_observer_on_matrix_change": recalculate_observer_on_matrix_change,
+        "nonfinite_matrix_action_count": int(nonfinite_matrix_action_count),
+        "observer_recalc_fallback_count": int(observer_recalc_fallback_count),
         "rho_log": rho_log,
         "horizon_innovation_log": mismatch_logs["horizon"]["innovation"],
         "horizon_tracking_error_log": mismatch_logs["horizon"]["tracking_error"],

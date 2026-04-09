@@ -129,6 +129,8 @@ _FAMILY_FILE_MAP = {
     "horizon": {"none": "C2S_SS_simulation4.dynf", "ramp": "C2S_SS_simulation5.dynf", "fluctuation": "C2S_SS_simulation3.dynf"},
     "matrix_td3": {"none": "C2S_SS_simulation1.dynf", "ramp": "C2S_SS_simulation3.dynf", "fluctuation": "C2S_SS_simulation4.dynf"},
     "matrix_sac": {"none": "C2S_SS_simulation7.dynf", "ramp": "C2S_SS_simulation8.dynf", "fluctuation": "C2S_SS_simulation5.dynf"},
+    "structured_matrix_td3": {"none": "C2S_SS_simulation10.dynf", "ramp": "C2S_SS_simulation11.dynf", "fluctuation": "C2S_SS_simulation12.dynf"},
+    "structured_matrix_sac": {"none": "C2S_SS_simulation13.dynf", "ramp": "C2S_SS_simulation13.dynf", "fluctuation": "C2S_SS_simulation13.dynf"},
     "weights": {"none": "C2S_SS_simulation5.dynf", "ramp": "C2S_SS_simulation5.dynf", "fluctuation": "C2S_SS_simulation5.dynf"},
     "residual": {"none": "C2S_SS_simulation7.dynf", "ramp": "C2S_SS_simulation7.dynf", "fluctuation": "C2S_SS_simulation7.dynf"},
     "combined": {"none": "C2S_SS_simulation7.dynf", "ramp": "C2S_SS_simulation7.dynf", "fluctuation": "C2S_SS_simulation7.dynf"},

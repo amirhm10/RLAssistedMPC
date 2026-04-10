@@ -45,6 +45,41 @@ def _copy_replay_defaults():
     }
 
 
+def _copy_matrix_robust_defaults():
+    return {
+        # Fixed-estimator / robust-prediction MPC controls for matrix methods:
+        # - input_tightening_frac: fraction of the MPC input span removed from
+        #   each side before the assisted solve; practical range is [0.0, 0.10]
+        # - enable_accept_norm_test: reject assisted models that move too far
+        #   from the nominal A/B matrices in relative Frobenius norm
+        # - eps_A_norm_frac / eps_B_norm_frac: relative matrix-deviation
+        #   thresholds used by the norm acceptance test; practical range is
+        #   roughly [0.01, 0.20] depending on how aggressive the multipliers are
+        # - enable_accept_prediction_test: reject assisted models whose short
+        #   nominal-vs-assisted output rollout deviates too far
+        # - prediction_check_horizon: positive integer short probe horizon used
+        #   by the acceptance test; 1-5 is the practical range for this repo
+        # - eps_y_pred_scaled: max allowed scaled output prediction deviation;
+        #   practical range is roughly [0.02, 0.30]
+        # - enable_solver_fallback: when True, allow a final nominal/full-bounds
+        #   solve if the tightened solve fails
+        # - probe_input_mode: currently only "hold_current_input" is supported
+        # - recalculate_observer_on_matrix_change: retained only for backward
+        #   compatibility; matrix methods now ignore it because estimation is
+        #   fixed nominal by design
+        "input_tightening_frac": 0.02,
+        "enable_accept_norm_test": True,
+        "eps_A_norm_frac": 0.05,
+        "eps_B_norm_frac": 0.05,
+        "enable_accept_prediction_test": True,
+        "prediction_check_horizon": 2,
+        "eps_y_pred_scaled": 0.10,
+        "enable_solver_fallback": True,
+        "probe_input_mode": "hold_current_input",
+        "recalculate_observer_on_matrix_change": False,
+    }
+
+
 # -----------------------------------------------------------------------------
 # Polymer notebook defaults
 # -----------------------------------------------------------------------------
@@ -376,7 +411,7 @@ POLYMER_MATRIX_DEFAULTS = {
         "high_coef": np.array([1.05, 1.05, 1.05], float),
         "mismatch_clip": 3.0,
         "use_shifted_mpc_warm_start": False,
-        "recalculate_observer_on_matrix_change": False,  # Recompute observer gain L after each matrix update. Options: False | True. Keep False to preserve the legacy observer path.
+        **_copy_matrix_robust_defaults(),
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
         "nominal_ha": 1.05e6,
@@ -463,7 +498,7 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
         "R2_penalty": 1.0,
         "mismatch_clip": 3.0,
         "use_shifted_mpc_warm_start": False,
-        "recalculate_observer_on_matrix_change": False,  # Options: False | True. Keep False to preserve the current observer path.
+        **_copy_matrix_robust_defaults(),
         "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
         "range_profile": "tight",  # Options: "tight" | "default" | "wide". Tight is the safe first default.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
@@ -703,7 +738,7 @@ POLYMER_COMBINED_DEFAULTS = {
         "residual_high": np.array([0.5, 0.5], float),
         "mismatch_clip": 3.0,
         "use_shifted_mpc_warm_start": False,
-        "recalculate_observer_on_matrix_change": False,  # Recompute observer gain L after each matrix update in the combined loop. Options: False | True.
+        **_copy_matrix_robust_defaults(),
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
         "nominal_ha": 1.05e6,

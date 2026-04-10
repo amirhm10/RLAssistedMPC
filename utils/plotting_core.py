@@ -1505,6 +1505,73 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
         axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_matrix_delta_last_block", save_pdf=save_pdf)
 
+    model_accepted_log = bundle.get("model_accepted_log")
+    model_source_code_log = bundle.get("model_source_code_log")
+    prediction_max_dev_log = bundle.get("prediction_max_dev_log")
+    first_move_delta_vs_nominal_log = bundle.get("first_move_delta_vs_nominal_log")
+    if model_accepted_log is not None or model_source_code_log is not None:
+        fig, axs = plt.subplots(2, 1, figsize=(8.4, 6.2), sharex=True)
+        accepted_seg = None if model_accepted_log is None else np.asarray(model_accepted_log, float)[start_step : start_step + W]
+        source_seg = None if model_source_code_log is None else np.asarray(model_source_code_log, float)[start_step : start_step + W]
+        if accepted_seg is not None:
+            axs[0].step(t_step, accepted_seg, where="post")
+            axs[0].set_ylabel("Accepted")
+            axs[0].set_ylim(-0.05, 1.15)
+            shade_test_regions(axs[0], spans, delta_t)
+            axs[0].spines["top"].set_visible(False)
+            axs[0].spines["right"].set_visible(False)
+            _make_axes_bold(axs[0])
+        if source_seg is not None:
+            axs[1].step(t_step, source_seg, where="post")
+            axs[1].set_ylabel("Source")
+            axs[1].set_yticks([0, 1, 2])
+            axs[1].set_yticklabels(["assisted", "nom-tight", "nom-full"])
+            shade_test_regions(axs[1], spans, delta_t)
+            axs[1].spines["top"].set_visible(False)
+            axs[1].spines["right"].set_visible(False)
+            _make_axes_bold(axs[1])
+        axs[-1].set_xlabel(time_label)
+        _save_fig(fig, out_dir, "fig_matrix_model_acceptance_and_source", save_pdf=save_pdf)
+
+    if prediction_max_dev_log is not None or first_move_delta_vs_nominal_log is not None:
+        fig, axs = plt.subplots(2, 1, figsize=(8.4, 6.2), sharex=True)
+        if prediction_max_dev_log is not None:
+            pred_seg = np.asarray(prediction_max_dev_log, float)[start_step : start_step + W]
+            axs[0].plot(t_step, pred_seg)
+            shade_test_regions(axs[0], spans, delta_t)
+            axs[0].set_ylabel("Pred dev")
+            axs[0].spines["top"].set_visible(False)
+            axs[0].spines["right"].set_visible(False)
+            _make_axes_bold(axs[0])
+        if first_move_delta_vs_nominal_log is not None:
+            first_move_seg = np.asarray(first_move_delta_vs_nominal_log, float)[start_step : start_step + W, :]
+            axs[1].plot(t_step, np.linalg.norm(first_move_seg, axis=1))
+            shade_test_regions(axs[1], spans, delta_t)
+            axs[1].set_ylabel("||du0||")
+            axs[1].spines["top"].set_visible(False)
+            axs[1].spines["right"].set_visible(False)
+            _make_axes_bold(axs[1])
+        axs[-1].set_xlabel(time_label)
+        _save_fig(fig, out_dir, "fig_matrix_prediction_screening_metrics", save_pdf=save_pdf)
+
+    rejection_counts = [
+        float(bundle.get("reject_reason_finite_count", 0.0)),
+        float(bundle.get("reject_reason_bounds_count", 0.0)),
+        float(bundle.get("reject_reason_norm_count", 0.0)),
+        float(bundle.get("reject_reason_prediction_count", 0.0)),
+    ]
+    if any(count > 0 for count in rejection_counts):
+        fig, ax = plt.subplots(figsize=(7.6, 4.8))
+        labels = ["finite", "bounds", "norm", "prediction"]
+        ax.bar(np.arange(len(labels)), rejection_counts)
+        ax.set_xticks(np.arange(len(labels)))
+        ax.set_xticklabels(labels)
+        ax.set_ylabel("Reject count")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_matrix_rejection_reason_counts", save_pdf=save_pdf)
+
     yhat = bundle.get("yhat")
     if yhat is not None:
         fig, axs = plt.subplots(n_outputs, 1, figsize=(8.6, 3.0 + 2.5 * max(1, n_outputs - 1)), sharex=True)
@@ -1624,6 +1691,23 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
             "alpha_losses": bundle.get("alpha_losses"),
             "alphas": bundle.get("alphas"),
             "mpc_path_or_dir": bundle.get("mpc_path_or_dir"),
+            "estimator_mode": bundle.get("estimator_mode"),
+            "prediction_model_mode": bundle.get("prediction_model_mode"),
+            "input_tightening_frac": bundle.get("input_tightening_frac"),
+            "input_tightening_margin": bundle.get("input_tightening_margin"),
+            "tightened_b_min": bundle.get("tightened_b_min"),
+            "tightened_b_max": bundle.get("tightened_b_max"),
+            "model_accepted_log": bundle.get("model_accepted_log"),
+            "model_source_log": bundle.get("model_source_log"),
+            "model_source_code_log": bundle.get("model_source_code_log"),
+            "assisted_model_used_log": bundle.get("assisted_model_used_log"),
+            "prediction_max_dev_log": bundle.get("prediction_max_dev_log"),
+            "prediction_mean_dev_log": bundle.get("prediction_mean_dev_log"),
+            "first_move_delta_vs_nominal_log": bundle.get("first_move_delta_vs_nominal_log"),
+            "reject_reason_finite_log": bundle.get("reject_reason_finite_log"),
+            "reject_reason_bounds_log": bundle.get("reject_reason_bounds_log"),
+            "reject_reason_norm_log": bundle.get("reject_reason_norm_log"),
+            "reject_reason_prediction_log": bundle.get("reject_reason_prediction_log"),
         }
     )
     save_bundle_pickle(out_dir, stored_bundle)
@@ -2832,6 +2916,55 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             _make_axes_bold(axs[idx + 1])
         axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_combined_matrix_multipliers", save_pdf=save_pdf)
+
+        matrix_accepted = bundle.get("matrix_model_accepted_log")
+        matrix_source = bundle.get("matrix_model_source_code_log")
+        if matrix_accepted is not None or matrix_source is not None:
+            fig, axs = plt.subplots(2, 1, figsize=(8.4, 6.2), sharex=True)
+            if matrix_accepted is not None:
+                accepted_seg = np.asarray(matrix_accepted, float)[start_step : start_step + W]
+                axs[0].step(t_step, accepted_seg, where="post")
+                shade_segment(axs[0], start_step, W)
+                axs[0].set_ylabel("Accepted")
+                axs[0].set_ylim(-0.05, 1.15)
+                axs[0].spines["top"].set_visible(False)
+                axs[0].spines["right"].set_visible(False)
+                _make_axes_bold(axs[0])
+            if matrix_source is not None:
+                source_seg = np.asarray(matrix_source, float)[start_step : start_step + W]
+                axs[1].step(t_step, source_seg, where="post")
+                shade_segment(axs[1], start_step, W)
+                axs[1].set_ylabel("Source")
+                axs[1].set_yticks([0, 1, 2])
+                axs[1].set_yticklabels(["assisted", "nom-tight", "nom-full"])
+                axs[1].spines["top"].set_visible(False)
+                axs[1].spines["right"].set_visible(False)
+                _make_axes_bold(axs[1])
+            axs[-1].set_xlabel(time_label)
+            _save_fig(fig, out_dir, "fig_combined_matrix_acceptance_and_source", save_pdf=save_pdf)
+
+        matrix_pred = bundle.get("matrix_prediction_max_dev_log")
+        matrix_du0 = bundle.get("matrix_first_move_delta_vs_nominal_log")
+        if matrix_pred is not None or matrix_du0 is not None:
+            fig, axs = plt.subplots(2, 1, figsize=(8.4, 6.2), sharex=True)
+            if matrix_pred is not None:
+                pred_seg = np.asarray(matrix_pred, float)[start_step : start_step + W]
+                axs[0].plot(t_step, pred_seg)
+                shade_segment(axs[0], start_step, W)
+                axs[0].set_ylabel("Pred dev")
+                axs[0].spines["top"].set_visible(False)
+                axs[0].spines["right"].set_visible(False)
+                _make_axes_bold(axs[0])
+            if matrix_du0 is not None:
+                du0_seg = np.asarray(matrix_du0, float)[start_step : start_step + W, :]
+                axs[1].plot(t_step, np.linalg.norm(du0_seg, axis=1))
+                shade_segment(axs[1], start_step, W)
+                axs[1].set_ylabel("||du0||")
+                axs[1].spines["top"].set_visible(False)
+                axs[1].spines["right"].set_visible(False)
+                _make_axes_bold(axs[1])
+            axs[-1].set_xlabel(time_label)
+            _save_fig(fig, out_dir, "fig_combined_matrix_prediction_screening_metrics", save_pdf=save_pdf)
 
     if active_agents.get("weights") and bundle.get("weight_log") is not None:
         weight_seg = bundle["weight_log"][start_step : start_step + W, :]

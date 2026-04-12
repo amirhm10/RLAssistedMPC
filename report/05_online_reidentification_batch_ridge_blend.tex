@@ -1,0 +1,147 @@
+\documentclass[11pt]{article}
+\input{_common_preamble}
+\input{_common_notation}
+
+\title{Phase 1 Polymer Online Re-Identification With Batch Ridge And RL Blend}
+\date{2026-04-12}
+
+\begin{document}
+\maketitle
+
+\section*{Method Goal}
+
+This method adds a polymer-only online re-identification workflow on top of the
+current unified notebook surface. The observer remains nominal and fixed, while
+the MPC prediction model is blended online between the nominal model and a
+rolling identified model:
+\[
+A_{\mathrm{pred},k} = A_0 + \eta_k (A_{\mathrm{id},k} - A_0), \qquad
+B_{\mathrm{pred},k} = B_0 + \eta_k (B_{\mathrm{id},k} - B_0).
+\]
+
+The RL policy does not act directly on model multipliers. It chooses a scalar
+blend factor $\eta_k \in [0,1]$.
+
+\section*{Notebook Source}
+
+\begin{itemize}
+\item \texttt{RL\_assisted\_MPC\_reid\_batch\_unified.ipynb}
+\item Shared helpers:
+      \texttt{utils/reid\_batch.py},
+      \texttt{utils/reid\_batch\_runner.py},
+      \texttt{utils/plotting.py},
+      \texttt{utils/plotting\_core.py}
+\end{itemize}
+
+\section*{State, Action, And Reward}
+
+The base RL state uses the current unified state builder in either standard or
+mismatch mode:
+\[
+s_t^{\mathrm{base}} = \texttt{build\_rl\_state}(\hat{x}_t, y_{\mathrm{sp},t}, u_t).
+\]
+
+The blend-policy state appends online-ID diagnostics:
+\[
+s_t =
+\begin{bmatrix}
+s_t^{\mathrm{base}} \\
+\eta_{t-1} \\
+\|\varepsilon_t^{\mathrm{id}}\|_2 \\
+\|\Delta A_t\|_F / \|A_0\|_F \\
+\|\Delta B_t\|_F / \|B_0\|_F \\
+\mathbb{1}_{\mathrm{id\_valid}}
+\end{bmatrix}.
+\]
+
+The RL action is one scalar:
+\[
+a_t \in [-1, 1], \qquad
+\eta_t^{\mathrm{raw}} = \frac{a_t + 1}{2}, \qquad
+\eta_t = (1-\tau_\eta)\eta_{t-1} + \tau_\eta \eta_t^{\mathrm{raw}}.
+\]
+
+The reward is the same MPC-style stage reward already used in the unified
+polymer notebook family.
+
+\section*{Identification Model}
+
+Phase 1 reuses the current polymer scalar-matrix basis because it already fits
+the repo's linear-in-parameter workflow:
+
+\begin{itemize}
+\item one global physical-$A$ correction parameter
+\item one physical-$B$ correction parameter per input column
+\end{itemize}
+
+The batch regression is assembled on physical scaled-deviation dynamics:
+\[
+x_{t+1}^{\mathrm{phys}} - A_0 x_t^{\mathrm{phys}} - B_0 u_t
+= \Phi_t \theta.
+\]
+
+The default solver is ridge around the previous estimate:
+\[
+(\Phi^\top \Phi + (\lambda_{\mathrm{prev}} + \lambda_0)I)\theta
+= \Phi^\top r + \lambda_{\mathrm{prev}}\theta_{\mathrm{prev}}.
+\]
+
+An optional bounded least-squares mode is also supported through
+\texttt{scipy.optimize.lsq\_linear}.
+
+\section*{Runtime Flow}
+
+\begin{enumerate}
+\item Build the nominal observer state and the current blend-policy state.
+\item Choose the scalar RL action and map it to $\eta_t$.
+\item Form the blended prediction model from the current identified model and
+      $\eta_t$.
+\item Solve MPC using the blended prediction model.
+\item Step the plant.
+\item Update the observer using only the nominal augmented model and fixed
+      observer gain.
+\item Push the physical transition into the rolling identification buffer.
+\item Every \texttt{id\_update\_period} samples, solve the batch ID problem on
+      the last \texttt{id\_window} samples and accept the candidate only if the
+      identified model remains within configured $\Delta A$ / $\Delta B$ caps.
+\item Store the transition for RL and train the chosen continuous agent.
+\end{enumerate}
+
+\section*{Defaults Chosen}
+
+\begin{itemize}
+\item polymer only in phase 1
+\item default agent: TD3
+\item \texttt{id\_solver = ridge\_closed\_form}
+\item \texttt{id\_window = 80}
+\item \texttt{id\_update\_period = 5}
+\item \texttt{lambda\_prev = 10^{-2}}
+\item \texttt{lambda\_0 = 10^{-4}}
+\item \texttt{eta\_smoothing\_tau = 0.1}
+\item $\eta = 0$ during warm start
+\end{itemize}
+
+\section*{Diagnostics}
+
+The saved bundle records:
+
+\begin{itemize}
+\item $\eta$ and raw-action traces
+\item theta history
+\item identification residual and conditioning traces
+\item identified-model and blended-model Frobenius delta ratios
+\item ID update event / success / fallback flags
+\item standard closed-loop outputs, inputs, rewards, and observer traces
+\end{itemize}
+
+\section*{Scope Limits}
+
+\begin{itemize}
+\item Phase 1 is polymer only.
+\item The observer remains nominal and fixed.
+\item No changes are made to the existing matrix, structured-matrix, baseline,
+      horizon, weights, residual, or combined workflows.
+\item The richer row-wise identification basis is deferred to a later phase.
+\end{itemize}
+
+\end{document}

@@ -265,6 +265,53 @@ def normalize_result_bundle(result_bundle):
         if bundle.get("target_logprob_mean_trace") is None
         else np.asarray(bundle["target_logprob_mean_trace"], float).reshape(-1)
     )
+    bundle["eta_log"] = None if bundle.get("eta_log") is None else np.asarray(bundle["eta_log"], float).reshape(-1)
+    bundle["eta_raw_log"] = None if bundle.get("eta_raw_log") is None else np.asarray(bundle["eta_raw_log"], float).reshape(-1)
+    bundle["action_raw_log"] = None if bundle.get("action_raw_log") is None else np.asarray(bundle["action_raw_log"], float)
+    bundle["theta_hat_log"] = None if bundle.get("theta_hat_log") is None else np.asarray(bundle["theta_hat_log"], float)
+    bundle["id_residual_norm_log"] = (
+        None if bundle.get("id_residual_norm_log") is None else np.asarray(bundle["id_residual_norm_log"], float).reshape(-1)
+    )
+    bundle["id_condition_number_log"] = (
+        None
+        if bundle.get("id_condition_number_log") is None
+        else np.asarray(bundle["id_condition_number_log"], float).reshape(-1)
+    )
+    bundle["id_update_event_log"] = (
+        None if bundle.get("id_update_event_log") is None else np.asarray(bundle["id_update_event_log"], int).reshape(-1)
+    )
+    bundle["id_update_success_log"] = (
+        None if bundle.get("id_update_success_log") is None else np.asarray(bundle["id_update_success_log"], int).reshape(-1)
+    )
+    bundle["id_fallback_log"] = (
+        None if bundle.get("id_fallback_log") is None else np.asarray(bundle["id_fallback_log"], int).reshape(-1)
+    )
+    bundle["id_valid_flag_log"] = (
+        None if bundle.get("id_valid_flag_log") is None else np.asarray(bundle["id_valid_flag_log"], int).reshape(-1)
+    )
+    bundle["id_source_code_log"] = (
+        None if bundle.get("id_source_code_log") is None else np.asarray(bundle["id_source_code_log"], int).reshape(-1)
+    )
+    bundle["id_A_model_delta_ratio_log"] = (
+        None
+        if bundle.get("id_A_model_delta_ratio_log") is None
+        else np.asarray(bundle["id_A_model_delta_ratio_log"], float).reshape(-1)
+    )
+    bundle["id_B_model_delta_ratio_log"] = (
+        None
+        if bundle.get("id_B_model_delta_ratio_log") is None
+        else np.asarray(bundle["id_B_model_delta_ratio_log"], float).reshape(-1)
+    )
+    bundle["pred_A_model_delta_ratio_log"] = (
+        None
+        if bundle.get("pred_A_model_delta_ratio_log") is None
+        else np.asarray(bundle["pred_A_model_delta_ratio_log"], float).reshape(-1)
+    )
+    bundle["pred_B_model_delta_ratio_log"] = (
+        None
+        if bundle.get("pred_B_model_delta_ratio_log") is None
+        else np.asarray(bundle["pred_B_model_delta_ratio_log"], float).reshape(-1)
+    )
     bundle["retrace_c_clip_fraction_trace"] = (
         None
         if bundle.get("retrace_c_clip_fraction_trace") is None
@@ -1791,6 +1838,165 @@ def plot_structured_matrix_results_core(result_bundle, plot_cfg):
         "episode_avg_A_model_delta_ratio",
         "episode_avg_B_model_delta_ratio",
         "structured_update_fallback_count",
+    ):
+        if key in bundle:
+            stored_bundle[key] = bundle[key]
+    save_bundle_pickle(out_dir, stored_bundle)
+    return out_dir
+
+
+def plot_reid_batch_results_core(result_bundle, plot_cfg):
+    out_dir = plot_matrix_multiplier_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+    bundle = normalize_result_bundle(result_bundle)
+    save_pdf = bool(plot_cfg.get("save_pdf", False))
+
+    eta_log = bundle.get("eta_log")
+    eta_raw_log = bundle.get("eta_raw_log")
+    theta_hat_log = bundle.get("theta_hat_log")
+    theta_labels = list(bundle.get("theta_labels") or [])
+    id_residual_norm_log = bundle.get("id_residual_norm_log")
+    id_condition_number_log = bundle.get("id_condition_number_log")
+    id_update_event_log = bundle.get("id_update_event_log")
+    id_update_success_log = bundle.get("id_update_success_log")
+    id_fallback_log = bundle.get("id_fallback_log")
+    id_valid_flag_log = bundle.get("id_valid_flag_log")
+    id_A_ratio = bundle.get("id_A_model_delta_ratio_log")
+    id_B_ratio = bundle.get("id_B_model_delta_ratio_log")
+    pred_A_ratio = bundle.get("pred_A_model_delta_ratio_log")
+    pred_B_ratio = bundle.get("pred_B_model_delta_ratio_log")
+
+    if eta_log is not None and len(eta_log) > 0:
+        t_idx = np.arange(1, len(eta_log) + 1)
+        fig, axs = plt.subplots(2, 1, figsize=(8.6, 6.4), sharex=True)
+        if eta_raw_log is not None and len(eta_raw_log) == len(eta_log):
+            axs[0].step(t_idx, eta_raw_log, where="post")
+            axs[0].set_ylabel(r"$\eta_{raw}$")
+        else:
+            axs[0].step(t_idx, eta_log, where="post")
+            axs[0].set_ylabel(r"$\eta$")
+        axs[1].step(t_idx, eta_log, where="post")
+        axs[1].set_ylabel(r"$\eta$")
+        axs[1].set_xlabel("Step")
+        for ax in axs:
+            ax.set_ylim(-0.05, 1.05)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_reid_batch_eta", save_pdf=save_pdf)
+
+    if theta_hat_log is not None and theta_hat_log.size > 0:
+        theta_hat_log = np.asarray(theta_hat_log, float)
+        fig, axs = plt.subplots(theta_hat_log.shape[1], 1, figsize=(8.8, 3.0 + 1.9 * max(1, theta_hat_log.shape[1] - 1)), sharex=True)
+        if theta_hat_log.shape[1] == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.plot(np.arange(1, theta_hat_log.shape[0] + 1), theta_hat_log[:, idx])
+            ax.set_ylabel(theta_labels[idx] if idx < len(theta_labels) else f"theta_{idx + 1}")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Step")
+        _save_fig(fig, out_dir, "fig_reid_batch_theta_history", save_pdf=save_pdf)
+
+    diag_series = []
+    if id_residual_norm_log is not None:
+        diag_series.append(("ID residual", np.asarray(id_residual_norm_log, float)))
+    if id_condition_number_log is not None:
+        diag_series.append(("ID cond.", np.asarray(id_condition_number_log, float)))
+    if diag_series:
+        fig, axs = plt.subplots(len(diag_series), 1, figsize=(8.6, 3.0 + 2.2 * max(1, len(diag_series) - 1)), sharex=True)
+        if len(diag_series) == 1:
+            axs = [axs]
+        for ax, (label, series) in zip(axs, diag_series):
+            ax.plot(np.arange(1, len(series) + 1), series)
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Step")
+        _save_fig(fig, out_dir, "fig_reid_batch_id_diagnostics", save_pdf=save_pdf)
+
+    metrics = []
+    if id_A_ratio is not None:
+        metrics.append(("ID A Fro ratio", np.asarray(id_A_ratio, float)))
+    if id_B_ratio is not None:
+        metrics.append(("ID B Fro ratio", np.asarray(id_B_ratio, float)))
+    if pred_A_ratio is not None:
+        metrics.append(("Pred A Fro ratio", np.asarray(pred_A_ratio, float)))
+    if pred_B_ratio is not None:
+        metrics.append(("Pred B Fro ratio", np.asarray(pred_B_ratio, float)))
+    if metrics:
+        fig, axs = plt.subplots(len(metrics), 1, figsize=(8.8, 3.2 + 2.1 * max(1, len(metrics) - 1)), sharex=True)
+        if len(metrics) == 1:
+            axs = [axs]
+        for ax, (label, series) in zip(axs, metrics):
+            ax.plot(np.arange(1, len(series) + 1), series)
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Step")
+        _save_fig(fig, out_dir, "fig_reid_batch_model_delta_metrics", save_pdf=save_pdf)
+
+    event_series = []
+    if id_update_event_log is not None:
+        event_series.append(("ID update", np.asarray(id_update_event_log, float)))
+    if id_update_success_log is not None:
+        event_series.append(("ID success", np.asarray(id_update_success_log, float)))
+    if id_fallback_log is not None:
+        event_series.append(("Fallback", np.asarray(id_fallback_log, float)))
+    if id_valid_flag_log is not None:
+        event_series.append(("ID valid", np.asarray(id_valid_flag_log, float)))
+    if event_series:
+        fig, axs = plt.subplots(len(event_series), 1, figsize=(8.6, 3.0 + 1.8 * max(1, len(event_series) - 1)), sharex=True)
+        if len(event_series) == 1:
+            axs = [axs]
+        for ax, (label, series) in zip(axs, event_series):
+            ax.step(np.arange(1, len(series) + 1), series, where="post")
+            ax.set_ylim(-0.05, 1.05)
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Step")
+        _save_fig(fig, out_dir, "fig_reid_batch_id_events", save_pdf=save_pdf)
+
+    stored_path = os.path.join(out_dir, "input_data.pkl")
+    if os.path.exists(stored_path):
+        with open(stored_path, "rb") as handle:
+            stored_bundle = pickle.load(handle)
+    else:
+        stored_bundle = {}
+
+    for key in (
+        "method_family",
+        "prediction_model_mode",
+        "eta_log",
+        "eta_raw_log",
+        "action_raw_log",
+        "theta_labels",
+        "theta_low",
+        "theta_high",
+        "theta_hat_log",
+        "id_basis_name",
+        "id_residual_norm_log",
+        "id_condition_number_log",
+        "id_update_event_log",
+        "id_update_success_log",
+        "id_fallback_log",
+        "id_valid_flag_log",
+        "id_source_code_log",
+        "id_A_model_delta_ratio_log",
+        "id_B_model_delta_ratio_log",
+        "pred_A_model_delta_ratio_log",
+        "pred_B_model_delta_ratio_log",
+        "invalid_id_solve_count",
+        "id_solver_failure_count",
+        "id_update_success_count",
+        "force_eta_constant",
+        "disable_identification",
+        "state_dim_expected",
+        "action_dim",
     ):
         if key in bundle:
             stored_bundle[key] = bundle[key]

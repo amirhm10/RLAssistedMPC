@@ -481,6 +481,77 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
 }
 
+POLYMER_REID_BATCH_DEFAULTS = {
+    "agent_kind": "td3",  # Options: "td3" | "sac"
+    "run_mode": "disturb",  # Options: "nominal" | "disturb"
+    "state_mode": "mismatch",  # Options: "standard" | "mismatch"
+    **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
+    **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
+    **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
+    "run_profiles": {
+        ("td3", "nominal"): {"result_prefix": "td3_reid_batch_nominal", "compare_prefix": "nominal_compare_td3_reid_batch", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("td3", "disturb"): {"result_prefix": "td3_reid_batch_disturb", "compare_prefix": "disturb_compare_td3_reid_batch", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("sac", "nominal"): {"result_prefix": "sac_reid_batch_nominal", "compare_prefix": "nominal_compare_sac_reid_batch", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("sac", "disturb"): {"result_prefix": "sac_reid_batch_disturb", "compare_prefix": "disturb_compare_sac_reid_batch", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+    },
+    "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
+    "controller": {
+        # Nominal MPC settings reused from the polymer matrix workflow.
+        "predict_h": 9,
+        "cont_h": 3,
+        "Q1_penalty": 5.0,
+        "Q2_penalty": 1.0,
+        "R1_penalty": 1.0,
+        "R2_penalty": 1.0,
+        "mismatch_clip": 3.0,
+        "use_shifted_mpc_warm_start": False,
+        # Disturbance schedule inputs for the polymer case.
+        "nominal_qi": 108.0,
+        "nominal_qs": 459.0,
+        "nominal_ha": 1.05e6,
+        "qi_change": 0.85,
+        "qs_change": 1.3,
+        "ha_change": 0.85,
+    },
+    "reid": {
+        # Identification backend:
+        # - "ridge_closed_form": solve the ridge system, then clip theta
+        # - "bounded_least_squares": bounded LS solve on the augmented ridge system
+        "id_solver": "ridge_closed_form",
+        # Identification cadence:
+        # - id_window: rolling batch size in controller samples
+        # - id_update_period: solve the identification problem every N samples
+        "id_window": 80,
+        "id_update_period": 5,
+        # Ridge regularization:
+        # - lambda_prev: regularize toward the previous theta
+        # - lambda_0: regularize toward zero
+        "lambda_prev": 1e-2,
+        "lambda_0": 1e-4,
+        # Phase-1 theta bounds aligned with the current polymer matrix multiplier
+        # range of [0.95, 1.05] for the global A correction and the two B-column
+        # corrections, expressed as delta-from-nominal parameters.
+        "theta_low": np.array([-0.05, -0.05, -0.05], float),
+        "theta_high": np.array([0.05, 0.05, 0.05], float),
+        # Conservative correction caps measured as relative Frobenius deltas.
+        "delta_A_max": 0.05,
+        "delta_B_max": 0.05,
+        # Blend-factor smoothing:
+        # - 0.0 -> no change
+        # - 1.0 -> no smoothing
+        "eta_smoothing_tau": 0.1,
+        # Debug/test knobs:
+        # - force_eta_constant: None for learned eta, or a fixed [0, 1] blend
+        # - disable_identification: keep the identified model nominal
+        "force_eta_constant": None,
+        "disable_identification": False,
+    },
+    "td3_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
+    "sac_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["sac_agent"]),
+    "reward": _copy_reward_defaults(),
+    "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
+}
+
 POLYMER_WEIGHT_DEFAULTS = {
     "agent_kind": "td3",
     "run_mode": "nominal",
@@ -801,6 +872,7 @@ POLYMER_NOTEBOOK_DEFAULTS = {
     "horizon_dueling": POLYMER_HORIZON_DUELING_DEFAULTS,
     "matrix": POLYMER_MATRIX_DEFAULTS,
     "structured_matrix": POLYMER_STRUCTURED_MATRIX_DEFAULTS,
+    "reid_batch": POLYMER_REID_BATCH_DEFAULTS,
     "weights": POLYMER_WEIGHT_DEFAULTS,
     "residual": POLYMER_RESIDUAL_DEFAULTS,
     "combined": POLYMER_COMBINED_DEFAULTS,

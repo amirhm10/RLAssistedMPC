@@ -7,7 +7,6 @@ import numpy as np
 from .config import (
     DELTA_T_HOURS,
     DISTILLATION_BASELINE_RUN_PROFILES,
-    DISTILLATION_BASELINE_SETPOINTS_PHYS,
     DISTILLATION_COMBINED_RUN_PROFILES,
     DISTILLATION_COMBINED_SETPOINTS_PHYS,
     DISTILLATION_INPUT_BOUNDS,
@@ -52,41 +51,6 @@ def _copy_replay_defaults():
         "replay_beta_start": 0.4,
         "replay_beta_end": 1.0,
         "replay_beta_steps": 50_000,
-    }
-
-
-def _copy_matrix_robust_defaults():
-    return {
-        # Fixed-estimator / robust-prediction MPC controls for matrix methods:
-        # - input_tightening_frac: fraction of the MPC input span removed from
-        #   each side before the assisted solve; practical range is [0.0, 0.10]
-        # - enable_accept_norm_test: reject assisted models that move too far
-        #   from the nominal A/B matrices in relative Frobenius norm
-        # - eps_A_norm_frac / eps_B_norm_frac: relative matrix-deviation
-        #   thresholds used by the norm acceptance test; practical range is
-        #   roughly [0.01, 0.20] depending on how aggressive the multipliers are
-        # - enable_accept_prediction_test: reject assisted models whose short
-        #   nominal-vs-assisted output rollout deviates too far
-        # - prediction_check_horizon: positive integer short probe horizon used
-        #   by the acceptance test; 1-5 is the practical range for this repo
-        # - eps_y_pred_scaled: max allowed scaled output prediction deviation;
-        #   practical range is roughly [0.02, 0.30]
-        # - enable_solver_fallback: when True, allow a final nominal/full-bounds
-        #   solve if the tightened solve fails
-        # - probe_input_mode: currently only "hold_current_input" is supported
-        # - recalculate_observer_on_matrix_change: retained only for backward
-        #   compatibility; matrix methods now ignore it because estimation is
-        #   fixed nominal by design
-        "input_tightening_frac": 0.02,
-        "enable_accept_norm_test": True,
-        "eps_A_norm_frac": 0.05,
-        "eps_B_norm_frac": 0.05,
-        "enable_accept_prediction_test": True,
-        "prediction_check_horizon": 2,
-        "eps_y_pred_scaled": 0.10,
-        "enable_solver_fallback": True,
-        "probe_input_mode": "hold_current_input",
-        "recalculate_observer_on_matrix_change": False,
     }
 
 
@@ -168,9 +132,8 @@ DISTILLATION_SYSTEM_SETUP = {
         "u_max": np.asarray(DISTILLATION_INPUT_BOUNDS["u_max"], float).copy(),
     },
     "setpoint_range_phys": np.asarray(DISTILLATION_SETPOINT_RANGE_PHYS, float).copy(),
-    # Distillation intentionally uses different setpoint pairs depending on the
-    # study family. Keep those separate here so the notebooks stay consistent.
-    "baseline_setpoints_phys": np.asarray(DISTILLATION_BASELINE_SETPOINTS_PHYS, float).copy(),
+    # Use one shared supervisory setpoint pair across the baseline and RL
+    # notebooks so all distillation studies compare against the same targets.
     "rl_setpoints_phys": np.asarray(DISTILLATION_RL_SETPOINTS_PHYS, float).copy(),
     "combined_setpoints_phys": np.asarray(DISTILLATION_COMBINED_SETPOINTS_PHYS, float).copy(),
     "observer_poles": np.asarray(DISTILLATION_OBSERVER_POLES, float).copy(),
@@ -360,7 +323,6 @@ DISTILLATION_MATRIX_DEFAULTS = {
         },
         "mismatch_clip": 3.0,
         "use_shifted_mpc_warm_start": False,
-        **_copy_matrix_robust_defaults(),
         "nominal_qi": 0.0,
         "nominal_qs": 0.0,
         "nominal_ha": 0.0,
@@ -443,7 +405,6 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "R2_penalty": 1.0,
         "mismatch_clip": 3.0,
         "use_shifted_mpc_warm_start": False,
-        **_copy_matrix_robust_defaults(),
         "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
         "range_profile": "tight",  # Options: "tight" | "default" | "wide". Tight is the safe first default.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
@@ -625,7 +586,6 @@ DISTILLATION_COMBINED_DEFAULTS = {
         "residual_high": np.asarray(RESIDUAL_BOUNDS["high"], float).copy(),
         "mismatch_clip": 3.0,
         "use_shifted_mpc_warm_start": False,
-        **_copy_matrix_robust_defaults(),
         "nominal_qi": 0.0,
         "nominal_qs": 0.0,
         "nominal_ha": 0.0,

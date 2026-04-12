@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+import scipy.optimize as spo
 
 from Simulation.mpc import MpcSolverGeneral
 from utils.helpers import (
@@ -14,12 +15,6 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
-from utils.robust_matrix_prediction import (
-    build_tightened_input_bounds,
-    repeat_bounds_for_horizon,
-    solve_prediction_mpc_with_fallback,
-    validate_prediction_candidate,
-)
 from utils.state_features import build_rl_state, default_mismatch_scale
 
 
@@ -90,6 +85,30 @@ def _extract_losses(agent, prefix):
         if hasattr(agent, attr):
             payload[key] = np.asarray(getattr(agent, attr), float)
     return payload
+
+
+def _solve_assisted_prediction_step(mpc_obj, y_sp, u_prev_dev, x0_model, initial_guess, bounds, step_idx):
+    try:
+        sol = spo.minimize(
+            lambda x: mpc_obj.mpc_opt_fun(x, y_sp, u_prev_dev, x0_model),
+            np.asarray(initial_guess, float),
+            bounds=bounds,
+            constraints=[],
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Combined matrix MPC solve failed at step {step_idx}: {exc}") from exc
+
+    success = bool(
+        sol is not None
+        and bool(getattr(sol, "success", True))
+        and getattr(sol, "x", None) is not None
+        and np.all(np.isfinite(np.asarray(sol.x, float)))
+        and np.isfinite(float(getattr(sol, "fun", 0.0)))
+    )
+    if not success:
+        message = str(getattr(sol, "message", "unknown solver failure"))
+        raise RuntimeError(f"Combined matrix MPC solve failed at step {step_idx}: {message}")
+    return sol
 
 
 def run_combined_supervisor(combined_cfg, runtime_ctx):
@@ -243,23 +262,6 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     recalculate_observer_on_matrix_change_requested = bool(
         combined_cfg.get("recalculate_observer_on_matrix_change", False)
     )
-    input_tightening_frac = float(matrix_cfg.get("input_tightening_frac", combined_cfg.get("input_tightening_frac", 0.02)))
-    enable_accept_norm_test = bool(matrix_cfg.get("enable_accept_norm_test", combined_cfg.get("enable_accept_norm_test", True)))
-    eps_A_norm_frac = float(matrix_cfg.get("eps_A_norm_frac", combined_cfg.get("eps_A_norm_frac", 0.05)))
-    eps_B_norm_frac = float(matrix_cfg.get("eps_B_norm_frac", combined_cfg.get("eps_B_norm_frac", 0.05)))
-    enable_accept_prediction_test = bool(
-        matrix_cfg.get("enable_accept_prediction_test", combined_cfg.get("enable_accept_prediction_test", True))
-    )
-    prediction_check_horizon = int(
-        matrix_cfg.get("prediction_check_horizon", combined_cfg.get("prediction_check_horizon", 2))
-    )
-    eps_y_pred_scaled = float(matrix_cfg.get("eps_y_pred_scaled", combined_cfg.get("eps_y_pred_scaled", 0.10)))
-    enable_solver_fallback = bool(
-        matrix_cfg.get("enable_solver_fallback", combined_cfg.get("enable_solver_fallback", True))
-    )
-    probe_input_mode = str(matrix_cfg.get("probe_input_mode", combined_cfg.get("probe_input_mode", "hold_current_input"))).lower()
-    if probe_input_mode != "hold_current_input":
-        raise ValueError("combined matrix_cfg['probe_input_mode'] must currently be 'hold_current_input'.")
 
     k_rel = np.asarray(reward_params.get("k_rel", np.array([0.003, 0.0003])), float)
     band_floor_phys = np.asarray(reward_params.get("band_floor_phys", np.array([0.006, 0.07])), float)
@@ -336,25 +338,10 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     last_residual_raw = None
     test = False
     nonfinite_matrix_action_count = 0
-    matrix_model_accepted_log = np.zeros(nFE, dtype=int)
-    matrix_model_source_code_log = np.zeros(nFE, dtype=int)
-    matrix_model_source_log = np.empty(nFE, dtype=object)
-    matrix_assisted_model_used_log = np.zeros(nFE, dtype=int)
     matrix_A_model_delta_ratio_log = np.zeros(nFE, dtype=float)
     matrix_B_model_delta_ratio_log = np.zeros(nFE, dtype=float)
-    matrix_prediction_max_dev_log = np.zeros(nFE, dtype=float)
-    matrix_prediction_mean_dev_log = np.zeros(nFE, dtype=float)
-    matrix_first_move_delta_vs_nominal_log = np.full((nFE, n_inputs), np.nan, dtype=float)
-    matrix_reject_reason_finite_log = np.zeros(nFE, dtype=int)
-    matrix_reject_reason_bounds_log = np.zeros(nFE, dtype=int)
-    matrix_reject_reason_norm_log = np.zeros(nFE, dtype=int)
-    matrix_reject_reason_prediction_log = np.zeros(nFE, dtype=int)
-
-    bounds_payload = build_tightened_input_bounds(
-        combined_cfg["b_min"],
-        combined_cfg["b_max"],
-        input_tightening_frac,
-    )
+    b_min = np.asarray(combined_cfg["b_min"], float).reshape(-1)
+    b_max = np.asarray(combined_cfg["b_max"], float).reshape(-1)
 
     current_states = {}
     current_state_debugs = {}
@@ -498,89 +485,37 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         horizon_trace[i, :] = (current_Hp, current_Hc)
         horizon_action_trace[i] = int(h_idx)
 
-        bounds = repeat_bounds_for_horizon(
-            bounds_payload["b_min"],
-            bounds_payload["b_max"],
-            current_Hc,
-        )
-        tightened_bounds = repeat_bounds_for_horizon(
-            bounds_payload["b_min_tight"],
-            bounds_payload["b_max_tight"],
-            current_Hc,
+        bounds = tuple(
+            (float(b_min[j]), float(b_max[j]))
+            for _ in range(current_Hc)
+            for j in range(b_min.size)
         )
 
-        matrix_validation = validate_prediction_candidate(
-            A_nom=A_base,
-            B_nom=B_base,
-            A_candidate=A_now,
-            B_candidate=B_now,
-            C=C_aug,
-            x0=xhatdhat[:, i],
-            u_probe=scaled_current_input_dev if probe_input_mode == "hold_current_input" else scaled_current_input_dev,
-            low_bounds=model_low,
-            high_bounds=model_high,
-            mapped_action=model_mapped,
-            enable_accept_norm_test=enable_accept_norm_test,
-            eps_A_norm_frac=eps_A_norm_frac,
-            eps_B_norm_frac=eps_B_norm_frac,
-            enable_accept_prediction_test=enable_accept_prediction_test,
-            prediction_check_horizon=prediction_check_horizon,
-            eps_y_pred_scaled=eps_y_pred_scaled,
-        )
-        matrix_model_accepted_log[i] = int(matrix_validation["accepted"])
-        matrix_prediction_max_dev_log[i] = float(matrix_validation["prediction_max_dev"])
-        matrix_prediction_mean_dev_log[i] = float(matrix_validation["prediction_mean_dev"])
-        matrix_reject_reason_finite_log[i] = int(not matrix_validation["finite_ok"])
-        matrix_reject_reason_bounds_log[i] = int(
-            matrix_validation["finite_ok"] and not matrix_validation["bounds_ok"]
-        )
-        matrix_reject_reason_norm_log[i] = int(
-            matrix_validation["finite_ok"]
-            and matrix_validation["bounds_ok"]
-            and not matrix_validation["norm_ok"]
-        )
-        matrix_reject_reason_prediction_log[i] = int(
-            matrix_validation["finite_ok"]
-            and matrix_validation["bounds_ok"]
-            and matrix_validation["norm_ok"]
-            and not matrix_validation["prediction_ok"]
-        )
+        if not (np.all(np.isfinite(A_now)) and np.all(np.isfinite(B_now))):
+            raise RuntimeError(f"Combined matrix prediction model became non-finite at step {i}.")
 
         ic_opt_step = current_ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * current_Hc)
-        solve_info = solve_prediction_mpc_with_fallback(
+        MPC_obj.A = A_now
+        MPC_obj.B = B_now
+        sol = _solve_assisted_prediction_step(
             mpc_obj=MPC_obj,
             y_sp=y_sp[i, :],
             u_prev_dev=scaled_current_input_dev,
             x0_model=xhatdhat[:, i],
             initial_guess=ic_opt_step,
-            A_nom=A_base,
-            B_nom=B_base,
-            A_assisted=A_now,
-            B_assisted=B_now,
-            candidate_accepted=bool(matrix_validation["accepted"]),
-            tightened_bounds=tightened_bounds,
-            original_bounds=bounds,
-            constraints=[],
-            enable_solver_fallback=enable_solver_fallback,
-            compute_nominal_reference=True,
-        )
-        matrix_model_source_log[i] = solve_info["source"]
-        matrix_model_source_code_log[i] = int(solve_info["source_code"])
-        matrix_assisted_model_used_log[i] = int(solve_info["source"] == "assisted_tight")
-        matrix_first_move_delta_vs_nominal_log[i, :] = np.asarray(
-            solve_info["first_move_delta_vs_nominal_tight"],
-            float,
+            bounds=bounds,
+            step_idx=i,
         )
         if use_shifted_mpc_warm_start:
             current_ic_opt = shift_control_sequence(
-                solve_info["sol"].x[: n_inputs * current_Hc],
+                sol.x[: n_inputs * current_Hc],
                 n_inputs,
                 current_Hc,
             )
         else:
             current_ic_opt = np.zeros(n_inputs * current_Hc)
 
-        u_base = np.asarray(solve_info["sol"].x[:n_inputs], float) + ss_scaled_inputs
+        u_base = np.asarray(sol.x[:n_inputs], float) + ss_scaled_inputs
         u_base = np.clip(u_base, u_min_scaled_abs, u_max_scaled_abs)
         u_base_scaled[i, :] = u_base
 
@@ -833,36 +768,8 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "nonfinite_matrix_action_count": int(nonfinite_matrix_action_count),
         "estimator_mode": "fixed_nominal",
         "matrix_prediction_model_mode": "rl_assisted",
-        "matrix_input_tightening_frac": float(input_tightening_frac),
-        "matrix_input_tightening_margin": np.asarray(bounds_payload["margin"], float),
-        "matrix_tightened_b_min": np.asarray(bounds_payload["b_min_tight"], float),
-        "matrix_tightened_b_max": np.asarray(bounds_payload["b_max_tight"], float),
-        "matrix_enable_accept_norm_test": bool(enable_accept_norm_test),
-        "matrix_eps_A_norm_frac": float(eps_A_norm_frac),
-        "matrix_eps_B_norm_frac": float(eps_B_norm_frac),
-        "matrix_enable_accept_prediction_test": bool(enable_accept_prediction_test),
-        "matrix_prediction_check_horizon": int(prediction_check_horizon),
-        "matrix_eps_y_pred_scaled": float(eps_y_pred_scaled),
-        "matrix_enable_solver_fallback": bool(enable_solver_fallback),
-        "matrix_probe_input_mode": probe_input_mode,
-        "matrix_model_accepted_log": matrix_model_accepted_log,
-        "matrix_model_source_log": matrix_model_source_log,
-        "matrix_model_source_code_log": matrix_model_source_code_log,
-        "matrix_assisted_model_used_log": matrix_assisted_model_used_log,
         "matrix_A_model_delta_ratio_log": matrix_A_model_delta_ratio_log,
         "matrix_B_model_delta_ratio_log": matrix_B_model_delta_ratio_log,
-        "matrix_prediction_max_dev_log": matrix_prediction_max_dev_log,
-        "matrix_prediction_mean_dev_log": matrix_prediction_mean_dev_log,
-        "matrix_first_move_delta_vs_nominal_log": matrix_first_move_delta_vs_nominal_log,
-        "matrix_reject_reason_finite_log": matrix_reject_reason_finite_log,
-        "matrix_reject_reason_bounds_log": matrix_reject_reason_bounds_log,
-        "matrix_reject_reason_norm_log": matrix_reject_reason_norm_log,
-        "matrix_reject_reason_prediction_log": matrix_reject_reason_prediction_log,
-        "matrix_reject_reason_finite_count": int(np.sum(matrix_reject_reason_finite_log)),
-        "matrix_reject_reason_bounds_count": int(np.sum(matrix_reject_reason_bounds_log)),
-        "matrix_reject_reason_norm_count": int(np.sum(matrix_reject_reason_norm_log)),
-        "matrix_reject_reason_prediction_count": int(np.sum(matrix_reject_reason_prediction_log)),
-        "matrix_assisted_model_fraction": float(np.mean(matrix_assisted_model_used_log)) if nFE > 0 else 0.0,
         "rho_log": rho_log,
         "horizon_innovation_log": mismatch_logs["horizon"]["innovation"],
         "horizon_tracking_error_log": mismatch_logs["horizon"]["tracking_error"],

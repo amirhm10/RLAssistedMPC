@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.optimize as spo
 
 from utils.helpers import (
     apply_min_max,
@@ -10,12 +11,6 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
-from utils.robust_matrix_prediction import (
-    build_tightened_input_bounds,
-    repeat_bounds_for_horizon,
-    solve_prediction_mpc_with_fallback,
-    validate_prediction_candidate,
-)
 from utils.state_features import build_rl_state, default_mismatch_scale
 
 
@@ -40,6 +35,30 @@ def _relative_fro(candidate, nominal):
     if denom <= 0.0:
         return 0.0
     return float(np.linalg.norm(candidate - nominal, ord="fro") / denom)
+
+
+def _solve_assisted_prediction_step(mpc_obj, y_sp, u_prev_dev, x0_model, initial_guess, bounds, step_idx):
+    try:
+        sol = spo.minimize(
+            lambda x: mpc_obj.mpc_opt_fun(x, y_sp, u_prev_dev, x0_model),
+            np.asarray(initial_guess, float),
+            bounds=bounds,
+            constraints=[],
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Assisted matrix MPC solve failed at step {step_idx}: {exc}") from exc
+
+    success = bool(
+        sol is not None
+        and bool(getattr(sol, "success", True))
+        and getattr(sol, "x", None) is not None
+        and np.all(np.isfinite(np.asarray(sol.x, float)))
+        and np.isfinite(float(getattr(sol, "fun", 0.0)))
+    )
+    if not success:
+        message = str(getattr(sol, "message", "unknown solver failure"))
+        raise RuntimeError(f"Assisted matrix MPC solve failed at step {step_idx}: {message}")
+    return sol
 
 
 def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
@@ -81,18 +100,6 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
     use_shifted_mpc_warm_start = bool(matrix_cfg.get("use_shifted_mpc_warm_start", False))
     recalculate_observer_requested = bool(matrix_cfg.get("recalculate_observer_on_matrix_change", False))
-    input_tightening_frac = float(matrix_cfg.get("input_tightening_frac", 0.02))
-    enable_accept_norm_test = bool(matrix_cfg.get("enable_accept_norm_test", True))
-    eps_A_norm_frac = float(matrix_cfg.get("eps_A_norm_frac", 0.05))
-    eps_B_norm_frac = float(matrix_cfg.get("eps_B_norm_frac", 0.05))
-    enable_accept_prediction_test = bool(matrix_cfg.get("enable_accept_prediction_test", True))
-    prediction_check_horizon = int(matrix_cfg.get("prediction_check_horizon", 2))
-    eps_y_pred_scaled = float(matrix_cfg.get("eps_y_pred_scaled", 0.10))
-    enable_solver_fallback = bool(matrix_cfg.get("enable_solver_fallback", True))
-    probe_input_mode = str(matrix_cfg.get("probe_input_mode", "hold_current_input")).lower()
-    if probe_input_mode != "hold_current_input":
-        raise ValueError("matrix_cfg['probe_input_mode'] must currently be 'hold_current_input'.")
-
     mismatch_scale = None
     mismatch_clip = matrix_cfg.get("mismatch_clip", 3.0)
     if state_mode == "mismatch":
@@ -158,19 +165,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
 
-    model_accepted_log = np.zeros(nFE, dtype=int)
-    model_source_code_log = np.zeros(nFE, dtype=int)
-    model_source_log = np.empty(nFE, dtype=object)
-    assisted_model_used_log = np.zeros(nFE, dtype=int)
     A_model_delta_ratio_log = np.zeros(nFE)
     B_model_delta_ratio_log = np.zeros(nFE)
-    prediction_max_dev_log = np.zeros(nFE)
-    prediction_mean_dev_log = np.zeros(nFE)
-    first_move_delta_vs_nominal_log = np.full((nFE, n_inputs), np.nan, dtype=float)
-    reject_reason_finite_log = np.zeros(nFE, dtype=int)
-    reject_reason_bounds_log = np.zeros(nFE, dtype=int)
-    reject_reason_norm_log = np.zeros(nFE, dtype=int)
-    reject_reason_prediction_log = np.zeros(nFE, dtype=int)
 
     A_base = np.asarray(mpc_obj.A, float).copy()
     B_base = np.asarray(mpc_obj.B, float).copy()
@@ -181,16 +177,12 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     nonfinite_matrix_action_count = 0
 
     cont_h = int(matrix_cfg.get("cont_h", 1))
-    bounds_payload = build_tightened_input_bounds(
-        matrix_cfg["b_min"],
-        matrix_cfg["b_max"],
-        input_tightening_frac,
-    )
-    original_bounds = repeat_bounds_for_horizon(bounds_payload["b_min"], bounds_payload["b_max"], cont_h)
-    tightened_bounds = repeat_bounds_for_horizon(
-        bounds_payload["b_min_tight"],
-        bounds_payload["b_max_tight"],
-        cont_h,
+    b_min = np.asarray(matrix_cfg["b_min"], float).reshape(-1)
+    b_max = np.asarray(matrix_cfg["b_max"], float).reshape(-1)
+    original_bounds = tuple(
+        (float(b_min[j]), float(b_max[j]))
+        for _ in range(cont_h)
+        for j in range(b_min.size)
     )
     ic_opt = np.zeros(n_inputs * cont_h)
 
@@ -249,71 +241,28 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
             B_base[:n_phys, :],
         )
 
-        validation = validate_prediction_candidate(
-            A_nom=A_base,
-            B_nom=B_base,
-            A_candidate=A_candidate,
-            B_candidate=B_candidate,
-            C=C_aug,
-            x0=xhatdhat[:, i],
-            u_probe=scaled_current_input_dev if probe_input_mode == "hold_current_input" else scaled_current_input_dev,
-            low_bounds=low_coef,
-            high_bounds=high_coef,
-            mapped_action=action_mapped,
-            enable_accept_norm_test=enable_accept_norm_test,
-            eps_A_norm_frac=eps_A_norm_frac,
-            eps_B_norm_frac=eps_B_norm_frac,
-            enable_accept_prediction_test=enable_accept_prediction_test,
-            prediction_check_horizon=prediction_check_horizon,
-            eps_y_pred_scaled=eps_y_pred_scaled,
-        )
-
-        model_accepted_log[i] = int(validation["accepted"])
-        prediction_max_dev_log[i] = float(validation["prediction_max_dev"])
-        prediction_mean_dev_log[i] = float(validation["prediction_mean_dev"])
-        reject_reason_finite_log[i] = int(not validation["finite_ok"])
-        reject_reason_bounds_log[i] = int(validation["finite_ok"] and not validation["bounds_ok"])
-        reject_reason_norm_log[i] = int(validation["finite_ok"] and validation["bounds_ok"] and not validation["norm_ok"])
-        reject_reason_prediction_log[i] = int(
-            validation["finite_ok"]
-            and validation["bounds_ok"]
-            and validation["norm_ok"]
-            and not validation["prediction_ok"]
-        )
+        if not (np.all(np.isfinite(A_candidate)) and np.all(np.isfinite(B_candidate))):
+            raise RuntimeError(f"Assisted matrix prediction model became non-finite at step {i}.")
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
-        solve_info = solve_prediction_mpc_with_fallback(
+        mpc_obj.A = A_candidate
+        mpc_obj.B = B_candidate
+        sol = _solve_assisted_prediction_step(
             mpc_obj=mpc_obj,
             y_sp=y_sp[i, :],
             u_prev_dev=scaled_current_input_dev,
             x0_model=xhatdhat[:, i],
             initial_guess=ic_opt_step,
-            A_nom=A_base,
-            B_nom=B_base,
-            A_assisted=A_candidate,
-            B_assisted=B_candidate,
-            candidate_accepted=bool(validation["accepted"]),
-            tightened_bounds=tightened_bounds,
-            original_bounds=original_bounds,
-            constraints=[],
-            enable_solver_fallback=enable_solver_fallback,
-            compute_nominal_reference=True,
-        )
-
-        model_source_log[i] = solve_info["source"]
-        model_source_code_log[i] = int(solve_info["source_code"])
-        assisted_model_used_log[i] = int(solve_info["source"] == "assisted_tight")
-        first_move_delta_vs_nominal_log[i, :] = np.asarray(
-            solve_info["first_move_delta_vs_nominal_tight"],
-            float,
+            bounds=original_bounds,
+            step_idx=i,
         )
 
         if use_shifted_mpc_warm_start:
-            ic_opt = shift_control_sequence(solve_info["sol"].x[: n_inputs * cont_h], n_inputs, cont_h)
+            ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
         else:
             ic_opt = np.zeros(n_inputs * cont_h)
 
-        u_mpc[i, :] = solve_info["sol"].x[:n_inputs] + ss_scaled_inputs
+        u_mpc[i, :] = sol.x[:n_inputs] + ss_scaled_inputs
         u_plant = reverse_min_max(u_mpc[i, :], data_min[:n_inputs], data_max[:n_inputs])
         delta_u = u_mpc[i, :] - scaled_current_input
         delta_u_storage[i, :] = delta_u
@@ -379,8 +328,6 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
                 float(np.mean(alpha_log[max(0, i - time_in_sub_episodes + 1) : i + 1])),
                 "| delta:",
                 np.mean(delta_log[max(0, i - time_in_sub_episodes + 1) : i + 1, :], axis=0),
-                "| accepted:",
-                float(np.mean(model_accepted_log[max(0, i - time_in_sub_episodes + 1) : i + 1])),
             )
 
     mpc_obj.A = A_base
@@ -448,34 +395,6 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         else None,
         "estimator_mode": "fixed_nominal",
         "prediction_model_mode": "rl_assisted",
-        "input_tightening_frac": float(input_tightening_frac),
-        "input_tightening_margin": np.asarray(bounds_payload["margin"], float),
-        "tightened_b_min": np.asarray(bounds_payload["b_min_tight"], float),
-        "tightened_b_max": np.asarray(bounds_payload["b_max_tight"], float),
-        "enable_accept_norm_test": bool(enable_accept_norm_test),
-        "eps_A_norm_frac": float(eps_A_norm_frac),
-        "eps_B_norm_frac": float(eps_B_norm_frac),
-        "enable_accept_prediction_test": bool(enable_accept_prediction_test),
-        "prediction_check_horizon": int(prediction_check_horizon),
-        "eps_y_pred_scaled": float(eps_y_pred_scaled),
-        "enable_solver_fallback": bool(enable_solver_fallback),
-        "probe_input_mode": probe_input_mode,
-        "model_accepted_log": model_accepted_log,
-        "model_source_log": model_source_log,
-        "model_source_code_log": model_source_code_log,
-        "assisted_model_used_log": assisted_model_used_log,
-        "prediction_max_dev_log": prediction_max_dev_log,
-        "prediction_mean_dev_log": prediction_mean_dev_log,
-        "first_move_delta_vs_nominal_log": first_move_delta_vs_nominal_log,
-        "reject_reason_finite_log": reject_reason_finite_log,
-        "reject_reason_bounds_log": reject_reason_bounds_log,
-        "reject_reason_norm_log": reject_reason_norm_log,
-        "reject_reason_prediction_log": reject_reason_prediction_log,
-        "reject_reason_finite_count": int(np.sum(reject_reason_finite_log)),
-        "reject_reason_bounds_count": int(np.sum(reject_reason_bounds_log)),
-        "reject_reason_norm_count": int(np.sum(reject_reason_norm_log)),
-        "reject_reason_prediction_count": int(np.sum(reject_reason_prediction_log)),
-        "assisted_model_fraction": float(np.mean(assisted_model_used_log)) if nFE > 0 else 0.0,
     }
 
     for attr in (

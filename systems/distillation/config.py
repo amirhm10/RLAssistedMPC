@@ -17,7 +17,8 @@ DISTILLATION_INPUT_BOUNDS = {
     "u_max": np.array([460000.0, 150.0], dtype=float),
 }
 DISTILLATION_SETPOINT_RANGE_PHYS = np.array([[0.002, -26.0], [0.05, -16.0]], dtype=float)
-DISTILLATION_BASELINE_SETPOINTS_PHYS = np.array([[0.013, -23.0], [0.018, -22.0]], dtype=float)
+# Use one shared supervisory setpoint pair across all distillation notebooks so
+# baseline and RL studies are directly comparable by default.
 DISTILLATION_RL_SETPOINTS_PHYS = np.array([[0.013, -23.0], [0.028, -21.0]], dtype=float)
 # Keep the combined study on the same supervisory targets as the other
 # distillation RL notebooks so warm-start MPC behavior is directly comparable.
@@ -47,19 +48,18 @@ RESIDUAL_BOUNDS = {
 }
 
 RL_REWARD_DEFAULTS = {
-    "k_rel": np.array([0.08, 0.01], dtype=float),
-    "band_floor_phys": np.array([0.0015, 0.12], dtype=float),
+    "k_rel": np.array([0.03, 0.004], dtype=float),
+    "band_floor_phys": np.array([0.0007, 0.06], dtype=float),
     "Q_diag": np.array([3.7e4, 1.5e3], dtype=float),
     "R_diag": np.array([2.5e3, 2.5e3], dtype=float),
-    "tau_frac": 0.7,
+    "tau_frac": 0.5,
     "gamma_out": 0.5,
-    "gamma_in": 0.5,
-    # Match the archived distillation horizon notebook reward call.
-    "beta": 2.0,
+    "gamma_in": 0.75,
+    "beta": 5.0,
     "gate": "geom",
-    "lam_in": 1.0,
+    "lam_in": 3.0,
     "bonus_kind": "exp",
-    "bonus_k": 12.0,
+    "bonus_k": 18.0,
     "bonus_p": 0.6,
     "bonus_c": 20.0,
     "reward_scale": 0.1,

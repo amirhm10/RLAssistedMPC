@@ -90,6 +90,33 @@ class ReplayBuffer:
     def __len__(self):
         return self.size
 
+    def export_snapshot(self, ordered: bool = True) -> dict:
+        if self.size <= 0:
+            return {
+                "buffer_type": type(self).__name__,
+                "size": 0,
+                "capacity": int(self.capacity),
+                "ptr": int(self.ptr),
+                "current_episode_id": int(self.current_episode_id),
+            }
+        idx = self._ordered_indices() if ordered else np.arange(self.size, dtype=np.int64)
+        return {
+            "buffer_type": type(self).__name__,
+            "size": int(self.size),
+            "capacity": int(self.capacity),
+            "ptr": int(self.ptr),
+            "current_episode_id": int(self.current_episode_id),
+            "ordered": bool(ordered),
+            "states": self.states[idx].copy(),
+            "actions": self.actions[idx].copy(),
+            "rewards": self.rewards[idx].copy(),
+            "next_states": self.next_states[idx].copy(),
+            "dones": self.dones[idx].copy(),
+            "discounts": self.discounts[idx].copy(),
+            "n_actual": self.n_actual[idx].copy(),
+            "episode_ids": self.episode_ids[idx].copy(),
+        }
+
 
 class PERRecentReplayBuffer:
     def __init__(
@@ -287,3 +314,50 @@ class PERRecentReplayBuffer:
 
     def __len__(self):
         return self.size
+
+    def export_snapshot(self, ordered: bool = True) -> dict:
+        if self.size <= 0:
+            return {
+                "buffer_type": type(self).__name__,
+                "size": 0,
+                "capacity": int(self.capacity),
+                "ptr": int(self.ptr),
+                "current_episode_id": int(self.current_episode_id),
+                "step_counter": int(self.step_counter),
+                "alpha": float(self.alpha),
+                "beta_start": float(self.beta_start),
+                "beta_end": float(self.beta_end),
+                "beta_steps": int(self.beta_steps),
+                "frac_per": float(self.frac_per),
+                "frac_recent": float(self.frac_recent),
+                "recent_window": int(self.recent_window),
+                "eps": float(self.eps),
+            }
+        idx = self._ordered_indices() if ordered else np.arange(self.size, dtype=np.int64)
+        return {
+            "buffer_type": type(self).__name__,
+            "size": int(self.size),
+            "capacity": int(self.capacity),
+            "ptr": int(self.ptr),
+            "current_episode_id": int(self.current_episode_id),
+            "step_counter": int(self.step_counter),
+            "ordered": bool(ordered),
+            "alpha": float(self.alpha),
+            "beta_start": float(self.beta_start),
+            "beta_end": float(self.beta_end),
+            "beta_steps": int(self.beta_steps),
+            "frac_per": float(self.frac_per),
+            "frac_recent": float(self.frac_recent),
+            "recent_window": int(self.recent_window),
+            "eps": float(self.eps),
+            "states": self.states[idx].copy(),
+            "actions": self.actions[idx].copy(),
+            "rewards": self.rewards[idx].copy(),
+            "next_states": self.next_states[idx].copy(),
+            "dones": self.dones[idx].copy(),
+            "discounts": self.discounts[idx].copy(),
+            "n_actual": self.n_actual[idx].copy(),
+            "episode_ids": self.episode_ids[idx].copy(),
+            "birth_step": self.birth_step[idx].copy(),
+            "priorities": self.priorities[idx].copy(),
+        }

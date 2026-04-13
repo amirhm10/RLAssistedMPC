@@ -460,4 +460,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
 
+    replay_buffer = getattr(agent, "buffer", None)
+    if replay_buffer is not None and hasattr(replay_buffer, "export_snapshot"):
+        result_bundle["replay_buffer_snapshot"] = replay_buffer.export_snapshot(ordered=True)
+
     return result_bundle

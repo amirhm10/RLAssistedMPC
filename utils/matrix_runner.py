@@ -11,7 +11,7 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
-from utils.state_features import build_rl_state, default_mismatch_scale
+from utils.state_features import build_rl_state, compute_tracking_scale_now, resolve_mismatch_settings
 
 
 def _map_to_bounds(action, low, high):
@@ -86,6 +86,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     poles = np.asarray(runtime_ctx["poles"], float)
     y_sp_scenario = np.asarray(runtime_ctx["y_sp_scenario"], float)
     reward_fn = runtime_ctx["reward_fn"]
+    reward_params = runtime_ctx.get("reward_params", {})
     system_stepper = runtime_ctx.get("system_stepper")
     system_metadata = runtime_ctx.get("system_metadata")
     disturbance_labels = runtime_ctx.get("disturbance_labels")
@@ -100,13 +101,17 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
     use_shifted_mpc_warm_start = bool(matrix_cfg.get("use_shifted_mpc_warm_start", False))
     recalculate_observer_requested = bool(matrix_cfg.get("recalculate_observer_on_matrix_change", False))
-    mismatch_scale = None
-    mismatch_clip = matrix_cfg.get("mismatch_clip", 3.0)
-    if state_mode == "mismatch":
-        mismatch_scale = np.asarray(
-            matrix_cfg.get("mismatch_scale", default_mismatch_scale(min_max_dict)),
-            float,
-        )
+    mismatch_cfg = resolve_mismatch_settings(
+        state_mode=state_mode,
+        mismatch_cfg=matrix_cfg,
+        reward_params=reward_params,
+        y_sp_scenario=y_sp_scenario,
+        steady_states=steady_states,
+        data_min=data_min,
+        data_max=data_max,
+        n_inputs=B_aug.shape[1],
+    )
+    mismatch_clip = mismatch_cfg["mismatch_clip"]
 
     low_coef = np.asarray(matrix_cfg["low_coef"], float)
     high_coef = np.asarray(matrix_cfg["high_coef"], float)
@@ -164,6 +169,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     delta_log = np.zeros((nFE, n_inputs))
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    tracking_scale_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
 
     A_model_delta_ratio_log = np.zeros(nFE)
     B_model_delta_ratio_log = np.zeros(nFE)
@@ -194,6 +200,19 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         scaled_current_input_dev = scaled_current_input - ss_scaled_inputs
         y_prev_scaled = apply_min_max(y_system[i, :], data_min[n_inputs:], data_max[n_inputs:]) - y_ss_scaled
         yhat_pred = C_aug @ xhatdhat[:, i]
+        y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
+        tracking_scale_now = None
+        if state_mode == "mismatch":
+            _, tracking_scale_now = compute_tracking_scale_now(
+                y_sp_phys=y_sp_phys,
+                data_min=data_min,
+                data_max=data_max,
+                n_inputs=n_inputs,
+                k_rel=mismatch_cfg["k_rel"],
+                band_floor_phys=mismatch_cfg["band_floor_phys"],
+                tracking_eta_tol=mismatch_cfg["tracking_eta_tol"],
+                tracking_scale_floor=mismatch_cfg["tracking_scale_floor"],
+            )
         current_rl_state, state_debug = build_rl_state(
             min_max_dict=min_max_dict,
             x_d_states=xhatdhat[:, i],
@@ -202,12 +221,14 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_prev_scaled,
             yhat_pred=yhat_pred,
-            mismatch_scale=mismatch_scale,
+            innovation_scale_ref=mismatch_cfg["innovation_scale_ref"],
+            tracking_scale_now=tracking_scale_now,
             mismatch_clip=mismatch_clip,
         )
         if innovation_log is not None:
             innovation_log[i, :] = state_debug["innovation"]
             tracking_error_log[i, :] = state_debug["tracking_error"]
+            tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
         if i > warm_start_step:
             if not test:
@@ -288,12 +309,23 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
             + L_nom @ (y_prev_scaled - yhat[:, i]).T
         )
 
-        y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
         reward = float(reward_fn(delta_y, delta_u, y_sp_phys))
         rewards[i] = reward
 
         next_u_dev = u_mpc[i, :] - ss_scaled_inputs
         yhat_next_pred = C_aug @ xhatdhat[:, i + 1]
+        next_tracking_scale_now = None
+        if state_mode == "mismatch":
+            _, next_tracking_scale_now = compute_tracking_scale_now(
+                y_sp_phys=y_sp_phys,
+                data_min=data_min,
+                data_max=data_max,
+                n_inputs=n_inputs,
+                k_rel=mismatch_cfg["k_rel"],
+                band_floor_phys=mismatch_cfg["band_floor_phys"],
+                tracking_eta_tol=mismatch_cfg["tracking_eta_tol"],
+                tracking_scale_floor=mismatch_cfg["tracking_scale_floor"],
+            )
         next_rl_state, _ = build_rl_state(
             min_max_dict=min_max_dict,
             x_d_states=xhatdhat[:, i + 1],
@@ -302,7 +334,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_current_scaled,
             yhat_pred=yhat_next_pred,
-            mismatch_scale=mismatch_scale,
+            innovation_scale_ref=mismatch_cfg["innovation_scale_ref"],
+            tracking_scale_now=next_tracking_scale_now,
             mismatch_clip=mismatch_clip,
         )
 
@@ -385,7 +418,9 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "lambda_value": getattr(agent, "lambda_value", None),
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
-        "mismatch_scale": mismatch_scale,
+        "innovation_scale_ref": mismatch_cfg["innovation_scale_ref"],
+        "tracking_scale_log": tracking_scale_log,
+        "band_ref_scaled": mismatch_cfg["band_ref_scaled"],
         "mismatch_clip": mismatch_clip,
         "mpc_horizons": (
             int(matrix_cfg["predict_h"]),

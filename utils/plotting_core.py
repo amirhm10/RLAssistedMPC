@@ -168,6 +168,18 @@ def normalize_result_bundle(result_bundle):
     bundle["weight_decision_log"] = (
         None if bundle.get("weight_decision_log") is None else np.asarray(bundle["weight_decision_log"], int).reshape(-1)
     )
+    if bundle.get("residual_raw_log") is None and bundle.get("delta_u_res_raw_log") is not None:
+        bundle["residual_raw_log"] = bundle.get("delta_u_res_raw_log")
+    if bundle.get("residual_exec_log") is None and bundle.get("delta_u_res_exec_log") is not None:
+        bundle["residual_exec_log"] = bundle.get("delta_u_res_exec_log")
+    bundle["a_res_raw_log"] = None if bundle.get("a_res_raw_log") is None else np.asarray(bundle["a_res_raw_log"], float)
+    bundle["a_res_exec_log"] = None if bundle.get("a_res_exec_log") is None else np.asarray(bundle["a_res_exec_log"], float)
+    bundle["delta_u_res_raw_log"] = (
+        None if bundle.get("delta_u_res_raw_log") is None else np.asarray(bundle["delta_u_res_raw_log"], float)
+    )
+    bundle["delta_u_res_exec_log"] = (
+        None if bundle.get("delta_u_res_exec_log") is None else np.asarray(bundle["delta_u_res_exec_log"], float)
+    )
     bundle["residual_exec_log"] = (
         None if bundle.get("residual_exec_log") is None else np.asarray(bundle["residual_exec_log"], float)
     )
@@ -178,19 +190,29 @@ def normalize_result_bundle(result_bundle):
         None if bundle.get("residual_decision_log") is None else np.asarray(bundle["residual_decision_log"], int).reshape(-1)
     )
     bundle["rho_log"] = None if bundle.get("rho_log") is None else np.asarray(bundle["rho_log"], float).reshape(-1)
+    bundle["rho_eff_log"] = None if bundle.get("rho_eff_log") is None else np.asarray(bundle["rho_eff_log"], float).reshape(-1)
+    for key in ("projection_active_log", "projection_due_to_authority_log", "projection_due_to_headroom_log"):
+        bundle[key] = None if bundle.get(key) is None else np.asarray(bundle[key], int).reshape(-1)
     bundle["innovation_log"] = None if bundle.get("innovation_log") is None else np.asarray(bundle["innovation_log"], float)
     bundle["tracking_error_log"] = (
         None if bundle.get("tracking_error_log") is None else np.asarray(bundle["tracking_error_log"], float)
     )
+    bundle["tracking_scale_log"] = (
+        None if bundle.get("tracking_scale_log") is None else np.asarray(bundle["tracking_scale_log"], float)
+    )
     for key in (
         "horizon_innovation_log",
         "horizon_tracking_error_log",
+        "horizon_tracking_scale_log",
         "matrix_innovation_log",
         "matrix_tracking_error_log",
+        "matrix_tracking_scale_log",
         "weight_innovation_log",
         "weight_tracking_error_log",
+        "weight_tracking_scale_log",
         "residual_innovation_log",
         "residual_tracking_error_log",
+        "residual_tracking_scale_log",
     ):
         bundle[key] = None if bundle.get(key) is None else np.asarray(bundle[key], float)
     bundle["u_base"] = None if bundle.get("u_base") is None else np.asarray(bundle["u_base"], float)
@@ -535,11 +557,18 @@ def normalize_result_bundle(result_bundle):
         if bundle["residual_raw_log"].shape[0] > bundle["nFE"]:
             bundle["residual_raw_log"] = bundle["residual_raw_log"][: bundle["nFE"], :]
 
+    for key in ("a_res_raw_log", "a_res_exec_log", "delta_u_res_raw_log", "delta_u_res_exec_log"):
+        if bundle.get(key) is not None:
+            if bundle[key].ndim == 1:
+                bundle[key] = bundle[key][:, None]
+            if bundle[key].shape[0] > bundle["nFE"]:
+                bundle[key] = bundle[key][: bundle["nFE"], :]
+
     if bundle["u_base"] is not None:
         if bundle["u_base"].shape[0] > bundle["nFE"]:
             bundle["u_base"] = bundle["u_base"][: bundle["nFE"], :]
 
-    for key in ("innovation_log", "tracking_error_log"):
+    for key in ("innovation_log", "tracking_error_log", "tracking_scale_log"):
         if bundle[key] is not None:
             if bundle[key].ndim == 1:
                 bundle[key] = bundle[key][:, None]
@@ -548,12 +577,16 @@ def normalize_result_bundle(result_bundle):
     for key in (
         "horizon_innovation_log",
         "horizon_tracking_error_log",
+        "horizon_tracking_scale_log",
         "matrix_innovation_log",
         "matrix_tracking_error_log",
+        "matrix_tracking_scale_log",
         "weight_innovation_log",
         "weight_tracking_error_log",
+        "weight_tracking_scale_log",
         "residual_innovation_log",
         "residual_tracking_error_log",
+        "residual_tracking_scale_log",
     ):
         if bundle[key] is not None:
             if bundle[key].ndim == 1:
@@ -2751,6 +2784,48 @@ def plot_residual_results_core(result_bundle, plot_cfg):
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_residual_correction_last_block", save_pdf=save_pdf)
 
+    if bundle.get("rho_log") is not None:
+        rho_seg = bundle["rho_log"][start_step : start_step + W]
+        rho_eff_seg = None if bundle.get("rho_eff_log") is None else bundle["rho_eff_log"][start_step : start_step + W]
+        fig, ax = plt.subplots(figsize=(8.4, 4.4))
+        ax.plot(t_step, rho_seg, label=r"$\\rho$")
+        if rho_eff_seg is not None:
+            ax.plot(t_step, rho_eff_seg, linestyle="--", label=r"$\\rho_{eff}$")
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel("Authority")
+        ax.set_xlabel(time_label)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        ax.legend(loc="best")
+        _save_fig(fig, out_dir, "fig_residual_rho_trace", save_pdf=save_pdf)
+
+    projection_keys = (
+        ("projection_active_log", "Projected"),
+        ("projection_due_to_authority_log", "Authority limited"),
+        ("projection_due_to_headroom_log", "Headroom limited"),
+    )
+    if any(bundle.get(key) is not None for key, _ in projection_keys):
+        labels = []
+        values = []
+        for key, label in projection_keys:
+            series = bundle.get(key)
+            if series is None:
+                continue
+            labels.append(label)
+            values.append(float(np.mean(np.asarray(series[start_step : start_step + W], float))))
+        if values:
+            fig, ax = plt.subplots(figsize=(7.0, 4.2))
+            ax.bar(np.arange(len(values)), values, color=["#355070", "#6D597A", "#B56576"][: len(values)])
+            ax.set_xticks(np.arange(len(values)))
+            ax.set_xticklabels(labels, rotation=10)
+            ax.set_ylim(0.0, 1.0)
+            ax.set_ylabel("Fraction of steps")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+            _save_fig(fig, out_dir, "fig_residual_projection_fractions", save_pdf=save_pdf)
+
     yhat = bundle.get("yhat")
     if yhat is not None:
         fig, axs = plt.subplots(n_outputs, 1, figsize=(8.6, 3.0 + 2.5 * max(1, n_outputs - 1)), sharex=True)
@@ -3255,15 +3330,47 @@ def plot_combined_results_core(result_bundle, plot_cfg):
 
     if debug_mode and bundle.get("rho_log") is not None:
         rho_seg = bundle["rho_log"][start_step : start_step + W]
+        rho_eff_seg = None if bundle.get("rho_eff_log") is None else bundle["rho_eff_log"][start_step : start_step + W]
         fig, ax = plt.subplots(figsize=(8.2, 4.6))
-        ax.plot(t_step, rho_seg)
+        ax.plot(t_step, rho_seg, label=r"$\rho$")
+        if rho_eff_seg is not None:
+            ax.plot(t_step, rho_eff_seg, linestyle="--", label=r"$\rho_{eff}$")
         shade_segment(ax, start_step, W)
         ax.set_ylabel(r"$\rho$")
         ax.set_xlabel(time_label)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         _make_axes_bold(ax)
+        if rho_eff_seg is not None:
+            ax.legend(loc="best")
         _save_fig(fig, out_dir, "fig_combined_rho_trace", save_pdf=save_pdf)
+
+    if debug_mode and any(bundle.get(key) is not None for key in ("projection_active_log", "projection_due_to_authority_log", "projection_due_to_headroom_log")):
+        labels = []
+        values = []
+        colors = []
+        for key, label, color in (
+            ("projection_active_log", "Projected", "#355070"),
+            ("projection_due_to_authority_log", "Authority limited", "#6D597A"),
+            ("projection_due_to_headroom_log", "Headroom limited", "#B56576"),
+        ):
+            series = bundle.get(key)
+            if series is None:
+                continue
+            labels.append(label)
+            values.append(float(np.mean(np.asarray(series[start_step : start_step + W], float))))
+            colors.append(color)
+        if values:
+            fig, ax = plt.subplots(figsize=(7.2, 4.4))
+            ax.bar(np.arange(len(values)), values, color=colors)
+            ax.set_xticks(np.arange(len(values)))
+            ax.set_xticklabels(labels, rotation=10)
+            ax.set_ylim(0.0, 1.0)
+            ax.set_ylabel("Fraction of steps")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+            _save_fig(fig, out_dir, "fig_combined_residual_projection_fractions", save_pdf=save_pdf)
 
     if debug_mode:
         def plot_named_mismatch(agent_key, title_key):

@@ -25,7 +25,7 @@ from utils.reid_batch import (
     smooth_eta,
     solve_identification_batch,
 )
-from utils.state_features import build_rl_state, default_mismatch_scale
+from utils.state_features import build_rl_state, compute_tracking_scale_now, resolve_mismatch_settings
 
 
 def _relative_fro(candidate, nominal):
@@ -193,13 +193,18 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         raise ValueError("reid_cfg['run_mode'] must be 'nominal' or 'disturb'.")
 
     use_shifted_mpc_warm_start = bool(reid_cfg.get("use_shifted_mpc_warm_start", False))
-    mismatch_scale = None
     mismatch_clip = reid_cfg.get("mismatch_clip", 3.0)
-    if state_mode == "mismatch":
-        mismatch_scale = np.asarray(
-            reid_cfg.get("mismatch_scale", default_mismatch_scale(min_max_dict)),
-            float,
-        )
+    mismatch_cfg = resolve_mismatch_settings(
+        state_mode=state_mode,
+        mismatch_cfg=reid_cfg,
+        reward_params=runtime_ctx.get("reward_params", {}),
+        y_sp_scenario=y_sp_scenario,
+        steady_states=steady_states,
+        data_min=data_min,
+        data_max=data_max,
+        n_inputs=n_inputs,
+    )
+    mismatch_clip = mismatch_cfg["mismatch_clip"]
 
     id_window = int(reid_cfg.get("id_window", 80))
     id_update_period = int(reid_cfg.get("id_update_period", 5))
@@ -291,6 +296,7 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
     delta_u_storage = np.zeros((nFE, n_inputs))
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    tracking_scale_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
 
     eta_log = np.zeros(nFE)
     eta_raw_log = np.zeros(nFE)
@@ -353,6 +359,19 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         scaled_current_input_dev = scaled_current_input - ss_scaled_inputs
         y_prev_scaled = apply_min_max(y_system[i, :], data_min[n_inputs:], data_max[n_inputs:]) - y_ss_scaled
         yhat_pred = C_aug @ xhatdhat[:, i]
+        y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
+        tracking_scale_now = None
+        if state_mode == "mismatch":
+            _, tracking_scale_now = compute_tracking_scale_now(
+                y_sp_phys=y_sp_phys,
+                data_min=data_min,
+                data_max=data_max,
+                n_inputs=n_inputs,
+                k_rel=mismatch_cfg["k_rel"],
+                band_floor_phys=mismatch_cfg["band_floor_phys"],
+                tracking_eta_tol=mismatch_cfg["tracking_eta_tol"],
+                tracking_scale_floor=mismatch_cfg["tracking_scale_floor"],
+            )
         base_state, state_debug = build_rl_state(
             min_max_dict=min_max_dict,
             x_d_states=xhatdhat[:, i],
@@ -361,7 +380,8 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_prev_scaled,
             yhat_pred=yhat_pred,
-            mismatch_scale=mismatch_scale,
+            innovation_scale_ref=mismatch_cfg["innovation_scale_ref"],
+            tracking_scale_now=tracking_scale_now,
             mismatch_clip=mismatch_clip,
         )
         current_active_A_ratio = _relative_fro(A_id_phys, A0_phys)
@@ -391,6 +411,7 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         if innovation_log is not None:
             innovation_log[i, :] = state_debug["innovation"]
             tracking_error_log[i, :] = state_debug["tracking_error"]
+            tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
         if i <= warm_start_step:
             raw_action = -1.0
@@ -487,12 +508,23 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
             observer_update_alignment=observer_update_alignment,
         )
 
-        y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
         reward = float(reward_fn(delta_y, delta_u, y_sp_phys))
         rewards[i] = reward
 
         next_u_dev = u_mpc[i, :] - ss_scaled_inputs
         yhat_next_pred = C_aug @ xhatdhat[:, i + 1]
+        next_tracking_scale_now = None
+        if state_mode == "mismatch":
+            _, next_tracking_scale_now = compute_tracking_scale_now(
+                y_sp_phys=y_sp_phys,
+                data_min=data_min,
+                data_max=data_max,
+                n_inputs=n_inputs,
+                k_rel=mismatch_cfg["k_rel"],
+                band_floor_phys=mismatch_cfg["band_floor_phys"],
+                tracking_eta_tol=mismatch_cfg["tracking_eta_tol"],
+                tracking_scale_floor=mismatch_cfg["tracking_scale_floor"],
+            )
         next_base_state, _ = build_rl_state(
             min_max_dict=min_max_dict,
             x_d_states=xhatdhat[:, i + 1],
@@ -501,7 +533,8 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_current_scaled,
             yhat_pred=yhat_next_pred,
-            mismatch_scale=mismatch_scale,
+            innovation_scale_ref=mismatch_cfg["innovation_scale_ref"],
+            tracking_scale_now=next_tracking_scale_now,
             mismatch_clip=mismatch_clip,
         )
 
@@ -714,7 +747,9 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
-        "mismatch_scale": mismatch_scale,
+        "innovation_scale_ref": mismatch_cfg["innovation_scale_ref"],
+        "tracking_scale_log": tracking_scale_log,
+        "band_ref_scaled": mismatch_cfg["band_ref_scaled"],
         "mismatch_clip": mismatch_clip,
         "mpc_horizons": (
             int(reid_cfg["predict_h"]),

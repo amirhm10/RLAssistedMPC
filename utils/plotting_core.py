@@ -2958,9 +2958,9 @@ def plot_residual_results_core(result_bundle, plot_cfg):
         rho_seg = bundle["rho_log"][start_step : start_step + W]
         rho_eff_seg = None if bundle.get("rho_eff_log") is None else bundle["rho_eff_log"][start_step : start_step + W]
         fig, ax = plt.subplots(figsize=(8.4, 4.4))
-        ax.plot(t_step, rho_seg, label=r"$\\rho$")
+        ax.plot(t_step, rho_seg, label=r"$\rho$")
         if rho_eff_seg is not None:
-            ax.plot(t_step, rho_eff_seg, linestyle="--", label=r"$\\rho_{eff}$")
+            ax.plot(t_step, rho_eff_seg, linestyle="--", label=r"$\rho_{\mathrm{eff}}$")
         shade_test_regions(ax, spans, delta_t)
         ax.set_ylabel("Authority")
         ax.set_xlabel(time_label)

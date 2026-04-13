@@ -1,4 +1,5 @@
 from pathlib import Path
+from collections.abc import Mapping
 
 from systems.distillation.config import resolve_aspen_paths
 from systems.distillation.data_io import (
@@ -63,6 +64,15 @@ def print_notebook_summary(title, items):
 
 def print_grouped_notebook_summary(title, groups):
     print(title)
+    if not isinstance(groups, Mapping):
+        raise TypeError("groups must be a mapping.")
+
+    values = list(groups.values())
+    if not values or not all(isinstance(items, Mapping) for items in values):
+        for key, value in groups.items():
+            print(f"  {key:<20}: {value}")
+        return
+
     for group_name, items in groups.items():
         print(f"\n[{group_name}]")
         for key, value in items.items():

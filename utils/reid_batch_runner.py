@@ -21,6 +21,9 @@ from utils.reid_batch import (
     eta_to_raw_action,
     map_action_to_eta,
     reconstruct_model_from_theta,
+    resolve_identification_component_indices,
+    resolve_identification_lambda_vectors,
+    resolve_identification_theta_bounds,
     select_identified_model,
     smooth_eta,
     solve_identification_batch,
@@ -169,21 +172,23 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
     run_mode = str(reid_cfg["run_mode"]).lower()
     state_mode = str(reid_cfg.get("state_mode", "standard")).lower()
     method_family = str(reid_cfg.get("method_family", "reid_batch"))
+    v2_like_method = method_family in {"reid_batch_v2", "reid_batch_v3_study"}
     basis_family = str(reid_cfg.get("basis_family", "scalar_legacy")).lower()
     candidate_guard_mode = str(
-        reid_cfg.get("candidate_guard_mode", "fro_only" if method_family == "reid_batch_v2" else "both")
+        reid_cfg.get("candidate_guard_mode", "fro_only" if v2_like_method else "both")
     ).lower()
+    id_component_mode = str(reid_cfg.get("id_component_mode", "AB"))
     observer_update_alignment = str(
         reid_cfg.get(
             "observer_update_alignment",
-            "current_measurement" if method_family == "reid_batch_v2" else "legacy_previous_measurement",
+            "current_measurement" if v2_like_method else "legacy_previous_measurement",
         )
     ).lower()
-    use_v2_blend_state = bool(reid_cfg.get("use_v2_blend_state", method_family == "reid_batch_v2"))
-    normalize_blend_extras = bool(reid_cfg.get("normalize_blend_extras", method_family == "reid_batch_v2"))
+    use_v2_blend_state = bool(reid_cfg.get("use_v2_blend_state", v2_like_method))
+    normalize_blend_extras = bool(reid_cfg.get("normalize_blend_extras", v2_like_method))
     blend_extra_clip = float(reid_cfg.get("blend_extra_clip", 3.0))
     blend_residual_scale = float(reid_cfg.get("blend_residual_scale", 1.0))
-    log_theta_clipping = bool(reid_cfg.get("log_theta_clipping", method_family == "reid_batch_v2"))
+    log_theta_clipping = bool(reid_cfg.get("log_theta_clipping", v2_like_method))
     block_group_count = int(reid_cfg.get("block_group_count", 3))
     block_groups = reid_cfg.get("block_groups")
 
@@ -212,11 +217,6 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         raise ValueError("id_window must be positive.")
     if id_update_period <= 0:
         raise ValueError("id_update_period must be positive.")
-    theta_low = np.asarray(reid_cfg["theta_low"], float).reshape(-1)
-    theta_high = np.asarray(reid_cfg["theta_high"], float).reshape(-1)
-    if np.any(theta_low > theta_high):
-        raise ValueError("theta_low must be elementwise <= theta_high.")
-    theta_nominal = np.zeros(theta_low.size, dtype=float)
     delta_A_max = float(reid_cfg.get("delta_A_max", 0.05))
     delta_B_max = float(reid_cfg.get("delta_B_max", 0.05))
     if delta_A_max < 0.0 or delta_B_max < 0.0:
@@ -234,14 +234,15 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         block_groups=block_groups,
         block_group_count=block_group_count,
     )
-    if theta_low.size != basis["theta_dim"] or theta_high.size != basis["theta_dim"]:
-        low_constant = theta_low.size > 0 and bool(np.allclose(theta_low, theta_low[0]))
-        high_constant = theta_high.size > 0 and bool(np.allclose(theta_high, theta_high[0]))
-        if low_constant and high_constant:
-            theta_low = np.full(basis["theta_dim"], float(theta_low[0]), dtype=float)
-            theta_high = np.full(basis["theta_dim"], float(theta_high[0]), dtype=float)
-        else:
-            raise ValueError("theta_low/theta_high must match the selected polymer identification basis dimension.")
+    theta_low, theta_high = resolve_identification_theta_bounds(basis=basis, cfg=reid_cfg)
+    lambda_prev_vec, lambda_0_vec = resolve_identification_lambda_vectors(basis=basis, cfg=reid_cfg)
+    theta_A_indices = np.asarray(basis["theta_A_indices"], dtype=int)
+    theta_B_indices = np.asarray(basis["theta_B_indices"], dtype=int)
+    active_theta_indices, inactive_theta_indices = resolve_identification_component_indices(
+        basis=basis,
+        id_component_mode=id_component_mode,
+    )
+    theta_nominal = np.zeros(basis["theta_dim"], dtype=float)
     solve_cfg = dict(reid_cfg)
     solve_cfg["theta_low"] = theta_low
     solve_cfg["theta_high"] = theta_high
@@ -719,6 +720,8 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         "agent_kind": agent_kind,
         "run_mode": run_mode,
         "method_family": method_family,
+        "study_label": reid_cfg.get("study_label"),
+        "ablation_group": reid_cfg.get("ablation_group"),
         "algorithm": agent_kind,
         "state_mode": state_mode,
         "system_metadata": system_metadata,
@@ -761,9 +764,26 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         "prediction_model_mode": "online_reid_blend",
         "id_basis_name": basis["basis_name"],
         "basis_family": basis["basis_family"],
+        "id_component_mode": str(id_component_mode),
         "theta_labels": list(basis["theta_labels"]),
+        "theta_labels_A": list(basis["theta_labels_A"]),
+        "theta_labels_B": list(basis["theta_labels_B"]),
+        "theta_A_indices": theta_A_indices,
+        "theta_B_indices": theta_B_indices,
+        "active_theta_indices": active_theta_indices,
+        "inactive_theta_indices": inactive_theta_indices,
         "theta_low": theta_low,
         "theta_high": theta_high,
+        "theta_low_A": np.asarray(theta_low[theta_A_indices], float),
+        "theta_high_A": np.asarray(theta_high[theta_A_indices], float),
+        "theta_low_B": np.asarray(theta_low[theta_B_indices], float),
+        "theta_high_B": np.asarray(theta_high[theta_B_indices], float),
+        "lambda_prev_vector": lambda_prev_vec,
+        "lambda_0_vector": lambda_0_vec,
+        "lambda_prev_A": np.asarray(lambda_prev_vec[theta_A_indices], float),
+        "lambda_prev_B": np.asarray(lambda_prev_vec[theta_B_indices], float),
+        "lambda_0_A": np.asarray(lambda_0_vec[theta_A_indices], float),
+        "lambda_0_B": np.asarray(lambda_0_vec[theta_B_indices], float),
         "eta_log": eta_log,
         "eta_raw_log": eta_raw_log,
         "action_raw_log": action_raw_log,
@@ -809,6 +829,7 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         "blend_extra_clip": blend_extra_clip,
         "blend_residual_scale": blend_residual_scale,
         "log_theta_clipping": log_theta_clipping,
+        "regime_name": reid_cfg.get("regime_name"),
     }
     for attr in (
         "actor_losses",

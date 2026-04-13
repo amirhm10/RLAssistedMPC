@@ -85,14 +85,24 @@ def _make_basis_dict(
     theta_labels: list[str],
     block_groups: list[np.ndarray] | None = None,
 ) -> dict:
+    n_A = len(A_basis)
+    n_B = len(B_basis)
+    if len(theta_labels) != n_A + n_B:
+        raise ValueError("theta_labels must match the total number of A and B basis elements.")
+    theta_A_indices = np.arange(n_A, dtype=int)
+    theta_B_indices = np.arange(n_A, n_A + n_B, dtype=int)
     return {
         "basis_name": basis_name,
         "basis_family": basis_family,
         "A_basis": [np.asarray(E, dtype=float) for E in A_basis],
         "B_basis": [np.asarray(F, dtype=float) for F in B_basis],
         "theta_labels": list(theta_labels),
-        "n_A": len(A_basis),
-        "n_B": len(B_basis),
+        "theta_labels_A": list(theta_labels[:n_A]),
+        "theta_labels_B": list(theta_labels[n_A:]),
+        "theta_A_indices": theta_A_indices,
+        "theta_B_indices": theta_B_indices,
+        "n_A": n_A,
+        "n_B": n_B,
         "theta_dim": len(theta_labels),
         "block_groups": None if block_groups is None else [np.asarray(group, dtype=int).copy() for group in block_groups],
     }
@@ -280,12 +290,125 @@ def assemble_batch_regression(batch: RollingIDBatch, A0_phys: np.ndarray, B0_phy
     return Phi.astype(float), residual_vec.astype(float)
 
 
+def _expand_theta_vector(value, size: int, *, name: str) -> np.ndarray:
+    arr = np.asarray(value, dtype=float).reshape(-1)
+    if arr.size == int(size):
+        return arr.astype(float)
+    if arr.size == 1:
+        return np.full(int(size), float(arr[0]), dtype=float)
+    raise ValueError(f"{name} must be length 1 or {size}, got {arr.size}.")
+
+
+def resolve_identification_theta_bounds(basis: dict, cfg: dict) -> tuple[np.ndarray, np.ndarray]:
+    theta_dim = int(basis["theta_dim"])
+    theta_A_indices = np.asarray(basis["theta_A_indices"], dtype=int)
+    theta_B_indices = np.asarray(basis["theta_B_indices"], dtype=int)
+    has_split_bounds = any(
+        key in cfg for key in ("theta_low_A", "theta_high_A", "theta_low_B", "theta_high_B")
+    )
+
+    if "theta_low" in cfg:
+        theta_low = _expand_theta_vector(cfg["theta_low"], theta_dim, name="theta_low")
+    elif has_split_bounds:
+        theta_low = np.full(theta_dim, -np.inf, dtype=float)
+    else:
+        raise KeyError("cfg must contain theta_low/theta_high or split theta bounds.")
+
+    if "theta_high" in cfg:
+        theta_high = _expand_theta_vector(cfg["theta_high"], theta_dim, name="theta_high")
+    elif has_split_bounds:
+        theta_high = np.full(theta_dim, np.inf, dtype=float)
+    else:
+        raise KeyError("cfg must contain theta_low/theta_high or split theta bounds.")
+
+    if "theta_low_A" in cfg:
+        theta_low[theta_A_indices] = _expand_theta_vector(
+            cfg["theta_low_A"],
+            theta_A_indices.size,
+            name="theta_low_A",
+        )
+    if "theta_high_A" in cfg:
+        theta_high[theta_A_indices] = _expand_theta_vector(
+            cfg["theta_high_A"],
+            theta_A_indices.size,
+            name="theta_high_A",
+        )
+    if "theta_low_B" in cfg:
+        theta_low[theta_B_indices] = _expand_theta_vector(
+            cfg["theta_low_B"],
+            theta_B_indices.size,
+            name="theta_low_B",
+        )
+    if "theta_high_B" in cfg:
+        theta_high[theta_B_indices] = _expand_theta_vector(
+            cfg["theta_high_B"],
+            theta_B_indices.size,
+            name="theta_high_B",
+        )
+
+    if np.any(theta_low > theta_high):
+        raise ValueError("theta_low must be elementwise <= theta_high.")
+    return theta_low.astype(float), theta_high.astype(float)
+
+
+def resolve_identification_lambda_vectors(basis: dict, cfg: dict) -> tuple[np.ndarray, np.ndarray]:
+    theta_dim = int(basis["theta_dim"])
+    theta_A_indices = np.asarray(basis["theta_A_indices"], dtype=int)
+    theta_B_indices = np.asarray(basis["theta_B_indices"], dtype=int)
+
+    lambda_prev_vec = np.full(theta_dim, float(cfg.get("lambda_prev", 1e-2)), dtype=float)
+    lambda_0_vec = np.full(theta_dim, float(cfg.get("lambda_0", 1e-4)), dtype=float)
+
+    if "lambda_prev_A" in cfg:
+        lambda_prev_vec[theta_A_indices] = _expand_theta_vector(
+            cfg["lambda_prev_A"],
+            theta_A_indices.size,
+            name="lambda_prev_A",
+        )
+    if "lambda_prev_B" in cfg:
+        lambda_prev_vec[theta_B_indices] = _expand_theta_vector(
+            cfg["lambda_prev_B"],
+            theta_B_indices.size,
+            name="lambda_prev_B",
+        )
+    if "lambda_0_A" in cfg:
+        lambda_0_vec[theta_A_indices] = _expand_theta_vector(
+            cfg["lambda_0_A"],
+            theta_A_indices.size,
+            name="lambda_0_A",
+        )
+    if "lambda_0_B" in cfg:
+        lambda_0_vec[theta_B_indices] = _expand_theta_vector(
+            cfg["lambda_0_B"],
+            theta_B_indices.size,
+            name="lambda_0_B",
+        )
+    return lambda_prev_vec.astype(float), lambda_0_vec.astype(float)
+
+
+def resolve_identification_component_indices(basis: dict, id_component_mode: str = "AB") -> tuple[np.ndarray, np.ndarray]:
+    mode = str(id_component_mode).upper()
+    theta_dim = int(basis["theta_dim"])
+    theta_A_indices = np.asarray(basis["theta_A_indices"], dtype=int)
+    theta_B_indices = np.asarray(basis["theta_B_indices"], dtype=int)
+    if mode == "AB":
+        active = np.arange(theta_dim, dtype=int)
+    elif mode == "A_ONLY":
+        active = theta_A_indices.copy()
+    elif mode == "B_ONLY":
+        active = theta_B_indices.copy()
+    else:
+        raise ValueError("id_component_mode must be 'AB', 'A_only', or 'B_only'.")
+    inactive = np.setdiff1d(np.arange(theta_dim, dtype=int), active, assume_unique=True)
+    return active.astype(int), inactive.astype(int)
+
+
 def solve_batch_ridge(
     Phi: np.ndarray,
     residual_vec: np.ndarray,
     theta_prev: np.ndarray,
-    lambda_prev: float,
-    lambda_0: float,
+    lambda_prev,
+    lambda_0,
     theta_low: np.ndarray,
     theta_high: np.ndarray,
 ) -> dict:
@@ -294,13 +417,15 @@ def solve_batch_ridge(
     theta_prev = _as_1d_float(theta_prev)
     theta_low = _as_1d_float(theta_low, theta_prev.size)
     theta_high = _as_1d_float(theta_high, theta_prev.size)
+    lambda_prev_vec = _expand_theta_vector(lambda_prev, theta_prev.size, name="lambda_prev")
+    lambda_0_vec = _expand_theta_vector(lambda_0, theta_prev.size, name="lambda_0")
 
     if Phi.ndim != 2 or Phi.shape[1] != theta_prev.size:
         raise ValueError("Phi must be a 2D matrix with theta_dim columns.")
 
-    reg = (float(lambda_prev) + float(lambda_0)) * np.eye(theta_prev.size, dtype=float)
+    reg = np.diag(lambda_prev_vec + lambda_0_vec)
     lhs = Phi.T @ Phi + reg
-    rhs = Phi.T @ residual_vec + float(lambda_prev) * theta_prev
+    rhs = Phi.T @ residual_vec + lambda_prev_vec * theta_prev
 
     try:
         theta_unclipped = np.linalg.solve(lhs, rhs)
@@ -324,8 +449,8 @@ def solve_bounded_least_squares(
     Phi: np.ndarray,
     residual_vec: np.ndarray,
     theta_prev: np.ndarray,
-    lambda_prev: float,
-    lambda_0: float,
+    lambda_prev,
+    lambda_0,
     theta_low: np.ndarray,
     theta_high: np.ndarray,
 ) -> dict:
@@ -334,12 +459,13 @@ def solve_bounded_least_squares(
     theta_prev = _as_1d_float(theta_prev)
     theta_low = _as_1d_float(theta_low, theta_prev.size)
     theta_high = _as_1d_float(theta_high, theta_prev.size)
+    lambda_prev_vec = _expand_theta_vector(lambda_prev, theta_prev.size, name="lambda_prev")
+    lambda_0_vec = _expand_theta_vector(lambda_0, theta_prev.size, name="lambda_0")
 
-    sqrt_prev = float(np.sqrt(max(0.0, lambda_prev)))
-    sqrt_0 = float(np.sqrt(max(0.0, lambda_0)))
-    eye = np.eye(theta_prev.size, dtype=float)
-    Phi_aug = np.vstack((Phi, sqrt_prev * eye, sqrt_0 * eye))
-    rhs_aug = np.concatenate((residual_vec, sqrt_prev * theta_prev, np.zeros(theta_prev.size, dtype=float)))
+    reg_prev = np.diag(np.sqrt(np.clip(lambda_prev_vec, 0.0, None)))
+    reg_0 = np.diag(np.sqrt(np.clip(lambda_0_vec, 0.0, None)))
+    Phi_aug = np.vstack((Phi, reg_prev, reg_0))
+    rhs_aug = np.concatenate((residual_vec, reg_prev @ theta_prev, np.zeros(theta_prev.size, dtype=float)))
     sol = spo.lsq_linear(Phi_aug, rhs_aug, bounds=(theta_low, theta_high), lsmr_tol="auto")
     residual_fit = residual_vec - Phi @ sol.x
     return {
@@ -364,39 +490,61 @@ def solve_identification_batch(
     cfg: dict,
 ) -> dict:
     Phi, residual_vec = assemble_batch_regression(batch, A0_phys=A0_phys, B0_phys=B0_phys, basis=basis)
-    theta_low = _as_1d_float(cfg["theta_low"], basis["theta_dim"])
-    theta_high = _as_1d_float(cfg["theta_high"], basis["theta_dim"])
-    if np.any(theta_low > theta_high):
-        raise ValueError("theta_low must be elementwise <= theta_high.")
-    lambda_prev = float(cfg.get("lambda_prev", 1e-2))
-    lambda_0 = float(cfg.get("lambda_0", 1e-4))
+    theta_prev = _as_1d_float(theta_prev, basis["theta_dim"])
+    theta_low, theta_high = resolve_identification_theta_bounds(basis=basis, cfg=cfg)
+    lambda_prev_vec, lambda_0_vec = resolve_identification_lambda_vectors(basis=basis, cfg=cfg)
+    id_component_mode = str(cfg.get("id_component_mode", "AB"))
+    active_indices, inactive_indices = resolve_identification_component_indices(basis=basis, id_component_mode=id_component_mode)
+    Phi_active = Phi[:, active_indices]
+    theta_prev_active = theta_prev[active_indices]
+    theta_low_active = theta_low[active_indices]
+    theta_high_active = theta_high[active_indices]
+    lambda_prev_active = lambda_prev_vec[active_indices]
+    lambda_0_active = lambda_0_vec[active_indices]
     solver = str(cfg.get("id_solver", "ridge_closed_form")).lower()
 
     if solver == "ridge_closed_form":
         result = solve_batch_ridge(
-            Phi=Phi,
+            Phi=Phi_active,
             residual_vec=residual_vec,
-            theta_prev=theta_prev,
-            lambda_prev=lambda_prev,
-            lambda_0=lambda_0,
-            theta_low=theta_low,
-            theta_high=theta_high,
+            theta_prev=theta_prev_active,
+            lambda_prev=lambda_prev_active,
+            lambda_0=lambda_0_active,
+            theta_low=theta_low_active,
+            theta_high=theta_high_active,
         )
     elif solver == "bounded_least_squares":
         result = solve_bounded_least_squares(
-            Phi=Phi,
+            Phi=Phi_active,
             residual_vec=residual_vec,
-            theta_prev=theta_prev,
-            lambda_prev=lambda_prev,
-            lambda_0=lambda_0,
-            theta_low=theta_low,
-            theta_high=theta_high,
+            theta_prev=theta_prev_active,
+            lambda_prev=lambda_prev_active,
+            lambda_0=lambda_0_active,
+            theta_low=theta_low_active,
+            theta_high=theta_high_active,
         )
     else:
         raise ValueError("id_solver must be 'ridge_closed_form' or 'bounded_least_squares'.")
 
+    theta_full = np.zeros(basis["theta_dim"], dtype=float)
+    theta_unclipped_full = np.zeros(basis["theta_dim"], dtype=float)
+    theta_full[active_indices] = np.asarray(result["theta"], float)
+    theta_unclipped_full[active_indices] = np.asarray(result["theta_unclipped"], float)
+    if inactive_indices.size > 0:
+        theta_full[inactive_indices] = 0.0
+        theta_unclipped_full[inactive_indices] = 0.0
+    result["theta"] = theta_full
+    result["theta_unclipped"] = theta_unclipped_full
     result["Phi_shape"] = tuple(Phi.shape)
+    result["Phi_active_shape"] = tuple(Phi_active.shape)
     result["sample_count"] = int(batch.x_t.shape[0])
+    result["theta_low"] = theta_low
+    result["theta_high"] = theta_high
+    result["lambda_prev_vec"] = lambda_prev_vec
+    result["lambda_0_vec"] = lambda_0_vec
+    result["theta_active_indices"] = active_indices
+    result["theta_inactive_indices"] = inactive_indices
+    result["id_component_mode"] = str(id_component_mode)
     return result
 
 
@@ -717,3 +865,124 @@ def get_blend_state_dim(base_aug_dim: int, n_outputs: int, n_inputs: int, state_
 
 def get_blend_state_dim_v2(base_aug_dim: int, n_outputs: int, n_inputs: int, state_mode: str) -> int:
     return int(get_rl_state_dim(base_aug_dim, n_outputs, n_inputs, state_mode)) + 9
+
+
+def summarize_theta_clipping_statistics(
+    *,
+    theta_active_log,
+    theta_candidate_log=None,
+    theta_unclipped_log=None,
+    theta_clipped_fraction_log=None,
+    theta_A_indices=None,
+    theta_B_indices=None,
+    tail_window: int | None = None,
+) -> dict:
+    theta_active = np.asarray(theta_active_log, dtype=float)
+    if theta_active.ndim != 2:
+        raise ValueError("theta_active_log must be a 2D array.")
+    n_steps = int(theta_active.shape[0])
+    if n_steps == 0:
+        return {
+            "tail_window": 0,
+            "mean_abs_theta_active_tail": 0.0,
+            "mean_abs_theta_A_active_tail": 0.0,
+            "mean_abs_theta_B_active_tail": 0.0,
+            "clipping_fraction_mean": 0.0,
+            "theta_candidate_delta_mean": 0.0,
+            "theta_unclipped_delta_mean": 0.0,
+        }
+    tail_window = n_steps if tail_window is None else max(1, min(int(tail_window), n_steps))
+    theta_tail = theta_active[-tail_window:, :]
+    theta_A_indices = np.asarray([] if theta_A_indices is None else theta_A_indices, dtype=int).reshape(-1)
+    theta_B_indices = np.asarray([] if theta_B_indices is None else theta_B_indices, dtype=int).reshape(-1)
+
+    stats = {
+        "tail_window": int(tail_window),
+        "mean_abs_theta_active_tail": float(np.mean(np.abs(theta_tail))),
+        "mean_abs_theta_A_active_tail": 0.0,
+        "mean_abs_theta_B_active_tail": 0.0,
+        "clipping_fraction_mean": 0.0,
+        "theta_candidate_delta_mean": 0.0,
+        "theta_unclipped_delta_mean": 0.0,
+    }
+    if theta_A_indices.size > 0:
+        stats["mean_abs_theta_A_active_tail"] = float(np.mean(np.abs(theta_tail[:, theta_A_indices])))
+    if theta_B_indices.size > 0:
+        stats["mean_abs_theta_B_active_tail"] = float(np.mean(np.abs(theta_tail[:, theta_B_indices])))
+    if theta_clipped_fraction_log is not None:
+        clipped = np.asarray(theta_clipped_fraction_log, dtype=float).reshape(-1)
+        stats["clipping_fraction_mean"] = float(np.mean(clipped[-tail_window:]))
+    if theta_candidate_log is not None:
+        theta_candidate = np.asarray(theta_candidate_log, dtype=float)
+        if theta_candidate.shape == theta_active.shape:
+            stats["theta_candidate_delta_mean"] = float(
+                np.mean(np.abs(theta_candidate[-tail_window:, :] - theta_tail))
+            )
+    if theta_unclipped_log is not None:
+        theta_unclipped = np.asarray(theta_unclipped_log, dtype=float)
+        if theta_unclipped.shape == theta_active.shape:
+            stats["theta_unclipped_delta_mean"] = float(
+                np.mean(np.abs(theta_unclipped[-tail_window:, :] - theta_tail))
+            )
+    return stats
+
+
+def summarize_reid_run_statistics(result_bundle: dict, *, tail_window: int | None = None) -> dict:
+    rewards = np.asarray(result_bundle.get("rewards_step", []), dtype=float).reshape(-1)
+    eta_log = np.asarray(result_bundle.get("eta_log", []), dtype=float).reshape(-1)
+    active_A_ratio = np.asarray(result_bundle.get("active_A_model_delta_ratio_log", []), dtype=float).reshape(-1)
+    active_B_ratio = np.asarray(result_bundle.get("active_B_model_delta_ratio_log", []), dtype=float).reshape(-1)
+    theta_active_log = np.asarray(result_bundle.get("theta_active_log", []), dtype=float)
+    theta_candidate_log = result_bundle.get("theta_candidate_log")
+    theta_unclipped_log = result_bundle.get("theta_unclipped_log")
+    theta_clipped_fraction_log = result_bundle.get("theta_clipped_fraction_log")
+    theta_A_indices = result_bundle.get("theta_A_indices")
+    theta_B_indices = result_bundle.get("theta_B_indices")
+    id_fallback_log = np.asarray(result_bundle.get("id_fallback_log", []), dtype=float).reshape(-1)
+    id_update_success_log = np.asarray(result_bundle.get("id_update_success_log", []), dtype=float).reshape(-1)
+    id_update_event_log = np.asarray(result_bundle.get("id_update_event_log", []), dtype=float).reshape(-1)
+
+    n_steps = int(rewards.size)
+    tail_window = n_steps if tail_window is None else max(1, min(int(tail_window), n_steps if n_steps > 0 else 1))
+    tail_slice = slice(max(0, n_steps - tail_window), n_steps)
+
+    stats = {
+        "evaluation_window_steps": int(tail_window if n_steps > 0 else 0),
+        "final_reward": float(rewards[-1]) if rewards.size > 0 else 0.0,
+        "best_reward": float(np.max(rewards)) if rewards.size > 0 else 0.0,
+        "tail_reward_mean": float(np.mean(rewards[tail_slice])) if rewards.size > 0 else 0.0,
+        "tail_eta_mean": float(np.mean(eta_log[tail_slice])) if eta_log.size > 0 else 0.0,
+        "tail_active_A_ratio_mean": float(np.mean(active_A_ratio[tail_slice])) if active_A_ratio.size > 0 else 0.0,
+        "tail_active_B_ratio_mean": float(np.mean(active_B_ratio[tail_slice])) if active_B_ratio.size > 0 else 0.0,
+        "fallback_fraction": 0.0,
+        "update_success_fraction": 0.0,
+        "update_event_count": int(np.sum(id_update_event_log)) if id_update_event_log.size > 0 else 0,
+        "update_success_count": int(result_bundle.get("id_update_success_count", int(np.sum(id_update_success_log)))),
+        "invalid_solve_count": int(result_bundle.get("invalid_id_solve_count", 0)),
+        "id_solver_failure_count": int(result_bundle.get("id_solver_failure_count", 0)),
+    }
+    if id_update_event_log.size > 0 and np.any(id_update_event_log > 0.5):
+        event_mask = id_update_event_log > 0.5
+        stats["fallback_fraction"] = float(np.mean(id_fallback_log[event_mask])) if id_fallback_log.size > 0 else 0.0
+        stats["update_success_fraction"] = (
+            float(np.mean(id_update_success_log[event_mask])) if id_update_success_log.size > 0 else 0.0
+        )
+    elif id_fallback_log.size > 0:
+        stats["fallback_fraction"] = float(np.mean(id_fallback_log))
+        stats["update_success_fraction"] = (
+            float(np.mean(id_update_success_log)) if id_update_success_log.size > 0 else 0.0
+        )
+
+    if theta_active_log.size > 0:
+        stats.update(
+            summarize_theta_clipping_statistics(
+                theta_active_log=theta_active_log,
+                theta_candidate_log=theta_candidate_log,
+                theta_unclipped_log=theta_unclipped_log,
+                theta_clipped_fraction_log=theta_clipped_fraction_log,
+                theta_A_indices=theta_A_indices,
+                theta_B_indices=theta_B_indices,
+                tail_window=tail_window,
+            )
+        )
+    return stats

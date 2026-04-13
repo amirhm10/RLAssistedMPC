@@ -1979,9 +1979,12 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
             axs = [axs]
         step_idx = np.arange(1, theta_active_for_plot.shape[0] + 1)
         candidate_theta = None if theta_candidate_log is None else np.asarray(theta_candidate_log, float)
+        unclipped_theta = None if theta_unclipped_log is None else np.asarray(theta_unclipped_log, float)
         for idx, ax in enumerate(axs):
             if candidate_theta is not None and candidate_theta.shape == theta_active_for_plot.shape:
                 ax.plot(step_idx, candidate_theta[:, idx], linestyle="--", alpha=0.8, label="Candidate")
+            if unclipped_theta is not None and unclipped_theta.shape == theta_active_for_plot.shape:
+                ax.plot(step_idx, unclipped_theta[:, idx], linestyle=":", alpha=0.8, label="Unclipped")
             ax.plot(step_idx, theta_active_for_plot[:, idx], label="Active")
             ax.set_ylabel(theta_labels[idx] if idx < len(theta_labels) else f"theta_{idx + 1}")
             ax.spines["top"].set_visible(False)
@@ -2103,6 +2106,35 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
         _make_axes_bold(ax)
         _save_fig(fig, out_dir, "fig_reid_batch_reward_vs_eta", save_pdf=save_pdf)
 
+    if eta_log is not None and active_A_ratio is not None and active_B_ratio is not None:
+        if len(eta_log) == len(active_A_ratio) == len(active_B_ratio):
+            fig, axs = plt.subplots(2, 1, figsize=(7.6, 6.0), sharex=True)
+            axs[0].scatter(eta_log, np.asarray(active_A_ratio, float), s=10, alpha=0.35)
+            axs[0].set_ylabel("Active A Fro ratio")
+            axs[1].scatter(eta_log, np.asarray(active_B_ratio, float), s=10, alpha=0.35)
+            axs[1].set_xlabel(r"$\eta$")
+            axs[1].set_ylabel("Active B Fro ratio")
+            for ax in axs:
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            _save_fig(fig, out_dir, "fig_reid_batch_eta_vs_active_model_delta", save_pdf=save_pdf)
+
+    if rewards_step is not None and active_A_ratio is not None and active_B_ratio is not None:
+        if len(rewards_step) == len(active_A_ratio) == len(active_B_ratio):
+            fig, axs = plt.subplots(2, 1, figsize=(7.6, 6.0), sharex=False)
+            axs[0].scatter(np.asarray(active_A_ratio, float), rewards_step, s=10, alpha=0.35)
+            axs[0].set_xlabel("Active A Fro ratio")
+            axs[0].set_ylabel("Reward")
+            axs[1].scatter(np.asarray(active_B_ratio, float), rewards_step, s=10, alpha=0.35)
+            axs[1].set_xlabel("Active B Fro ratio")
+            axs[1].set_ylabel("Reward")
+            for ax in axs:
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            _save_fig(fig, out_dir, "fig_reid_batch_model_delta_vs_reward", save_pdf=save_pdf)
+
     stored_path = os.path.join(out_dir, "input_data.pkl")
     if os.path.exists(stored_path):
         with open(stored_path, "rb") as handle:
@@ -2117,8 +2149,24 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
         "eta_raw_log",
         "action_raw_log",
         "theta_labels",
+        "theta_labels_A",
+        "theta_labels_B",
+        "theta_A_indices",
+        "theta_B_indices",
+        "active_theta_indices",
+        "inactive_theta_indices",
         "theta_low",
         "theta_high",
+        "theta_low_A",
+        "theta_high_A",
+        "theta_low_B",
+        "theta_high_B",
+        "lambda_prev_vector",
+        "lambda_0_vector",
+        "lambda_prev_A",
+        "lambda_prev_B",
+        "lambda_0_A",
+        "lambda_0_B",
         "theta_hat_log",
         "theta_active_log",
         "theta_candidate_log",
@@ -2159,10 +2207,132 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
         "block_group_count",
         "block_groups",
         "log_theta_clipping",
+        "study_label",
+        "ablation_group",
+        "id_component_mode",
+        "regime_name",
     ):
         if key in bundle:
             stored_bundle[key] = bundle[key]
     save_bundle_pickle(out_dir, stored_bundle)
+    return out_dir
+
+
+def plot_reid_batch_theta_diagnostics_core(result_bundle, plot_cfg):
+    return plot_reid_batch_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+
+
+def plot_reid_batch_ablation_summary_core(summary_rows, plot_cfg):
+    rows = [dict(row) for row in summary_rows]
+    directory = plot_cfg.get("directory", os.getcwd())
+    prefix_name = plot_cfg.get("prefix_name", "reid_batch_v3_ablation_summary")
+    save_pdf = bool(plot_cfg.get("save_pdf", False))
+    out_dir = create_output_dir(directory, prefix_name)
+    if not rows:
+        return out_dir
+
+    def _row_float(row, key, default=0.0):
+        value = row.get(key, default)
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return float(default)
+
+    def _group_best(rows_local, key, metric_key):
+        grouped = collections.defaultdict(list)
+        for row in rows_local:
+            grouped[str(row.get(key, "unknown"))].append(_row_float(row, metric_key))
+        labels = sorted(grouped.keys())
+        means = [float(np.mean(grouped[label])) for label in labels]
+        bests = [float(np.max(grouped[label])) for label in labels]
+        return labels, means, bests
+
+    reward_metric = str(plot_cfg.get("reward_metric", "tail_reward_mean"))
+    step_labels = [row.get("study_label", f"run_{idx + 1}") for idx, row in enumerate(rows)]
+    reward_values = np.asarray([_row_float(row, reward_metric) for row in rows], float)
+
+    labels, means, bests = _group_best(rows, "basis_family", reward_metric)
+    if labels:
+        x = np.arange(len(labels))
+        fig, ax = plt.subplots(figsize=(7.8, 5.2))
+        ax.bar(x - 0.18, means, width=0.36, label="Mean")
+        ax.bar(x + 0.18, bests, width=0.36, label="Best")
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=15)
+        ax.set_ylabel(reward_metric)
+        ax.set_xlabel("Basis family")
+        ax.legend(loc="best")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_reid_batch_ablation_basis_summary", save_pdf=save_pdf)
+
+    labels, means, bests = _group_best(rows, "id_component_mode", reward_metric)
+    if labels:
+        x = np.arange(len(labels))
+        fig, ax = plt.subplots(figsize=(7.8, 5.2))
+        ax.bar(x - 0.18, means, width=0.36, label="Mean")
+        ax.bar(x + 0.18, bests, width=0.36, label="Best")
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels)
+        ax.set_ylabel(reward_metric)
+        ax.set_xlabel("ID component mode")
+        ax.legend(loc="best")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_reid_batch_ablation_component_summary", save_pdf=save_pdf)
+
+    labels, means, bests = _group_best(rows, "ablation_group", reward_metric)
+    if labels:
+        x = np.arange(len(labels))
+        fig, ax = plt.subplots(figsize=(7.8, 5.2))
+        ax.bar(x - 0.18, means, width=0.36, label="Mean")
+        ax.bar(x + 0.18, bests, width=0.36, label="Best")
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels)
+        ax.set_ylabel(reward_metric)
+        ax.set_xlabel("Tier")
+        ax.legend(loc="best")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_reid_batch_ablation_tier_summary", save_pdf=save_pdf)
+
+    eta_mean = np.asarray([_row_float(row, "tail_eta_mean") for row in rows], float)
+    A_ratio_mean = np.asarray([_row_float(row, "tail_active_A_ratio_mean") for row in rows], float)
+    B_ratio_mean = np.asarray([_row_float(row, "tail_active_B_ratio_mean") for row in rows], float)
+    fig, axs = plt.subplots(3, 1, figsize=(7.8, 8.8), sharey=False)
+    axs[0].scatter(eta_mean, reward_values, s=28, alpha=0.7)
+    axs[0].set_xlabel("Tail eta mean")
+    axs[0].set_ylabel(reward_metric)
+    axs[1].scatter(A_ratio_mean, reward_values, s=28, alpha=0.7)
+    axs[1].set_xlabel("Tail active A ratio mean")
+    axs[1].set_ylabel(reward_metric)
+    axs[2].scatter(B_ratio_mean, reward_values, s=28, alpha=0.7)
+    axs[2].set_xlabel("Tail active B ratio mean")
+    axs[2].set_ylabel(reward_metric)
+    for ax in axs:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    _save_fig(fig, out_dir, "fig_reid_batch_ablation_reward_scatter", save_pdf=save_pdf)
+
+    ranking_order = np.argsort(reward_values)[::-1]
+    top_k = min(15, len(rows))
+    fig, ax = plt.subplots(figsize=(10.0, 5.4))
+    top_idx = ranking_order[:top_k]
+    top_labels = [str(step_labels[idx]) for idx in top_idx]
+    top_values = reward_values[top_idx]
+    ax.barh(np.arange(top_k), top_values[::-1])
+    ax.set_yticks(np.arange(top_k))
+    ax.set_yticklabels(top_labels[::-1], fontsize=9)
+    ax.set_xlabel(reward_metric)
+    ax.set_ylabel("Study label")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    _make_axes_bold(ax)
+    _save_fig(fig, out_dir, "fig_reid_batch_ablation_top_runs", save_pdf=save_pdf)
     return out_dir
 
 

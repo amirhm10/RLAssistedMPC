@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import os
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 

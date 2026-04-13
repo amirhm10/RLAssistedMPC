@@ -269,6 +269,20 @@ def normalize_result_bundle(result_bundle):
     bundle["eta_raw_log"] = None if bundle.get("eta_raw_log") is None else np.asarray(bundle["eta_raw_log"], float).reshape(-1)
     bundle["action_raw_log"] = None if bundle.get("action_raw_log") is None else np.asarray(bundle["action_raw_log"], float)
     bundle["theta_hat_log"] = None if bundle.get("theta_hat_log") is None else np.asarray(bundle["theta_hat_log"], float)
+    bundle["theta_active_log"] = None if bundle.get("theta_active_log") is None else np.asarray(bundle["theta_active_log"], float)
+    bundle["theta_candidate_log"] = None if bundle.get("theta_candidate_log") is None else np.asarray(bundle["theta_candidate_log"], float)
+    bundle["theta_unclipped_log"] = None if bundle.get("theta_unclipped_log") is None else np.asarray(bundle["theta_unclipped_log"], float)
+    bundle["theta_lower_hit_mask_log"] = (
+        None if bundle.get("theta_lower_hit_mask_log") is None else np.asarray(bundle["theta_lower_hit_mask_log"], float)
+    )
+    bundle["theta_upper_hit_mask_log"] = (
+        None if bundle.get("theta_upper_hit_mask_log") is None else np.asarray(bundle["theta_upper_hit_mask_log"], float)
+    )
+    bundle["theta_clipped_fraction_log"] = (
+        None
+        if bundle.get("theta_clipped_fraction_log") is None
+        else np.asarray(bundle["theta_clipped_fraction_log"], float).reshape(-1)
+    )
     bundle["id_residual_norm_log"] = (
         None if bundle.get("id_residual_norm_log") is None else np.asarray(bundle["id_residual_norm_log"], float).reshape(-1)
     )
@@ -292,6 +306,9 @@ def normalize_result_bundle(result_bundle):
     bundle["id_source_code_log"] = (
         None if bundle.get("id_source_code_log") is None else np.asarray(bundle["id_source_code_log"], int).reshape(-1)
     )
+    bundle["id_candidate_valid_log"] = (
+        None if bundle.get("id_candidate_valid_log") is None else np.asarray(bundle["id_candidate_valid_log"], int).reshape(-1)
+    )
     bundle["id_A_model_delta_ratio_log"] = (
         None
         if bundle.get("id_A_model_delta_ratio_log") is None
@@ -311,6 +328,26 @@ def normalize_result_bundle(result_bundle):
         None
         if bundle.get("pred_B_model_delta_ratio_log") is None
         else np.asarray(bundle["pred_B_model_delta_ratio_log"], float).reshape(-1)
+    )
+    bundle["candidate_A_model_delta_ratio_log"] = (
+        None
+        if bundle.get("candidate_A_model_delta_ratio_log") is None
+        else np.asarray(bundle["candidate_A_model_delta_ratio_log"], float).reshape(-1)
+    )
+    bundle["candidate_B_model_delta_ratio_log"] = (
+        None
+        if bundle.get("candidate_B_model_delta_ratio_log") is None
+        else np.asarray(bundle["candidate_B_model_delta_ratio_log"], float).reshape(-1)
+    )
+    bundle["active_A_model_delta_ratio_log"] = (
+        None
+        if bundle.get("active_A_model_delta_ratio_log") is None
+        else np.asarray(bundle["active_A_model_delta_ratio_log"], float).reshape(-1)
+    )
+    bundle["active_B_model_delta_ratio_log"] = (
+        None
+        if bundle.get("active_B_model_delta_ratio_log") is None
+        else np.asarray(bundle["active_B_model_delta_ratio_log"], float).reshape(-1)
     )
     bundle["retrace_c_clip_fraction_trace"] = (
         None
@@ -1853,6 +1890,9 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
     eta_log = bundle.get("eta_log")
     eta_raw_log = bundle.get("eta_raw_log")
     theta_hat_log = bundle.get("theta_hat_log")
+    theta_active_log = bundle.get("theta_active_log")
+    theta_candidate_log = bundle.get("theta_candidate_log")
+    theta_unclipped_log = bundle.get("theta_unclipped_log")
     theta_labels = list(bundle.get("theta_labels") or [])
     id_residual_norm_log = bundle.get("id_residual_norm_log")
     id_condition_number_log = bundle.get("id_condition_number_log")
@@ -1860,10 +1900,19 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
     id_update_success_log = bundle.get("id_update_success_log")
     id_fallback_log = bundle.get("id_fallback_log")
     id_valid_flag_log = bundle.get("id_valid_flag_log")
+    id_candidate_valid_log = bundle.get("id_candidate_valid_log")
+    theta_lower_hit_mask_log = bundle.get("theta_lower_hit_mask_log")
+    theta_upper_hit_mask_log = bundle.get("theta_upper_hit_mask_log")
+    theta_clipped_fraction_log = bundle.get("theta_clipped_fraction_log")
     id_A_ratio = bundle.get("id_A_model_delta_ratio_log")
     id_B_ratio = bundle.get("id_B_model_delta_ratio_log")
+    active_A_ratio = bundle.get("active_A_model_delta_ratio_log")
+    active_B_ratio = bundle.get("active_B_model_delta_ratio_log")
+    candidate_A_ratio = bundle.get("candidate_A_model_delta_ratio_log")
+    candidate_B_ratio = bundle.get("candidate_B_model_delta_ratio_log")
     pred_A_ratio = bundle.get("pred_A_model_delta_ratio_log")
     pred_B_ratio = bundle.get("pred_B_model_delta_ratio_log")
+    rewards_step = bundle.get("rewards_step")
 
     if eta_log is not None and len(eta_log) > 0:
         t_idx = np.arange(1, len(eta_log) + 1)
@@ -1884,18 +1933,29 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
         _save_fig(fig, out_dir, "fig_reid_batch_eta", save_pdf=save_pdf)
 
-    if theta_hat_log is not None and theta_hat_log.size > 0:
-        theta_hat_log = np.asarray(theta_hat_log, float)
-        fig, axs = plt.subplots(theta_hat_log.shape[1], 1, figsize=(8.8, 3.0 + 1.9 * max(1, theta_hat_log.shape[1] - 1)), sharex=True)
-        if theta_hat_log.shape[1] == 1:
+    theta_active_for_plot = theta_active_log if theta_active_log is not None else theta_hat_log
+    if theta_active_for_plot is not None and theta_active_for_plot.size > 0:
+        theta_active_for_plot = np.asarray(theta_active_for_plot, float)
+        fig, axs = plt.subplots(
+            theta_active_for_plot.shape[1],
+            1,
+            figsize=(8.8, 3.0 + 1.9 * max(1, theta_active_for_plot.shape[1] - 1)),
+            sharex=True,
+        )
+        if theta_active_for_plot.shape[1] == 1:
             axs = [axs]
+        step_idx = np.arange(1, theta_active_for_plot.shape[0] + 1)
+        candidate_theta = None if theta_candidate_log is None else np.asarray(theta_candidate_log, float)
         for idx, ax in enumerate(axs):
-            ax.plot(np.arange(1, theta_hat_log.shape[0] + 1), theta_hat_log[:, idx])
+            if candidate_theta is not None and candidate_theta.shape == theta_active_for_plot.shape:
+                ax.plot(step_idx, candidate_theta[:, idx], linestyle="--", alpha=0.8, label="Candidate")
+            ax.plot(step_idx, theta_active_for_plot[:, idx], label="Active")
             ax.set_ylabel(theta_labels[idx] if idx < len(theta_labels) else f"theta_{idx + 1}")
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
         axs[-1].set_xlabel("Step")
+        axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_reid_batch_theta_history", save_pdf=save_pdf)
 
     diag_series = []
@@ -1903,6 +1963,8 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
         diag_series.append(("ID residual", np.asarray(id_residual_norm_log, float)))
     if id_condition_number_log is not None:
         diag_series.append(("ID cond.", np.asarray(id_condition_number_log, float)))
+    if theta_clipped_fraction_log is not None:
+        diag_series.append(("Theta clipped frac", np.asarray(theta_clipped_fraction_log, float)))
     if diag_series:
         fig, axs = plt.subplots(len(diag_series), 1, figsize=(8.6, 3.0 + 2.2 * max(1, len(diag_series) - 1)), sharex=True)
         if len(diag_series) == 1:
@@ -1917,10 +1979,18 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
         _save_fig(fig, out_dir, "fig_reid_batch_id_diagnostics", save_pdf=save_pdf)
 
     metrics = []
-    if id_A_ratio is not None:
+    if active_A_ratio is not None:
+        metrics.append(("Active A Fro ratio", np.asarray(active_A_ratio, float)))
+    elif id_A_ratio is not None:
         metrics.append(("ID A Fro ratio", np.asarray(id_A_ratio, float)))
-    if id_B_ratio is not None:
+    if active_B_ratio is not None:
+        metrics.append(("Active B Fro ratio", np.asarray(active_B_ratio, float)))
+    elif id_B_ratio is not None:
         metrics.append(("ID B Fro ratio", np.asarray(id_B_ratio, float)))
+    if candidate_A_ratio is not None:
+        metrics.append(("Candidate A Fro ratio", np.asarray(candidate_A_ratio, float)))
+    if candidate_B_ratio is not None:
+        metrics.append(("Candidate B Fro ratio", np.asarray(candidate_B_ratio, float)))
     if pred_A_ratio is not None:
         metrics.append(("Pred A Fro ratio", np.asarray(pred_A_ratio, float)))
     if pred_B_ratio is not None:
@@ -1947,6 +2017,8 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
         event_series.append(("Fallback", np.asarray(id_fallback_log, float)))
     if id_valid_flag_log is not None:
         event_series.append(("ID valid", np.asarray(id_valid_flag_log, float)))
+    if id_candidate_valid_log is not None:
+        event_series.append(("Candidate valid", np.asarray(id_candidate_valid_log, float)))
     if event_series:
         fig, axs = plt.subplots(len(event_series), 1, figsize=(8.6, 3.0 + 1.8 * max(1, len(event_series) - 1)), sharex=True)
         if len(event_series) == 1:
@@ -1960,6 +2032,43 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
         axs[-1].set_xlabel("Step")
         _save_fig(fig, out_dir, "fig_reid_batch_id_events", save_pdf=save_pdf)
+
+    if theta_lower_hit_mask_log is not None or theta_upper_hit_mask_log is not None:
+        lower_mask = None if theta_lower_hit_mask_log is None else np.asarray(theta_lower_hit_mask_log, float)
+        upper_mask = None if theta_upper_hit_mask_log is None else np.asarray(theta_upper_hit_mask_log, float)
+        n_theta = 0
+        if lower_mask is not None:
+            n_theta = lower_mask.shape[1]
+        elif upper_mask is not None:
+            n_theta = upper_mask.shape[1]
+        if n_theta > 0:
+            fig, axs = plt.subplots(n_theta, 1, figsize=(8.8, 3.0 + 1.8 * max(1, n_theta - 1)), sharex=True)
+            if n_theta == 1:
+                axs = [axs]
+            t_idx = np.arange(1, (lower_mask.shape[0] if lower_mask is not None else upper_mask.shape[0]) + 1)
+            for idx, ax in enumerate(axs):
+                if lower_mask is not None:
+                    ax.step(t_idx, lower_mask[:, idx], where="post", label="Lower hit")
+                if upper_mask is not None:
+                    ax.step(t_idx, upper_mask[:, idx], where="post", linestyle="--", label="Upper hit")
+                ax.set_ylim(-0.05, 1.05)
+                ax.set_ylabel(theta_labels[idx] if idx < len(theta_labels) else f"theta_{idx + 1}")
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel("Step")
+            axs[0].legend(loc="best")
+            _save_fig(fig, out_dir, "fig_reid_batch_theta_bound_hits", save_pdf=save_pdf)
+
+    if rewards_step is not None and eta_log is not None and len(rewards_step) == len(eta_log):
+        fig, ax = plt.subplots(figsize=(7.4, 5.2))
+        ax.scatter(eta_log, rewards_step, s=10, alpha=0.35)
+        ax.set_xlabel(r"$\eta$")
+        ax.set_ylabel("Reward")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_reid_batch_reward_vs_eta", save_pdf=save_pdf)
 
     stored_path = os.path.join(out_dir, "input_data.pkl")
     if os.path.exists(stored_path):
@@ -1978,7 +2087,14 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
         "theta_low",
         "theta_high",
         "theta_hat_log",
+        "theta_active_log",
+        "theta_candidate_log",
+        "theta_unclipped_log",
+        "theta_lower_hit_mask_log",
+        "theta_upper_hit_mask_log",
+        "theta_clipped_fraction_log",
         "id_basis_name",
+        "basis_family",
         "id_residual_norm_log",
         "id_condition_number_log",
         "id_update_event_log",
@@ -1986,8 +2102,13 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
         "id_fallback_log",
         "id_valid_flag_log",
         "id_source_code_log",
+        "id_candidate_valid_log",
         "id_A_model_delta_ratio_log",
         "id_B_model_delta_ratio_log",
+        "active_A_model_delta_ratio_log",
+        "active_B_model_delta_ratio_log",
+        "candidate_A_model_delta_ratio_log",
+        "candidate_B_model_delta_ratio_log",
         "pred_A_model_delta_ratio_log",
         "pred_B_model_delta_ratio_log",
         "invalid_id_solve_count",
@@ -1997,6 +2118,14 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
         "disable_identification",
         "state_dim_expected",
         "action_dim",
+        "candidate_guard_mode",
+        "observer_update_alignment",
+        "normalize_blend_extras",
+        "blend_extra_clip",
+        "blend_residual_scale",
+        "block_group_count",
+        "block_groups",
+        "log_theta_clipping",
     ):
         if key in bundle:
             stored_bundle[key] = bundle[key]

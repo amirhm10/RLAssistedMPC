@@ -2,146 +2,193 @@
 \input{_common_preamble}
 \input{_common_notation}
 
-\title{Phase 1 Polymer Online Re-Identification With Batch Ridge And RL Blend}
+\title{Polymer Online Re-Identification With Batch Ridge And RL Blend}
 \date{2026-04-12}
 
 \begin{document}
 \maketitle
 
-\section*{Method Goal}
+\section*{Experiment Surface}
 
-This method adds a polymer-only online re-identification workflow on top of the
-current unified notebook surface. The observer remains nominal and fixed, while
-the MPC prediction model is blended online between the nominal model and a
-rolling identified model:
+The repository now exposes two polymer-only online re-identification
+workflows:
+
+\begin{itemize}
+\item \texttt{RL\_assisted\_MPC\_reid\_batch\_unified.ipynb}: legacy comparison
+      baseline
+\item \texttt{RL\_assisted\_MPC\_reid\_batch\_v2\_unified.ipynb}: debug and
+      improvement path
+\end{itemize}
+
+Both paths share the same runner stack:
+\texttt{utils/reid\_batch.py},
+\texttt{utils/reid\_batch\_runner.py},
+\texttt{utils/plotting.py}, and
+\texttt{utils/plotting\_core.py}.
+
+\section*{Observer And Prediction Split}
+
+Both legacy and v2 keep the observer nominal and fixed:
+\[
+A_{\mathrm{obs}} = A_0,\qquad
+B_{\mathrm{obs}} = B_0,\qquad
+C_{\mathrm{obs}} = C_0,\qquad
+L = L_0.
+\]
+
+Only the MPC prediction model changes:
 \[
 A_{\mathrm{pred},k} = A_0 + \eta_k (A_{\mathrm{id},k} - A_0), \qquad
 B_{\mathrm{pred},k} = B_0 + \eta_k (B_{\mathrm{id},k} - B_0).
 \]
 
-The RL policy does not act directly on model multipliers. It chooses a scalar
-blend factor $\eta_k \in [0,1]$.
+The RL policy acts only on the scalar blend factor $\eta_k \in [0,1]$.
 
-\section*{Notebook Source}
+\section*{Legacy Vs V2}
 
-\begin{itemize}
-\item \texttt{RL\_assisted\_MPC\_reid\_batch\_unified.ipynb}
-\item Shared helpers:
-      \texttt{utils/reid\_batch.py},
-      \texttt{utils/reid\_batch\_runner.py},
-      \texttt{utils/plotting.py},
-      \texttt{utils/plotting\_core.py}
-\end{itemize}
+\subsection*{Legacy}
 
-\section*{State, Action, And Reward}
-
-The base RL state uses the current unified state builder in either standard or
-mismatch mode:
-\[
-s_t^{\mathrm{base}} = \texttt{build\_rl\_state}(\hat{x}_t, y_{\mathrm{sp},t}, u_t).
-\]
-
-The blend-policy state appends online-ID diagnostics:
-\[
-s_t =
-\begin{bmatrix}
-s_t^{\mathrm{base}} \\
-\eta_{t-1} \\
-\|\varepsilon_t^{\mathrm{id}}\|_2 \\
-\|\Delta A_t\|_F / \|A_0\|_F \\
-\|\Delta B_t\|_F / \|B_0\|_F \\
-\mathbb{1}_{\mathrm{id\_valid}}
-\end{bmatrix}.
-\]
-
-The RL action is one scalar:
-\[
-a_t \in [-1, 1], \qquad
-\eta_t^{\mathrm{raw}} = \frac{a_t + 1}{2}, \qquad
-\eta_t = (1-\tau_\eta)\eta_{t-1} + \tau_\eta \eta_t^{\mathrm{raw}}.
-\]
-
-The reward is the same MPC-style stage reward already used in the unified
-polymer notebook family.
-
-\section*{Identification Model}
-
-Phase 1 reuses the current polymer scalar-matrix basis because it already fits
-the repo's linear-in-parameter workflow:
+The legacy path keeps the original phase-1 scalar basis:
 
 \begin{itemize}
 \item one global physical-$A$ correction parameter
 \item one physical-$B$ correction parameter per input column
 \end{itemize}
 
-The batch regression is assembled on physical scaled-deviation dynamics:
+Its blend-policy extras are raw:
 \[
-x_{t+1}^{\mathrm{phys}} - A_0 x_t^{\mathrm{phys}} - B_0 u_t
-= \Phi_t \theta.
+\eta_{k-1},\;
+\|\varepsilon_k^{\mathrm{id}}\|_2,\;
+\|\Delta A_k\|_F / \|A_0\|_F,\;
+\|\Delta B_k\|_F / \|B_0\|_F,\;
+\mathbb{1}_{\mathrm{id\_valid}}.
 \]
 
-The default solver is ridge around the previous estimate:
+\subsection*{V2}
+
+The v2 path adds two richer basis families.
+
+\paragraph*{Row/column basis}
 \[
-(\Phi^\top \Phi + (\lambda_{\mathrm{prev}} + \lambda_0)I)\theta
-= \Phi^\top r + \lambda_{\mathrm{prev}}\theta_{\mathrm{prev}}.
+E_i = e_i e_i^\top A_0, \qquad
+F_j = B_0 e_j e_j^\top.
 \]
 
-An optional bounded least-squares mode is also supported through
-\texttt{scipy.optimize.lsq\_linear}.
+This yields one physical-state row basis for $A$ and one input-column basis
+for $B$.
 
-\section*{Runtime Flow}
+\paragraph*{Polymer block basis}
 
-\begin{enumerate}
-\item Build the nominal observer state and the current blend-policy state.
-\item Choose the scalar RL action and map it to $\eta_t$.
-\item Form the blended prediction model from the current identified model and
-      $\eta_t$.
-\item Solve MPC using the blended prediction model.
-\item Step the plant.
-\item Update the observer using only the nominal augmented model and fixed
-      observer gain.
-\item Push the physical transition into the rolling identification buffer.
-\item Every \texttt{id\_update\_period} samples, solve the batch ID problem on
-      the last \texttt{id\_window} samples and accept the candidate only if the
-      identified model remains within configured $\Delta A$ / $\Delta B$ caps.
-\item Store the transition for RL and train the chosen continuous agent.
-\end{enumerate}
+The physical states are partitioned into row blocks. For block $g$ with
+row-mask projector $P_g$:
+\[
+E_g = P_g A_0.
+\]
 
-\section*{Defaults Chosen}
+The $B$ basis remains one input-column basis per input.
+
+V2 defaults to \texttt{basis\_family = rowcol}, while
+\texttt{block\_polymer} remains available for ablation.
+
+\section*{Candidate Guard Modes}
+
+V2 replaces the previous implicit screening with explicit guard modes:
 
 \begin{itemize}
-\item polymer only in phase 1
-\item default agent: TD3
-\item \texttt{id\_solver = ridge\_closed\_form}
-\item \texttt{id\_window = 80}
-\item \texttt{id\_update\_period = 5}
-\item \texttt{lambda\_prev = 10^{-2}}
-\item \texttt{lambda\_0 = 10^{-4}}
-\item \texttt{eta\_smoothing\_tau = 0.1}
-\item $\eta = 0$ during warm start
+\item \texttt{theta\_only}: enforce theta bounds only
+\item \texttt{fro\_only}: enforce $\Delta A$ / $\Delta B$ Frobenius caps only
+\item \texttt{both}: enforce both bound families
 \end{itemize}
+
+The default v2 choice is \texttt{fro\_only}. The legacy path keeps the more
+restrictive effective behavior.
+
+\section*{Blend-Policy State}
+
+The base RL state remains the unified notebook state:
+\[
+s_k^{\mathrm{base}} = \texttt{build\_rl\_state}(\hat{x}_k, y_{\mathrm{sp},k}, u_k).
+\]
+
+Legacy appends the raw extras described above. V2 instead appends normalized
+diagnostics:
+\[
+z_\eta = 2\eta_{k-1} - 1,
+\]
+\[
+z_r = \mathrm{clip}\!\left(
+\frac{\log(1 + \|\varepsilon_k^{\mathrm{id}}\|_2)}{s_r},
+-c_r, c_r
+\right),
+\]
+\[
+z_A = \mathrm{clip}\!\left(\frac{\|\Delta A_k\|_F / \|A_0\|_F}{\Delta A_{\max}}, 0, 1.5\right),
+\qquad
+z_B = \mathrm{clip}\!\left(\frac{\|\Delta B_k\|_F / \|B_0\|_F}{\Delta B_{\max}}, 0, 1.5\right),
+\]
+plus normalized candidate-model ratios and the flags
+\[
+\mathbb{1}_{\mathrm{id\_valid}},\;
+\mathbb{1}_{\mathrm{update\_success}},\;
+\mathbb{1}_{\mathrm{fallback}}.
+\]
+
+\section*{Observer-Timing Ablation}
+
+The observer remains nominal in every mode, but the timing of the correction is
+now selectable in the re-identification runner:
+
+\begin{itemize}
+\item \texttt{legacy\_previous\_measurement}
+\item \texttt{current\_measurement}
+\end{itemize}
+
+V2 defaults to \texttt{current\_measurement}. This changes only correction
+timing, not observer matrices.
+
+\section*{Runtime Loop}
+
+\begin{enumerate}
+\item build the nominal observer state and the current blend-policy state
+\item choose the scalar RL action and map it to $\eta_k$
+\item blend the nominal and identified physical models
+\item solve MPC using the blended prediction model
+\item step the plant
+\item update the nominal observer
+\item append the physical transition to the rolling identification buffer
+\item every \texttt{id\_update\_period} samples, solve the batch
+      identification problem on the most recent \texttt{id\_window} samples
+\item validate the candidate according to the selected guard mode
+\item keep the candidate if valid; otherwise retain the previous active model
+\item store the RL transition and train the continuous agent
+\end{enumerate}
 
 \section*{Diagnostics}
 
-The saved bundle records:
+The saved bundle now supports both legacy and v2 analysis. New v2 diagnostics
+include:
 
 \begin{itemize}
-\item $\eta$ and raw-action traces
-\item theta history
-\item identification residual and conditioning traces
-\item identified-model and blended-model Frobenius delta ratios
-\item ID update event / success / fallback flags
-\item standard closed-loop outputs, inputs, rewards, and observer traces
+\item candidate vs active theta traces
+\item candidate vs active $\Delta A$ / $\Delta B$ ratio traces
+\item theta unclipped values
+\item lower-bound and upper-bound hit masks
+\item theta clipped fraction
+\item candidate-valid flags
+\item update-success and fallback markers
+\item reward-vs-$\eta$ visualization
 \end{itemize}
 
-\section*{Scope Limits}
+Legacy bundles remain plot-compatible because all new fields are optional.
+
+\section*{Scope}
 
 \begin{itemize}
-\item Phase 1 is polymer only.
-\item The observer remains nominal and fixed.
-\item No changes are made to the existing matrix, structured-matrix, baseline,
-      horizon, weights, residual, or combined workflows.
-\item The richer row-wise identification basis is deferred to a later phase.
+\item Polymer only
+\item Observer always nominal
+\item The original \texttt{reid\_batch} workflow remains available unchanged
+\item No changes to the matrix, structured-matrix, baseline, horizon, weights,
+      residual, or combined methods
 \end{itemize}
 
 \end{document}

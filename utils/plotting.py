@@ -2505,7 +2505,9 @@ from utils.plotting_core import (
     plot_combined_results_core,
     plot_horizon_results_core,
     plot_matrix_multiplier_results_core,
+    plot_reid_batch_ablation_summary_core,
     plot_reid_batch_results_core,
+    plot_reid_batch_theta_diagnostics_core,
     plot_residual_results_core,
     plot_structured_matrix_results_core,
     plot_weight_multiplier_results_core,
@@ -2530,6 +2532,14 @@ def plot_structured_matrix_results(result_bundle, plot_cfg):
 
 def plot_reid_batch_results(result_bundle, plot_cfg):
     return plot_reid_batch_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+
+
+def plot_reid_batch_theta_diagnostics(result_bundle, plot_cfg):
+    return plot_reid_batch_theta_diagnostics_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+
+
+def plot_reid_batch_ablation_summary(summary_rows, plot_cfg):
+    return plot_reid_batch_ablation_summary_core(summary_rows=summary_rows, plot_cfg=plot_cfg)
 
 
 def plot_weight_multiplier_results(result_bundle, plot_cfg):

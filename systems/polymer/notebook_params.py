@@ -624,6 +624,121 @@ POLYMER_REID_BATCH_V2_DEFAULTS["reid"] = {
     "delta_B_max": 0.10,
 }
 
+POLYMER_REID_BATCH_V3_STUDY_DEFAULTS = deepcopy(POLYMER_REID_BATCH_V2_DEFAULTS)
+POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["agent_kind"] = "td3"
+POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["run_mode"] = "disturb"
+POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["seed"] = 42
+POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["run_profiles"] = {
+    ("td3", "disturb"): {
+        "result_prefix": "td3_reid_batch_v3_disturb",
+        "compare_prefix": "disturb_compare_td3_reid_batch_v3",
+        "compare_mode": "disturb",
+        "plot_start_episode": 2,
+        "compare_start_episode": 2,
+    },
+}
+POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["episode_defaults"] = {
+    "n_tests": 40,
+    "set_points_len": 200,
+    "warm_start": 10,
+    "test_cycle": [False, False, False, False, False],
+}
+POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["reid"] = {
+    **deepcopy(POLYMER_REID_BATCH_V2_DEFAULTS["reid"]),
+    "id_component_mode": "AB",  # Options: "AB" | "A_only" | "B_only"
+    "lambda_prev_A": 1e-2,
+    "lambda_prev_B": 1e-1,
+    "lambda_0_A": 1e-4,
+    "lambda_0_B": 1e-3,
+    "theta_low": np.array([-0.15], float),
+    "theta_high": np.array([0.15], float),
+    "theta_low_A": -0.15,
+    "theta_high_A": 0.15,
+    "theta_low_B": -0.08,
+    "theta_high_B": 0.08,
+}
+POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["study"] = {
+    "result_prefix": "reid_batch_v3_ablation_study",
+    "summary_prefix": "reid_batch_v3_ablation_summary",
+    "tail_window": 200,
+    "short_diagnostic_preset": {
+        "n_tests": 40,
+        "set_points_len": 200,
+        "warm_start": 10,
+        "test_cycle": [False, False, False, False, False],
+    },
+    "tier1": {
+        "basis_families": ["scalar_legacy", "rowcol", "block_polymer"],
+        "id_component_modes": ["A_only", "B_only", "AB"],
+        "cases": [
+            {"disable_identification": True, "force_eta_constant": 0.0},
+            {"disable_identification": False, "force_eta_constant": 0.0},
+            {"disable_identification": False, "force_eta_constant": 0.05},
+            {"disable_identification": False, "force_eta_constant": 0.10},
+            {"disable_identification": False, "force_eta_constant": 0.20},
+            {"disable_identification": False, "force_eta_constant": 1.0},
+            {"disable_identification": False, "force_eta_constant": None},
+        ],
+        "fixed": {
+            "agent_kind": "td3",
+            "run_mode": "disturb",
+            "candidate_guard_mode": "fro_only",
+            "observer_update_alignment": "current_measurement",
+            "normalize_blend_extras": True,
+        },
+    },
+    "tier2": {
+        "parameter_regimes": {
+            "symmetric_reg_symmetric_bounds": {
+                "lambda_prev_A": 1e-2,
+                "lambda_prev_B": 1e-2,
+                "lambda_0_A": 1e-4,
+                "lambda_0_B": 1e-4,
+                "theta_low_A": -0.15,
+                "theta_high_A": 0.15,
+                "theta_low_B": -0.15,
+                "theta_high_B": 0.15,
+            },
+            "stronger_B_regularization": {
+                "lambda_prev_A": 1e-2,
+                "lambda_prev_B": 1e-1,
+                "lambda_0_A": 1e-4,
+                "lambda_0_B": 1e-3,
+                "theta_low_A": -0.15,
+                "theta_high_A": 0.15,
+                "theta_low_B": -0.15,
+                "theta_high_B": 0.15,
+            },
+            "tighter_B_bounds_looser_A_bounds": {
+                "lambda_prev_A": 1e-2,
+                "lambda_prev_B": 1e-2,
+                "lambda_0_A": 1e-4,
+                "lambda_0_B": 1e-4,
+                "theta_low_A": -0.20,
+                "theta_high_A": 0.20,
+                "theta_low_B": -0.06,
+                "theta_high_B": 0.06,
+            },
+            "stronger_B_regularization_tighter_B_bounds": {
+                "lambda_prev_A": 1e-2,
+                "lambda_prev_B": 1e-1,
+                "lambda_0_A": 1e-4,
+                "lambda_0_B": 1e-3,
+                "theta_low_A": -0.20,
+                "theta_high_A": 0.20,
+                "theta_low_B": -0.06,
+                "theta_high_B": 0.06,
+            },
+        },
+        "eta_cases": [0.10, 0.20, None],
+    },
+    "tier3": {
+        "observer_update_alignment": ["legacy_previous_measurement", "current_measurement"],
+        "normalize_blend_extras": [False, True],
+        "eta_cases": [0.10, None],
+    },
+}
+
 POLYMER_WEIGHT_DEFAULTS = {
     "agent_kind": "td3",
     "run_mode": "nominal",
@@ -948,6 +1063,7 @@ POLYMER_NOTEBOOK_DEFAULTS = {
     "structured_matrix": POLYMER_STRUCTURED_MATRIX_DEFAULTS,
     "reid_batch": POLYMER_REID_BATCH_DEFAULTS,
     "reid_batch_v2": POLYMER_REID_BATCH_V2_DEFAULTS,
+    "reid_batch_v3_study": POLYMER_REID_BATCH_V3_STUDY_DEFAULTS,
     "weights": POLYMER_WEIGHT_DEFAULTS,
     "residual": POLYMER_RESIDUAL_DEFAULTS,
     "combined": POLYMER_COMBINED_DEFAULTS,

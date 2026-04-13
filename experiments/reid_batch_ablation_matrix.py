@@ -6,7 +6,7 @@ from copy import deepcopy
 SHORT_DIAGNOSTIC_PRESET = {
     "n_tests": 40,
     "set_points_len": 200,
-    "warm_start": 10,
+    "warm_start": 4,
     "test_cycle": [False, False, False, False, False],
 }
 

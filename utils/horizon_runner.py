@@ -13,6 +13,7 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
+from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.state_features import build_rl_state, compute_tracking_scale_now, resolve_mismatch_settings
 
 
@@ -385,4 +386,5 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         if value is not None:
             result_bundle[key] = np.asarray(value, float).reshape(-1)
 
+    attach_single_agent_replay_snapshot(result_bundle, agent)
     return result_bundle

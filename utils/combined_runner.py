@@ -15,6 +15,7 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
+from utils.replay_snapshot import capture_named_agent_replay_snapshots
 from utils.residual_authority import project_residual_action
 from utils.state_features import build_rl_state, compute_tracking_scale_now, resolve_mismatch_settings
 
@@ -896,5 +897,15 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     result_bundle.update(_extract_losses(matrix_agent, "matrix"))
     result_bundle.update(_extract_losses(weight_agent, "weight"))
     result_bundle.update(_extract_losses(residual_agent, "residual"))
+    replay_snapshots = capture_named_agent_replay_snapshots(
+        {
+            "horizon": horizon_agent,
+            "matrix": matrix_agent,
+            "weights": weight_agent,
+            "residual": residual_agent,
+        }
+    )
+    if replay_snapshots:
+        result_bundle["replay_buffer_snapshots"] = replay_snapshots
 
     return result_bundle

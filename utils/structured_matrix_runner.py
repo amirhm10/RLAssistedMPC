@@ -11,6 +11,7 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
+from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.state_features import build_rl_state, compute_tracking_scale_now, resolve_mismatch_settings
 from utils.structured_model_update import (
     build_band_scaled_model,
@@ -557,4 +558,5 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
 
+    attach_single_agent_replay_snapshot(result_bundle, agent)
     return result_bundle

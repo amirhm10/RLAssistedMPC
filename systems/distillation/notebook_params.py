@@ -54,6 +54,30 @@ def _copy_replay_defaults():
     }
 
 
+def _copy_mismatch_defaults():
+    return {
+        "mismatch_clip": 3.0,
+        "innovation_scale_mode": "band_ref",
+        "innovation_scale_ref": None,
+        "tracking_scale_mode": "eta_band",
+        "tracking_eta_tol": 0.3,
+        "tracking_scale_floor": None,
+        "tracking_scale_floor_mode": "half_eta_band_ref",
+    }
+
+
+def _copy_residual_authority_defaults(action_dim):
+    return {
+        "append_rho_to_state": True,
+        "authority_use_rho": True,
+        "authority_beta_res": np.full(int(action_dim), 0.5, dtype=float),
+        "authority_du0_res": np.full(int(action_dim), 0.001, dtype=float),
+        "authority_eta_tol": 0.3,
+        "authority_rho_floor": 0.15,
+        "authority_rho_power": 1.0,
+    }
+
+
 # -----------------------------------------------------------------------------
 # Distillation notebook defaults
 # -----------------------------------------------------------------------------
@@ -211,7 +235,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
         "R2_penalty": 1.0,
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 0.0,
         "nominal_qs": 0.0,
@@ -321,7 +345,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "high_coef_by_agent": {
             key: np.asarray(value["high"], float).copy() for key, value in MATRIX_MULTIPLIER_BOUNDS.items()
         },
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 0.0,
         "nominal_qs": 0.0,
@@ -403,7 +427,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
         "R2_penalty": 1.0,
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
         "range_profile": "tight",  # Options: "tight" | "default" | "wide". Tight is the safe first default.
@@ -443,7 +467,7 @@ DISTILLATION_WEIGHT_DEFAULTS = {
         "R2_penalty": 1.0,
         "low_coef": np.asarray(WEIGHT_MULTIPLIER_BOUNDS["low"], float).copy(),
         "high_coef": np.asarray(WEIGHT_MULTIPLIER_BOUNDS["high"], float).copy(),
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 0.0,
         "nominal_qs": 0.0,
@@ -513,6 +537,7 @@ DISTILLATION_RESIDUAL_DEFAULTS = {
     "run_mode": "nominal",
     "disturbance_profile": "none",
     "state_mode": "mismatch",
+    **_copy_residual_authority_defaults(action_dim=2),
     "use_rho_authority": True,
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
@@ -528,7 +553,7 @@ DISTILLATION_RESIDUAL_DEFAULTS = {
         "R2_penalty": 1.0,
         "low_coef": np.asarray(RESIDUAL_BOUNDS["low"], float).copy(),
         "high_coef": np.asarray(RESIDUAL_BOUNDS["high"], float).copy(),
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 0.0,
         "nominal_qs": 0.0,
@@ -561,6 +586,7 @@ DISTILLATION_COMBINED_DEFAULTS = {
     "enable_residual": True,
     "residual_agent_kind": "td3",
     "residual_state_mode": "mismatch",
+    **_copy_residual_authority_defaults(action_dim=2),
     "use_rho_authority": True,
     "run_profiles": deepcopy(DISTILLATION_COMBINED_RUN_PROFILES),
     "controller": {
@@ -584,7 +610,7 @@ DISTILLATION_COMBINED_DEFAULTS = {
         "weights_high": np.asarray(WEIGHT_MULTIPLIER_BOUNDS["high"], float).copy(),
         "residual_low": np.asarray(RESIDUAL_BOUNDS["low"], float).copy(),
         "residual_high": np.asarray(RESIDUAL_BOUNDS["high"], float).copy(),
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 0.0,
         "nominal_qs": 0.0,

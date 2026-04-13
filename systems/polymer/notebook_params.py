@@ -45,6 +45,30 @@ def _copy_replay_defaults():
     }
 
 
+def _copy_mismatch_defaults():
+    return {
+        "mismatch_clip": 3.0,
+        "innovation_scale_mode": "band_ref",
+        "innovation_scale_ref": None,
+        "tracking_scale_mode": "eta_band",
+        "tracking_eta_tol": 0.3,
+        "tracking_scale_floor": None,
+        "tracking_scale_floor_mode": "half_eta_band_ref",
+    }
+
+
+def _copy_residual_authority_defaults():
+    return {
+        "append_rho_to_state": True,
+        "authority_use_rho": True,
+        "authority_beta_res": np.array([0.5, 0.5], float),
+        "authority_du0_res": np.array([0.001, 0.001], float),
+        "authority_eta_tol": 0.3,
+        "authority_rho_floor": 0.15,
+        "authority_rho_power": 1.0,
+    }
+
+
 # -----------------------------------------------------------------------------
 # Polymer notebook defaults
 # -----------------------------------------------------------------------------
@@ -233,7 +257,7 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
         "R2_penalty": 1.0,
-        "mismatch_clip": 3.0,  # Positive float. None disables the post-normalization clip.
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
@@ -311,7 +335,7 @@ POLYMER_HORIZON_DUELING_DEFAULTS = {
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
         "R2_penalty": 1.0,
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
@@ -374,7 +398,7 @@ POLYMER_MATRIX_DEFAULTS = {
         "R2_penalty": 1.0,
         "low_coef": np.array([0.95, 0.95, 0.95], float),
         "high_coef": np.array([1.05, 1.05, 1.05], float),
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
@@ -460,7 +484,7 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
         "R2_penalty": 1.0,
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
         "range_profile": "tight",  # Options: "tight" | "default" | "wide". Tight is the safe first default.
@@ -503,7 +527,7 @@ POLYMER_REID_BATCH_DEFAULTS = {
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
         "R2_penalty": 1.0,
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         # Disturbance schedule inputs for the polymer case.
         "nominal_qi": 108.0,
@@ -623,7 +647,7 @@ POLYMER_WEIGHT_DEFAULTS = {
         "R2_penalty": 1.0,
         "low_coef": np.array([0.5, 0.5, 0.5, 0.5], float),
         "high_coef": np.array([3.0, 3.0, 3.0, 3.0], float),
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
@@ -692,7 +716,8 @@ POLYMER_RESIDUAL_DEFAULTS = {
     "agent_kind": "td3",
     "run_mode": "nominal",
     "state_mode": "mismatch",  # Options: "standard" | "mismatch". The latter feeds the authority error to the agent and normalizes it in the same way as the state features.
-    "use_rho_authority": True,  # Only meaningful when state_mode == "mismatch"
+    **_copy_residual_authority_defaults(),
+    "use_rho_authority": True,  # Legacy alias kept for notebook compatibility.
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
@@ -712,7 +737,7 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "R2_penalty": 1.0,
         "low_coef": np.array([-0.25, -0.25], float),
         "high_coef": np.array([0.25, 0.25], float),
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
@@ -796,7 +821,8 @@ POLYMER_COMBINED_DEFAULTS = {
     "enable_residual": True,
     "residual_agent_kind": "td3",
     "residual_state_mode": "standard",
-    "use_rho_authority": True,
+    **_copy_residual_authority_defaults(),
+    "use_rho_authority": True,  # Legacy alias kept for notebook compatibility.
     "run_profiles": {
         "nominal": {"result_prefix_template": "combined_nominal_{suffix}", "compare_prefix_template": "nominal_compare_combined_{suffix}", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
         "disturb": {"result_prefix_template": "combined_disturb_{suffix}", "compare_prefix_template": "disturb_compare_combined_{suffix}", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
@@ -818,7 +844,7 @@ POLYMER_COMBINED_DEFAULTS = {
         "weights_high": np.array([1.1, 1.1, 1.1, 1.1], float),
         "residual_low": np.array([-0.5, -0.5], float),
         "residual_high": np.array([0.5, 0.5], float),
-        "mismatch_clip": 3.0,
+        **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,

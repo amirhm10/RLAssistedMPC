@@ -11,32 +11,8 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
-from utils.state_features import build_rl_state, default_mismatch_scale
-
-
-def _map_to_bounds(action, low, high):
-    action = np.asarray(action, float)
-    low = np.asarray(low, float)
-    high = np.asarray(high, float)
-    return low + ((action + 1.0) / 2.0) * (high - low)
-
-
-def _map_from_bounds(value, low, high):
-    value = np.asarray(value, float)
-    low = np.asarray(low, float)
-    high = np.asarray(high, float)
-    return 2.0 * (value - low) / (high - low) - 1.0
-
-
-def _compute_band_scaled(y_sp_phys, data_min, data_max, n_inputs, k_rel, band_floor_phys):
-    data_min = np.asarray(data_min, float)
-    data_max = np.asarray(data_max, float)
-    dy = np.maximum(data_max[n_inputs:] - data_min[n_inputs:], 1e-12)
-    y_sp_phys = np.asarray(y_sp_phys, float)
-    k_rel = np.asarray(k_rel, float)
-    band_floor_phys = np.asarray(band_floor_phys, float)
-    band_phys = np.maximum(k_rel * np.abs(y_sp_phys), band_floor_phys)
-    return band_phys / dy
+from utils.residual_authority import map_from_bounds, project_residual_action
+from utils.state_features import build_rl_state, compute_tracking_scale_now, resolve_mismatch_settings
 
 
 def run_residual_supervisor(residual_cfg, runtime_ctx):
@@ -71,19 +47,25 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     agent_kind = str(residual_cfg["agent_kind"]).lower()
     run_mode = str(residual_cfg["run_mode"]).lower()
     state_mode = str(residual_cfg.get("state_mode", "standard")).lower()
-    use_rho_authority = bool(residual_cfg.get("use_rho_authority", True))
+    authority_use_rho = bool(residual_cfg.get("authority_use_rho", residual_cfg.get("use_rho_authority", True)))
     if agent_kind not in {"td3", "sac"}:
         raise ValueError("residual_cfg['agent_kind'] must be 'td3' or 'sac'.")
     if run_mode not in {"nominal", "disturb"}:
         raise ValueError("residual_cfg['run_mode'] must be 'nominal' or 'disturb'.")
     use_shifted_mpc_warm_start = bool(residual_cfg.get("use_shifted_mpc_warm_start", False))
-    mismatch_scale = None
-    mismatch_clip = residual_cfg.get("mismatch_clip", 3.0)
-    if state_mode == "mismatch":
-        mismatch_scale = np.asarray(
-            residual_cfg.get("mismatch_scale", default_mismatch_scale(min_max_dict)),
-            float,
-        )
+    mismatch_seed_cfg = dict(residual_cfg)
+    mismatch_seed_cfg.setdefault("tracking_eta_tol", residual_cfg.get("authority_eta_tol", 0.3))
+    mismatch_cfg = resolve_mismatch_settings(
+        state_mode=state_mode,
+        mismatch_cfg=mismatch_seed_cfg,
+        reward_params=runtime_ctx.get("reward_params", {}),
+        y_sp_scenario=y_sp_scenario,
+        steady_states=steady_states,
+        data_min=data_min,
+        data_max=data_max,
+        n_inputs=B_aug.shape[1],
+    )
+    mismatch_clip = mismatch_cfg["mismatch_clip"]
 
     low_coef = np.asarray(residual_cfg["low_coef"], float).reshape(-1)
     high_coef = np.asarray(residual_cfg["high_coef"], float).reshape(-1)
@@ -93,7 +75,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     if np.any(low_coef > 0.0) or np.any(high_coef < 0.0):
         raise ValueError("Residual bounds must bracket zero so warm start can apply zero correction.")
 
-    zero_action = _map_from_bounds(np.zeros(action_dim, dtype=float), low_coef, high_coef)
+    zero_action = map_from_bounds(np.zeros(action_dim, dtype=float), low_coef, high_coef)
 
     (
         y_sp,
@@ -135,11 +117,19 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     u_max_scaled_abs = np.asarray(residual_cfg["b_max"], float) + ss_scaled_inputs
     L = compute_observer_gain(mpc_obj.A, mpc_obj.C, poles)
     reward_params = runtime_ctx.get("reward_params", {})
-    k_rel = np.asarray(reward_params.get("k_rel", np.array([0.003, 0.0003])), float)
-    band_floor_phys = np.asarray(reward_params.get("band_floor_phys", np.array([0.006, 0.07])), float)
-    beta_res = np.array([0.5, 0.5], dtype=np.float32)
-    du0_res = np.array([0.001, 0.001], dtype=np.float32)
-    eta_tol = 0.3
+    authority_beta_res = np.asarray(
+        residual_cfg.get("authority_beta_res", np.full(action_dim, 0.5, dtype=float)),
+        float,
+    ).reshape(-1)
+    authority_du0_res = np.asarray(
+        residual_cfg.get("authority_du0_res", np.full(action_dim, 0.001, dtype=float)),
+        float,
+    ).reshape(-1)
+    if authority_beta_res.size != action_dim or authority_du0_res.size != action_dim:
+        raise ValueError("authority_beta_res and authority_du0_res must match the number of manipulated inputs.")
+    authority_rho_floor = float(residual_cfg.get("authority_rho_floor", 0.15))
+    authority_rho_power = float(residual_cfg.get("authority_rho_power", 1.0))
+    append_rho_to_state = bool(residual_cfg.get("append_rho_to_state", True))
 
     cont_h = int(residual_cfg.get("cont_h", 1))
     bounds = tuple(
@@ -159,11 +149,18 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     xhatdhat = np.zeros((n_states, nFE + 1))
     delta_y_storage = np.zeros((nFE, n_outputs))
     delta_u_storage = np.zeros((nFE, n_inputs))
-    residual_raw_log = np.zeros((nFE, n_inputs))
-    residual_exec_log = np.zeros((nFE, n_inputs))
+    a_res_raw_log = np.zeros((nFE, n_inputs), dtype=float)
+    a_res_exec_log = np.zeros((nFE, n_inputs), dtype=float)
+    delta_u_res_raw_log = np.zeros((nFE, n_inputs), dtype=float)
+    delta_u_res_exec_log = np.zeros((nFE, n_inputs), dtype=float)
     rho_log = np.zeros(nFE) if state_mode == "mismatch" else None
+    rho_eff_log = np.zeros(nFE) if state_mode == "mismatch" else None
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    tracking_scale_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    projection_active_log = np.zeros(nFE, dtype=int)
+    projection_due_to_authority_log = np.zeros(nFE, dtype=int)
+    projection_due_to_headroom_log = np.zeros(nFE, dtype=int)
     test = False
 
     for i in range(nFE):
@@ -174,6 +171,29 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         scaled_current_input_dev = scaled_current_input - ss_scaled_inputs
         y_prev_scaled = apply_min_max(y_system[i, :], data_min[n_inputs:], data_max[n_inputs:]) - y_ss_scaled
         yhat_pred = mpc_obj.C @ xhatdhat[:, i]
+        y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
+        tracking_scale_now = None
+        rho_state = None
+        if state_mode == "mismatch":
+            _, tracking_scale_now = compute_tracking_scale_now(
+                y_sp_phys=y_sp_phys,
+                data_min=data_min,
+                data_max=data_max,
+                n_inputs=n_inputs,
+                k_rel=mismatch_cfg["k_rel"],
+                band_floor_phys=mismatch_cfg["band_floor_phys"],
+                tracking_eta_tol=mismatch_cfg["tracking_eta_tol"],
+                tracking_scale_floor=mismatch_cfg["tracking_scale_floor"],
+            )
+            rho_state = float(
+                np.clip(
+                    np.max(
+                        np.abs((y_prev_scaled - y_sp[i, :]) / np.maximum(tracking_scale_now, 1e-12))
+                    ),
+                    0.0,
+                    1.0,
+                )
+            )
         current_rl_state, state_debug = build_rl_state(
             min_max_dict=min_max_dict,
             x_d_states=xhatdhat[:, i],
@@ -182,12 +202,16 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_prev_scaled,
             yhat_pred=yhat_pred,
-            mismatch_scale=mismatch_scale,
+            innovation_scale_ref=mismatch_cfg["innovation_scale_ref"],
+            tracking_scale_now=tracking_scale_now,
             mismatch_clip=mismatch_clip,
+            append_rho_to_state=bool(state_mode == "mismatch" and append_rho_to_state),
+            rho_value=rho_state,
         )
         if innovation_log is not None:
             innovation_log[i, :] = state_debug["innovation"]
             tracking_error_log[i, :] = state_debug["tracking_error"]
+            tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
         if i > warm_start_step:
             if not test:
@@ -200,8 +224,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         if action.size != action_dim:
             raise ValueError("residual runner expects action_dim == n_inputs.")
 
-        residual_raw = _map_to_bounds(action, low_coef, high_coef).reshape(-1)
-        residual_raw_log[i, :] = residual_raw
+        a_res_raw_log[i, :] = np.asarray(action, float).reshape(-1)
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
 
@@ -220,49 +243,38 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         u_base = np.clip(u_base, u_min_scaled_abs, u_max_scaled_abs)
         u_base_scaled[i, :] = u_base
 
-        low_headroom = (u_min_scaled_abs - u_base).astype(np.float32)
-        high_headroom = (u_max_scaled_abs - u_base).astype(np.float32)
-        if state_mode == "mismatch":
-            y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
-            band_scaled = _compute_band_scaled(
-                y_sp_phys=y_sp_phys,
-                data_min=data_min,
-                data_max=data_max,
-                n_inputs=n_inputs,
-                k_rel=k_rel,
-                band_floor_phys=band_floor_phys,
-            ).astype(np.float32)
-            e_track = state_debug["tracking_error"]
-            delta_u_mpc = (u_base - scaled_current_input).astype(np.float32)
-            eps_i = (eta_tol * band_scaled).astype(np.float32)
-            rho = float(np.clip(np.max(np.abs(e_track) / np.maximum(eps_i, 1e-12)), 0.0, 1.0))
-            rho_log[i] = rho
-            authority_scale = rho if use_rho_authority else 1.0
-            mag = (authority_scale * beta_res) * (np.abs(delta_u_mpc) + du0_res)
-            low_bound = np.maximum(-mag, low_headroom)
-            high_bound = np.minimum(mag, high_headroom)
-            bad = low_bound > high_bound
-            if np.any(bad):
-                low_bound[bad] = 0.0
-                high_bound[bad] = 0.0
-            residual_exec = np.clip(residual_raw, low_bound, high_bound)
-        else:
-            residual_exec = np.clip(
-                residual_raw,
-                np.maximum(low_coef, low_headroom),
-                np.minimum(high_coef, high_headroom),
-            )
-        u_applied_scaled_abs = np.clip(u_base + residual_exec, u_min_scaled_abs, u_max_scaled_abs)
-        residual_exec = u_applied_scaled_abs - u_base
-        residual_exec_log[i, :] = residual_exec
-        u_rl_scaled[i, :] = u_applied_scaled_abs
+        projection = project_residual_action(
+            action_raw=action,
+            low_coef=low_coef,
+            high_coef=high_coef,
+            u_base=u_base,
+            scaled_current_input=scaled_current_input,
+            u_min_scaled_abs=u_min_scaled_abs,
+            u_max_scaled_abs=u_max_scaled_abs,
+            apply_authority=(state_mode == "mismatch"),
+            authority_use_rho=authority_use_rho,
+            tracking_error_feat=state_debug["tracking_error"],
+            authority_beta_res=authority_beta_res,
+            authority_du0_res=authority_du0_res,
+            authority_rho_floor=authority_rho_floor,
+            authority_rho_power=authority_rho_power,
+        )
+        if rho_log is not None:
+            rho_log[i] = float(projection["rho"])
+            rho_eff_log[i] = float(projection["rho_eff"])
+        projection_active_log[i] = int(projection["projection_active"])
+        projection_due_to_authority_log[i] = int(projection["projection_due_to_authority"])
+        projection_due_to_headroom_log[i] = int(projection["projection_due_to_headroom"])
+        delta_u_res_raw_log[i, :] = projection["delta_u_res_raw"]
+        delta_u_res_exec_log[i, :] = projection["delta_u_res_exec"]
+        a_res_exec_log[i, :] = projection["a_exec"]
+        u_rl_scaled[i, :] = projection["u_applied_scaled_abs"]
 
-        delta_u = u_applied_scaled_abs - scaled_current_input
+        delta_u = u_rl_scaled[i, :] - scaled_current_input
         delta_u_storage[i, :] = delta_u
-        action_exec = _map_from_bounds(residual_exec, low_coef, high_coef).astype(np.float32)
-        action_exec = np.clip(action_exec, -1.0, 1.0)
+        action_exec = projection["a_exec"]
 
-        u_plant = reverse_min_max(u_applied_scaled_abs, data_min[:n_inputs], data_max[:n_inputs])
+        u_plant = reverse_min_max(u_rl_scaled[i, :], data_min[:n_inputs], data_max[:n_inputs])
         system.current_input = u_plant
         step_system_with_disturbance(
             system,
@@ -280,16 +292,37 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         yhat[:, i] = yhat_pred
         xhatdhat[:, i + 1] = (
             mpc_obj.A @ xhatdhat[:, i]
-            + mpc_obj.B @ (u_applied_scaled_abs - ss_scaled_inputs)
+            + mpc_obj.B @ (u_rl_scaled[i, :] - ss_scaled_inputs)
             + L @ (y_prev_scaled - yhat[:, i]).T
         )
 
-        y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
         reward = float(reward_fn(delta_y, delta_u, y_sp_phys))
         rewards[i] = reward
 
-        next_u_dev = u_applied_scaled_abs - ss_scaled_inputs
+        next_u_dev = u_rl_scaled[i, :] - ss_scaled_inputs
         yhat_next_pred = mpc_obj.C @ xhatdhat[:, i + 1]
+        next_tracking_scale_now = None
+        next_rho_state = None
+        if state_mode == "mismatch":
+            _, next_tracking_scale_now = compute_tracking_scale_now(
+                y_sp_phys=y_sp_phys,
+                data_min=data_min,
+                data_max=data_max,
+                n_inputs=n_inputs,
+                k_rel=mismatch_cfg["k_rel"],
+                band_floor_phys=mismatch_cfg["band_floor_phys"],
+                tracking_eta_tol=mismatch_cfg["tracking_eta_tol"],
+                tracking_scale_floor=mismatch_cfg["tracking_scale_floor"],
+            )
+            next_rho_state = float(
+                np.clip(
+                    np.max(
+                        np.abs((y_current_scaled - y_sp[i, :]) / np.maximum(next_tracking_scale_now, 1e-12))
+                    ),
+                    0.0,
+                    1.0,
+                )
+            )
         next_rl_state, _ = build_rl_state(
             min_max_dict=min_max_dict,
             x_d_states=xhatdhat[:, i + 1],
@@ -298,8 +331,11 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             state_mode=state_mode,
             y_prev_scaled=y_current_scaled,
             yhat_pred=yhat_next_pred,
-            mismatch_scale=mismatch_scale,
+            innovation_scale_ref=mismatch_cfg["innovation_scale_ref"],
+            tracking_scale_now=next_tracking_scale_now,
             mismatch_clip=mismatch_clip,
+            append_rho_to_state=bool(state_mode == "mismatch" and append_rho_to_state),
+            rho_value=next_rho_state,
         )
 
         if not test:
@@ -321,7 +357,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
                 "| avg. reward:",
                 avg_rewards[-1],
                 "| avg residual:",
-                np.mean(residual_exec_log[max(0, i - time_in_sub_episodes + 1) : i + 1, :], axis=0),
+                np.mean(delta_u_res_exec_log[max(0, i - time_in_sub_episodes + 1) : i + 1, :], axis=0),
             )
 
     disturbance_profile = disturbance_profile_from_schedule(
@@ -338,7 +374,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "algorithm": agent_kind,
         "state_mode": state_mode,
         "system_metadata": system_metadata,
-        "use_rho_authority": use_rho_authority,
+        "authority_use_rho": authority_use_rho,
+        "use_rho_authority": authority_use_rho,
         "notebook_source": residual_cfg.get("notebook_source"),
         "config_snapshot": dict(residual_cfg),
         "seed": residual_cfg.get("seed"),
@@ -358,15 +395,30 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "data_max": data_max,
         "yhat": yhat,
         "xhatdhat": xhatdhat,
-        "residual_raw_log": residual_raw_log,
-        "residual_exec_log": residual_exec_log,
+        "a_res_raw_log": a_res_raw_log,
+        "a_res_exec_log": a_res_exec_log,
+        "delta_u_res_raw_log": delta_u_res_raw_log,
+        "delta_u_res_exec_log": delta_u_res_exec_log,
+        "residual_raw_log": delta_u_res_raw_log,
+        "residual_exec_log": delta_u_res_exec_log,
         "rho_log": rho_log,
+        "rho_eff_log": rho_eff_log,
+        "projection_active_log": projection_active_log,
+        "projection_due_to_authority_log": projection_due_to_authority_log,
+        "projection_due_to_headroom_log": projection_due_to_headroom_log,
         "low_coef": low_coef,
         "high_coef": high_coef,
         "innovation_log": innovation_log,
         "tracking_error_log": tracking_error_log,
-        "mismatch_scale": mismatch_scale,
+        "innovation_scale_ref": mismatch_cfg["innovation_scale_ref"],
+        "tracking_scale_log": tracking_scale_log,
+        "band_ref_scaled": mismatch_cfg["band_ref_scaled"],
         "mismatch_clip": mismatch_clip,
+        "append_rho_to_state": append_rho_to_state,
+        "authority_beta_res": authority_beta_res,
+        "authority_du0_res": authority_du0_res,
+        "authority_rho_floor": authority_rho_floor,
+        "authority_rho_power": authority_rho_power,
         "test_train_dict": test_train_dict,
         "sub_episodes_changes_dict": sub_episodes_changes_dict,
         "disturbance_profile": disturbance_profile,

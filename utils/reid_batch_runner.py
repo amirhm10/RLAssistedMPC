@@ -16,9 +16,9 @@ from utils.reid_batch import (
     RollingIDBuffer,
     blend_prediction_model,
     build_blend_policy_state,
-    build_polymer_phase1_basis,
+    build_blend_policy_state_v2,
+    build_polymer_identification_basis,
     eta_to_raw_action,
-    get_blend_state_dim,
     map_action_to_eta,
     reconstruct_model_from_theta,
     select_identified_model,
@@ -61,6 +61,76 @@ def _solve_prediction_step(mpc_obj, y_sp, u_prev_dev, x0_model, initial_guess, b
     return sol
 
 
+def _update_nominal_observer_state(
+    *,
+    A_obs_aug,
+    B_obs_aug,
+    C_aug,
+    L_nom,
+    x_prev,
+    u_dev,
+    y_prev_scaled,
+    y_current_scaled,
+    yhat_current,
+    observer_update_alignment,
+):
+    alignment = str(observer_update_alignment).lower()
+    if alignment == "legacy_previous_measurement":
+        return A_obs_aug @ x_prev + B_obs_aug @ u_dev + L_nom @ (y_prev_scaled - yhat_current).T
+    if alignment == "current_measurement":
+        x_pred_next = A_obs_aug @ x_prev + B_obs_aug @ u_dev
+        yhat_next = C_aug @ x_pred_next
+        return x_pred_next + L_nom @ (y_current_scaled - yhat_next).T
+    raise ValueError("observer_update_alignment must be 'legacy_previous_measurement' or 'current_measurement'.")
+
+
+def _build_policy_state(
+    *,
+    base_state,
+    use_v2_blend_state,
+    prev_eta,
+    residual_norm,
+    active_A_ratio,
+    active_B_ratio,
+    candidate_A_ratio,
+    candidate_B_ratio,
+    id_valid_flag,
+    id_update_success_flag,
+    id_fallback_flag,
+    delta_A_max,
+    delta_B_max,
+    normalize_blend_extras,
+    blend_extra_clip,
+    blend_residual_scale,
+):
+    if use_v2_blend_state:
+        return build_blend_policy_state_v2(
+            base_state=base_state,
+            prev_eta=prev_eta,
+            residual_norm=residual_norm,
+            active_A_ratio=active_A_ratio,
+            active_B_ratio=active_B_ratio,
+            candidate_A_ratio=candidate_A_ratio,
+            candidate_B_ratio=candidate_B_ratio,
+            id_valid_flag=id_valid_flag,
+            id_update_success_flag=id_update_success_flag,
+            id_fallback_flag=id_fallback_flag,
+            delta_A_max=delta_A_max,
+            delta_B_max=delta_B_max,
+            normalize_blend_extras=normalize_blend_extras,
+            blend_extra_clip=blend_extra_clip,
+            blend_residual_scale=blend_residual_scale,
+        )
+    return build_blend_policy_state(
+        base_state=base_state,
+        prev_eta=prev_eta,
+        residual_norm=residual_norm,
+        A_ratio=active_A_ratio,
+        B_ratio=active_B_ratio,
+        id_valid_flag=id_valid_flag,
+    )
+
+
 def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
     """
     Run the polymer online batch re-identification + RL-blend workflow.
@@ -98,6 +168,25 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
     agent_kind = str(reid_cfg["agent_kind"]).lower()
     run_mode = str(reid_cfg["run_mode"]).lower()
     state_mode = str(reid_cfg.get("state_mode", "standard")).lower()
+    method_family = str(reid_cfg.get("method_family", "reid_batch"))
+    basis_family = str(reid_cfg.get("basis_family", "scalar_legacy")).lower()
+    candidate_guard_mode = str(
+        reid_cfg.get("candidate_guard_mode", "fro_only" if method_family == "reid_batch_v2" else "both")
+    ).lower()
+    observer_update_alignment = str(
+        reid_cfg.get(
+            "observer_update_alignment",
+            "current_measurement" if method_family == "reid_batch_v2" else "legacy_previous_measurement",
+        )
+    ).lower()
+    use_v2_blend_state = bool(reid_cfg.get("use_v2_blend_state", method_family == "reid_batch_v2"))
+    normalize_blend_extras = bool(reid_cfg.get("normalize_blend_extras", method_family == "reid_batch_v2"))
+    blend_extra_clip = float(reid_cfg.get("blend_extra_clip", 3.0))
+    blend_residual_scale = float(reid_cfg.get("blend_residual_scale", 1.0))
+    log_theta_clipping = bool(reid_cfg.get("log_theta_clipping", method_family == "reid_batch_v2"))
+    block_group_count = int(reid_cfg.get("block_group_count", 3))
+    block_groups = reid_cfg.get("block_groups")
+
     if agent_kind not in {"td3", "sac"}:
         raise ValueError("reid_cfg['agent_kind'] must be 'td3' or 'sac'.")
     if run_mode not in {"nominal", "disturb"}:
@@ -133,9 +222,24 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
     if force_eta_constant is not None:
         force_eta_constant = float(np.clip(float(force_eta_constant), 0.0, 1.0))
 
-    basis = build_polymer_phase1_basis(A0_phys=A0_phys, B0_phys=B0_phys)
+    basis = build_polymer_identification_basis(
+        A0_phys=A0_phys,
+        B0_phys=B0_phys,
+        basis_family=basis_family,
+        block_groups=block_groups,
+        block_group_count=block_group_count,
+    )
     if theta_low.size != basis["theta_dim"] or theta_high.size != basis["theta_dim"]:
-        raise ValueError("theta_low/theta_high must match the phase-1 polymer basis dimension.")
+        low_constant = theta_low.size > 0 and bool(np.allclose(theta_low, theta_low[0]))
+        high_constant = theta_high.size > 0 and bool(np.allclose(theta_high, theta_high[0]))
+        if low_constant and high_constant:
+            theta_low = np.full(basis["theta_dim"], float(theta_low[0]), dtype=float)
+            theta_high = np.full(basis["theta_dim"], float(theta_high[0]), dtype=float)
+        else:
+            raise ValueError("theta_low/theta_high must match the selected polymer identification basis dimension.")
+    solve_cfg = dict(reid_cfg)
+    solve_cfg["theta_low"] = theta_low
+    solve_cfg["theta_high"] = theta_high
 
     (
         y_sp,
@@ -192,6 +296,12 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
     eta_raw_log = np.zeros(nFE)
     action_raw_log = np.zeros((nFE, 1))
     theta_hat_log = np.zeros((nFE, theta_nominal.size))
+    theta_active_log = np.zeros((nFE, theta_nominal.size))
+    theta_candidate_log = np.zeros((nFE, theta_nominal.size))
+    theta_unclipped_log = np.zeros((nFE, theta_nominal.size))
+    theta_lower_hit_mask_log = np.zeros((nFE, theta_nominal.size), dtype=int)
+    theta_upper_hit_mask_log = np.zeros((nFE, theta_nominal.size), dtype=int)
+    theta_clipped_fraction_log = np.zeros(nFE)
     id_residual_norm_log = np.zeros(nFE)
     id_condition_number_log = np.zeros(nFE)
     id_update_event_log = np.zeros(nFE, dtype=int)
@@ -199,8 +309,13 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
     id_fallback_log = np.zeros(nFE, dtype=int)
     id_valid_flag_log = np.zeros(nFE, dtype=int)
     id_source_code_log = np.zeros(nFE, dtype=int)
+    id_candidate_valid_log = np.zeros(nFE, dtype=int)
     id_A_model_delta_ratio_log = np.zeros(nFE)
     id_B_model_delta_ratio_log = np.zeros(nFE)
+    active_A_model_delta_ratio_log = np.zeros(nFE)
+    active_B_model_delta_ratio_log = np.zeros(nFE)
+    candidate_A_model_delta_ratio_log = np.zeros(nFE)
+    candidate_B_model_delta_ratio_log = np.zeros(nFE)
     pred_A_model_delta_ratio_log = np.zeros(nFE)
     pred_B_model_delta_ratio_log = np.zeros(nFE)
 
@@ -218,8 +333,16 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
     invalid_id_solve_count = 0
     id_solver_failure_count = 0
     id_update_success_count = 0
+    last_candidate_A_ratio = 0.0
+    last_candidate_B_ratio = 0.0
+    last_update_success_flag = 0.0
+    last_fallback_flag = 0.0
 
-    id_buffer = RollingIDBuffer(maxlen=max(id_window, int(reid_cfg.get("buffer_maxlen", max(4 * id_window, 200)))), state_dim=n_phys, input_dim=n_inputs)
+    id_buffer = RollingIDBuffer(
+        maxlen=max(id_window, int(reid_cfg.get("buffer_maxlen", max(4 * id_window, 200)))),
+        state_dim=n_phys,
+        input_dim=n_inputs,
+    )
 
     test = False
     for i in range(nFE):
@@ -241,14 +364,30 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
             mismatch_scale=mismatch_scale,
             mismatch_clip=mismatch_clip,
         )
-        current_rl_state = build_blend_policy_state(
+        current_active_A_ratio = _relative_fro(A_id_phys, A0_phys)
+        current_active_B_ratio = _relative_fro(B_id_phys, B0_phys)
+        current_rl_state = _build_policy_state(
             base_state=base_state,
+            use_v2_blend_state=use_v2_blend_state,
             prev_eta=eta_prev,
             residual_norm=last_id_residual_norm,
-            A_ratio=_relative_fro(A_id_phys, A0_phys),
-            B_ratio=_relative_fro(B_id_phys, B0_phys),
+            active_A_ratio=current_active_A_ratio,
+            active_B_ratio=current_active_B_ratio,
+            candidate_A_ratio=last_candidate_A_ratio,
+            candidate_B_ratio=last_candidate_B_ratio,
             id_valid_flag=id_valid_current,
+            id_update_success_flag=last_update_success_flag,
+            id_fallback_flag=last_fallback_flag,
+            delta_A_max=delta_A_max,
+            delta_B_max=delta_B_max,
+            normalize_blend_extras=normalize_blend_extras,
+            blend_extra_clip=blend_extra_clip,
+            blend_residual_scale=blend_residual_scale,
         )
+        if i == 0 and "state_dim_expected" in reid_cfg:
+            expected = int(reid_cfg["state_dim_expected"])
+            if current_rl_state.size != expected:
+                raise ValueError(f"Expected re-identification state_dim {expected}, got {current_rl_state.size}.")
         if innovation_log is not None:
             innovation_log[i, :] = state_debug["innovation"]
             tracking_error_log[i, :] = state_debug["tracking_error"]
@@ -283,12 +422,20 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         A_pred_aug, B_pred_aug, _ = augment_state_space(A_pred_phys, B_pred_phys, C_phys)
         pred_A_model_delta_ratio_log[i] = _relative_fro(A_pred_phys, A0_phys)
         pred_B_model_delta_ratio_log[i] = _relative_fro(B_pred_phys, B0_phys)
-        id_A_model_delta_ratio_log[i] = _relative_fro(A_id_phys, A0_phys)
-        id_B_model_delta_ratio_log[i] = _relative_fro(B_id_phys, B0_phys)
+        id_A_model_delta_ratio_log[i] = current_active_A_ratio
+        id_B_model_delta_ratio_log[i] = current_active_B_ratio
+        active_A_model_delta_ratio_log[i] = current_active_A_ratio
+        active_B_model_delta_ratio_log[i] = current_active_B_ratio
+        candidate_A_model_delta_ratio_log[i] = last_candidate_A_ratio
+        candidate_B_model_delta_ratio_log[i] = last_candidate_B_ratio
         theta_hat_log[i, :] = theta_hat
+        theta_active_log[i, :] = theta_hat
+        theta_candidate_log[i, :] = theta_hat
+        theta_unclipped_log[i, :] = theta_hat
         id_residual_norm_log[i] = last_id_residual_norm
         id_condition_number_log[i] = last_id_condition_number
         id_valid_flag_log[i] = int(id_valid_current > 0.5)
+        id_candidate_valid_log[i] = int(id_valid_current > 0.5)
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
         mpc_obj.A = A_pred_aug
@@ -327,10 +474,17 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         delta_y_storage[i, :] = delta_y
 
         yhat[:, i] = yhat_pred
-        xhatdhat[:, i + 1] = (
-            A_obs_aug @ xhatdhat[:, i]
-            + B_obs_aug @ (u_mpc[i, :] - ss_scaled_inputs)
-            + L_nom @ (y_prev_scaled - yhat[:, i]).T
+        xhatdhat[:, i + 1] = _update_nominal_observer_state(
+            A_obs_aug=A_obs_aug,
+            B_obs_aug=B_obs_aug,
+            C_aug=C_aug,
+            L_nom=L_nom,
+            x_prev=xhatdhat[:, i],
+            u_dev=(u_mpc[i, :] - ss_scaled_inputs),
+            y_prev_scaled=y_prev_scaled,
+            y_current_scaled=y_current_scaled,
+            yhat_current=yhat[:, i],
+            observer_update_alignment=observer_update_alignment,
         )
 
         y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
@@ -355,6 +509,9 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         x_phys_tp1 = xhatdhat[:n_phys, i + 1]
         id_buffer.push(x_phys_t, next_u_dev, x_phys_tp1)
 
+        update_success_flag = 0.0
+        fallback_flag = 0.0
+
         if not disable_identification and (i + 1) % id_update_period == 0 and len(id_buffer) >= id_window:
             id_update_event_log[i] = 1
             solver_result = solve_identification_batch(
@@ -363,7 +520,7 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
                 B0_phys=B0_phys,
                 basis=basis,
                 theta_prev=theta_hat,
-                cfg=reid_cfg,
+                cfg=solve_cfg,
             )
             last_id_residual_norm = float(solver_result["residual_norm"])
             last_id_condition_number = float(solver_result["condition_number"])
@@ -379,6 +536,7 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
                     A_candidate=A_candidate,
                     B_candidate=B_candidate,
                     theta_candidate=solver_result["theta"],
+                    theta_unclipped=solver_result.get("theta_unclipped"),
                     solve_success=True,
                     A0_phys=A0_phys,
                     B0_phys=B0_phys,
@@ -386,14 +544,22 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
                     A_prev=A_id_phys,
                     B_prev=B_id_phys,
                     theta_prev=theta_hat,
+                    theta_low=theta_low,
+                    theta_high=theta_high,
                     delta_A_max=delta_A_max,
                     delta_B_max=delta_B_max,
+                    candidate_guard_mode=candidate_guard_mode,
                 )
+                theta_candidate = np.asarray(solver_result["theta"], float)
+                theta_unclipped = np.asarray(solver_result.get("theta_unclipped", solver_result["theta"]), float)
+                candidate_A_ratio = _relative_fro(A_candidate, A0_phys)
+                candidate_B_ratio = _relative_fro(B_candidate, B0_phys)
             else:
                 selection = select_identified_model(
                     A_candidate=None,
                     B_candidate=None,
                     theta_candidate=None,
+                    theta_unclipped=None,
                     solve_success=False,
                     A0_phys=A0_phys,
                     B0_phys=B0_phys,
@@ -401,41 +567,77 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
                     A_prev=A_id_phys,
                     B_prev=B_id_phys,
                     theta_prev=theta_hat,
+                    theta_low=theta_low,
+                    theta_high=theta_high,
                     delta_A_max=delta_A_max,
                     delta_B_max=delta_B_max,
+                    candidate_guard_mode=candidate_guard_mode,
                 )
+                theta_candidate = theta_hat.copy()
+                theta_unclipped = theta_hat.copy()
+                candidate_A_ratio = current_active_A_ratio
+                candidate_B_ratio = current_active_B_ratio
                 id_solver_failure_count += 1
 
             A_id_phys = selection["A_active"]
             B_id_phys = selection["B_active"]
             theta_hat = selection["theta_active"]
+            update_success_flag = float(selection["update_success"])
+            fallback_flag = float(selection["fallback_used"])
             id_update_success_log[i] = int(selection["update_success"])
             id_fallback_log[i] = int(selection["fallback_used"])
             id_source_code_log[i] = 1 if selection["source"] == "candidate" else 2
-            id_valid_current = 1.0 if selection["source"] == "candidate" else id_valid_current
+            id_candidate_valid_log[i] = int(selection["candidate_eval"]["valid"])
+            last_candidate_A_ratio = float(candidate_A_ratio)
+            last_candidate_B_ratio = float(candidate_B_ratio)
+
+            if selection["source"] == "candidate":
+                id_valid_current = 1.0
             if selection["update_success"]:
                 id_update_success_count += 1
                 id_valid_current = 1.0
             else:
                 invalid_id_solve_count += 1
 
-            # Record the active identified model after the update decision so
-            # diagnostics align with the update-event step rather than lagging
-            # by one sample in the plots.
             theta_hat_log[i, :] = theta_hat
+            theta_active_log[i, :] = theta_hat
+            theta_candidate_log[i, :] = theta_candidate
+            theta_unclipped_log[i, :] = theta_unclipped
+            if log_theta_clipping:
+                theta_lower_hit_mask_log[i, :] = selection["theta_eval"]["lower_hit_mask"]
+                theta_upper_hit_mask_log[i, :] = selection["theta_eval"]["upper_hit_mask"]
+                theta_clipped_fraction_log[i] = float(selection["theta_eval"]["clipped_fraction"])
             id_residual_norm_log[i] = last_id_residual_norm
             id_condition_number_log[i] = last_id_condition_number
             id_valid_flag_log[i] = int(id_valid_current > 0.5)
-            id_A_model_delta_ratio_log[i] = _relative_fro(A_id_phys, A0_phys)
-            id_B_model_delta_ratio_log[i] = _relative_fro(B_id_phys, B0_phys)
+            active_A_ratio = _relative_fro(A_id_phys, A0_phys)
+            active_B_ratio = _relative_fro(B_id_phys, B0_phys)
+            id_A_model_delta_ratio_log[i] = active_A_ratio
+            id_B_model_delta_ratio_log[i] = active_B_ratio
+            active_A_model_delta_ratio_log[i] = active_A_ratio
+            active_B_model_delta_ratio_log[i] = active_B_ratio
+            candidate_A_model_delta_ratio_log[i] = candidate_A_ratio
+            candidate_B_model_delta_ratio_log[i] = candidate_B_ratio
 
-        next_rl_state = build_blend_policy_state(
+        next_active_A_ratio = _relative_fro(A_id_phys, A0_phys)
+        next_active_B_ratio = _relative_fro(B_id_phys, B0_phys)
+        next_rl_state = _build_policy_state(
             base_state=next_base_state,
+            use_v2_blend_state=use_v2_blend_state,
             prev_eta=eta,
             residual_norm=last_id_residual_norm,
-            A_ratio=_relative_fro(A_id_phys, A0_phys),
-            B_ratio=_relative_fro(B_id_phys, B0_phys),
+            active_A_ratio=next_active_A_ratio,
+            active_B_ratio=next_active_B_ratio,
+            candidate_A_ratio=last_candidate_A_ratio,
+            candidate_B_ratio=last_candidate_B_ratio,
             id_valid_flag=id_valid_current,
+            id_update_success_flag=update_success_flag,
+            id_fallback_flag=fallback_flag,
+            delta_A_max=delta_A_max,
+            delta_B_max=delta_B_max,
+            normalize_blend_extras=normalize_blend_extras,
+            blend_extra_clip=blend_extra_clip,
+            blend_residual_scale=blend_residual_scale,
         )
 
         if not test:
@@ -450,6 +652,8 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
                 agent.train_step()
 
         eta_prev = eta
+        last_update_success_flag = update_success_flag
+        last_fallback_flag = fallback_flag
 
         if i in sub_episodes_changes_dict:
             lo = max(0, i - time_in_sub_episodes + 1)
@@ -463,9 +667,9 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
                 "| eta:",
                 float(np.mean(eta_log[lo:hi])),
                 "| ||dA||/||A0||:",
-                float(np.mean(id_A_model_delta_ratio_log[lo:hi])),
+                float(np.mean(active_A_model_delta_ratio_log[lo:hi])),
                 "| ||dB||/||B0||:",
-                float(np.mean(id_B_model_delta_ratio_log[lo:hi])),
+                float(np.mean(active_B_model_delta_ratio_log[lo:hi])),
             )
 
     mpc_obj.A = A_aug_nom
@@ -481,7 +685,7 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
     result_bundle = {
         "agent_kind": agent_kind,
         "run_mode": run_mode,
-        "method_family": "reid_batch",
+        "method_family": method_family,
         "algorithm": agent_kind,
         "state_mode": state_mode,
         "system_metadata": system_metadata,
@@ -521,6 +725,7 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         "estimator_mode": "fixed_nominal",
         "prediction_model_mode": "online_reid_blend",
         "id_basis_name": basis["basis_name"],
+        "basis_family": basis["basis_family"],
         "theta_labels": list(basis["theta_labels"]),
         "theta_low": theta_low,
         "theta_high": theta_high,
@@ -528,6 +733,12 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         "eta_raw_log": eta_raw_log,
         "action_raw_log": action_raw_log,
         "theta_hat_log": theta_hat_log,
+        "theta_active_log": theta_active_log,
+        "theta_candidate_log": theta_candidate_log,
+        "theta_unclipped_log": theta_unclipped_log,
+        "theta_lower_hit_mask_log": theta_lower_hit_mask_log,
+        "theta_upper_hit_mask_log": theta_upper_hit_mask_log,
+        "theta_clipped_fraction_log": theta_clipped_fraction_log,
         "id_residual_norm_log": id_residual_norm_log,
         "id_condition_number_log": id_condition_number_log,
         "id_update_event_log": id_update_event_log,
@@ -535,8 +746,13 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         "id_fallback_log": id_fallback_log,
         "id_valid_flag_log": id_valid_flag_log,
         "id_source_code_log": id_source_code_log,
+        "id_candidate_valid_log": id_candidate_valid_log,
         "id_A_model_delta_ratio_log": id_A_model_delta_ratio_log,
         "id_B_model_delta_ratio_log": id_B_model_delta_ratio_log,
+        "active_A_model_delta_ratio_log": active_A_model_delta_ratio_log,
+        "active_B_model_delta_ratio_log": active_B_model_delta_ratio_log,
+        "candidate_A_model_delta_ratio_log": candidate_A_model_delta_ratio_log,
+        "candidate_B_model_delta_ratio_log": candidate_B_model_delta_ratio_log,
         "pred_A_model_delta_ratio_log": pred_A_model_delta_ratio_log,
         "pred_B_model_delta_ratio_log": pred_B_model_delta_ratio_log,
         "invalid_id_solve_count": int(invalid_id_solve_count),
@@ -547,12 +763,18 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
         "lambda_value": getattr(agent, "lambda_value", None),
         "force_eta_constant": force_eta_constant,
         "disable_identification": disable_identification,
+        "state_dim_expected": reid_cfg.get("state_dim_expected"),
+        "action_dim": int(reid_cfg.get("action_dim", 1)),
+        "basis_family_config": basis_family,
+        "block_group_count": block_group_count,
+        "block_groups": basis.get("block_groups"),
+        "candidate_guard_mode": candidate_guard_mode,
+        "observer_update_alignment": observer_update_alignment,
+        "normalize_blend_extras": normalize_blend_extras,
+        "blend_extra_clip": blend_extra_clip,
+        "blend_residual_scale": blend_residual_scale,
+        "log_theta_clipping": log_theta_clipping,
     }
-
-    state_dim_expected = get_blend_state_dim(n_states, n_outputs, n_inputs, state_mode)
-    result_bundle["state_dim_expected"] = int(state_dim_expected)
-    result_bundle["action_dim"] = 1
-
     for attr in (
         "actor_losses",
         "critic_losses",
@@ -577,5 +799,4 @@ def run_reid_batch_supervisor(reid_cfg, runtime_ctx):
     ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
-
     return result_bundle

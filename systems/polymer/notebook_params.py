@@ -552,6 +552,54 @@ POLYMER_REID_BATCH_DEFAULTS = {
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
 }
 
+POLYMER_REID_BATCH_V2_DEFAULTS = deepcopy(POLYMER_REID_BATCH_DEFAULTS)
+POLYMER_REID_BATCH_V2_DEFAULTS["run_profiles"] = {
+    ("td3", "nominal"): {
+        "result_prefix": "td3_reid_batch_v2_nominal",
+        "compare_prefix": "nominal_compare_td3_reid_batch_v2",
+        "compare_mode": "nominal",
+        "plot_start_episode": 2,
+        "compare_start_episode": 2,
+    },
+    ("td3", "disturb"): {
+        "result_prefix": "td3_reid_batch_v2_disturb",
+        "compare_prefix": "disturb_compare_td3_reid_batch_v2",
+        "compare_mode": "disturb",
+        "plot_start_episode": 2,
+        "compare_start_episode": 2,
+    },
+    ("sac", "nominal"): {
+        "result_prefix": "sac_reid_batch_v2_nominal",
+        "compare_prefix": "nominal_compare_sac_reid_batch_v2",
+        "compare_mode": "nominal",
+        "plot_start_episode": 2,
+        "compare_start_episode": 2,
+    },
+    ("sac", "disturb"): {
+        "result_prefix": "sac_reid_batch_v2_disturb",
+        "compare_prefix": "disturb_compare_sac_reid_batch_v2",
+        "compare_mode": "disturb",
+        "plot_start_episode": 2,
+        "compare_start_episode": 2,
+    },
+}
+POLYMER_REID_BATCH_V2_DEFAULTS["reid"] = {
+    **deepcopy(POLYMER_REID_BATCH_DEFAULTS["reid"]),
+    "basis_family": "rowcol",  # Options: "scalar_legacy" | "rowcol" | "block_polymer"
+    "block_group_count": 3,  # Used when basis_family == "block_polymer" and block_groups is None.
+    "block_groups": None,  # Optional explicit physical-state partition for block_polymer.
+    "candidate_guard_mode": "fro_only",  # Options: "theta_only" | "fro_only" | "both"
+    "observer_update_alignment": "current_measurement",  # Options: "legacy_previous_measurement" | "current_measurement"
+    "normalize_blend_extras": True,
+    "blend_extra_clip": 3.0,
+    "blend_residual_scale": 1.0,
+    "log_theta_clipping": True,
+    "theta_low": np.array([-0.15] * 9, float),
+    "theta_high": np.array([0.15] * 9, float),
+    "delta_A_max": 0.10,
+    "delta_B_max": 0.10,
+}
+
 POLYMER_WEIGHT_DEFAULTS = {
     "agent_kind": "td3",
     "run_mode": "nominal",
@@ -873,6 +921,7 @@ POLYMER_NOTEBOOK_DEFAULTS = {
     "matrix": POLYMER_MATRIX_DEFAULTS,
     "structured_matrix": POLYMER_STRUCTURED_MATRIX_DEFAULTS,
     "reid_batch": POLYMER_REID_BATCH_DEFAULTS,
+    "reid_batch_v2": POLYMER_REID_BATCH_V2_DEFAULTS,
     "weights": POLYMER_WEIGHT_DEFAULTS,
     "residual": POLYMER_RESIDUAL_DEFAULTS,
     "combined": POLYMER_COMBINED_DEFAULTS,

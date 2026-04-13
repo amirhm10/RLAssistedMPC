@@ -640,7 +640,7 @@ POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["run_profiles"] = {
 POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["episode_defaults"] = {
     "n_tests": 40,
     "set_points_len": 200,
-    "warm_start": 10,
+    "warm_start": 4,
     "test_cycle": [False, False, False, False, False],
 }
 POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["reid"] = {
@@ -664,7 +664,7 @@ POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["study"] = {
     "short_diagnostic_preset": {
         "n_tests": 40,
         "set_points_len": 200,
-        "warm_start": 10,
+        "warm_start": 4,
         "test_cycle": [False, False, False, False, False],
     },
     "tier1": {

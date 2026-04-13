@@ -11,6 +11,7 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
+from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.residual_authority import map_from_bounds, project_residual_action
 from utils.state_features import build_rl_state, compute_tracking_scale_now, resolve_mismatch_settings
 
@@ -460,8 +461,5 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
 
-    replay_buffer = getattr(agent, "buffer", None)
-    if replay_buffer is not None and hasattr(replay_buffer, "export_snapshot"):
-        result_bundle["replay_buffer_snapshot"] = replay_buffer.export_snapshot(ordered=True)
-
+    attach_single_agent_replay_snapshot(result_bundle, agent)
     return result_bundle

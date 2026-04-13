@@ -11,6 +11,7 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
+from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.state_features import build_rl_state, compute_tracking_scale_now, resolve_mismatch_settings
 
 
@@ -399,4 +400,5 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
 
+    attach_single_agent_replay_snapshot(result_bundle, agent)
     return result_bundle

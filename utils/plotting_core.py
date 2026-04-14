@@ -1,4 +1,5 @@
 import collections
+import gc
 import os
 import pickle
 from datetime import datetime
@@ -75,10 +76,33 @@ def _make_axes_bold(ax):
 
 
 def _save_fig(fig, out_dir, fname_base, save_pdf=False):
-    fig.savefig(os.path.join(out_dir, fname_base + ".png"), dpi=300, bbox_inches="tight")
-    if save_pdf:
-        fig.savefig(os.path.join(out_dir, fname_base + ".pdf"), bbox_inches="tight")
-    plt.close(fig)
+    png_path = os.path.join(out_dir, fname_base + ".png")
+    pdf_path = os.path.join(out_dir, fname_base + ".pdf")
+
+    def _is_render_memory_error(exc):
+        if isinstance(exc, MemoryError):
+            return True
+        message = str(exc).lower()
+        return "image size of" in message or "bad allocation" in message or "array is too big" in message
+
+    try:
+        try:
+            fig.savefig(png_path, dpi=300, bbox_inches="tight")
+        except Exception as exc:
+            if not _is_render_memory_error(exc):
+                raise
+            fig.savefig(png_path, dpi=180)
+
+        if save_pdf:
+            try:
+                fig.savefig(pdf_path, bbox_inches="tight")
+            except Exception as exc:
+                if not _is_render_memory_error(exc):
+                    raise
+                fig.savefig(pdf_path)
+    finally:
+        plt.close(fig)
+        gc.collect()
 
 
 def _default_system_metadata(n_outputs, n_inputs):
@@ -287,6 +311,10 @@ def normalize_result_bundle(result_bundle):
         if bundle.get("target_logprob_mean_trace") is None
         else np.asarray(bundle["target_logprob_mean_trace"], float).reshape(-1)
     )
+    bundle["eta_A_log"] = None if bundle.get("eta_A_log") is None else np.asarray(bundle["eta_A_log"], float).reshape(-1)
+    bundle["eta_B_log"] = None if bundle.get("eta_B_log") is None else np.asarray(bundle["eta_B_log"], float).reshape(-1)
+    bundle["eta_A_raw_log"] = None if bundle.get("eta_A_raw_log") is None else np.asarray(bundle["eta_A_raw_log"], float).reshape(-1)
+    bundle["eta_B_raw_log"] = None if bundle.get("eta_B_raw_log") is None else np.asarray(bundle["eta_B_raw_log"], float).reshape(-1)
     bundle["eta_log"] = None if bundle.get("eta_log") is None else np.asarray(bundle["eta_log"], float).reshape(-1)
     bundle["eta_raw_log"] = None if bundle.get("eta_raw_log") is None else np.asarray(bundle["eta_raw_log"], float).reshape(-1)
     bundle["action_raw_log"] = None if bundle.get("action_raw_log") is None else np.asarray(bundle["action_raw_log"], float)
@@ -350,6 +378,32 @@ def normalize_result_bundle(result_bundle):
         None
         if bundle.get("pred_B_model_delta_ratio_log") is None
         else np.asarray(bundle["pred_B_model_delta_ratio_log"], float).reshape(-1)
+    )
+    bundle["observer_A_model_delta_ratio_log"] = (
+        None
+        if bundle.get("observer_A_model_delta_ratio_log") is None
+        else np.asarray(bundle["observer_A_model_delta_ratio_log"], float).reshape(-1)
+    )
+    bundle["observer_B_model_delta_ratio_log"] = (
+        None
+        if bundle.get("observer_B_model_delta_ratio_log") is None
+        else np.asarray(bundle["observer_B_model_delta_ratio_log"], float).reshape(-1)
+    )
+    bundle["observer_refresh_event_log"] = (
+        None
+        if bundle.get("observer_refresh_event_log") is None
+        else np.asarray(bundle["observer_refresh_event_log"], int).reshape(-1)
+    )
+    bundle["observer_refresh_success_log"] = (
+        None
+        if bundle.get("observer_refresh_success_log") is None
+        else np.asarray(bundle["observer_refresh_success_log"], int).reshape(-1)
+    )
+    bundle["basis_singular_values_A"] = (
+        None if bundle.get("basis_singular_values_A") is None else np.asarray(bundle["basis_singular_values_A"], float).reshape(-1)
+    )
+    bundle["basis_singular_values_B"] = (
+        None if bundle.get("basis_singular_values_B") is None else np.asarray(bundle["basis_singular_values_B"], float).reshape(-1)
     )
     bundle["candidate_A_model_delta_ratio_log"] = (
         None
@@ -533,6 +587,26 @@ def normalize_result_bundle(result_bundle):
         bundle["alpha_log"] = bundle["alpha_log"][: bundle["nFE"]]
     if bundle["matrix_alpha_log"] is not None and bundle["matrix_alpha_log"].shape[0] > bundle["nFE"]:
         bundle["matrix_alpha_log"] = bundle["matrix_alpha_log"][: bundle["nFE"]]
+    for key in (
+        "eta_A_log",
+        "eta_B_log",
+        "eta_A_raw_log",
+        "eta_B_raw_log",
+        "id_residual_norm_log",
+        "id_condition_number_log",
+        "active_A_model_delta_ratio_log",
+        "active_B_model_delta_ratio_log",
+        "candidate_A_model_delta_ratio_log",
+        "candidate_B_model_delta_ratio_log",
+        "pred_A_model_delta_ratio_log",
+        "pred_B_model_delta_ratio_log",
+        "observer_A_model_delta_ratio_log",
+        "observer_B_model_delta_ratio_log",
+        "observer_refresh_event_log",
+        "observer_refresh_success_log",
+    ):
+        if bundle.get(key) is not None and bundle[key].shape[0] > bundle["nFE"]:
+            bundle[key] = bundle[key][: bundle["nFE"]]
 
     if bundle["weight_log"] is not None:
         if bundle["weight_log"].ndim == 1:
@@ -1915,13 +1989,30 @@ def plot_structured_matrix_results_core(result_bundle, plot_cfg):
     return out_dir
 
 
-def plot_reid_batch_results_core(result_bundle, plot_cfg):
-    out_dir = plot_matrix_multiplier_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+def plot_reidentification_results_core(result_bundle, plot_cfg):
+    include_base_matrix_plots = bool(plot_cfg.get("include_base_matrix_plots", False))
+    if include_base_matrix_plots:
+        out_dir = plot_matrix_multiplier_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
+    else:
+        style_profile = str(plot_cfg.get("style_profile", "hybrid")).lower()
+        _set_plot_style(style_profile=style_profile)
+        bundle_for_storage = normalize_result_bundle(result_bundle)
+        directory = os.fspath(plot_cfg["directory"])
+        prefix_name = plot_cfg.get("prefix_name", "reidentification_result")
+        start_episode = int(plot_cfg.get("start_episode", 1))
+        out_dir = create_output_dir(directory, prefix_name)
+        stored_bundle = build_storage_bundle(bundle_for_storage, start_episode)
+        stored_bundle.pop("eta_log", None)
+        stored_bundle.pop("eta_raw_log", None)
+        save_bundle_pickle(out_dir, stored_bundle)
     bundle = normalize_result_bundle(result_bundle)
     save_pdf = bool(plot_cfg.get("save_pdf", False))
+    debug_id_plots = bool(plot_cfg.get("debug_id_plots", False))
 
-    eta_log = bundle.get("eta_log")
-    eta_raw_log = bundle.get("eta_raw_log")
+    eta_A_log = bundle.get("eta_A_log")
+    eta_B_log = bundle.get("eta_B_log")
+    eta_A_raw_log = bundle.get("eta_A_raw_log")
+    eta_B_raw_log = bundle.get("eta_B_raw_log")
     theta_hat_log = bundle.get("theta_hat_log")
     theta_active_log = bundle.get("theta_active_log")
     theta_candidate_log = bundle.get("theta_candidate_log")
@@ -1932,42 +2023,155 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
     id_update_event_log = bundle.get("id_update_event_log")
     id_update_success_log = bundle.get("id_update_success_log")
     id_fallback_log = bundle.get("id_fallback_log")
-    id_valid_flag_log = bundle.get("id_valid_flag_log")
     id_candidate_valid_log = bundle.get("id_candidate_valid_log")
     theta_lower_hit_mask_log = bundle.get("theta_lower_hit_mask_log")
     theta_upper_hit_mask_log = bundle.get("theta_upper_hit_mask_log")
     theta_clipped_fraction_log = bundle.get("theta_clipped_fraction_log")
-    id_A_ratio = bundle.get("id_A_model_delta_ratio_log")
-    id_B_ratio = bundle.get("id_B_model_delta_ratio_log")
     active_A_ratio = bundle.get("active_A_model_delta_ratio_log")
     active_B_ratio = bundle.get("active_B_model_delta_ratio_log")
     candidate_A_ratio = bundle.get("candidate_A_model_delta_ratio_log")
     candidate_B_ratio = bundle.get("candidate_B_model_delta_ratio_log")
     pred_A_ratio = bundle.get("pred_A_model_delta_ratio_log")
     pred_B_ratio = bundle.get("pred_B_model_delta_ratio_log")
+    observer_A_ratio = bundle.get("observer_A_model_delta_ratio_log")
+    observer_B_ratio = bundle.get("observer_B_model_delta_ratio_log")
+    observer_refresh_event_log = bundle.get("observer_refresh_event_log")
+    observer_refresh_success_log = bundle.get("observer_refresh_success_log")
+    basis_singular_values_A = bundle.get("basis_singular_values_A")
+    basis_singular_values_B = bundle.get("basis_singular_values_B")
     rewards_step = bundle.get("rewards_step")
 
-    if eta_log is not None and len(eta_log) > 0:
-        t_idx = np.arange(1, len(eta_log) + 1)
-        fig, axs = plt.subplots(2, 1, figsize=(8.6, 6.4), sharex=True)
-        if eta_raw_log is not None and len(eta_raw_log) == len(eta_log):
-            axs[0].step(t_idx, eta_raw_log, where="post")
-            axs[0].set_ylabel(r"$\eta_{raw}$")
-        else:
-            axs[0].step(t_idx, eta_log, where="post")
-            axs[0].set_ylabel(r"$\eta$")
-        axs[1].step(t_idx, eta_log, where="post")
-        axs[1].set_ylabel(r"$\eta$")
-        axs[1].set_xlabel("Step")
-        for ax in axs:
-            ax.set_ylim(-0.05, 1.05)
+    if not include_base_matrix_plots:
+        y_line_full = bundle["y_line_full"]
+        u_step_full = bundle["u_step_full"]
+        nFE = bundle["nFE"]
+        delta_t = bundle["delta_t"]
+        time_in_sub_episodes = bundle["time_in_sub_episodes"]
+        n_inputs = bundle["n_inputs"]
+        n_outputs = bundle["n_outputs"]
+        metadata = resolve_system_metadata(bundle=bundle, plot_cfg=plot_cfg, n_outputs=n_outputs, n_inputs=n_inputs)
+        output_labels = metadata["output_labels"]
+        input_labels = metadata["input_labels"]
+        time_label = metadata["time_label"]
+        y_sp_phys_full = ysp_scaled_dev_to_phys(
+            bundle["y_sp"],
+            bundle["steady_states"],
+            bundle["data_min"],
+            bundle["data_max"],
+            n_inputs=n_inputs,
+        )
+
+        start_step = int(min(max(0, (start_episode - 1) * time_in_sub_episodes), max(0, nFE - 1)))
+        W = int(len(y_sp_phys_full[start_step:, :]))
+        y_line = y_line_full[start_step:, :]
+        y_sp_phys = y_sp_phys_full[start_step:, :]
+        u_line = u_step_full[start_step:, :]
+        t_line = np.linspace(0.0, W * delta_t, W + 1)
+        t_step = t_line[:-1]
+        last_steps = int(min(max(20, time_in_sub_episodes), W))
+        s_last = max(0, W - last_steps)
+        t_line_blk = np.linspace(0.0, last_steps * delta_t, last_steps + 1)
+        t_step_blk = t_line_blk[:-1]
+        spans = episode_spans(bundle.get("test_train_dict"), nFE)
+
+        fig, axs = plt.subplots(n_outputs, 1, figsize=(8.6, 3.0 + 2.5 * max(1, n_outputs - 1)), sharex=True)
+        if n_outputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.plot(t_line, y_line[:, idx], label="RL")
+            ax.step(t_step, y_sp_phys[:, idx], where="post", linestyle="--", label="Setpoint")
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(output_labels[idx])
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        _save_fig(fig, out_dir, "fig_reid_batch_eta", save_pdf=save_pdf)
+        axs[-1].set_xlabel(time_label)
+        axs[0].legend(loc="best")
+        _save_fig(fig, out_dir, "fig_reidentification_outputs_full", save_pdf=save_pdf)
+
+        fig, axs = plt.subplots(n_outputs, 1, figsize=(8.6, 3.0 + 2.5 * max(1, n_outputs - 1)), sharex=True)
+        if n_outputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.plot(t_line_blk, y_line[s_last : s_last + last_steps + 1, idx], label="RL")
+            ax.step(t_step_blk, y_sp_phys[s_last : s_last + last_steps, idx], where="post", linestyle="--", label="Setpoint")
+            ax.set_ylabel(output_labels[idx])
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel(time_label)
+        axs[0].legend(loc="best")
+        _save_fig(fig, out_dir, "fig_reidentification_outputs_last_block", save_pdf=save_pdf)
+
+        fig, axs = plt.subplots(n_inputs, 1, figsize=(8.2, 3.0 + 2.3 * max(1, n_inputs - 1)), sharex=True)
+        if n_inputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.step(t_step, u_line[:, idx], where="post")
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(input_labels[idx])
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel(time_label)
+        _save_fig(fig, out_dir, "fig_reidentification_inputs_full", save_pdf=save_pdf)
+
+        fig, axs = plt.subplots(n_inputs, 1, figsize=(8.2, 3.0 + 2.3 * max(1, n_inputs - 1)), sharex=True)
+        if n_inputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.step(t_step_blk, u_line[s_last : s_last + last_steps, idx], where="post")
+            ax.set_ylabel(input_labels[idx])
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel(time_label)
+        _save_fig(fig, out_dir, "fig_reidentification_inputs_last_block", save_pdf=save_pdf)
+
+        avg_rewards = bundle.get("avg_rewards")
+        if avg_rewards is not None and len(avg_rewards) > 0:
+            fig, ax = plt.subplots(figsize=(8.0, 4.8))
+            x_ep, y_ep = slice_avg_rewards(avg_rewards, len(avg_rewards), start_episode)
+            ax.plot(x_ep, y_ep, marker="o")
+            ax.set_xlabel("Episode")
+            ax.set_ylabel("Average reward")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+            _save_fig(fig, out_dir, "fig_reidentification_avg_rewards", save_pdf=save_pdf)
+
+        if rewards_step is not None:
+            fig, ax = plt.subplots(figsize=(8.2, 4.8))
+            ax.plot(np.arange(1, len(rewards_step) + 1), rewards_step)
+            ax.set_xlabel("Step")
+            ax.set_ylabel("Reward")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+            _save_fig(fig, out_dir, "fig_reidentification_step_rewards", save_pdf=save_pdf)
+
+    if eta_A_log is not None and eta_B_log is not None and len(eta_A_log) > 0 and len(eta_B_log) > 0:
+        t_idx = np.arange(1, min(len(eta_A_log), len(eta_B_log)) + 1)
+        fig, axs = plt.subplots(2, 1, figsize=(8.6, 6.4), sharex=True)
+        axs[0].step(t_idx, eta_A_log[: len(t_idx)], where="post", label=r"$\eta_A$")
+        if eta_A_raw_log is not None and len(eta_A_raw_log) >= len(t_idx):
+            axs[0].step(t_idx, eta_A_raw_log[: len(t_idx)], where="post", linestyle="--", alpha=0.7, label=r"$\eta_{A,raw}$")
+        axs[1].step(t_idx, eta_B_log[: len(t_idx)], where="post", label=r"$\eta_B$")
+        if eta_B_raw_log is not None and len(eta_B_raw_log) >= len(t_idx):
+            axs[1].step(t_idx, eta_B_raw_log[: len(t_idx)], where="post", linestyle="--", alpha=0.7, label=r"$\eta_{B,raw}$")
+        axs[0].set_ylabel(r"$\eta_A$")
+        axs[1].set_ylabel(r"$\eta_B$")
+        axs[1].set_xlabel("Step")
+        for ax in axs:
+            ax.set_ylim(-0.05, 1.05)
+            ax.legend(loc="best")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_reidentification_dual_eta", save_pdf=save_pdf)
 
     theta_active_for_plot = theta_active_log if theta_active_log is not None else theta_hat_log
-    if theta_active_for_plot is not None and theta_active_for_plot.size > 0:
+    if debug_id_plots and theta_active_for_plot is not None and theta_active_for_plot.size > 0:
         theta_active_for_plot = np.asarray(theta_active_for_plot, float)
         fig, axs = plt.subplots(
             theta_active_for_plot.shape[1],
@@ -1992,7 +2196,7 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
         axs[-1].set_xlabel("Step")
         axs[0].legend(loc="best")
-        _save_fig(fig, out_dir, "fig_reid_batch_theta_history", save_pdf=save_pdf)
+        _save_fig(fig, out_dir, "fig_reidentification_theta_history", save_pdf=save_pdf)
 
     diag_series = []
     if id_residual_norm_log is not None:
@@ -2001,7 +2205,7 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
         diag_series.append(("ID cond.", np.asarray(id_condition_number_log, float)))
     if theta_clipped_fraction_log is not None:
         diag_series.append(("Theta clipped frac", np.asarray(theta_clipped_fraction_log, float)))
-    if diag_series:
+    if debug_id_plots and diag_series:
         fig, axs = plt.subplots(len(diag_series), 1, figsize=(8.6, 3.0 + 2.2 * max(1, len(diag_series) - 1)), sharex=True)
         if len(diag_series) == 1:
             axs = [axs]
@@ -2012,49 +2216,26 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
         axs[-1].set_xlabel("Step")
-        _save_fig(fig, out_dir, "fig_reid_batch_id_diagnostics", save_pdf=save_pdf)
+        _save_fig(fig, out_dir, "fig_reidentification_id_diagnostics", save_pdf=save_pdf)
 
-    metrics = []
-    if active_A_ratio is not None:
-        metrics.append(("Active A Fro ratio", np.asarray(active_A_ratio, float)))
-    elif id_A_ratio is not None:
-        metrics.append(("ID A Fro ratio", np.asarray(id_A_ratio, float)))
-    if active_B_ratio is not None:
-        metrics.append(("Active B Fro ratio", np.asarray(active_B_ratio, float)))
-    elif id_B_ratio is not None:
-        metrics.append(("ID B Fro ratio", np.asarray(id_B_ratio, float)))
-    if candidate_A_ratio is not None:
-        metrics.append(("Candidate A Fro ratio", np.asarray(candidate_A_ratio, float)))
-    if candidate_B_ratio is not None:
-        metrics.append(("Candidate B Fro ratio", np.asarray(candidate_B_ratio, float)))
-    if pred_A_ratio is not None:
-        metrics.append(("Pred A Fro ratio", np.asarray(pred_A_ratio, float)))
-    if pred_B_ratio is not None:
-        metrics.append(("Pred B Fro ratio", np.asarray(pred_B_ratio, float)))
-    if metrics:
-        fig, axs = plt.subplots(len(metrics), 1, figsize=(8.8, 3.2 + 2.1 * max(1, len(metrics) - 1)), sharex=True)
-        if len(metrics) == 1:
-            axs = [axs]
-        for ax, (label, series) in zip(axs, metrics):
-            ax.plot(np.arange(1, len(series) + 1), series)
-            ax.set_ylabel(label)
+    if active_A_ratio is not None and active_B_ratio is not None:
+        fig, axs = plt.subplots(2, 1, figsize=(8.4, 6.0), sharex=True)
+        axs[0].plot(np.arange(1, len(active_A_ratio) + 1), active_A_ratio)
+        axs[0].set_ylabel("Active A Fro ratio")
+        axs[1].plot(np.arange(1, len(active_B_ratio) + 1), active_B_ratio)
+        axs[1].set_ylabel("Active B Fro ratio")
+        axs[1].set_xlabel("Step")
+        for ax in axs:
             ax.spines["top"].set_visible(False)
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
-        axs[-1].set_xlabel("Step")
-        _save_fig(fig, out_dir, "fig_reid_batch_model_delta_metrics", save_pdf=save_pdf)
+        _save_fig(fig, out_dir, "fig_reidentification_active_model_delta", save_pdf=save_pdf)
 
     event_series = []
-    if id_update_event_log is not None:
-        event_series.append(("ID update", np.asarray(id_update_event_log, float)))
-    if id_update_success_log is not None:
-        event_series.append(("ID success", np.asarray(id_update_success_log, float)))
-    if id_fallback_log is not None:
-        event_series.append(("Fallback", np.asarray(id_fallback_log, float)))
-    if id_valid_flag_log is not None:
-        event_series.append(("ID valid", np.asarray(id_valid_flag_log, float)))
-    if id_candidate_valid_log is not None:
-        event_series.append(("Candidate valid", np.asarray(id_candidate_valid_log, float)))
+    if observer_refresh_event_log is not None:
+        event_series.append(("Refresh event", np.asarray(observer_refresh_event_log, float)))
+    if observer_refresh_success_log is not None:
+        event_series.append(("Refresh success", np.asarray(observer_refresh_success_log, float)))
     if event_series:
         fig, axs = plt.subplots(len(event_series), 1, figsize=(8.6, 3.0 + 1.8 * max(1, len(event_series) - 1)), sharex=True)
         if len(event_series) == 1:
@@ -2067,9 +2248,9 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
             ax.spines["right"].set_visible(False)
             _make_axes_bold(ax)
         axs[-1].set_xlabel("Step")
-        _save_fig(fig, out_dir, "fig_reid_batch_id_events", save_pdf=save_pdf)
+        _save_fig(fig, out_dir, "fig_reidentification_observer_refresh", save_pdf=save_pdf)
 
-    if theta_lower_hit_mask_log is not None or theta_upper_hit_mask_log is not None:
+    if debug_id_plots and (theta_lower_hit_mask_log is not None or theta_upper_hit_mask_log is not None):
         lower_mask = None if theta_lower_hit_mask_log is None else np.asarray(theta_lower_hit_mask_log, float)
         upper_mask = None if theta_upper_hit_mask_log is None else np.asarray(theta_upper_hit_mask_log, float)
         n_theta = 0
@@ -2094,46 +2275,56 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
                 _make_axes_bold(ax)
             axs[-1].set_xlabel("Step")
             axs[0].legend(loc="best")
-            _save_fig(fig, out_dir, "fig_reid_batch_theta_bound_hits", save_pdf=save_pdf)
+            _save_fig(fig, out_dir, "fig_reidentification_theta_bound_hits", save_pdf=save_pdf)
 
-    if rewards_step is not None and eta_log is not None and len(rewards_step) == len(eta_log):
-        fig, ax = plt.subplots(figsize=(7.4, 5.2))
-        ax.scatter(eta_log, rewards_step, s=10, alpha=0.35)
-        ax.set_xlabel(r"$\eta$")
-        ax.set_ylabel("Reward")
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        _make_axes_bold(ax)
-        _save_fig(fig, out_dir, "fig_reid_batch_reward_vs_eta", save_pdf=save_pdf)
+    if debug_id_plots and (candidate_A_ratio is not None or pred_A_ratio is not None or observer_A_ratio is not None):
+        metrics = []
+        if active_A_ratio is not None:
+            metrics.append(("Active A Fro ratio", np.asarray(active_A_ratio, float)))
+        if active_B_ratio is not None:
+            metrics.append(("Active B Fro ratio", np.asarray(active_B_ratio, float)))
+        if candidate_A_ratio is not None:
+            metrics.append(("Candidate A Fro ratio", np.asarray(candidate_A_ratio, float)))
+        if candidate_B_ratio is not None:
+            metrics.append(("Candidate B Fro ratio", np.asarray(candidate_B_ratio, float)))
+        if pred_A_ratio is not None:
+            metrics.append(("Pred A Fro ratio", np.asarray(pred_A_ratio, float)))
+        if pred_B_ratio is not None:
+            metrics.append(("Pred B Fro ratio", np.asarray(pred_B_ratio, float)))
+        if observer_A_ratio is not None:
+            metrics.append(("Observer A Fro ratio", np.asarray(observer_A_ratio, float)))
+        if observer_B_ratio is not None:
+            metrics.append(("Observer B Fro ratio", np.asarray(observer_B_ratio, float)))
+        fig, axs = plt.subplots(len(metrics), 1, figsize=(8.8, 3.2 + 2.1 * max(1, len(metrics) - 1)), sharex=True)
+        if len(metrics) == 1:
+            axs = [axs]
+        for ax, (label, series) in zip(axs, metrics):
+            ax.plot(np.arange(1, len(series) + 1), series)
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Step")
+        _save_fig(fig, out_dir, "fig_reidentification_model_delta_debug", save_pdf=save_pdf)
 
-    if eta_log is not None and active_A_ratio is not None and active_B_ratio is not None:
-        if len(eta_log) == len(active_A_ratio) == len(active_B_ratio):
-            fig, axs = plt.subplots(2, 1, figsize=(7.6, 6.0), sharex=True)
-            axs[0].scatter(eta_log, np.asarray(active_A_ratio, float), s=10, alpha=0.35)
-            axs[0].set_ylabel("Active A Fro ratio")
-            axs[1].scatter(eta_log, np.asarray(active_B_ratio, float), s=10, alpha=0.35)
-            axs[1].set_xlabel(r"$\eta$")
-            axs[1].set_ylabel("Active B Fro ratio")
-            for ax in axs:
+    if debug_id_plots and (basis_singular_values_A is not None or basis_singular_values_B is not None):
+        sv_series = []
+        if basis_singular_values_A is not None and len(basis_singular_values_A) > 0:
+            sv_series.append(("A singular values", np.asarray(basis_singular_values_A, float)))
+        if basis_singular_values_B is not None and len(basis_singular_values_B) > 0:
+            sv_series.append(("B singular values", np.asarray(basis_singular_values_B, float)))
+        if sv_series:
+            fig, axs = plt.subplots(len(sv_series), 1, figsize=(7.8, 3.0 + 1.6 * max(1, len(sv_series) - 1)), sharex=False)
+            if len(sv_series) == 1:
+                axs = [axs]
+            for ax, (label, series) in zip(axs, sv_series):
+                ax.plot(np.arange(1, len(series) + 1), series, marker="o")
+                ax.set_ylabel(label)
+                ax.set_xlabel("Mode")
                 ax.spines["top"].set_visible(False)
                 ax.spines["right"].set_visible(False)
                 _make_axes_bold(ax)
-            _save_fig(fig, out_dir, "fig_reid_batch_eta_vs_active_model_delta", save_pdf=save_pdf)
-
-    if rewards_step is not None and active_A_ratio is not None and active_B_ratio is not None:
-        if len(rewards_step) == len(active_A_ratio) == len(active_B_ratio):
-            fig, axs = plt.subplots(2, 1, figsize=(7.6, 6.0), sharex=False)
-            axs[0].scatter(np.asarray(active_A_ratio, float), rewards_step, s=10, alpha=0.35)
-            axs[0].set_xlabel("Active A Fro ratio")
-            axs[0].set_ylabel("Reward")
-            axs[1].scatter(np.asarray(active_B_ratio, float), rewards_step, s=10, alpha=0.35)
-            axs[1].set_xlabel("Active B Fro ratio")
-            axs[1].set_ylabel("Reward")
-            for ax in axs:
-                ax.spines["top"].set_visible(False)
-                ax.spines["right"].set_visible(False)
-                _make_axes_bold(ax)
-            _save_fig(fig, out_dir, "fig_reid_batch_model_delta_vs_reward", save_pdf=save_pdf)
+            _save_fig(fig, out_dir, "fig_reidentification_basis_singular_values", save_pdf=save_pdf)
 
     stored_path = os.path.join(out_dir, "input_data.pkl")
     if os.path.exists(stored_path):
@@ -2142,19 +2333,23 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
     else:
         stored_bundle = {}
 
+    stored_bundle.pop("eta_log", None)
+    stored_bundle.pop("eta_raw_log", None)
+
     for key in (
-        "method_family",
         "prediction_model_mode",
-        "eta_log",
-        "eta_raw_log",
+        "eta_A_log",
+        "eta_B_log",
+        "eta_A_raw_log",
+        "eta_B_raw_log",
         "action_raw_log",
         "theta_labels",
         "theta_labels_A",
         "theta_labels_B",
+        "alpha_labels",
+        "beta_labels",
         "theta_A_indices",
         "theta_B_indices",
-        "active_theta_indices",
-        "inactive_theta_indices",
         "theta_low",
         "theta_high",
         "theta_low_A",
@@ -2192,147 +2387,44 @@ def plot_reid_batch_results_core(result_bundle, plot_cfg):
         "candidate_B_model_delta_ratio_log",
         "pred_A_model_delta_ratio_log",
         "pred_B_model_delta_ratio_log",
+        "observer_A_model_delta_ratio_log",
+        "observer_B_model_delta_ratio_log",
+        "observer_refresh_event_log",
+        "observer_refresh_success_log",
+        "observer_refresh_enabled",
+        "observer_refresh_every_episodes",
+        "observer_refresh_attempt_count",
+        "observer_refresh_success_count",
+        "rho_obs",
+        "rank_A",
+        "rank_B",
+        "offline_window",
+        "offline_stride",
+        "lambda_A_off",
+        "lambda_B_off",
+        "offline_basis_source_path",
+        "offline_basis_cache_path",
+        "basis_window_count",
+        "basis_singular_values_A",
+        "basis_singular_values_B",
         "invalid_id_solve_count",
         "id_solver_failure_count",
         "id_update_success_count",
         "force_eta_constant",
         "disable_identification",
-        "state_dim_expected",
         "action_dim",
         "candidate_guard_mode",
         "observer_update_alignment",
         "normalize_blend_extras",
         "blend_extra_clip",
         "blend_residual_scale",
-        "block_group_count",
-        "block_groups",
         "log_theta_clipping",
-        "study_label",
-        "ablation_group",
         "id_component_mode",
-        "regime_name",
     ):
         if key in bundle:
             stored_bundle[key] = bundle[key]
+    stored_bundle["debug_id_plots"] = debug_id_plots
     save_bundle_pickle(out_dir, stored_bundle)
-    return out_dir
-
-
-def plot_reid_batch_theta_diagnostics_core(result_bundle, plot_cfg):
-    return plot_reid_batch_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
-
-
-def plot_reid_batch_ablation_summary_core(summary_rows, plot_cfg):
-    rows = [dict(row) for row in summary_rows]
-    directory = plot_cfg.get("directory", os.getcwd())
-    prefix_name = plot_cfg.get("prefix_name", "reid_batch_v3_ablation_summary")
-    save_pdf = bool(plot_cfg.get("save_pdf", False))
-    out_dir = create_output_dir(directory, prefix_name)
-    if not rows:
-        return out_dir
-
-    def _row_float(row, key, default=0.0):
-        value = row.get(key, default)
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            return float(default)
-
-    def _group_best(rows_local, key, metric_key):
-        grouped = collections.defaultdict(list)
-        for row in rows_local:
-            grouped[str(row.get(key, "unknown"))].append(_row_float(row, metric_key))
-        labels = sorted(grouped.keys())
-        means = [float(np.mean(grouped[label])) for label in labels]
-        bests = [float(np.max(grouped[label])) for label in labels]
-        return labels, means, bests
-
-    reward_metric = str(plot_cfg.get("reward_metric", "tail_reward_mean"))
-    step_labels = [row.get("study_label", f"run_{idx + 1}") for idx, row in enumerate(rows)]
-    reward_values = np.asarray([_row_float(row, reward_metric) for row in rows], float)
-
-    labels, means, bests = _group_best(rows, "basis_family", reward_metric)
-    if labels:
-        x = np.arange(len(labels))
-        fig, ax = plt.subplots(figsize=(7.8, 5.2))
-        ax.bar(x - 0.18, means, width=0.36, label="Mean")
-        ax.bar(x + 0.18, bests, width=0.36, label="Best")
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels, rotation=15)
-        ax.set_ylabel(reward_metric)
-        ax.set_xlabel("Basis family")
-        ax.legend(loc="best")
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        _make_axes_bold(ax)
-        _save_fig(fig, out_dir, "fig_reid_batch_ablation_basis_summary", save_pdf=save_pdf)
-
-    labels, means, bests = _group_best(rows, "id_component_mode", reward_metric)
-    if labels:
-        x = np.arange(len(labels))
-        fig, ax = plt.subplots(figsize=(7.8, 5.2))
-        ax.bar(x - 0.18, means, width=0.36, label="Mean")
-        ax.bar(x + 0.18, bests, width=0.36, label="Best")
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels)
-        ax.set_ylabel(reward_metric)
-        ax.set_xlabel("ID component mode")
-        ax.legend(loc="best")
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        _make_axes_bold(ax)
-        _save_fig(fig, out_dir, "fig_reid_batch_ablation_component_summary", save_pdf=save_pdf)
-
-    labels, means, bests = _group_best(rows, "ablation_group", reward_metric)
-    if labels:
-        x = np.arange(len(labels))
-        fig, ax = plt.subplots(figsize=(7.8, 5.2))
-        ax.bar(x - 0.18, means, width=0.36, label="Mean")
-        ax.bar(x + 0.18, bests, width=0.36, label="Best")
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels)
-        ax.set_ylabel(reward_metric)
-        ax.set_xlabel("Tier")
-        ax.legend(loc="best")
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        _make_axes_bold(ax)
-        _save_fig(fig, out_dir, "fig_reid_batch_ablation_tier_summary", save_pdf=save_pdf)
-
-    eta_mean = np.asarray([_row_float(row, "tail_eta_mean") for row in rows], float)
-    A_ratio_mean = np.asarray([_row_float(row, "tail_active_A_ratio_mean") for row in rows], float)
-    B_ratio_mean = np.asarray([_row_float(row, "tail_active_B_ratio_mean") for row in rows], float)
-    fig, axs = plt.subplots(3, 1, figsize=(7.8, 8.8), sharey=False)
-    axs[0].scatter(eta_mean, reward_values, s=28, alpha=0.7)
-    axs[0].set_xlabel("Tail eta mean")
-    axs[0].set_ylabel(reward_metric)
-    axs[1].scatter(A_ratio_mean, reward_values, s=28, alpha=0.7)
-    axs[1].set_xlabel("Tail active A ratio mean")
-    axs[1].set_ylabel(reward_metric)
-    axs[2].scatter(B_ratio_mean, reward_values, s=28, alpha=0.7)
-    axs[2].set_xlabel("Tail active B ratio mean")
-    axs[2].set_ylabel(reward_metric)
-    for ax in axs:
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        _make_axes_bold(ax)
-    _save_fig(fig, out_dir, "fig_reid_batch_ablation_reward_scatter", save_pdf=save_pdf)
-
-    ranking_order = np.argsort(reward_values)[::-1]
-    top_k = min(15, len(rows))
-    fig, ax = plt.subplots(figsize=(10.0, 5.4))
-    top_idx = ranking_order[:top_k]
-    top_labels = [str(step_labels[idx]) for idx in top_idx]
-    top_values = reward_values[top_idx]
-    ax.barh(np.arange(top_k), top_values[::-1])
-    ax.set_yticks(np.arange(top_k))
-    ax.set_yticklabels(top_labels[::-1], fontsize=9)
-    ax.set_xlabel(reward_metric)
-    ax.set_ylabel("Study label")
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    _make_axes_bold(ax)
-    _save_fig(fig, out_dir, "fig_reid_batch_ablation_top_runs", save_pdf=save_pdf)
     return out_dir
 
 

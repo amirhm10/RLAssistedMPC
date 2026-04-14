@@ -155,7 +155,7 @@ POLYMER_SYSTEM_IDENTIFICATION_DEFAULTS = {
 }
 
 POLYMER_BASELINE_DEFAULTS = {
-    "run_mode": "nominal",  # Options: "nominal" | "disturb"
+    "run_mode": "disturb",  # Options: "nominal" | "disturb"
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     # Baseline notebooks only expose these overrides.
@@ -218,7 +218,7 @@ POLYMER_BASELINE_DEFAULTS = {
 }
 
 POLYMER_HORIZON_STANDARD_DEFAULTS = {
-    "run_mode": "nominal",  # Options: "nominal" | "disturb"
+    "run_mode": "disturb",  # Options: "nominal" | "disturb"
     "state_mode": "mismatch",  # Options: "standard" | "mismatch"
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
@@ -296,7 +296,7 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
 }
 
 POLYMER_HORIZON_DUELING_DEFAULTS = {
-    "run_mode": "nominal",
+    "run_mode": "disturb",
     "state_mode": "standard",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
@@ -505,22 +505,45 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
 }
 
-POLYMER_REID_BATCH_DEFAULTS = {
-    "agent_kind": "td3",  # Options: "td3" | "sac"
-    "run_mode": "disturb",  # Options: "nominal" | "disturb"
-    "state_mode": "mismatch",  # Options: "standard" | "mismatch"
+POLYMER_REIDENTIFICATION_DEFAULTS = {
+    "agent_kind": "td3",
+    "run_mode": "disturb",
+    "state_mode": "mismatch",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": {
-        ("td3", "nominal"): {"result_prefix": "td3_reid_batch_nominal", "compare_prefix": "nominal_compare_td3_reid_batch", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("td3", "disturb"): {"result_prefix": "td3_reid_batch_disturb", "compare_prefix": "disturb_compare_td3_reid_batch", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sac", "nominal"): {"result_prefix": "sac_reid_batch_nominal", "compare_prefix": "nominal_compare_sac_reid_batch", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sac", "disturb"): {"result_prefix": "sac_reid_batch_disturb", "compare_prefix": "disturb_compare_sac_reid_batch", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("td3", "nominal"): {
+            "result_prefix": "td3_reidentification_nominal",
+            "compare_prefix": "nominal_compare_td3_reidentification",
+            "compare_mode": "nominal",
+            "plot_start_episode": 2,
+            "compare_start_episode": 2,
+        },
+        ("td3", "disturb"): {
+            "result_prefix": "td3_reidentification_disturb",
+            "compare_prefix": "disturb_compare_td3_reidentification",
+            "compare_mode": "disturb",
+            "plot_start_episode": 2,
+            "compare_start_episode": 2,
+        },
+        ("sac", "nominal"): {
+            "result_prefix": "sac_reidentification_nominal",
+            "compare_prefix": "nominal_compare_sac_reidentification",
+            "compare_mode": "nominal",
+            "plot_start_episode": 2,
+            "compare_start_episode": 2,
+        },
+        ("sac", "disturb"): {
+            "result_prefix": "sac_reidentification_disturb",
+            "compare_prefix": "disturb_compare_sac_reidentification",
+            "compare_mode": "disturb",
+            "plot_start_episode": 2,
+            "compare_start_episode": 2,
+        },
     },
     "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
     "controller": {
-        # Nominal MPC settings reused from the polymer matrix workflow.
         "predict_h": 9,
         "cont_h": 3,
         "Q1_penalty": 5.0,
@@ -529,7 +552,6 @@ POLYMER_REID_BATCH_DEFAULTS = {
         "R2_penalty": 1.0,
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
-        # Disturbance schedule inputs for the polymer case.
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
         "nominal_ha": 1.05e6,
@@ -537,36 +559,39 @@ POLYMER_REID_BATCH_DEFAULTS = {
         "qs_change": 1.3,
         "ha_change": 0.85,
     },
-    "reid": {
-        # Identification backend:
-        # - "ridge_closed_form": solve the ridge system, then clip theta
-        # - "bounded_least_squares": bounded LS solve on the augmented ridge system
+    "reidentification": {
+        "basis_family": "lowrank_polymer",
+        "id_component_mode": "AB",
+        "observer_update_alignment": "legacy_previous_measurement",
+        "candidate_guard_mode": "fro_only",
+        "normalize_blend_extras": True,
+        "blend_extra_clip": 3.0,
+        "blend_residual_scale": 1.0,
+        "log_theta_clipping": True,
         "id_solver": "ridge_closed_form",
-        # Identification cadence:
-        # - id_window: rolling batch size in controller samples
-        # - id_update_period: solve the identification problem every N samples
+        "rank_A": 6,
+        "rank_B": 2,
+        "offline_window": 80,
+        "offline_stride": 80,
+        "lambda_A_off": 1e-4,
+        "lambda_B_off": 1e-3,
         "id_window": 80,
         "id_update_period": 5,
-        # Ridge regularization:
-        # - lambda_prev: regularize toward the previous theta
-        # - lambda_0: regularize toward zero
-        "lambda_prev": 1e-2,
-        "lambda_0": 1e-4,
-        # Phase-1 theta bounds aligned with the current polymer matrix multiplier
-        # range of [0.95, 1.05] for the global A correction and the two B-column
-        # corrections, expressed as delta-from-nominal parameters.
-        "theta_low": np.array([-0.05, -0.05, -0.05], float),
-        "theta_high": np.array([0.05, 0.05, 0.05], float),
-        # Conservative correction caps measured as relative Frobenius deltas.
-        "delta_A_max": 0.05,
-        "delta_B_max": 0.05,
-        # Blend-factor smoothing:
-        # - 0.0 -> no change
-        # - 1.0 -> no smoothing
-        "eta_smoothing_tau": 0.1,
-        # Debug/test knobs:
-        # - force_eta_constant: None for learned eta, or a fixed [0, 1] blend
-        # - disable_identification: keep the identified model nominal
+        "lambda_prev_A": 1e-2,
+        "lambda_prev_B": 1e-1,
+        "lambda_0_A": 1e-4,
+        "lambda_0_B": 1e-3,
+        "theta_low_A": -0.15,
+        "theta_high_A": 0.15,
+        "theta_low_B": -0.08,
+        "theta_high_B": 0.08,
+        "delta_A_max": 0.10,
+        "delta_B_max": 0.10,
+        "eta_tau_A": 0.1,
+        "eta_tau_B": 0.1,
+        "observer_refresh_enabled": False,
+        "observer_refresh_every_episodes": 10,
+        "rho_obs": 0.25,
         "force_eta_constant": None,
         "disable_identification": False,
     },
@@ -576,172 +601,9 @@ POLYMER_REID_BATCH_DEFAULTS = {
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
 }
 
-POLYMER_REID_BATCH_V2_DEFAULTS = deepcopy(POLYMER_REID_BATCH_DEFAULTS)
-POLYMER_REID_BATCH_V2_DEFAULTS["run_profiles"] = {
-    ("td3", "nominal"): {
-        "result_prefix": "td3_reid_batch_v2_nominal",
-        "compare_prefix": "nominal_compare_td3_reid_batch_v2",
-        "compare_mode": "nominal",
-        "plot_start_episode": 2,
-        "compare_start_episode": 2,
-    },
-    ("td3", "disturb"): {
-        "result_prefix": "td3_reid_batch_v2_disturb",
-        "compare_prefix": "disturb_compare_td3_reid_batch_v2",
-        "compare_mode": "disturb",
-        "plot_start_episode": 2,
-        "compare_start_episode": 2,
-    },
-    ("sac", "nominal"): {
-        "result_prefix": "sac_reid_batch_v2_nominal",
-        "compare_prefix": "nominal_compare_sac_reid_batch_v2",
-        "compare_mode": "nominal",
-        "plot_start_episode": 2,
-        "compare_start_episode": 2,
-    },
-    ("sac", "disturb"): {
-        "result_prefix": "sac_reid_batch_v2_disturb",
-        "compare_prefix": "disturb_compare_sac_reid_batch_v2",
-        "compare_mode": "disturb",
-        "plot_start_episode": 2,
-        "compare_start_episode": 2,
-    },
-}
-POLYMER_REID_BATCH_V2_DEFAULTS["reid"] = {
-    **deepcopy(POLYMER_REID_BATCH_DEFAULTS["reid"]),
-    "basis_family": "rowcol",  # Options: "scalar_legacy" | "rowcol" | "block_polymer"
-    "block_group_count": 3,  # Used when basis_family == "block_polymer" and block_groups is None.
-    "block_groups": None,  # Optional explicit physical-state partition for block_polymer.
-    "candidate_guard_mode": "fro_only",  # Options: "theta_only" | "fro_only" | "both"
-    "observer_update_alignment": "current_measurement",  # Options: "legacy_previous_measurement" | "current_measurement"
-    "normalize_blend_extras": True,
-    "blend_extra_clip": 3.0,
-    "blend_residual_scale": 1.0,
-    "log_theta_clipping": True,
-    "theta_low": np.array([-0.15] * 9, float),
-    "theta_high": np.array([0.15] * 9, float),
-    "delta_A_max": 0.10,
-    "delta_B_max": 0.10,
-}
-
-POLYMER_REID_BATCH_V3_STUDY_DEFAULTS = deepcopy(POLYMER_REID_BATCH_V2_DEFAULTS)
-POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["agent_kind"] = "td3"
-POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["run_mode"] = "disturb"
-POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["seed"] = 42
-POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["run_profiles"] = {
-    ("td3", "disturb"): {
-        "result_prefix": "td3_reid_batch_v3_disturb",
-        "compare_prefix": "disturb_compare_td3_reid_batch_v3",
-        "compare_mode": "disturb",
-        "plot_start_episode": 2,
-        "compare_start_episode": 2,
-    },
-}
-POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["episode_defaults"] = {
-    "n_tests": 40,
-    "set_points_len": 200,
-    "warm_start": 4,
-    "test_cycle": [False, False, False, False, False],
-}
-POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["reid"] = {
-    **deepcopy(POLYMER_REID_BATCH_V2_DEFAULTS["reid"]),
-    "id_component_mode": "AB",  # Options: "AB" | "A_only" | "B_only"
-    "lambda_prev_A": 1e-2,
-    "lambda_prev_B": 1e-1,
-    "lambda_0_A": 1e-4,
-    "lambda_0_B": 1e-3,
-    "theta_low": np.array([-0.15], float),
-    "theta_high": np.array([0.15], float),
-    "theta_low_A": -0.15,
-    "theta_high_A": 0.15,
-    "theta_low_B": -0.08,
-    "theta_high_B": 0.08,
-}
-POLYMER_REID_BATCH_V3_STUDY_DEFAULTS["study"] = {
-    "result_prefix": "reid_batch_v3_ablation_study",
-    "summary_prefix": "reid_batch_v3_ablation_summary",
-    "tail_window": 200,
-    "short_diagnostic_preset": {
-        "n_tests": 40,
-        "set_points_len": 200,
-        "warm_start": 4,
-        "test_cycle": [False, False, False, False, False],
-    },
-    "tier1": {
-        "basis_families": ["scalar_legacy", "rowcol", "block_polymer"],
-        "id_component_modes": ["A_only", "B_only", "AB"],
-        "cases": [
-            {"disable_identification": True, "force_eta_constant": 0.0},
-            {"disable_identification": False, "force_eta_constant": 0.0},
-            {"disable_identification": False, "force_eta_constant": 0.05},
-            {"disable_identification": False, "force_eta_constant": 0.10},
-            {"disable_identification": False, "force_eta_constant": 0.20},
-            {"disable_identification": False, "force_eta_constant": 1.0},
-            {"disable_identification": False, "force_eta_constant": None},
-        ],
-        "fixed": {
-            "agent_kind": "td3",
-            "run_mode": "disturb",
-            "candidate_guard_mode": "fro_only",
-            "observer_update_alignment": "current_measurement",
-            "normalize_blend_extras": True,
-        },
-    },
-    "tier2": {
-        "parameter_regimes": {
-            "symmetric_reg_symmetric_bounds": {
-                "lambda_prev_A": 1e-2,
-                "lambda_prev_B": 1e-2,
-                "lambda_0_A": 1e-4,
-                "lambda_0_B": 1e-4,
-                "theta_low_A": -0.15,
-                "theta_high_A": 0.15,
-                "theta_low_B": -0.15,
-                "theta_high_B": 0.15,
-            },
-            "stronger_B_regularization": {
-                "lambda_prev_A": 1e-2,
-                "lambda_prev_B": 1e-1,
-                "lambda_0_A": 1e-4,
-                "lambda_0_B": 1e-3,
-                "theta_low_A": -0.15,
-                "theta_high_A": 0.15,
-                "theta_low_B": -0.15,
-                "theta_high_B": 0.15,
-            },
-            "tighter_B_bounds_looser_A_bounds": {
-                "lambda_prev_A": 1e-2,
-                "lambda_prev_B": 1e-2,
-                "lambda_0_A": 1e-4,
-                "lambda_0_B": 1e-4,
-                "theta_low_A": -0.20,
-                "theta_high_A": 0.20,
-                "theta_low_B": -0.06,
-                "theta_high_B": 0.06,
-            },
-            "stronger_B_regularization_tighter_B_bounds": {
-                "lambda_prev_A": 1e-2,
-                "lambda_prev_B": 1e-1,
-                "lambda_0_A": 1e-4,
-                "lambda_0_B": 1e-3,
-                "theta_low_A": -0.20,
-                "theta_high_A": 0.20,
-                "theta_low_B": -0.06,
-                "theta_high_B": 0.06,
-            },
-        },
-        "eta_cases": [0.10, 0.20, None],
-    },
-    "tier3": {
-        "observer_update_alignment": ["legacy_previous_measurement", "current_measurement"],
-        "normalize_blend_extras": [False, True],
-        "eta_cases": [0.10, None],
-    },
-}
-
 POLYMER_WEIGHT_DEFAULTS = {
     "agent_kind": "td3",
-    "run_mode": "nominal",
+    "run_mode": "disturb",
     "state_mode": "standard",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
@@ -760,8 +622,8 @@ POLYMER_WEIGHT_DEFAULTS = {
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
         "R2_penalty": 1.0,
-        "low_coef": np.array([0.5, 0.5, 0.5, 0.5], float),
-        "high_coef": np.array([3.0, 3.0, 3.0, 3.0], float),
+        "low_coef": np.array([0.75, 0.75, 0.75, 0.75], float),
+        "high_coef": np.array([2.0, 2.0, 2.0, 2.0], float),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
@@ -829,7 +691,7 @@ POLYMER_WEIGHT_DEFAULTS = {
 
 POLYMER_RESIDUAL_DEFAULTS = {
     "agent_kind": "td3",
-    "run_mode": "nominal",
+    "run_mode": "disturb",
     "state_mode": "mismatch",  # Options: "standard" | "mismatch". The latter feeds the authority error to the agent and normalizes it in the same way as the state features.
     **_copy_residual_authority_defaults(),
     "use_rho_authority": True,  # Legacy alias kept for notebook compatibility.
@@ -918,7 +780,7 @@ POLYMER_RESIDUAL_DEFAULTS = {
 }
 
 POLYMER_COMBINED_DEFAULTS = {
-    "run_mode": "nominal",
+    "run_mode": "disturb",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
@@ -955,8 +817,8 @@ POLYMER_COMBINED_DEFAULTS = {
         "R2_penalty": 1.0,
         "model_low": np.array([0.95, 0.95, 0.95], float),
         "model_high": np.array([1.05, 1.05, 1.05], float),
-        "weights_low": np.array([0.9, 0.9, 0.9, 0.9], float),
-        "weights_high": np.array([1.1, 1.1, 1.1, 1.1], float),
+        "weights_low": np.array([0.75, 0.75, 0.75, 0.75], float),
+        "weights_high": np.array([2.0, 2.0, 2.0, 2.0], float),
         "residual_low": np.array([-0.5, -0.5], float),
         "residual_high": np.array([0.5, 0.5], float),
         **_copy_mismatch_defaults(),
@@ -1061,9 +923,7 @@ POLYMER_NOTEBOOK_DEFAULTS = {
     "horizon_dueling": POLYMER_HORIZON_DUELING_DEFAULTS,
     "matrix": POLYMER_MATRIX_DEFAULTS,
     "structured_matrix": POLYMER_STRUCTURED_MATRIX_DEFAULTS,
-    "reid_batch": POLYMER_REID_BATCH_DEFAULTS,
-    "reid_batch_v2": POLYMER_REID_BATCH_V2_DEFAULTS,
-    "reid_batch_v3_study": POLYMER_REID_BATCH_V3_STUDY_DEFAULTS,
+    "reidentification": POLYMER_REIDENTIFICATION_DEFAULTS,
     "weights": POLYMER_WEIGHT_DEFAULTS,
     "residual": POLYMER_RESIDUAL_DEFAULTS,
     "combined": POLYMER_COMBINED_DEFAULTS,

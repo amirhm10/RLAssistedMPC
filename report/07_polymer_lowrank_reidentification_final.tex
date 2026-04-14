@@ -1,0 +1,142 @@
+\section{Polymer Low-Rank Reidentification Final Method}
+
+This report replaces the previous polymer reidentification write-up while preserving the public repo surface name \texttt{reidentification}. The active method is now a low-rank residual workflow instead of the earlier fixed block-polymer parameterization.
+
+\subsection{Motivation}
+
+The earlier polymer reidentification method used a hand-structured block basis and one scalar RL blend factor. That version was useful as a final cleaned surface for the v3 study outcome, but it kept the model family tied to a manually chosen basis and could only blend the identified $A$ and $B$ corrections together.
+
+The new official method addresses those limits by:
+\begin{itemize}
+    \item extracting the residual basis directly from polymer disturbance data,
+    \item identifying low-rank $A$ and $B$ coefficients online, and
+    \item blending $A$ and $B$ separately with two RL actions $\eta_A$ and $\eta_B$.
+\end{itemize}
+
+\subsection{Method Overview}
+
+The active workflow is:
+\[
+\text{offline low-rank basis extraction} \rightarrow
+\text{online coefficient identification} \rightarrow
+\text{dual RL blend} \rightarrow
+\text{MPC prediction}
+\]
+
+The observer remains nominal by default. An optional episodic observer refresh path is implemented, but it is disabled unless explicitly enabled in the reidentification config.
+
+\subsection{Offline Basis Extraction}
+
+The canonical disturbance baseline bundle at \texttt{Polymer/Data/mpc\_results\_dist.pickle} is used as the default offline source. The baseline provides:
+\begin{itemize}
+    \item augmented observer trajectories \texttt{xhatdhat},
+    \item baseline control trajectories, and
+    \item scaling information and steady-state inputs.
+\end{itemize}
+
+For each offline window, a dense local ridge fit is solved for $\Delta A$ and $\Delta B$:
+\[
+\min_{\Delta A,\Delta B}
+\sum_t \left\|x_{t+1} - A_0 x_t - B_0 u_t - \Delta A x_t - \Delta B u_t\right\|_2^2
+ + \lambda_A^{off}\|\Delta A\|_F^2 + \lambda_B^{off}\|\Delta B\|_F^2.
+\]
+
+Vectorized local corrections are stacked across windows and compressed with SVD. The retained singular directions define the official basis matrices:
+\[
+A^{id} = A_0 + \sum_{i=1}^{r_A}\alpha_i E_i,
+\qquad
+B^{id} = B_0 + \sum_{j=1}^{r_B}\beta_j F_j.
+\]
+
+The current defaults are:
+\begin{itemize}
+    \item \texttt{rank\_A = 6}
+    \item \texttt{rank\_B = 2}
+    \item \texttt{offline\_window = 80}
+    \item \texttt{offline\_stride = 80}
+    \item \texttt{lambda\_A\_off = 1e-4}
+    \item \texttt{lambda\_B\_off = 1e-3}
+\end{itemize}
+
+The extracted basis is cached under \texttt{Polymer/Data/} and reused when the source path, source timestamp, ranks, windowing, and ridge settings still match.
+
+\subsection{Online Identification}
+
+The online identifier uses a rolling batch of the recent physical-state block from \texttt{xhatdhat} and the scaled-deviation input sequence. The coefficient vector
+\[
+\theta = \begin{bmatrix}\alpha \\ \beta\end{bmatrix}
+\]
+is solved with the same bounded ridge structure used by the final cleaned polymer reidentification workflow:
+\begin{itemize}
+    \item \texttt{lambda\_prev\_A = 1e-2}, \texttt{lambda\_prev\_B = 1e-1}
+    \item \texttt{lambda\_0\_A = 1e-4}, \texttt{lambda\_0\_B = 1e-3}
+    \item \texttt{theta\_low\_A = -0.15}, \texttt{theta\_high\_A = 0.15}
+    \item \texttt{theta\_low\_B = -0.08}, \texttt{theta\_high\_B = 0.08}
+    \item \texttt{delta\_A\_max = 0.10}, \texttt{delta\_B\_max = 0.10}
+\end{itemize}
+
+Candidate models are accepted only when they remain finite and respect the existing Frobenius-ratio caps relative to the nominal model.
+
+\subsection{Dual RL Blend}
+
+The actor now outputs two actions:
+\[
+a_A, a_B \in [-1, 1].
+\]
+They are mapped to blend factors
+\[
+\eta_A, \eta_B \in [0, 1]
+\]
+and smoothed independently with \texttt{eta\_tau\_A} and \texttt{eta\_tau\_B}. The MPC prediction model is rebuilt as
+\[
+A^{pred} = A_0 + \eta_A(A^{id} - A_0),
+\qquad
+B^{pred} = B_0 + \eta_B(B^{id} - B_0).
+\]
+
+This replaces the earlier single-$\eta$ surface completely.
+
+\subsection{Observer Refresh}
+
+By default the observer remains nominal:
+\[
+(A_{obs}, B_{obs}, L) = (A_0, B_0, L_{nom}).
+\]
+
+When enabled, the runner can refresh the observer every $K$ episodes using the interval-mean accepted identified models:
+\begin{itemize}
+    \item \texttt{observer\_refresh\_enabled = False} by default
+    \item \texttt{observer\_refresh\_every\_episodes = 10}
+    \item \texttt{rho\_obs = 0.25}
+\end{itemize}
+
+Refresh acceptance requires:
+\begin{itemize}
+    \item finite candidate observer matrices,
+    \item finite recomputed observer gain,
+    \item candidate $A/B$ corrections still within the active Frobenius caps.
+\end{itemize}
+
+\subsection{Repo Surface}
+
+The public surface name stays unchanged:
+\begin{itemize}
+    \item \texttt{get\_polymer\_notebook\_defaults("reidentification")}
+    \item \texttt{RL\_assisted\_MPC\_reidentification\_unified.ipynb}
+    \item \texttt{run\_reidentification\_supervisor(...)}
+    \item \texttt{plot\_reidentification\_results(...)}
+\end{itemize}
+
+Internally, the active source now lives in:
+\begin{itemize}
+    \item \texttt{utils/reidentification.py}
+    \item \texttt{utils/reidentification\_runner.py}
+\end{itemize}
+
+\subsection{Limitations}
+
+The current implementation still depends on the quality of the canonical disturbance baseline data used to extract the offline basis. If the stored baseline distribution changes materially, the cached basis should be rebuilt. The observer refresh path is intentionally conservative and defaults to off until longer-run validation is complete.
+
+\subsection{Future Work}
+
+Future reidentification work should build genuinely new method families rather than re-opening the removed block-based variants. The active surface is now one official low-rank workflow under the existing \texttt{reidentification} name.

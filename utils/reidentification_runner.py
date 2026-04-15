@@ -88,16 +88,34 @@ def _resolve_system_name(reid_cfg, runtime_ctx) -> str:
     return str(system_name).strip().lower()
 
 
+def _first_non_none(*values):
+    for value in values:
+        if value is not None:
+            return value
+    return None
+
+
 def _resolve_offline_basis_paths(reid_cfg, runtime_ctx, run_mode: str, disturbance_profile: str | None) -> tuple[Path, Path]:
-    baseline_override = reid_cfg.get("baseline_mpc_path", runtime_ctx.get("baseline_mpc_path"))
+    baseline_override = _first_non_none(
+        reid_cfg.get("baseline_mpc_path"),
+        runtime_ctx.get("baseline_mpc_path"),
+    )
     if baseline_override is not None:
         baseline_path = Path(baseline_override).expanduser().resolve()
     else:
-        repo_root = Path(reid_cfg.get("repo_root", runtime_ctx.get("repo_root", Path.cwd()))).expanduser().resolve()
+        repo_root = Path(
+            _first_non_none(
+                reid_cfg.get("repo_root"),
+                runtime_ctx.get("repo_root"),
+                Path.cwd(),
+            )
+        ).expanduser().resolve()
         system_name = _resolve_system_name(reid_cfg, runtime_ctx)
-        data_override = reid_cfg.get(
-            "data_dir_override",
-            runtime_ctx.get("data_dir", runtime_ctx.get("polymer_data_dir", runtime_ctx.get("distillation_data_dir", None))),
+        data_override = _first_non_none(
+            reid_cfg.get("data_dir_override"),
+            runtime_ctx.get("data_dir"),
+            runtime_ctx.get("polymer_data_dir"),
+            runtime_ctx.get("distillation_data_dir"),
         )
         if system_name == "distillation":
             baseline_path = canonical_distillation_baseline_path(
@@ -109,9 +127,12 @@ def _resolve_offline_basis_paths(reid_cfg, runtime_ctx, run_mode: str, disturban
         else:
             baseline_path = canonical_polymer_baseline_path(repo_root, run_mode, data_override=data_override).resolve()
 
-    cache_dir = reid_cfg.get(
-        "data_dir_override",
-        runtime_ctx.get("data_dir", runtime_ctx.get("polymer_data_dir", runtime_ctx.get("distillation_data_dir", baseline_path.parent))),
+    cache_dir = _first_non_none(
+        reid_cfg.get("data_dir_override"),
+        runtime_ctx.get("data_dir"),
+        runtime_ctx.get("polymer_data_dir"),
+        runtime_ctx.get("distillation_data_dir"),
+        baseline_path.parent,
     )
     return baseline_path, Path(cache_dir).expanduser().resolve()
 

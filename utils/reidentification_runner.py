@@ -6,7 +6,8 @@ import numpy as np
 import scipy.optimize as spo
 
 from Simulation.mpc import augment_state_space
-from systems.polymer.data_io import canonical_baseline_path
+from systems.distillation.data_io import canonical_baseline_path as canonical_distillation_baseline_path
+from systems.polymer.data_io import canonical_baseline_path as canonical_polymer_baseline_path
 from utils.helpers import (
     apply_min_max,
     build_polymer_disturbance_schedule,
@@ -28,7 +29,7 @@ from utils.reidentification import (
     RollingIDBuffer,
     attempt_observer_refresh,
     blend_prediction_model,
-    build_or_load_polymer_reidentification_basis,
+    build_or_load_reidentification_basis,
     build_reidentification_policy_state,
     eta_to_raw_action,
     map_action_to_dual_eta,
@@ -81,22 +82,43 @@ def _update_observer_state(*, A_obs_aug, B_obs_aug, L_obs, x_prev, u_dev, y_prev
     return A_obs_aug @ x_prev + B_obs_aug @ u_dev + L_obs @ (y_prev_scaled - yhat_current).T
 
 
-def _resolve_offline_basis_paths(reid_cfg, runtime_ctx, run_mode: str) -> tuple[Path, Path]:
+def _resolve_system_name(reid_cfg, runtime_ctx) -> str:
+    system_metadata = runtime_ctx.get("system_metadata") or {}
+    system_name = reid_cfg.get("system_name", system_metadata.get("system_name", "polymer"))
+    return str(system_name).strip().lower()
+
+
+def _resolve_offline_basis_paths(reid_cfg, runtime_ctx, run_mode: str, disturbance_profile: str | None) -> tuple[Path, Path]:
     baseline_override = reid_cfg.get("baseline_mpc_path", runtime_ctx.get("baseline_mpc_path"))
     if baseline_override is not None:
         baseline_path = Path(baseline_override).expanduser().resolve()
     else:
         repo_root = Path(reid_cfg.get("repo_root", runtime_ctx.get("repo_root", Path.cwd()))).expanduser().resolve()
-        data_override = reid_cfg.get("data_dir_override", runtime_ctx.get("polymer_data_dir", None))
-        baseline_path = canonical_baseline_path(repo_root, run_mode, data_override=data_override).resolve()
+        system_name = _resolve_system_name(reid_cfg, runtime_ctx)
+        data_override = reid_cfg.get(
+            "data_dir_override",
+            runtime_ctx.get("data_dir", runtime_ctx.get("polymer_data_dir", runtime_ctx.get("distillation_data_dir", None))),
+        )
+        if system_name == "distillation":
+            baseline_path = canonical_distillation_baseline_path(
+                repo_root,
+                run_mode,
+                disturbance_profile,
+                data_override=data_override,
+            ).resolve()
+        else:
+            baseline_path = canonical_polymer_baseline_path(repo_root, run_mode, data_override=data_override).resolve()
 
-    cache_dir = reid_cfg.get("polymer_data_dir", runtime_ctx.get("polymer_data_dir", baseline_path.parent))
+    cache_dir = reid_cfg.get(
+        "data_dir_override",
+        runtime_ctx.get("data_dir", runtime_ctx.get("polymer_data_dir", runtime_ctx.get("distillation_data_dir", baseline_path.parent))),
+    )
     return baseline_path, Path(cache_dir).expanduser().resolve()
 
 
 def run_reidentification_supervisor(reid_cfg, runtime_ctx):
     """
-    Run the polymer low-rank re-identification + dual-RL-blend workflow.
+    Run the shared low-rank re-identification + dual-RL-blend workflow.
 
     The observer remains nominal by default. When enabled, observer refresh is
     applied episodically using interval-mean accepted identified models.
@@ -131,6 +153,9 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
     agent_kind = str(reid_cfg["agent_kind"]).lower()
     run_mode = str(reid_cfg["run_mode"]).lower()
     state_mode = str(reid_cfg.get("state_mode", "standard")).lower()
+    system_name = _resolve_system_name(reid_cfg, runtime_ctx)
+    disturbance_profile_name = str(reid_cfg.get("disturbance_profile", runtime_ctx.get("disturbance_profile_name", "none"))).lower()
+    basis_family = str(reid_cfg.get("basis_family", REIDENTIFICATION_BASIS_FAMILY)).lower()
     if agent_kind not in {"td3", "sac"}:
         raise ValueError("reid_cfg['agent_kind'] must be 'td3' or 'sac'.")
     if run_mode not in {"nominal", "disturb"}:
@@ -186,12 +211,13 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
     if observer_refresh_every_episodes <= 0:
         raise ValueError("observer_refresh_every_episodes must be positive.")
 
-    baseline_path, cache_dir = _resolve_offline_basis_paths(reid_cfg, runtime_ctx, run_mode)
-    basis = build_or_load_polymer_reidentification_basis(
+    baseline_path, cache_dir = _resolve_offline_basis_paths(reid_cfg, runtime_ctx, run_mode, disturbance_profile_name)
+    basis = build_or_load_reidentification_basis(
         baseline_path=baseline_path,
         cache_dir=cache_dir,
         A_ref=A0_phys,
         B_ref=B0_phys,
+        basis_family=basis_family,
         rank_A=rank_A,
         rank_B=rank_B,
         offline_window=offline_window,
@@ -199,6 +225,7 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         lambda_A_off=lambda_A_off,
         lambda_B_off=lambda_B_off,
         run_mode=run_mode,
+        disturbance_profile=disturbance_profile_name if system_name == "distillation" else None,
     )
     theta_low, theta_high = resolve_reidentification_theta_bounds(basis=basis, cfg=reid_cfg)
     lambda_prev_vec, lambda_0_vec = resolve_reidentification_lambda_vectors(basis=basis, cfg=reid_cfg)
@@ -234,7 +261,10 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
     if run_mode == "disturb":
         disturbance_schedule = runtime_ctx.get("disturbance_schedule")
         if disturbance_schedule is None:
-            disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
+            if system_name == "polymer":
+                disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
+            else:
+                raise ValueError("Distillation reidentification requires runtime_ctx['disturbance_schedule'].")
 
     ss_scaled_inputs = apply_min_max(steady_states["ss_inputs"], data_min[:n_inputs], data_max[:n_inputs])
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
@@ -717,6 +747,7 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         "agent_kind": agent_kind,
         "run_mode": run_mode,
         "algorithm": agent_kind,
+        "system_name": system_name,
         "state_mode": state_mode,
         "system_metadata": system_metadata,
         "notebook_source": reid_cfg.get("notebook_source"),
@@ -756,11 +787,11 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         else None,
         "estimator_mode": "episodic_observer_refresh" if observer_refresh_enabled else "nominal_observer",
         "prediction_model_mode": "online_lowrank_reidentification_dual_blend",
-        "basis_family": REIDENTIFICATION_BASIS_FAMILY,
-        "id_component_mode": REIDENTIFICATION_COMPONENT_MODE,
-        "observer_update_alignment": REIDENTIFICATION_OBSERVER_ALIGNMENT,
-        "candidate_guard_mode": REIDENTIFICATION_CANDIDATE_GUARD_MODE,
-        "normalize_blend_extras": REIDENTIFICATION_NORMALIZE_BLEND_EXTRAS,
+        "basis_family": str(basis.get("basis_family", basis_family)),
+        "id_component_mode": str(reid_cfg.get("id_component_mode", REIDENTIFICATION_COMPONENT_MODE)),
+        "observer_update_alignment": str(reid_cfg.get("observer_update_alignment", REIDENTIFICATION_OBSERVER_ALIGNMENT)),
+        "candidate_guard_mode": str(reid_cfg.get("candidate_guard_mode", REIDENTIFICATION_CANDIDATE_GUARD_MODE)),
+        "normalize_blend_extras": bool(reid_cfg.get("normalize_blend_extras", REIDENTIFICATION_NORMALIZE_BLEND_EXTRAS)),
         "blend_extra_clip": blend_extra_clip,
         "blend_residual_scale": blend_residual_scale,
         "log_theta_clipping": log_theta_clipping,

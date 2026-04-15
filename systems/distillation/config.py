@@ -39,12 +39,12 @@ MATRIX_MULTIPLIER_BOUNDS = {
     },
 }
 WEIGHT_MULTIPLIER_BOUNDS = {
-    "low": np.array([0.5, 0.5, 0.5, 0.5], dtype=float),
-    "high": np.array([3.0, 3.0, 3.0, 3.0], dtype=float),
+    "low": np.array([0.75, 0.75, 0.75, 0.75], dtype=float),
+    "high": np.array([2.0, 2.0, 2.0, 2.0], dtype=float),
 }
 RESIDUAL_BOUNDS = {
-    "low": np.array([-0.25, -0.25], dtype=float),
-    "high": np.array([0.25, 0.25], dtype=float),
+    "low": np.array([-0.05, -0.05], dtype=float),
+    "high": np.array([0.05, 0.05], dtype=float),
 }
 
 RL_REWARD_DEFAULTS = {
@@ -105,6 +105,15 @@ DISTILLATION_RESIDUAL_RUN_PROFILES = {
     ("sac", "disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
 }
 
+DISTILLATION_REIDENTIFICATION_RUN_PROFILES = {
+    ("td3", "nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+    ("td3", "disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+    ("td3", "disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+    ("sac", "nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+    ("sac", "disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+    ("sac", "disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+}
+
 DISTILLATION_COMBINED_RUN_PROFILES = {
     ("nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
@@ -124,22 +133,33 @@ DEFAULT_ASPEN_ROOT = Path(
 )
 
 _FAMILY_FILE_MAP = {
-    "system_id": {"none": "C2S_SS_simulation4.dynf", "ramp": "C2S_SS_simulation1.dynf", "fluctuation": "C2S_SS_simulation1.dynf"},
-    "baseline": {"none": "C2S_SS_simulation4.dynf", "ramp": "C2S_SS_simulation1.dynf", "fluctuation": "C2S_SS_simulation2.dynf"},
-    "horizon": {"none": "C2S_SS_simulation4.dynf", "ramp": "C2S_SS_simulation5.dynf", "fluctuation": "C2S_SS_simulation3.dynf"},
-    "matrix_td3": {"none": "C2S_SS_simulation1.dynf", "ramp": "C2S_SS_simulation3.dynf", "fluctuation": "C2S_SS_simulation4.dynf"},
-    "matrix_sac": {"none": "C2S_SS_simulation7.dynf", "ramp": "C2S_SS_simulation8.dynf", "fluctuation": "C2S_SS_simulation5.dynf"},
-    "structured_matrix_td3": {"none": "C2S_SS_simulation10.dynf", "ramp": "C2S_SS_simulation11.dynf", "fluctuation": "C2S_SS_simulation12.dynf"},
-    "structured_matrix_sac": {"none": "C2S_SS_simulation13.dynf", "ramp": "C2S_SS_simulation13.dynf", "fluctuation": "C2S_SS_simulation13.dynf"},
-    "weights": {"none": "C2S_SS_simulation5.dynf", "ramp": "C2S_SS_simulation5.dynf", "fluctuation": "C2S_SS_simulation5.dynf"},
-    "residual": {"none": "C2S_SS_simulation7.dynf", "ramp": "C2S_SS_simulation7.dynf", "fluctuation": "C2S_SS_simulation7.dynf"},
-    "combined": {"none": "C2S_SS_simulation7.dynf", "ramp": "C2S_SS_simulation7.dynf", "fluctuation": "C2S_SS_simulation7.dynf"},
+    # Distillation Aspen defaults use one simulation number per notebook family.
+    # All disturbance profiles for a family resolve to the same file, and new
+    # families should take the next unused simulation number.
+    "system_id": {"none": "C2S_SS_simulation1.dynf", "ramp": "C2S_SS_simulation1.dynf", "fluctuation": "C2S_SS_simulation1.dynf"},
+    "baseline": {"none": "C2S_SS_simulation2.dynf", "ramp": "C2S_SS_simulation2.dynf", "fluctuation": "C2S_SS_simulation2.dynf"},
+    "horizon": {"none": "C2S_SS_simulation3.dynf", "ramp": "C2S_SS_simulation3.dynf", "fluctuation": "C2S_SS_simulation3.dynf"},
+    "horizon_dueling": {"none": "C2S_SS_simulation4.dynf", "ramp": "C2S_SS_simulation4.dynf", "fluctuation": "C2S_SS_simulation4.dynf"},
+    "matrix": {"none": "C2S_SS_simulation5.dynf", "ramp": "C2S_SS_simulation5.dynf", "fluctuation": "C2S_SS_simulation5.dynf"},
+    "structured_matrix": {"none": "C2S_SS_simulation6.dynf", "ramp": "C2S_SS_simulation6.dynf", "fluctuation": "C2S_SS_simulation6.dynf"},
+    "weights": {"none": "C2S_SS_simulation7.dynf", "ramp": "C2S_SS_simulation7.dynf", "fluctuation": "C2S_SS_simulation7.dynf"},
+    "residual": {"none": "C2S_SS_simulation8.dynf", "ramp": "C2S_SS_simulation8.dynf", "fluctuation": "C2S_SS_simulation8.dynf"},
+    "combined": {"none": "C2S_SS_simulation9.dynf", "ramp": "C2S_SS_simulation9.dynf", "fluctuation": "C2S_SS_simulation9.dynf"},
+    "reidentification": {"none": "C2S_SS_simulation10.dynf", "ramp": "C2S_SS_simulation10.dynf", "fluctuation": "C2S_SS_simulation10.dynf"},
 }
 
 
 def default_plant_paths(family, disturbance_profile):
     disturbance_profile = str(disturbance_profile).lower()
     family = str(family).lower()
+    family = {
+        "system_identification": "system_id",
+        "horizon_standard": "horizon",
+        "matrix_td3": "matrix",
+        "matrix_sac": "matrix",
+        "structured_matrix_td3": "structured_matrix",
+        "structured_matrix_sac": "structured_matrix",
+    }.get(family, family)
     if family not in _FAMILY_FILE_MAP:
         raise KeyError(f"Unknown distillation notebook family: {family}")
     if disturbance_profile not in _FAMILY_FILE_MAP[family]:

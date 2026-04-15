@@ -13,6 +13,7 @@ from .config import (
     DISTILLATION_MATRIX_RUN_PROFILES,
     DISTILLATION_NOMINAL_CONDITIONS,
     DISTILLATION_OBSERVER_POLES,
+    DISTILLATION_REIDENTIFICATION_RUN_PROFILES,
     DISTILLATION_RESIDUAL_RUN_PROFILES,
     DISTILLATION_RL_SETPOINTS_PHYS,
     DISTILLATION_SETPOINT_RANGE_PHYS,
@@ -70,10 +71,10 @@ def _copy_residual_authority_defaults(action_dim):
     return {
         "append_rho_to_state": True,
         "authority_use_rho": True,
-        "authority_beta_res": np.full(int(action_dim), 0.5, dtype=float),
-        "authority_du0_res": np.full(int(action_dim), 0.001, dtype=float),
+        "authority_beta_res": np.full(int(action_dim), 0.3, dtype=float),
+        "authority_du0_res": np.full(int(action_dim), 0.003, dtype=float),
         "authority_eta_tol": 0.3,
-        "authority_rho_floor": 0.15,
+        "authority_rho_floor": 0.2,
         "authority_rho_power": 1.0,
     }
 
@@ -185,8 +186,8 @@ DISTILLATION_SYSTEM_IDENTIFICATION_DEFAULTS = {
 }
 
 DISTILLATION_BASELINE_DEFAULTS = {
-    "run_mode": "nominal",
-    "disturbance_profile": "none",  # "none" | "ramp" | "fluctuation"
+    "run_mode": "disturb",
+    "disturbance_profile": "fluctuation",  # "none" | "ramp" | "fluctuation"
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
@@ -217,8 +218,8 @@ DISTILLATION_BASELINE_DEFAULTS = {
 }
 
 DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
-    "run_mode": "nominal",
-    "disturbance_profile": "none",
+    "run_mode": "disturb",
+    "disturbance_profile": "fluctuation",
     "state_mode": "standard",  # "standard" | "mismatch"
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
@@ -281,8 +282,8 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS["run_profiles"] = {
 }
 
 DISTILLATION_HORIZON_DUELING_DEFAULTS = {
-    "run_mode": "nominal",
-    "disturbance_profile": "none",
+    "run_mode": "disturb",
+    "disturbance_profile": "fluctuation",
     "state_mode": "standard",
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
@@ -324,8 +325,8 @@ DISTILLATION_HORIZON_DUELING_DEFAULTS = {
 
 DISTILLATION_MATRIX_DEFAULTS = {
     "agent_kind": "td3",  # "td3" | "sac"
-    "run_mode": "nominal",
-    "disturbance_profile": "none",
+    "run_mode": "disturb",
+    "disturbance_profile": "fluctuation",
     "state_mode": "standard",
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
@@ -412,8 +413,8 @@ DISTILLATION_MATRIX_DEFAULTS = {
 
 DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
     "agent_kind": "td3",  # "td3" | "sac"
-    "run_mode": "nominal",
-    "disturbance_profile": "none",
+    "run_mode": "disturb",
+    "disturbance_profile": "fluctuation",
     "state_mode": "standard",
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
@@ -450,8 +451,8 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
 
 DISTILLATION_WEIGHT_DEFAULTS = {
     "agent_kind": "td3",
-    "run_mode": "nominal",
-    "disturbance_profile": "none",
+    "run_mode": "disturb",
+    "disturbance_profile": "fluctuation",
     "state_mode": "standard",
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
@@ -534,8 +535,8 @@ DISTILLATION_WEIGHT_DEFAULTS = {
 
 DISTILLATION_RESIDUAL_DEFAULTS = {
     "agent_kind": "td3",
-    "run_mode": "nominal",
-    "disturbance_profile": "none",
+    "run_mode": "disturb",
+    "disturbance_profile": "fluctuation",
     "state_mode": "mismatch",
     **_copy_residual_authority_defaults(action_dim=2),
     "use_rho_authority": True,
@@ -568,9 +569,77 @@ DISTILLATION_RESIDUAL_DEFAULTS = {
     "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
 }
 
+DISTILLATION_REIDENTIFICATION_DEFAULTS = {
+    "agent_kind": "td3",
+    "run_mode": "disturb",
+    "disturbance_profile": "fluctuation",
+    "state_mode": "mismatch",
+    **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
+    **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
+    **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
+    **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
+    "run_profiles": deepcopy(DISTILLATION_REIDENTIFICATION_RUN_PROFILES),
+    "controller": {
+        "predict_h": 6,
+        "cont_h": 3,
+        "Q1_penalty": 1.0,
+        "Q2_penalty": 1.0,
+        "R1_penalty": 1.0,
+        "R2_penalty": 1.0,
+        **_copy_mismatch_defaults(),
+        "use_shifted_mpc_warm_start": False,
+        "nominal_qi": 0.0,
+        "nominal_qs": 0.0,
+        "nominal_ha": 0.0,
+        "qi_change": 1.0,
+        "qs_change": 1.0,
+        "ha_change": 1.0,
+    },
+    "reidentification": {
+        "basis_family": "lowrank_distillation",
+        "id_component_mode": "AB",
+        "observer_update_alignment": "legacy_previous_measurement",
+        "candidate_guard_mode": "fro_only",
+        "normalize_blend_extras": True,
+        "blend_extra_clip": 3.0,
+        "blend_residual_scale": 1.0,
+        "log_theta_clipping": True,
+        "id_solver": "ridge_closed_form",
+        "rank_A": 5,
+        "rank_B": 2,
+        "offline_window": 80,
+        "offline_stride": 80,
+        "lambda_A_off": 1e-4,
+        "lambda_B_off": 1e-3,
+        "id_window": 80,
+        "id_update_period": 5,
+        "lambda_prev_A": 1e-2,
+        "lambda_prev_B": 1e-1,
+        "lambda_0_A": 1e-4,
+        "lambda_0_B": 1e-3,
+        "theta_low_A": -0.15,
+        "theta_high_A": 0.15,
+        "theta_low_B": -0.08,
+        "theta_high_B": 0.08,
+        "delta_A_max": 0.10,
+        "delta_B_max": 0.10,
+        "eta_tau_A": 0.1,
+        "eta_tau_B": 0.1,
+        "observer_refresh_enabled": False,
+        "observer_refresh_every_episodes": 10,
+        "rho_obs": 0.25,
+        "force_eta_constant": None,
+        "disable_identification": False,
+    },
+    "td3_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["td3_agent"]),
+    "sac_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["sac_agent"]),
+    "reward": _copy_reward_defaults(),
+    "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
+}
+
 DISTILLATION_COMBINED_DEFAULTS = {
-    "run_mode": "nominal",
-    "disturbance_profile": "none",
+    "run_mode": "disturb",
+    "disturbance_profile": "fluctuation",
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
@@ -635,6 +704,7 @@ DISTILLATION_NOTEBOOK_DEFAULTS = {
     "structured_matrix": DISTILLATION_STRUCTURED_MATRIX_DEFAULTS,
     "weights": DISTILLATION_WEIGHT_DEFAULTS,
     "residual": DISTILLATION_RESIDUAL_DEFAULTS,
+    "reidentification": DISTILLATION_REIDENTIFICATION_DEFAULTS,
     "combined": DISTILLATION_COMBINED_DEFAULTS,
 }
 

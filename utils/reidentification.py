@@ -24,6 +24,13 @@ REIDENTIFICATION_BLEND_RESIDUAL_SCALE = 1.0
 REIDENTIFICATION_LOG_THETA_CLIPPING = True
 
 
+def resolve_basis_family(basis_family=None) -> str:
+    family = str(REIDENTIFICATION_BASIS_FAMILY if basis_family in (None, "") else basis_family).strip().lower()
+    if not family:
+        raise ValueError("basis_family must be a non-empty string.")
+    return family
+
+
 def _as_1d_float(x, expected_len: int | None = None) -> np.ndarray:
     arr = np.asarray(x, dtype=float).reshape(-1)
     if expected_len is not None and arr.size != int(expected_len):
@@ -76,6 +83,7 @@ def _svd_directions(matrix_stack: np.ndarray, target_rank: int) -> tuple[list[np
 def _make_basis_dict(
     *,
     basis_name: str,
+    basis_family: str,
     A_basis: list[np.ndarray],
     B_basis: list[np.ndarray],
     singular_values_A: np.ndarray,
@@ -91,7 +99,7 @@ def _make_basis_dict(
     theta_B_indices = np.arange(n_A, n_A + n_B, dtype=int)
     return {
         "basis_name": basis_name,
-        "basis_family": REIDENTIFICATION_BASIS_FAMILY,
+        "basis_family": resolve_basis_family(basis_family),
         "A_basis": [np.asarray(E, dtype=float) for E in A_basis],
         "B_basis": [np.asarray(F, dtype=float) for F in B_basis],
         "theta_labels": list(theta_labels),
@@ -257,6 +265,7 @@ def extract_lowrank_residual_basis_from_baseline(
     baseline_bundle: dict,
     A_ref: np.ndarray,
     B_ref: np.ndarray,
+    basis_family: str | None = None,
     rank_A: int,
     rank_B: int,
     offline_window: int,
@@ -312,8 +321,11 @@ def extract_lowrank_residual_basis_from_baseline(
         "A_shape": tuple(int(v) for v in A_ref.shape),
         "B_shape": tuple(int(v) for v in B_ref.shape),
     }
+    basis_family = resolve_basis_family(basis_family)
+    basis_slug = basis_family.replace("lowrank_", "")
     return _make_basis_dict(
-        basis_name=f"polymer_reidentification_lowrank_rA{len(A_basis)}_rB{len(B_basis)}",
+        basis_name=f"{basis_slug}_reidentification_lowrank_rA{len(A_basis)}_rB{len(B_basis)}",
+        basis_family=basis_family,
         A_basis=A_basis,
         B_basis=B_basis,
         singular_values_A=singular_values_A,
@@ -322,16 +334,36 @@ def extract_lowrank_residual_basis_from_baseline(
     )
 
 
-def resolve_lowrank_basis_cache_path(cache_dir, *, run_mode: str, rank_A: int, rank_B: int) -> Path:
-    return Path(cache_dir) / f"reidentification_lowrank_basis_{str(run_mode).lower()}_rA{int(rank_A)}_rB{int(rank_B)}.pickle"
+def resolve_lowrank_basis_cache_path(
+    cache_dir,
+    *,
+    basis_family: str | None = None,
+    run_mode: str,
+    disturbance_profile: str | None = None,
+    rank_A: int,
+    rank_B: int,
+) -> Path:
+    basis_family = resolve_basis_family(basis_family)
+    run_mode = str(run_mode).lower()
+    if basis_family == "lowrank_distillation":
+        disturbance_profile = str("none" if disturbance_profile in (None, "") else disturbance_profile).lower()
+        fname = (
+            f"reidentification_lowrank_basis_distillation_{run_mode}_{disturbance_profile}"
+            f"_rA{int(rank_A)}_rB{int(rank_B)}.pickle"
+        )
+    else:
+        fname = f"reidentification_lowrank_basis_{run_mode}_rA{int(rank_A)}_rB{int(rank_B)}.pickle"
+    return Path(cache_dir) / fname
 
 
 def _validate_cached_basis(
     basis: dict,
     *,
+    basis_family: str | None,
     A_ref: np.ndarray,
     B_ref: np.ndarray,
     baseline_path: Path,
+    disturbance_profile: str | None,
     rank_A: int,
     rank_B: int,
     offline_window: int,
@@ -341,7 +373,7 @@ def _validate_cached_basis(
 ) -> bool:
     try:
         metadata = dict(basis.get("metadata") or {})
-        if str(basis.get("basis_family")) != REIDENTIFICATION_BASIS_FAMILY:
+        if str(basis.get("basis_family")) != resolve_basis_family(basis_family):
             return False
         if int(metadata.get("requested_rank_A", -1)) != int(rank_A):
             return False
@@ -363,6 +395,8 @@ def _validate_cached_basis(
             return False
         if int(metadata.get("source_mtime_ns", -1)) != int(baseline_path.stat().st_mtime_ns):
             return False
+        if disturbance_profile is not None and str(metadata.get("disturbance_profile", "")).lower() != str(disturbance_profile).lower():
+            return False
         if len(basis.get("A_basis") or []) <= 0 or len(basis.get("B_basis") or []) <= 0:
             return False
     except Exception:
@@ -370,12 +404,13 @@ def _validate_cached_basis(
     return True
 
 
-def build_or_load_polymer_reidentification_basis(
+def build_or_load_reidentification_basis(
     *,
     baseline_path,
     cache_dir,
     A_ref: np.ndarray,
     B_ref: np.ndarray,
+    basis_family: str | None = None,
     rank_A: int,
     rank_B: int,
     offline_window: int,
@@ -383,13 +418,17 @@ def build_or_load_polymer_reidentification_basis(
     lambda_A_off: float,
     lambda_B_off: float,
     run_mode: str,
+    disturbance_profile: str | None = None,
 ) -> dict:
+    basis_family = resolve_basis_family(basis_family)
     baseline_path = Path(baseline_path).expanduser().resolve()
     if not baseline_path.exists():
         raise FileNotFoundError(f"Could not find baseline bundle for offline basis extraction: {baseline_path}")
     cache_path = resolve_lowrank_basis_cache_path(
         cache_dir,
+        basis_family=basis_family,
         run_mode=run_mode,
+        disturbance_profile=disturbance_profile,
         rank_A=rank_A,
         rank_B=rank_B,
     )
@@ -399,9 +438,11 @@ def build_or_load_polymer_reidentification_basis(
                 cached_basis = pickle.load(handle)
             if _validate_cached_basis(
                 cached_basis,
+                basis_family=basis_family,
                 A_ref=A_ref,
                 B_ref=B_ref,
                 baseline_path=baseline_path,
+                disturbance_profile=disturbance_profile,
                 rank_A=rank_A,
                 rank_B=rank_B,
                 offline_window=offline_window,
@@ -419,6 +460,7 @@ def build_or_load_polymer_reidentification_basis(
         baseline_bundle=baseline_bundle,
         A_ref=A_ref,
         B_ref=B_ref,
+        basis_family=basis_family,
         rank_A=rank_A,
         rank_B=rank_B,
         offline_window=offline_window,
@@ -430,12 +472,43 @@ def build_or_load_polymer_reidentification_basis(
     metadata["source_path"] = str(baseline_path)
     metadata["source_mtime_ns"] = int(baseline_path.stat().st_mtime_ns)
     metadata["cache_path"] = str(cache_path.resolve())
+    metadata["disturbance_profile"] = None if disturbance_profile is None else str(disturbance_profile).lower()
     metadata["cache_generated"] = True
     basis["metadata"] = metadata
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     with open(cache_path, "wb") as handle:
         pickle.dump(basis, handle)
     return basis
+
+
+def build_or_load_polymer_reidentification_basis(
+    *,
+    baseline_path,
+    cache_dir,
+    A_ref: np.ndarray,
+    B_ref: np.ndarray,
+    rank_A: int,
+    rank_B: int,
+    offline_window: int,
+    offline_stride: int,
+    lambda_A_off: float,
+    lambda_B_off: float,
+    run_mode: str,
+) -> dict:
+    return build_or_load_reidentification_basis(
+        baseline_path=baseline_path,
+        cache_dir=cache_dir,
+        A_ref=A_ref,
+        B_ref=B_ref,
+        basis_family=REIDENTIFICATION_BASIS_FAMILY,
+        rank_A=rank_A,
+        rank_B=rank_B,
+        offline_window=offline_window,
+        offline_stride=offline_stride,
+        lambda_A_off=lambda_A_off,
+        lambda_B_off=lambda_B_off,
+        run_mode=run_mode,
+    )
 
 
 def assemble_batch_regression(batch: RollingIDBatch, A0_phys: np.ndarray, B0_phys: np.ndarray, basis: dict) -> tuple[np.ndarray, np.ndarray]:
@@ -1038,6 +1111,7 @@ __all__ = [
     "attempt_observer_refresh",
     "blend_prediction_model",
     "build_observer_refresh_candidate",
+    "build_or_load_reidentification_basis",
     "build_or_load_polymer_reidentification_basis",
     "build_reidentification_policy_state",
     "compute_theta_clipping_diagnostics",
@@ -1048,6 +1122,7 @@ __all__ = [
     "map_action_to_dual_eta",
     "normalize_force_eta_constant",
     "reconstruct_model_from_theta",
+    "resolve_basis_family",
     "resolve_lowrank_basis_cache_path",
     "resolve_reidentification_lambda_vectors",
     "resolve_reidentification_theta_bounds",

@@ -51,74 +51,37 @@ VANDEVUSSE_INPUT_BOUNDS = {
 VANDEVUSSE_CA0_RANGE = np.array([4.5, 5.7], dtype=float)
 VANDEVUSSE_CB_TARGET_RANGE = np.array([0.7, 0.95], dtype=float)
 
+# The active Van de Vusse identification workflow now uses direct local
+# linearization at the benchmark operating point. Step tests remain only for
+# scaling and validation of the linearized nominal model.
 VANDEVUSSE_SYSTEM_ID_INITIAL_HOLD_HOURS = 0.2
 VANDEVUSSE_SYSTEM_ID_STEP_HOLD_HOURS = 1.2
-VANDEVUSSE_SYSTEM_ID_PRE_WINDOW_STEPS = int(round(VANDEVUSSE_SYSTEM_ID_INITIAL_HOLD_HOURS / VANDEVUSSE_DELTA_T_HOURS))
-VANDEVUSSE_SYSTEM_ID_POST_WINDOW_STEPS = int(round(0.2 / VANDEVUSSE_DELTA_T_HOURS))
+VANDEVUSSE_LINEARIZATION_DEFAULTS = {
+    "state_eps_rel": 1e-6,
+    "state_eps_abs": 1e-8,
+    "input_eps_rel": 1e-6,
+    "input_eps_abs": 1e-6,
+    "discretization_method": "zoh",
+}
 
 VANDEVUSSE_SYSTEM_ID_CSV_COLUMNS = ["F", "Q_K", "c_B", "T"]
 VANDEVUSSE_SYSTEM_ID_STEP_TESTS = [
     {
-        "name": "F_pos_small",
-        "save_filename": "F_pos_small.csv",
+        "name": "F_step",
+        "save_filename": "F_step.csv",
         "input_index": 0,
         "step_delta": np.array([2.0, 0.0], dtype=float),
-        "fit_use": True,
     },
     {
-        "name": "F_neg_small",
-        "save_filename": "F_neg_small.csv",
-        "input_index": 0,
-        "step_delta": np.array([-2.0, 0.0], dtype=float),
-        "fit_use": True,
-    },
-    {
-        "name": "F_pos_medium",
-        "save_filename": "F_pos_medium.csv",
-        "input_index": 0,
-        "step_delta": np.array([4.0, 0.0], dtype=float),
-        "fit_use": True,
-    },
-    {
-        "name": "F_neg_medium",
-        "save_filename": "F_neg_medium.csv",
-        "input_index": 0,
-        "step_delta": np.array([-4.0, 0.0], dtype=float),
-        "fit_use": True,
-    },
-    {
-        "name": "QK_pos_small",
-        "save_filename": "QK_pos_small.csv",
-        "input_index": 1,
-        "step_delta": np.array([0.0, 500.0], dtype=float),
-        "fit_use": True,
-    },
-    {
-        "name": "QK_neg_small",
-        "save_filename": "QK_neg_small.csv",
+        "name": "QK_step",
+        "save_filename": "QK_step.csv",
         "input_index": 1,
         "step_delta": np.array([0.0, -500.0], dtype=float),
-        "fit_use": True,
-    },
-    {
-        "name": "QK_pos_medium",
-        "save_filename": "QK_pos_medium.csv",
-        "input_index": 1,
-        "step_delta": np.array([0.0, 1000.0], dtype=float),
-        "fit_use": True,
-    },
-    {
-        "name": "QK_neg_medium",
-        "save_filename": "QK_neg_medium.csv",
-        "input_index": 1,
-        "step_delta": np.array([0.0, -1000.0], dtype=float),
-        "fit_use": True,
     },
     {
         "name": "combined_validation",
         "save_filename": "combined_validation.csv",
         "input_index": None,
         "step_delta": np.array([2.0, -500.0], dtype=float),
-        "fit_use": False,
     },
 ]

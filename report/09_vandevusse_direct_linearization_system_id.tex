@@ -1,0 +1,126 @@
+\section{Van de Vusse Direct-Linearization System Identification}
+
+The active Van de Vusse system-identification surface now uses direct local linearization around the benchmark operating point. The nonlinear plant remains the benchmark truth model, but the nominal linear model exported for later offset-free MPC is obtained from
+\[
+\text{steady state solve} \rightarrow \text{continuous-time Jacobians} \rightarrow \text{ZOH discretization}.
+\]
+
+\subsection{Why the Earlier FOPDT Workflow Was the Wrong Model Class}
+
+The earlier Van de Vusse workflow built the nominal model from per-channel delayed first-order fits and then stacked those fits into a larger delay-augmented state-space realization. That path was structurally wrong for this benchmark.
+
+The main issue was not the eventual 33-state delay-augmented realization itself. The deeper problem was that the Van de Vusse benchmark near the production operating region is nonminimum-phase and strongly coupled. A bank of independent FOPDT channels does not preserve the local multivariable structure that later offset-free MPC actually needs.
+
+For this benchmark, the right nominal model is the local linearization of the nonlinear plant at the benchmark operating point. That model captures the coupled Jacobian structure directly and gives a compact state-space model with the correct local geometry for future observer and MPC design.
+
+\subsection{Nonlinear Plant and Operating Point}
+
+The nonlinear benchmark plant still uses the Van de Vusse reaction network
+\[
+A \rightarrow B,\qquad B \rightarrow C,\qquad 2A \rightarrow D,
+\]
+with the Kelvin-form state vector
+\[
+x = \begin{bmatrix} c_A & c_B & T & T_K \end{bmatrix}^{\top}
+\]
+and manipulated inputs
+\[
+u = \begin{bmatrix} F & Q_K \end{bmatrix}^{\top}.
+\]
+
+The controlled outputs for the case study remain
+\[
+y = \begin{bmatrix} c_B & T \end{bmatrix}^{\top}.
+\]
+
+The benchmark operating inputs are
+\[
+F_s = 18.83,\qquad Q_{K,s} = -4495.7,
+\]
+and the steady-state solve is seeded with
+\[
+x_{\text{seed}} = \begin{bmatrix} 1.235 & 0.9 & 407.29 & 402.10 \end{bmatrix}^{\top}.
+\]
+
+The plant parameters still follow the PINN-source ODE parameterization, while the operating point and constraints follow the Klatt/Engell benchmark framing.
+
+\subsection{Direct Local Linearization}
+
+After solving the nonlinear steady state, the workflow computes continuous-time Jacobians with centered finite differences:
+\[
+A_c = \frac{\partial f}{\partial x}\bigg|_{x_s,u_s},\qquad
+B_c = \frac{\partial f}{\partial u}\bigg|_{x_s,u_s}.
+\]
+
+The fixed output map is
+\[
+C_c =
+\begin{bmatrix}
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0
+\end{bmatrix},
+\qquad
+D_c = 0.
+\]
+
+The active notebook uses the finite-difference defaults
+\[
+\varepsilon_x^{\text{rel}} = 10^{-6},\quad
+\varepsilon_x^{\text{abs}} = 10^{-8},\quad
+\varepsilon_u^{\text{rel}} = 10^{-6},\quad
+\varepsilon_u^{\text{abs}} = 10^{-6},
+\]
+and then discretizes the linearized model with zero-order hold. The exported canonical state-space model is therefore the compact \(4 \times 4\) direct-linearization result, not a delay-augmented surrogate.
+
+\subsection{Step Tests as Validation and Scaling Only}
+
+Step tests remain in the workflow, but only for local validation and scaling artifacts. They are no longer the identification backbone.
+
+The canonical notebook now uses only three tests:
+\begin{itemize}
+    \item \texttt{F\_step.csv} with \(\Delta F = +2.0\),
+    \item \texttt{QK\_step.csv} with \(\Delta Q_K = -500.0\),
+    \item \texttt{combined\_validation.csv} with \([\Delta F, \Delta Q_K] = [+2.0, -500.0]\).
+\end{itemize}
+
+These trajectories are saved in absolute physical units. For validation, the notebook converts them to deviation form around the solved steady state, simulates the discrete linearized model on the same input deviations, and then reports fit and RMSE metrics while plotting both responses in absolute units.
+
+The same three tests also provide the canonical scaling artifacts:
+\begin{itemize}
+    \item \texttt{scaling\_factor.pickle}
+    \item \texttt{min\_max\_states.pickle}
+\end{itemize}
+
+\subsection{Why This Is the Right Nominal Model for Later MPC}
+
+Future linear offset-free MPC for this case study needs a nominal model that is:
+\begin{itemize}
+    \item locally correct around the benchmark production point,
+    \item compact enough for standard observer and MPC design,
+    \item consistent with the actual nonlinear plant states and outputs,
+    \item free from the structural distortion introduced by channel-wise FOPDT fitting.
+\end{itemize}
+
+Direct local linearization satisfies those requirements. It preserves the local coupled physics while keeping the exported state-space model small and interpretable. The earlier delay-augmented FOPDT route did not fail because it had too many states; it failed because it started from the wrong nominal model class for the benchmark.
+
+\subsection{Saved Artifacts}
+
+The canonical Van de Vusse system-identification notebook saves to
+\begin{itemize}
+    \item \texttt{VanDeVusse/Data}
+    \item \texttt{VanDeVusse/Results}
+\end{itemize}
+
+The active artifacts are:
+\begin{itemize}
+    \item the three canonical validation CSV files,
+    \item \texttt{system\_dict.pickle} with direct-linearization \(A, B, C, D\),
+    \item \texttt{scaling\_factor.pickle},
+    \item \texttt{min\_max\_states.pickle},
+    \item \texttt{system\_id\_metadata.pickle} and optional JSON,
+    \item comparison plots of nonlinear versus linearized responses.
+\end{itemize}
+
+\subsection{Scope Boundary}
+
+This report still stops at the plant-plus-identification layer. MPC, observer tuning beyond the nominal linearization, and RL-assisted supervisory layers remain future work for the Van de Vusse case study.

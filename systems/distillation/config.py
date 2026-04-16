@@ -48,21 +48,21 @@ RESIDUAL_BOUNDS = {
 }
 
 RL_REWARD_DEFAULTS = {
-    "k_rel": np.array([0.03, 0.004], dtype=float),
-    "band_floor_phys": np.array([0.0007, 0.06], dtype=float),
+    "k_rel": np.array([0.3, 0.02], dtype=float),
+    "band_floor_phys": np.array([0.003, 0.3], dtype=float),
     "Q_diag": np.array([3.7e4, 1.5e3], dtype=float),
     "R_diag": np.array([2.5e3, 2.5e3], dtype=float),
-    "tau_frac": 0.5,
+    "tau_frac": 0.7,
     "gamma_out": 0.5,
-    "gamma_in": 0.75,
-    "beta": 5.0,
+    "gamma_in": 0.5,
+    "beta": 7.0,
     "gate": "geom",
-    "lam_in": 3.0,
+    "lam_in": 1.0,
     "bonus_kind": "exp",
-    "bonus_k": 18.0,
+    "bonus_k": 12.0,
     "bonus_p": 0.6,
     "bonus_c": 20.0,
-    "reward_scale": 0.1,
+    "reward_scale": 1.0,
 }
 
 DISTILLATION_BASELINE_RUN_PROFILES = {

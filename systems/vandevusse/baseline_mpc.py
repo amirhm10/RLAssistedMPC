@@ -157,10 +157,17 @@ def prepare_vandevusse_offset_free_mpc_runtime(
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
     y_sp_scenario = apply_min_max(y_sp_scenario_phys, data_min[n_inputs:], data_max[n_inputs:]) - y_ss_scaled
 
+    observer_update_mode = str(
+        baseline_cfg.get("observer_update_mode", "predictor_corrector_current")
+    ).strip().lower()
+    observer_poles_requested = baseline_cfg.get("observer_poles_override")
+    if observer_poles_requested is None:
+        observer_poles_requested = sys["observer_poles_default"]
+
     observer_info = resolve_vandevusse_observer_gain(
         A_aug=A_aug,
         C_aug=C_aug,
-        default_poles=np.asarray(sys["observer_poles_default"], dtype=float),
+        default_poles=np.asarray(observer_poles_requested, dtype=float),
         fallback_poles=np.asarray(sys["observer_poles_fallback"], dtype=float),
     )
 
@@ -256,10 +263,13 @@ def prepare_vandevusse_offset_free_mpc_runtime(
         "reward_fn": reward_fn,
         "L": np.asarray(observer_info["L"], dtype=float),
         "poles": np.asarray(observer_info["poles_used"], dtype=float),
+        "observer_update_mode": observer_update_mode,
         "system_metadata": VANDEVUSSE_SYSTEM_METADATA,
         "disturbance_schedule": disturbance_schedule,
         "system_stepper": vandevusse_system_stepper,
         "disturbance_labels": VANDEVUSSE_SYSTEM_METADATA["disturbance_labels"],
+        "u_lower_phys": u_min.copy(),
+        "u_upper_phys": u_max.copy(),
     }
 
     return {
@@ -275,6 +285,7 @@ def prepare_vandevusse_offset_free_mpc_runtime(
         "steady_states": steady_states,
         "y_sp_scenario_phys": y_sp_scenario_phys,
         "observer_info": observer_info,
+        "observer_update_mode": observer_update_mode,
         "reward_params": reward_params,
         "controller_params": {
             "predict_h": int(ctrl["predict_h"]),
@@ -305,6 +316,7 @@ def run_vandevusse_offset_free_mpc(prepared_runtime):
     result_bundle["observer_error_spectral_radius"] = float(
         prepared_runtime["observer_info"]["observer_error_spectral_radius"]
     )
+    result_bundle["observer_update_mode"] = str(prepared_runtime["observer_update_mode"])
     result_bundle["disturbance_profile_name"] = prepared_runtime["disturbance_profile_name"]
     result_bundle["baseline_save_path"] = str(prepared_runtime["baseline_save_path"])
     result_bundle["controller_params"] = {

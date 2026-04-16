@@ -73,10 +73,12 @@ The disturbed baseline is the canonical \texttt{ca0\_blocks} scenario. It varies
 \[
 c_{A0} = [5.10,\; 4.70,\; 5.50,\; 5.10],
 \qquad
-T_{in} = [378.1,\; 378.1,\; 378.1,\; 378.1]~\mathrm{K}.
+T_{in} = [403.15,\; 403.15,\; 403.15,\; 403.15]~\mathrm{K}.
 \]
 
 This produces a simple but meaningful disturbance benchmark for the nonlinear plant while preserving a clean controller interpretation. The baseline notebook supports both \texttt{nominal} and \texttt{disturb} modes, but \texttt{disturb} is the default active case.
+
+The baseline should be rerun only after the Van de Vusse benchmark-consistent system-identification artifacts have been regenerated, because the offset-free MPC model depends directly on the corrected steady state, local Jacobians, and scaling artifacts.
 
 \subsection{Artifacts}
 

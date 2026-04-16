@@ -11,7 +11,18 @@ VANDEVUSSE_RESULT_SUBDIR = VANDEVUSSE_ROOT / "Results"
 # canonical system-identification sample time is finer.
 VANDEVUSSE_DELTA_T_HOURS = 0.01
 
-# PINN-paper parameter table used for the nonlinear plant implementation.
+# Control-benchmark-authoritative Van de Vusse parameterization.
+# The canonical defaults are taken from the benchmark-control literature:
+# - Chen, Kremling, Allgower (1995) for the benchmark problem framing
+# - Klatt and Engell (1998) for the main control-benchmark parameter table
+# Later PINN/modeling papers may be used only as secondary cross-checks.
+VANDEVUSSE_BENCHMARK_SOURCES = {
+    "historical_benchmark": "Chen, Kremling, Allgower (1995)",
+    "main_control_benchmark": "Klatt and Engell (1998)",
+    "secondary_crosscheck_only": "Later PINN/modeling papers",
+}
+
+# The benchmark parameter values below match the control-benchmark literature.
 VANDEVUSSE_SYSTEM_PARAMS = np.array(
     [
         1.287e12,
@@ -36,7 +47,17 @@ VANDEVUSSE_SYSTEM_PARAMS = np.array(
 
 # Feed concentration and inlet temperature remain explicit plant design
 # parameters. Temperatures are stored in Kelvin throughout the code.
-VANDEVUSSE_DESIGN_PARAMS = np.array([5.10, 378.1], dtype=float)
+# The control benchmark uses c_A0 = 5.1 mol/L and theta_0 = 130.0 C = 403.15 K.
+VANDEVUSSE_BENCHMARK_FEED_CONCENTRATION = 5.10
+VANDEVUSSE_BENCHMARK_FEED_TEMPERATURE_K = 403.15
+
+# Retain the later-modeling-paper feed temperature only as a cross-check value;
+# it is not the authoritative default for the benchmark implementation.
+VANDEVUSSE_PINN_CROSSCHECK_DESIGN_PARAMS = np.array([5.10, 378.10], dtype=float)
+VANDEVUSSE_DESIGN_PARAMS = np.array(
+    [VANDEVUSSE_BENCHMARK_FEED_CONCENTRATION, VANDEVUSSE_BENCHMARK_FEED_TEMPERATURE_K],
+    dtype=float,
+)
 
 # Klatt/Engell benchmark operating point used for local ID around the main
 # production region. The nonlinear plant still solves its own steady state from
@@ -69,7 +90,15 @@ VANDEVUSSE_BASELINE_THERMAL_STUDY_SETPOINTS_PHYS = np.array(
 VANDEVUSSE_BASELINE_SETPOINT_RANGE_PHYS = np.array([[0.85, 406.90], [0.93, 407.60]], dtype=float)
 VANDEVUSSE_BASELINE_DISTURBANCE_PROFILES = ("none", "ca0_blocks")
 VANDEVUSSE_BASELINE_CA0_BLOCKS = np.array([5.10, 4.70, 5.50, 5.10], dtype=float)
-VANDEVUSSE_BASELINE_TIN_BLOCKS = np.array([378.10, 378.10, 378.10, 378.10], dtype=float)
+VANDEVUSSE_BASELINE_TIN_BLOCKS = np.array(
+    [
+        VANDEVUSSE_BENCHMARK_FEED_TEMPERATURE_K,
+        VANDEVUSSE_BENCHMARK_FEED_TEMPERATURE_K,
+        VANDEVUSSE_BENCHMARK_FEED_TEMPERATURE_K,
+        VANDEVUSSE_BENCHMARK_FEED_TEMPERATURE_K,
+    ],
+    dtype=float,
+)
 VANDEVUSSE_BASELINE_OBSERVER_POLES_DEFAULT = np.array([0.45, 0.50, 0.55, 0.60, 0.70, 0.75], dtype=float)
 VANDEVUSSE_BASELINE_OBSERVER_POLES_FALLBACK = np.array([0.55, 0.60, 0.65, 0.70, 0.80, 0.85], dtype=float)
 VANDEVUSSE_BASELINE_Q_OUT = np.array([1.0, 1.0], dtype=float)

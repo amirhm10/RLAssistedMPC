@@ -16,10 +16,10 @@ from Simulation.sys_ids import (
     simulate_discrete_state_space_model,
 )
 
-from .config import VANDEVUSSE_SYSTEM_ID_CSV_COLUMNS
+from .config import VANDEVUSSE_BENCHMARK_STATE_SEED, VANDEVUSSE_SYSTEM_ID_CSV_COLUMNS
 from .data_io import ensure_vandevusse_directories
 from .labels import VANDEVUSSE_SYSTEM_METADATA
-from .plant import build_vandevusse_system, vandevusse_system_stepper
+from .plant import benchmark_vandevusse_residual_diagnostic, build_vandevusse_system, vandevusse_system_stepper
 
 
 def simulate_vandevusse_system(system, input_sequence, disturbance_schedule=None):
@@ -176,6 +176,49 @@ def solve_vandevusse_nominal_steady_state(system_params, design_params, ss_input
         "x_ss": np.asarray(plant.steady_trajectory, dtype=float).copy(),
         "ss_inputs": np.asarray(plant.ss_inputs, dtype=float).copy(),
         "y_ss": np.asarray(plant.y_ss, dtype=float).copy(),
+    }
+
+
+def benchmark_vandevusse_consistency_diagnostics(
+    system_params,
+    design_params,
+    ss_inputs,
+    delta_t,
+    benchmark_state=None,
+):
+    benchmark_state = np.asarray(
+        VANDEVUSSE_BENCHMARK_STATE_SEED if benchmark_state is None else benchmark_state,
+        dtype=float,
+    )
+    steady_states = solve_vandevusse_nominal_steady_state(
+        system_params=system_params,
+        design_params=design_params,
+        ss_inputs=ss_inputs,
+        delta_t=delta_t,
+    )
+    residual_diag = benchmark_vandevusse_residual_diagnostic(
+        params=system_params,
+        design_params=design_params,
+        ss_inputs=ss_inputs,
+        benchmark_state=benchmark_state,
+        delta_t=delta_t,
+    )
+    benchmark_output = np.asarray([benchmark_state[1], benchmark_state[2]], dtype=float)
+    abs_state_error = np.asarray(steady_states["x_ss"] - benchmark_state, dtype=float)
+    abs_output_error = np.asarray(steady_states["y_ss"] - benchmark_output, dtype=float)
+    rel_output_error = abs_output_error / np.maximum(np.abs(benchmark_output), 1e-12)
+    return {
+        "benchmark_state": benchmark_state.copy(),
+        "benchmark_output": benchmark_output,
+        "benchmark_residual": np.asarray(residual_diag["residual"], dtype=float),
+        "benchmark_residual_norm": float(residual_diag["residual_norm"]),
+        "solved_x_ss": np.asarray(steady_states["x_ss"], dtype=float).copy(),
+        "solved_y_ss": np.asarray(steady_states["y_ss"], dtype=float).copy(),
+        "absolute_state_error": abs_state_error,
+        "absolute_output_error": abs_output_error,
+        "relative_output_error": rel_output_error,
+        "ss_inputs": np.asarray(steady_states["ss_inputs"], dtype=float).copy(),
+        "design_params": np.asarray(design_params, dtype=float).copy(),
     }
 
 
@@ -509,6 +552,7 @@ def save_vandevusse_identification_artifacts(
 
 
 __all__ = [
+    "benchmark_vandevusse_consistency_diagnostics",
     "apply_vandevusse_deviation_form",
     "build_vandevusse_nominal_linear_model",
     "build_vandevusse_step_test_inputs",

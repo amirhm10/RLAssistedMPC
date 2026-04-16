@@ -42,7 +42,62 @@ and the steady-state solve is seeded with
 x_{\text{seed}} = \begin{bmatrix} 1.235 & 0.9 & 407.29 & 402.10 \end{bmatrix}^{\top}.
 \]
 
-The plant parameters still follow the PINN-source ODE parameterization, while the operating point and constraints follow the Klatt/Engell benchmark framing.
+For the canonical implementation, the control-benchmark literature is the authoritative source. The parameter values and operating-point conventions are taken from the Chen/Kremling/Allg\"ower benchmark framing and the Klatt/Engell control benchmark. Later PINN-oriented modeling papers are used only as secondary cross-checks.
+
+\subsection{Benchmark-Consistency Fix}
+
+The first Van de Vusse implementation mixed benchmark state and input values from the control literature with a non-benchmark feed-temperature default. In particular, the benchmark feed concentration remained correct at
+\[
+c_{A0} = 5.1~\mathrm{mol/L},
+\]
+but the feed temperature was incorrectly set to
+\[
+T_{in} = 378.1~\mathrm{K},
+\]
+instead of the benchmark value
+\[
+T_{in} = 130.0^\circ\mathrm{C} = 403.15~\mathrm{K}.
+\]
+
+That mismatch was enough to make the benchmark operating point inconsistent with the implemented nonlinear plant, even though the main reaction, jacket, and heat-transfer equations were otherwise already aligned with the control-benchmark conventions:
+\begin{itemize}
+    \item \(F\) is the inflow normalized by reactor volume \([\mathrm{h}^{-1}]\),
+    \item \(Q_K < 0\) removes heat from the jacket \([\mathrm{kJ/h}]\),
+    \item temperatures are stored internally in Kelvin,
+    \item the reactor volume is converted to liters in the thermal balance because \(\rho\) is expressed in \(\mathrm{kg/L}\).
+\end{itemize}
+
+With the wrong feed temperature, the benchmark-point residual of the implemented ODEs was
+\[
+\dot x_{\text{bench, old}} \approx
+\begin{bmatrix}
+-1.344 \times 10^{-2}\\
+\phantom{-}8.882 \times 10^{-3}\\
+-4.718 \times 10^{2}\\
+\phantom{-}3.407 \times 10^{-1}
+\end{bmatrix},
+\]
+with a residual norm of about \(471.78\). The temperature equation dominated the mismatch.
+
+After restoring the benchmark feed temperature to \(403.15~\mathrm{K}\), the benchmark-point residual became
+\[
+\dot x_{\text{bench, new}} \approx
+\begin{bmatrix}
+-1.344 \times 10^{-2}\\
+\phantom{-}8.882 \times 10^{-3}\\
+-9.048 \times 10^{-2}\\
+\phantom{-}3.407 \times 10^{-1}
+\end{bmatrix},
+\]
+with a residual norm of about \(0.353\). The solved plant steady state with the benchmark inputs moved from the incorrect
+\[
+y_{s,\text{old}} \approx \begin{bmatrix} 0.9570 & 379.6191 \end{bmatrix}^{\top}
+\]
+to the benchmark-consistent
+\[
+y_{s,\text{new}} \approx \begin{bmatrix} 0.9000066 & 407.290355 \end{bmatrix}^{\top},
+\]
+which is effectively equal to the literature benchmark output for control purposes.
 
 \subsection{Direct Local Linearization}
 
@@ -102,6 +157,8 @@ Future linear offset-free MPC for this case study needs a nominal model that is:
 \end{itemize}
 
 Direct local linearization satisfies those requirements. It preserves the local coupled physics while keeping the exported state-space model small and interpretable. The earlier delay-augmented FOPDT route did not fail because it had too many states; it failed because it started from the wrong nominal model class for the benchmark.
+
+After the benchmark-consistency fix, the direct-linearization method itself was kept unchanged but the canonical artifacts were regenerated. This was required because the nonlinear steady state, Jacobians, and scaling artifacts all depend on the corrected plant defaults.
 
 \subsection{Saved Artifacts}
 

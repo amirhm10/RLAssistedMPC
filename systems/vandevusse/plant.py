@@ -36,10 +36,30 @@ class VanDeVusseCSTR:
         self.delta_t = float(delta_t)
         self.deviation_form = bool(deviation_form)
 
-        self.k_10, self.k_20, self.k_30, self.E_a1, self.E_a2, self.E_a3, self.dH_AB, self.dH_BC, self.dH_AD, self.rho, self.C_p, self.C_pK, self.k_w, self.A_R, self.V_R, self.m_K = self.params
+        (
+            self.k_10,
+            self.k_20,
+            self.k_30,
+            self.E_a1,
+            self.E_a2,
+            self.E_a3,
+            self.dH_AB,
+            self.dH_BC,
+            self.dH_AD,
+            self.rho,
+            self.C_p,
+            self.C_pK,
+            self.k_w,
+            self.A_R,
+            self.V_R,
+            self.m_K,
+        ) = self.params
         self.c_A0, self.T_in = self.design_params
-        # The literature parameters mix concentrations in mol/L with reactor
-        # volume reported in m^3, so use liters in the heat-transfer term.
+        # Benchmark convention audit:
+        # - F is already normalized by reactor volume [h^-1]
+        # - Q_K < 0 removes heat from the jacket [kJ/h]
+        # - rho is given in kg/L, so convert V_R from m^3 to liters in the
+        #   reactor heat-capacity term
         self.V_R_liters = 1000.0 * self.V_R
 
         self.steady_trajectory = self.ss_params()
@@ -96,6 +116,48 @@ class VanDeVusseCSTR:
             sol = solve_ivp(self.odes, [0.0, self.delta_t], self.current_state, args=(self.current_input,))
             self.current_state = sol.y[:, -1]
             self.current_output = np.array([self.current_state[1], self.current_state[2]], dtype=float)
+
+
+def evaluate_vandevusse_operating_point_residual(
+    state,
+    params=None,
+    design_params=None,
+    ss_inputs=None,
+    delta_t=None,
+):
+    plant = VanDeVusseCSTR(
+        params=VANDEVUSSE_SYSTEM_PARAMS if params is None else params,
+        design_params=VANDEVUSSE_DESIGN_PARAMS if design_params is None else design_params,
+        ss_inputs=VANDEVUSSE_SS_INPUTS if ss_inputs is None else ss_inputs,
+        delta_t=VANDEVUSSE_DELTA_T_HOURS if delta_t is None else delta_t,
+        deviation_form=False,
+    )
+    state = np.asarray(state, dtype=float)
+    residual = np.asarray(plant.odes(0.0, state, plant.ss_inputs), dtype=float)
+    return {
+        "state": state.copy(),
+        "output": np.asarray([state[1], state[2]], dtype=float),
+        "ss_inputs": np.asarray(plant.ss_inputs, dtype=float).copy(),
+        "design_params": np.asarray(plant.design_params, dtype=float).copy(),
+        "residual": residual,
+        "residual_norm": float(np.linalg.norm(residual)),
+    }
+
+
+def benchmark_vandevusse_residual_diagnostic(
+    params=None,
+    design_params=None,
+    ss_inputs=None,
+    benchmark_state=None,
+    delta_t=None,
+):
+    return evaluate_vandevusse_operating_point_residual(
+        state=VANDEVUSSE_BENCHMARK_STATE_SEED if benchmark_state is None else benchmark_state,
+        params=params,
+        design_params=design_params,
+        ss_inputs=ss_inputs,
+        delta_t=delta_t,
+    )
 
 
 def build_vandevusse_system(params=None, design_params=None, ss_inputs=None, delta_t=None, deviation_form=False):

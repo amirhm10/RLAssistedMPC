@@ -4,7 +4,13 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.optimize import fsolve
 
-from .config import VANDEVUSSE_DELTA_T_HOURS, VANDEVUSSE_DESIGN_PARAMS, VANDEVUSSE_SS_INPUTS, VANDEVUSSE_SYSTEM_PARAMS
+from .config import (
+    VANDEVUSSE_BENCHMARK_STATE_SEED,
+    VANDEVUSSE_DELTA_T_HOURS,
+    VANDEVUSSE_DESIGN_PARAMS,
+    VANDEVUSSE_SS_INPUTS,
+    VANDEVUSSE_SYSTEM_PARAMS,
+)
 
 
 class VanDeVusseCSTR:
@@ -16,6 +22,7 @@ class VanDeVusseCSTR:
 
     States: [c_A, c_B, T, T_K]
     Inputs: [F, Q_K]
+    Outputs: [c_B, T]
 
     This class only provides the nonlinear plant layer for the Van de Vusse
     case study. Later system-identification, MPC, and RL layers are added
@@ -72,9 +79,10 @@ class VanDeVusseCSTR:
         return dc_A_dt, dc_B_dt, dT_dt, dT_K_dt
 
     def ss_params(self):
-        # Literature operating points are only used to seed the solve, not as
-        # hard-coded truths for the reactor state.
-        x_0 = np.array([1.5, 0.9, 400.0, 390.0], dtype=float)
+        # The benchmark operating point is used as a physically meaningful seed
+        # for the steady-state solve, but the final steady state still comes
+        # from the nonlinear PINN-parameterized model and chosen ss_inputs.
+        x_0 = np.asarray(VANDEVUSSE_BENCHMARK_STATE_SEED, dtype=float).copy()
         x_ss = fsolve(lambda x: self.odes(0.0, x, self.ss_inputs), x_0)
         return np.asarray(x_ss, dtype=float)
 

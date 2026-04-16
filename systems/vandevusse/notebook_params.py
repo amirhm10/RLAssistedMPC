@@ -11,9 +11,8 @@ from .config import (
     VANDEVUSSE_DELTA_T_HOURS,
     VANDEVUSSE_DESIGN_PARAMS,
     VANDEVUSSE_INPUT_BOUNDS,
+    VANDEVUSSE_LINEARIZATION_DEFAULTS,
     VANDEVUSSE_SS_INPUTS,
-    VANDEVUSSE_SYSTEM_ID_POST_WINDOW_STEPS,
-    VANDEVUSSE_SYSTEM_ID_PRE_WINDOW_STEPS,
     VANDEVUSSE_SYSTEM_ID_STEP_HOLD_HOURS,
     VANDEVUSSE_SYSTEM_ID_STEP_TESTS,
     VANDEVUSSE_SYSTEM_ID_INITIAL_HOLD_HOURS,
@@ -44,10 +43,9 @@ VANDEVUSSE_SYSTEM_SETUP = {
 
 VANDEVUSSE_SYSTEM_IDENTIFICATION_DEFAULTS = {
     "run_new_experiments": True,
-    "show_fopdt_plots": True,
+    "show_linearization_diagnostics": True,
     "show_validation_plots": True,
     "save_metadata_json": True,
-    "delay_quantization": "round",
     "initial_hold_hours": float(VANDEVUSSE_SYSTEM_ID_INITIAL_HOLD_HOURS),
     "step_hold_hours": float(VANDEVUSSE_SYSTEM_ID_STEP_HOLD_HOURS),
     "step_tests": [
@@ -56,13 +54,15 @@ VANDEVUSSE_SYSTEM_IDENTIFICATION_DEFAULTS = {
             "save_filename": str(step_cfg["save_filename"]),
             "input_index": step_cfg["input_index"],
             "step_delta": np.asarray(step_cfg["step_delta"], float).copy(),
-            "fit_use": bool(step_cfg["fit_use"]),
         }
         for step_cfg in VANDEVUSSE_SYSTEM_ID_STEP_TESTS
     ],
-    "fit": {
-        "pre_window_steps": int(VANDEVUSSE_SYSTEM_ID_PRE_WINDOW_STEPS),
-        "post_window_steps": int(VANDEVUSSE_SYSTEM_ID_POST_WINDOW_STEPS),
+    "linearization": {
+        "state_eps_rel": float(VANDEVUSSE_LINEARIZATION_DEFAULTS["state_eps_rel"]),
+        "state_eps_abs": float(VANDEVUSSE_LINEARIZATION_DEFAULTS["state_eps_abs"]),
+        "input_eps_rel": float(VANDEVUSSE_LINEARIZATION_DEFAULTS["input_eps_rel"]),
+        "input_eps_abs": float(VANDEVUSSE_LINEARIZATION_DEFAULTS["input_eps_abs"]),
+        "discretization_method": str(VANDEVUSSE_LINEARIZATION_DEFAULTS["discretization_method"]),
     },
     **deepcopy(VANDEVUSSE_COMMON_PATH_DEFAULTS),
     "system_setup": deepcopy(VANDEVUSSE_SYSTEM_SETUP),

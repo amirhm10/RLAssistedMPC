@@ -7,13 +7,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy import signal
 
 from Simulation.sys_ids import (
-    apply_deviation_form_scaled,
-    build_mimo_state_space_from_fopdt_python,
-    extract_fopdt_2863_auto,
     generate_step_test_sequence,
-    plot_results_statespace_python,
     save_simulation_data,
     scaling_min_max_factors,
     simulate_discrete_state_space_model,
@@ -73,8 +70,7 @@ def build_vandevusse_step_test_inputs(ss_inputs, step_tests, delta_t, initial_ho
             {
                 "name": str(step_cfg["name"]),
                 "save_filename": str(step_cfg["save_filename"]),
-                "input_index": step_cfg["input_index"],
-                "fit_use": bool(step_cfg["fit_use"]),
+                "input_index": step_cfg.get("input_index"),
                 "step_delta": step_delta.copy(),
                 "input_sequence": generate_step_test_sequence(
                     ss_inputs,
@@ -168,38 +164,276 @@ def run_vandevusse_step_test_experiment(
     return results
 
 
-def aggregate_fopdt_channel_fits(fit_results_by_test, input_names, output_names):
-    aggregated = {}
-    for input_idx, input_name in enumerate(input_names):
-        for output_name in output_names:
-            samples = []
-            source_tests = []
-            inverse_flags = []
-            for test_name, fit_bundle in fit_results_by_test.items():
-                if int(fit_bundle["input_index"]) != int(input_idx):
-                    continue
-                fit_entry = fit_bundle["channel_fits"][output_name]
-                values = np.array([fit_entry["kp"], fit_entry["taup"], fit_entry["theta"]], dtype=float)
-                if not np.all(np.isfinite(values)):
-                    continue
-                samples.append(values)
-                source_tests.append(test_name)
-                inverse_flags.append(bool(fit_entry.get("inverse", False)))
+def solve_vandevusse_nominal_steady_state(system_params, design_params, ss_inputs, delta_t):
+    plant = build_vandevusse_system(
+        params=system_params,
+        design_params=design_params,
+        ss_inputs=ss_inputs,
+        delta_t=delta_t,
+        deviation_form=False,
+    )
+    return {
+        "x_ss": np.asarray(plant.steady_trajectory, dtype=float).copy(),
+        "ss_inputs": np.asarray(plant.ss_inputs, dtype=float).copy(),
+        "y_ss": np.asarray(plant.y_ss, dtype=float).copy(),
+    }
 
-            if not samples:
-                raise ValueError(f"No finite FOPDT fits were found for input '{input_name}' and output '{output_name}'.")
 
-            samples_arr = np.asarray(samples, dtype=float)
-            med = np.median(samples_arr, axis=0)
-            aggregated[(input_name, output_name)] = {
-                "kp": float(med[0]),
-                "taup": float(med[1]),
-                "theta": float(med[2]),
-                "sample_count": int(len(samples)),
-                "source_tests": list(source_tests),
-                "inverse_detected": bool(any(inverse_flags)),
+def _perturbation_scale(nominal_value, rel_step, abs_floor):
+    return max(abs(float(nominal_value)) * float(rel_step), float(abs_floor))
+
+
+def linearize_vandevusse_continuous(
+    system_params,
+    design_params,
+    x_ss,
+    u_ss,
+    linearization_cfg,
+    delta_t,
+):
+    x_ss = np.asarray(x_ss, dtype=float)
+    u_ss = np.asarray(u_ss, dtype=float)
+
+    plant = build_vandevusse_system(
+        params=system_params,
+        design_params=design_params,
+        ss_inputs=u_ss,
+        delta_t=delta_t,
+        deviation_form=False,
+    )
+
+    def f(x, u):
+        return np.asarray(plant.odes(0.0, np.asarray(x, dtype=float), np.asarray(u, dtype=float)), dtype=float)
+
+    n_states = x_ss.size
+    n_inputs = u_ss.size
+    A_c = np.zeros((n_states, n_states), dtype=float)
+    B_c = np.zeros((n_states, n_inputs), dtype=float)
+    state_eps = np.zeros(n_states, dtype=float)
+    input_eps = np.zeros(n_inputs, dtype=float)
+
+    for idx in range(n_states):
+        eps = _perturbation_scale(
+            x_ss[idx],
+            linearization_cfg["state_eps_rel"],
+            linearization_cfg["state_eps_abs"],
+        )
+        state_eps[idx] = eps
+        dx = np.zeros(n_states, dtype=float)
+        dx[idx] = eps
+        f_plus = f(x_ss + dx, u_ss)
+        f_minus = f(x_ss - dx, u_ss)
+        A_c[:, idx] = (f_plus - f_minus) / (2.0 * eps)
+
+    for idx in range(n_inputs):
+        eps = _perturbation_scale(
+            u_ss[idx],
+            linearization_cfg["input_eps_rel"],
+            linearization_cfg["input_eps_abs"],
+        )
+        input_eps[idx] = eps
+        du = np.zeros(n_inputs, dtype=float)
+        du[idx] = eps
+        f_plus = f(x_ss, u_ss + du)
+        f_minus = f(x_ss, u_ss - du)
+        B_c[:, idx] = (f_plus - f_minus) / (2.0 * eps)
+
+    C_c = np.array([[0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]], dtype=float)
+    D_c = np.zeros((2, 2), dtype=float)
+    return {
+        "A_c": A_c,
+        "B_c": B_c,
+        "C_c": C_c,
+        "D_c": D_c,
+        "state_eps": state_eps,
+        "input_eps": input_eps,
+    }
+
+
+def discretize_vandevusse_linear_model(A_c, B_c, C_c, D_c, delta_t, method="zoh"):
+    A_d, B_d, C_d, D_d, _ = signal.cont2discrete(
+        (np.asarray(A_c, dtype=float), np.asarray(B_c, dtype=float), np.asarray(C_c, dtype=float), np.asarray(D_c, dtype=float)),
+        float(delta_t),
+        method=str(method),
+    )
+    return {
+        "A_d": np.asarray(A_d, dtype=float),
+        "B_d": np.asarray(B_d, dtype=float),
+        "C_d": np.asarray(C_d, dtype=float),
+        "D_d": np.asarray(D_d, dtype=float),
+    }
+
+
+def build_vandevusse_nominal_linear_model(system_params, design_params, ss_inputs, delta_t, linearization_cfg):
+    steady_states = solve_vandevusse_nominal_steady_state(
+        system_params=system_params,
+        design_params=design_params,
+        ss_inputs=ss_inputs,
+        delta_t=delta_t,
+    )
+    continuous_model = linearize_vandevusse_continuous(
+        system_params=system_params,
+        design_params=design_params,
+        x_ss=steady_states["x_ss"],
+        u_ss=steady_states["ss_inputs"],
+        linearization_cfg=linearization_cfg,
+        delta_t=delta_t,
+    )
+    discrete_model = discretize_vandevusse_linear_model(
+        continuous_model["A_c"],
+        continuous_model["B_c"],
+        continuous_model["C_c"],
+        continuous_model["D_c"],
+        delta_t=delta_t,
+        method=linearization_cfg["discretization_method"],
+    )
+    system_dict = {
+        "A": discrete_model["A_d"],
+        "B": discrete_model["B_d"],
+        "C": discrete_model["C_d"],
+        "D": discrete_model["D_d"],
+    }
+    return {
+        "steady_states": steady_states,
+        "continuous_model": continuous_model,
+        "discrete_model": discrete_model,
+        "system_dict": system_dict,
+    }
+
+
+def apply_vandevusse_deviation_form(steady_states, file_paths):
+    ss_inputs = np.asarray(steady_states["ss_inputs"], dtype=float)
+    y_ss = np.asarray(steady_states["y_ss"], dtype=float)
+    ss = np.concatenate((ss_inputs, y_ss), axis=0)
+
+    deviations = {}
+    for key, path in file_paths.items():
+        df = pd.read_csv(path)
+        deviations[key] = df - ss
+    return deviations
+
+
+def simulate_vandevusse_linear_model(system_dict, input_deviation_sequence, x0=None):
+    return simulate_discrete_state_space_model(
+        np.asarray(system_dict["A"], dtype=float),
+        np.asarray(system_dict["B"], dtype=float),
+        np.asarray(system_dict["C"], dtype=float),
+        np.asarray(system_dict["D"], dtype=float),
+        np.asarray(input_deviation_sequence, dtype=float),
+        x0=x0,
+    )
+
+
+def _fit_percent(y_sim, y_meas):
+    y_sim = np.asarray(y_sim, dtype=float).ravel()
+    y_meas = np.asarray(y_meas, dtype=float).ravel()
+    denom = np.linalg.norm(y_meas - np.mean(y_meas))
+    if denom < 1e-12:
+        return 0.0
+    return 100.0 * (1.0 - np.linalg.norm(y_sim - y_meas) / denom)
+
+
+def _rmse(y_sim, y_meas):
+    y_sim = np.asarray(y_sim, dtype=float).ravel()
+    y_meas = np.asarray(y_meas, dtype=float).ravel()
+    return float(np.sqrt(np.mean((y_sim - y_meas) ** 2)))
+
+
+def plot_vandevusse_linear_validation(validation_cases, output_labels, delta_t, result_dir=None, show=True):
+    output_labels = list(output_labels)
+    validation_cases = list(validation_cases)
+    fig, axs = plt.subplots(
+        len(output_labels),
+        len(validation_cases),
+        figsize=(5.5 * len(validation_cases), 4.0 * len(output_labels)),
+        squeeze=False,
+        constrained_layout=True,
+    )
+
+    for col, case in enumerate(validation_cases):
+        time = np.arange(case["measured_abs"].shape[0], dtype=float) * float(delta_t)
+        for row, label in enumerate(output_labels):
+            metrics_key = case["metric_keys"][row]
+            metrics = case["metrics"][metrics_key]
+            ax = axs[row, col]
+            ax.plot(time, case["measured_abs"][:, row], "r-", linewidth=2, label="Nonlinear")
+            ax.plot(time, case["predicted_abs"][:, row], "b--", linewidth=2, label="Linearized")
+            ax.set_xlabel("Time (h)")
+            ax.set_ylabel(label)
+            ax.set_title(f"{case['name']} | FIT={metrics['fit_percent']:.1f}% | RMSE={metrics['rmse']:.4g}")
+            ax.grid(True)
+            if row == 0 and col == 0:
+                ax.legend()
+
+    if result_dir is not None:
+        result_dir = Path(result_dir)
+        result_dir.mkdir(parents=True, exist_ok=True)
+        fig.savefig(result_dir / "vandevusse_linearized_vs_nonlinear.png", dpi=200, bbox_inches="tight")
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+    return fig, axs
+
+
+def validate_vandevusse_linearized_model(
+    system_dict,
+    absolute_dfs,
+    deviation_dfs,
+    step_tests,
+    steady_states,
+    delta_t,
+    result_dir=None,
+    show_plot=True,
+):
+    y_ss = np.asarray(steady_states["y_ss"], dtype=float)
+    validation_cases = []
+    validation_metrics = {}
+    output_names = list(VANDEVUSSE_SYSTEM_ID_CSV_COLUMNS[2:])
+
+    for step_cfg in step_tests:
+        abs_df = absolute_dfs[step_cfg["name"]]
+        dev_df = deviation_dfs[step_cfg["name"]]
+        input_dev = dev_df.iloc[:, :2].to_numpy(dtype=float)
+        measured_dev = dev_df.iloc[:, 2:].to_numpy(dtype=float)
+        measured_abs = abs_df.iloc[:, 2:].to_numpy(dtype=float)
+
+        simulated = simulate_vandevusse_linear_model(system_dict, input_dev)
+        predicted_dev = simulated["outputs"][1:]
+        predicted_abs = predicted_dev + y_ss
+
+        metrics = {}
+        for idx, output_name in enumerate(output_names):
+            metrics[output_name] = {
+                "fit_percent": float(_fit_percent(predicted_dev[:, idx], measured_dev[:, idx])),
+                "rmse": float(_rmse(predicted_dev[:, idx], measured_dev[:, idx])),
             }
-    return aggregated
+
+        validation_metrics[step_cfg["name"]] = metrics
+        validation_cases.append(
+            {
+                "name": step_cfg["name"],
+                "measured_abs": measured_abs,
+                "predicted_abs": predicted_abs,
+                "metrics": metrics,
+                "metric_keys": output_names,
+            }
+        )
+
+    fig, axs = plot_vandevusse_linear_validation(
+        validation_cases,
+        output_labels=VANDEVUSSE_SYSTEM_METADATA["output_labels"],
+        delta_t=delta_t,
+        result_dir=result_dir,
+        show=show_plot,
+    )
+    return {
+        "cases": validation_cases,
+        "metrics_by_test": validation_metrics,
+        "figure": fig,
+        "axes": axs,
+    }
 
 
 def compute_vandevusse_min_max_states(step_results_by_name, steady_states):
@@ -220,97 +454,6 @@ def compute_vandevusse_min_max_states(step_results_by_name, steady_states):
         "min_s": np.min(stacked, axis=0),
         "max_s": np.max(stacked, axis=0),
     }
-
-
-def build_vandevusse_identification_model(
-    deviation_dfs,
-    step_tests,
-    delta_t,
-    pre_window_steps,
-    post_window_steps,
-    plot=True,
-    quantization="round",
-):
-    input_names = list(VANDEVUSSE_SYSTEM_ID_CSV_COLUMNS[:2])
-    output_names = list(VANDEVUSSE_SYSTEM_ID_CSV_COLUMNS[2:])
-
-    fit_results_by_test = {}
-    for step_cfg in step_tests:
-        if not step_cfg["fit_use"]:
-            continue
-        df = deviation_dfs[step_cfg["name"]]
-        channel_fits, fit_df = extract_fopdt_2863_auto(
-            df,
-            input_idx=step_cfg["input_index"],
-            Ts=delta_t,
-            pre_win=pre_window_steps,
-            post_win=post_window_steps,
-            plot=plot,
-        )
-        fit_results_by_test[step_cfg["name"]] = {
-            "input_index": int(step_cfg["input_index"]),
-            "channel_fits": channel_fits,
-            "fit_rows": int(len(fit_df)),
-        }
-
-    aggregated_fits = aggregate_fopdt_channel_fits(fit_results_by_test, input_names=input_names, output_names=output_names)
-    state_space = build_mimo_state_space_from_fopdt_python(
-        aggregated_fits,
-        input_names=input_names,
-        output_names=output_names,
-        Ts=delta_t,
-        quantization=quantization,
-    )
-
-    system_dict = {
-        "A": np.asarray(state_space["A"], dtype=float),
-        "B": np.asarray(state_space["B"], dtype=float),
-        "C": np.asarray(state_space["C"], dtype=float),
-        "D": np.asarray(state_space["D"], dtype=float),
-    }
-    return {
-        "system_dict": system_dict,
-        "fit_results_by_test": fit_results_by_test,
-        "aggregated_fits": aggregated_fits,
-        "state_space": state_space,
-    }
-
-
-def validate_vandevusse_identified_model(system_dict, deviation_dfs, step_tests, delta_t, result_dir=None, show_plot=True):
-    validation_cases = []
-    for step_cfg in step_tests:
-        df = deviation_dfs[step_cfg["name"]]
-        input_sequence = df.iloc[:, :2].to_numpy(dtype=float)
-        measured_outputs = df.iloc[:, 2:].to_numpy(dtype=float)
-        simulated = simulate_discrete_state_space_model(
-            system_dict["A"],
-            system_dict["B"],
-            system_dict["C"],
-            system_dict["D"],
-            input_sequence,
-        )
-        validation_cases.append(
-            {
-                "name": step_cfg["name"],
-                "measured_outputs": measured_outputs,
-                "predicted_outputs": simulated["outputs"][1:],
-            }
-        )
-
-    fig, axs = plot_results_statespace_python(
-        validation_cases,
-        output_labels=VANDEVUSSE_SYSTEM_METADATA["output_labels"],
-        Ts=delta_t,
-        title_prefix="Van de Vusse identified vs nonlinear",
-        show=show_plot,
-    )
-    if result_dir is not None:
-        result_dir = Path(result_dir)
-        result_dir.mkdir(parents=True, exist_ok=True)
-        fig.savefig(result_dir / "vandevusse_identified_vs_nonlinear.png", dpi=200, bbox_inches="tight")
-    if not show_plot:
-        plt.close(fig)
-    return {"cases": validation_cases, "figure": fig, "axes": axs}
 
 
 def _to_serializable(obj):
@@ -366,14 +509,17 @@ def save_vandevusse_identification_artifacts(
 
 
 __all__ = [
-    "aggregate_fopdt_channel_fits",
-    "apply_deviation_form_scaled",
-    "build_vandevusse_identification_model",
+    "apply_vandevusse_deviation_form",
+    "build_vandevusse_nominal_linear_model",
     "build_vandevusse_step_test_inputs",
     "compute_vandevusse_min_max_states",
+    "discretize_vandevusse_linear_model",
+    "linearize_vandevusse_continuous",
     "run_vandevusse_step_test_experiment",
     "save_vandevusse_identification_artifacts",
     "scaling_min_max_factors",
+    "simulate_vandevusse_linear_model",
     "simulate_vandevusse_system",
-    "validate_vandevusse_identified_model",
+    "solve_vandevusse_nominal_steady_state",
+    "validate_vandevusse_linearized_model",
 ]

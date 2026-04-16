@@ -1,0 +1,101 @@
+\section{Van de Vusse Offset-Free MPC Baseline}
+
+\subsection{Purpose}
+
+This stage adds the canonical baseline controller for the Van de Vusse benchmark. The upstream nominal model is the direct local linearization identified in the Van de Vusse system-identification workflow. The controller layer follows the same high-level repo pattern used in the polymer and distillation studies:
+\begin{enumerate}
+    \item load the saved linear state-space model and scaling artifacts,
+    \item augment the model with output disturbances for offset-free tracking,
+    \item estimate the augmented state with an observer,
+    \item solve a receding-horizon quadratic MPC problem,
+    \item apply the control move to the nonlinear plant.
+\end{enumerate}
+
+\subsection{Nominal Model Source}
+
+The nominal prediction model is loaded from the direct-linearization artifacts stored under \texttt{VanDeVusse/Data}. In particular, the active baseline uses:
+\begin{itemize}
+    \item \texttt{system\_dict.pickle},
+    \item \texttt{scaling\_factor.pickle},
+    \item \texttt{min\_max\_states.pickle}.
+\end{itemize}
+
+The linear model is not re-identified inside the baseline notebook. This keeps the baseline controller cleanly separated from the system-identification workflow.
+
+\subsection{Controller Setup}
+
+The first-pass Van de Vusse baseline uses:
+\begin{itemize}
+    \item prediction horizon $N_P = 10$,
+    \item control horizon $N_C = 3$,
+    \item output penalty $Q_y = \mathrm{diag}(1, 1)$,
+    \item input-move penalty $R_u = \mathrm{diag}(1, 1)$.
+\end{itemize}
+
+The controlled outputs are the benchmark production variables
+\[
+y = \begin{bmatrix} c_B \\ T \end{bmatrix},
+\]
+and the manipulated inputs are
+\[
+u = \begin{bmatrix} F \\ Q_K \end{bmatrix}.
+\]
+
+The baseline uses the repository's existing output-disturbance augmentation for offset-free tracking. The observer gain is computed on the augmented model with a preferred pole set
+\[
+[0.45,\; 0.50,\; 0.55,\; 0.60,\; 0.70,\; 0.75]
+\]
+and a fallback set
+\[
+[0.55,\; 0.60,\; 0.65,\; 0.70,\; 0.80,\; 0.85]
+\]
+if the preferred placement fails or yields unstable observer-error dynamics.
+
+\subsection{Canonical Tracking Scenario}
+
+The canonical Van de Vusse baseline setpoint schedule is
+\[
+[0.90,\; 407.29],
+[0.85,\; 407.29],
+[0.93,\; 407.29],
+[0.90,\; 407.29].
+\]
+This keeps the temperature target fixed while moving the desired $c_B$ level across a narrow benchmark operating range.
+
+For later reuse and scaling, the broader physical output range is recorded as
+\[
+0.85 \le c_B \le 0.93, \qquad 406.9 \le T \le 407.6~\mathrm{K}.
+\]
+
+\subsection{Disturbed Baseline Case}
+
+The disturbed baseline is the canonical \texttt{ca0\_blocks} scenario. It varies only the feed concentration while keeping the inlet temperature fixed:
+\[
+c_{A0} = [5.10,\; 4.70,\; 5.50,\; 5.10],
+\qquad
+T_{in} = [378.1,\; 378.1,\; 378.1,\; 378.1]~\mathrm{K}.
+\]
+
+This produces a simple but meaningful disturbance benchmark for the nonlinear plant while preserving a clean controller interpretation. The baseline notebook supports both \texttt{nominal} and \texttt{disturb} modes, but \texttt{disturb} is the default active case.
+
+\subsection{Artifacts}
+
+The canonical baseline workflow writes:
+\begin{itemize}
+    \item \texttt{VanDeVusse/Data/mpc\_results\_nominal.pickle},
+    \item \texttt{VanDeVusse/Data/mpc\_results\_disturb\_ca0\_blocks.pickle},
+    \item timestamped figures under \texttt{VanDeVusse/Results}.
+\end{itemize}
+
+The saved baseline bundle keeps the normalized result structure used by the shared plotting and comparison layer, including:
+\begin{itemize}
+    \item system metadata,
+    \item observer poles requested and actually used,
+    \item run mode and disturbance profile,
+    \item controller horizons and penalties,
+    \item the physical setpoint scenario.
+\end{itemize}
+
+\subsection{Scope Boundary}
+
+This stage is intentionally limited to the baseline offset-free MPC controller. No Van de Vusse RL workflow is introduced here. The baseline is the nominal controller layer that later RL-assisted studies can build on.

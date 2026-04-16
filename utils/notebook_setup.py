@@ -9,6 +9,7 @@ from systems.distillation.data_io import (
 )
 from systems.distillation.scenarios import canonical_disturbance_profile, validate_run_profile
 from systems.polymer.data_io import copy_legacy_polymer_data, resolve_polymer_data_dir, resolve_polymer_result_dir
+from systems.vandevusse.data_io import ensure_vandevusse_directories, resolve_vandevusse_data_dir, resolve_vandevusse_result_dir
 from utils.helpers import resolve_repo_root
 
 
@@ -54,6 +55,18 @@ def prepare_distillation_notebook_env(
         aspen_root=aspen_root_override,
     )
     return repo_root, data_dir, result_dir, disturbance_profile, dyn_path, snaps_path, aspen_source
+
+
+def prepare_vandevusse_notebook_env(data_dir_override=None, results_dir_override=None):
+    repo_root = resolve_repo_root(Path.cwd())
+    data_dir, result_dir = ensure_vandevusse_directories(
+        repo_root,
+        data_override=data_dir_override,
+        result_override=results_dir_override,
+    )
+    data_dir = resolve_vandevusse_data_dir(repo_root, override=data_dir)
+    result_dir = resolve_vandevusse_result_dir(repo_root, override=result_dir)
+    return repo_root, data_dir, result_dir
 
 
 def print_notebook_summary(title, items):

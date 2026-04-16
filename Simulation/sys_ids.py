@@ -483,3 +483,381 @@ def plot_results_statespace(tOut, y_dis_model_ss_ab_delay, data_u1, data_u2):
     fig.tight_layout()
 
     plt.show()
+
+
+def generate_step_test_sequence(u_start, step_delta, initial_duration=40, step_duration=200):
+    """
+    Generate a generic step-test input sequence from a steady input vector and
+    an additive step vector.
+    """
+
+    u_start = np.asarray(u_start, dtype=float)
+    step_delta = np.asarray(step_delta, dtype=float)
+    if step_delta.shape != u_start.shape:
+        raise ValueError("step_delta must have the same shape as u_start.")
+
+    initial_array = np.full((int(initial_duration), len(u_start)), u_start, dtype=float)
+    step_array = np.full((int(step_duration), len(u_start)), u_start + step_delta, dtype=float)
+    return np.concatenate((initial_array, step_array), axis=0)
+
+
+def extract_fopdt_2863_auto(df, input_idx=0, Ts=1.0, limit=None, pre_win=10, post_win=10, plot=True):
+    """
+    Estimate FOPDT channel parameters from one step-test dataframe using the
+    28/63 percent heuristic without interactive prompts.
+
+    The function supports mild inverse-response behavior by allowing the 28/63
+    crossing search to start after an early extremum.
+    """
+
+    cols = list(df.columns)
+    if len(cols) < 4:
+        raise ValueError("Expected step-test data with at least 4 columns: 2 inputs and 2 outputs.")
+
+    input_idx = int(input_idx)
+    input_col = cols[input_idx]
+    output_cols = cols[-2:]
+
+    u = df[input_col].to_numpy(dtype=float)
+    base = float(np.median(u[: max(int(pre_win), 5)]))
+    du = np.abs(u - base)
+    noise = float(np.median(np.abs(du[: max(int(pre_win), 20)] - np.median(du[: max(int(pre_win), 20)]))))
+    threshold = max(1e-9, 5.0 * noise)
+    k0 = int(np.argmax(du > threshold))
+    k0 = max(k0 - 1, 0)
+
+    data = df.iloc[k0:].reset_index(drop=True)
+    t = np.arange(len(data), dtype=float) * float(Ts)
+    results = {}
+
+    denom = np.log(0.72 / 0.37)
+    log072 = np.log(0.72)
+
+    def crossing_time_after(y, target, start_idx):
+        if start_idx >= len(y) - 1:
+            return np.nan
+        sign = np.sign(y - target)
+        sign[:start_idx] = sign[start_idx]
+        crossings = np.where(np.diff(sign) != 0)[0]
+        if crossings.size == 0:
+            return np.nan
+        k = int(crossings[0])
+        y0_local = float(y[k])
+        y1_local = float(y[k + 1])
+        if y1_local == y0_local:
+            return float(t[k])
+        frac = (float(target) - y0_local) / (y1_local - y0_local)
+        return float(t[k] + float(Ts) * frac)
+
+    for output_name in output_cols:
+        y = data[output_name].to_numpy(dtype=float)
+        u_seg = data[input_col].to_numpy(dtype=float)
+
+        k_pre = min(int(pre_win), max(1, len(y) // 10))
+        k_post = min(int(post_win), max(1, len(y) // 10))
+        y0 = float(np.mean(y[:k_pre]))
+        yF = float(np.mean(y[-k_post:]))
+        u0 = float(np.mean(u_seg[:k_pre]))
+        uF = float(np.mean(u_seg[-k_post:]))
+
+        dY = yF - y0
+        dU = uF - u0 if abs(uF - u0) > 0 else np.nan
+        kp = dY / dU if np.isfinite(dU) else np.nan
+
+        final_sign = np.sign(dY) if dY != 0 else 0.0
+        search_end = max(int(0.4 * len(y)), k_pre + 5)
+        if final_sign >= 0:
+            k_ext = int(np.argmin(y[:search_end]))
+        else:
+            k_ext = int(np.argmax(y[:search_end]))
+
+        inverse = False
+        if final_sign != 0:
+            early_move = np.sign(float(y[min(k_ext, len(y) - 1)]) - y0)
+            inverse = (early_move != 0) and (early_move != final_sign)
+
+        if inverse:
+            y_ext = float(y[k_ext])
+            M = abs((y_ext - y0) / dY) if dY != 0 else 0.0
+            start_idx = k_ext
+        else:
+            M = 0.0
+            start_idx = 0
+
+        y28 = y0 + 0.28 * dY
+        y63 = y0 + 0.63 * dY
+
+        t28 = crossing_time_after(y, y28, start_idx)
+        t63 = crossing_time_after(y, y63, start_idx)
+
+        if (not np.isfinite(t28)) or (not np.isfinite(t63)) or (t63 <= t28):
+            tau = np.nan
+            theta = np.nan
+            tz_est = np.nan
+        else:
+            tau = (t63 - t28) / denom
+            theta = t28 + tau * log072
+            tz_est = M * tau if inverse else 0.0
+
+        results[output_name] = {
+            "kp": float(kp) if np.isfinite(kp) else np.nan,
+            "t28": float(t28) if np.isfinite(t28) else np.nan,
+            "t63": float(t63) if np.isfinite(t63) else np.nan,
+            "taup": float(tau) if np.isfinite(tau) else np.nan,
+            "theta": float(max(0.0, theta)) if np.isfinite(theta) else np.nan,
+            "inverse": bool(inverse),
+            "t_ext": float(t[k_ext]) if inverse else None,
+            "M": float(M),
+            "Tz_est": float(tz_est) if np.isfinite(tz_est) else np.nan,
+            "y0": y0,
+            "yF": yF,
+        }
+
+        if plot:
+            plt.figure(figsize=(7.5, 5.5))
+            plt.plot(t, y, label=f"{output_name} response")
+            plt.axhline(y28, linestyle="--", label="28% level")
+            plt.axhline(y63, linestyle="--", label="63% level")
+            if inverse:
+                plt.axvline(t[k_ext], linestyle=":", label="inverse extremum")
+            if np.isfinite(t28):
+                plt.axvline(t28, linestyle="--", label="t28")
+                plt.scatter([t28], [y28], zorder=5)
+            if np.isfinite(t63):
+                plt.axvline(t63, linestyle="--", label="t63")
+                plt.scatter([t63], [y63], zorder=5)
+            if limit is not None:
+                plt.xlim([0.0, t[min(int(limit), len(t) - 1)]])
+            plt.xlabel("Time (h)")
+            plt.ylabel(output_name)
+            plt.title(f"28/63 identification for {output_name}")
+            plt.legend()
+            plt.tight_layout()
+            plt.show()
+
+    return results, data
+
+
+def _quantize_delay_steps(theta, Ts, quantization="round"):
+    theta = max(0.0, float(theta))
+    Ts = float(Ts)
+    if Ts <= 0.0:
+        raise ValueError("Ts must be positive.")
+    samples = theta / Ts
+    if quantization == "ceil":
+        return int(np.ceil(samples))
+    if quantization == "floor":
+        return int(np.floor(samples))
+    return int(np.rint(samples))
+
+
+def build_discrete_fopdt_channel(kp, taup, delay_steps, Ts):
+    """
+    Build the exact discrete first-order part of one FOPDT channel and expose
+    its scalar coefficients.
+    """
+
+    taup = float(max(float(taup), 1e-9))
+    kp = float(kp)
+    delay_steps = int(max(int(delay_steps), 0))
+    Ts = float(Ts)
+    if Ts <= 0.0:
+        raise ValueError("Ts must be positive.")
+    a = float(np.exp(-Ts / taup))
+    return {
+        "a": a,
+        "b": float(kp * (1.0 - a)),
+        "delay_steps": delay_steps,
+        "taup": taup,
+        "kp": kp,
+    }
+
+
+def build_delay_chain_matrices(delay_steps):
+    """
+    Return the delay-chain state matrix and input vector for a pure shift
+    register with integer-sample delay.
+    """
+
+    delay_steps = int(max(int(delay_steps), 0))
+    if delay_steps == 0:
+        return np.zeros((0, 0), dtype=float), np.zeros((0, 1), dtype=float)
+
+    A_delay = np.zeros((delay_steps, delay_steps), dtype=float)
+    if delay_steps > 1:
+        A_delay[1:, :-1] = np.eye(delay_steps - 1)
+    B_delay = np.zeros((delay_steps, 1), dtype=float)
+    B_delay[0, 0] = 1.0
+    return A_delay, B_delay
+
+
+def build_mimo_state_space_from_fopdt_python(channel_fits, input_names, output_names, Ts, quantization="round"):
+    """
+    Build one global discrete-time MIMO realization by stacking one first-order
+    dynamic state and an optional delay chain for each input-output channel.
+    """
+
+    input_names = list(input_names)
+    output_names = list(output_names)
+    Ts = float(Ts)
+    if Ts <= 0.0:
+        raise ValueError("Ts must be positive.")
+
+    channel_specs = []
+    total_states = 0
+    n_inputs = len(input_names)
+    n_outputs = len(output_names)
+
+    for output_idx, output_name in enumerate(output_names):
+        for input_idx, input_name in enumerate(input_names):
+            fit = channel_fits[(input_name, output_name)]
+            kp = float(fit["kp"])
+            taup = max(float(fit["taup"]), 1e-9)
+            theta = max(0.0, float(fit["theta"]))
+            delay_steps = _quantize_delay_steps(theta, Ts, quantization=quantization)
+            a = float(np.exp(-Ts / taup))
+            b = float(kp * (1.0 - a))
+            size = 1 + delay_steps
+            channel_specs.append(
+                {
+                    "input_name": input_name,
+                    "output_name": output_name,
+                    "input_idx": input_idx,
+                    "output_idx": output_idx,
+                    "a": a,
+                    "b": b,
+                    "delay_steps": delay_steps,
+                    "taup": taup,
+                    "theta": theta,
+                    "kp": kp,
+                    "start": total_states,
+                    "size": size,
+                }
+            )
+            total_states += size
+
+    A = np.zeros((total_states, total_states), dtype=float)
+    B = np.zeros((total_states, n_inputs), dtype=float)
+    C = np.zeros((n_outputs, total_states), dtype=float)
+    D = np.zeros((n_outputs, n_inputs), dtype=float)
+    delay_matrix = np.zeros((n_outputs, n_inputs), dtype=int)
+
+    for spec in channel_specs:
+        start = int(spec["start"])
+        stop = start + int(spec["size"])
+        delay_steps = int(spec["delay_steps"])
+        state_slice = slice(start, stop)
+
+        A_block = np.zeros((spec["size"], spec["size"]), dtype=float)
+        A_block[0, 0] = spec["a"]
+        if delay_steps == 0:
+            B[start, spec["input_idx"]] = spec["b"]
+        else:
+            A_block[0, -1] = spec["b"]
+            if delay_steps > 1:
+                A_block[2:, 1:-1] = np.eye(delay_steps - 1)
+            B[start + 1, spec["input_idx"]] = 1.0
+
+        A[state_slice, state_slice] = A_block
+        C[spec["output_idx"], start] = 1.0
+        delay_matrix[spec["output_idx"], spec["input_idx"]] = delay_steps
+
+    return {
+        "A": A,
+        "B": B,
+        "C": C,
+        "D": D,
+        "delay_steps": delay_matrix,
+        "channel_specs": channel_specs,
+        "input_names": input_names,
+        "output_names": output_names,
+        "Ts": Ts,
+        "quantization": str(quantization),
+    }
+
+
+def simulate_discrete_state_space_model(A, B, C, D, input_sequence, x0=None):
+    """
+    Simulate the discrete state-space model with one output sample recorded
+    before the first input move and one after each step.
+    """
+
+    A = np.asarray(A, dtype=float)
+    B = np.asarray(B, dtype=float)
+    C = np.asarray(C, dtype=float)
+    D = np.asarray(D, dtype=float)
+    input_sequence = np.asarray(input_sequence, dtype=float)
+
+    if input_sequence.ndim != 2:
+        raise ValueError("input_sequence must have shape (n_steps, n_inputs).")
+
+    n_states = A.shape[0]
+    x = np.zeros(n_states, dtype=float) if x0 is None else np.asarray(x0, dtype=float).copy()
+    states = [x.copy()]
+    outputs = [C @ x]
+
+    for u in input_sequence:
+        x = A @ x + B @ u
+        y = C @ x + D @ u
+        states.append(x.copy())
+        outputs.append(np.asarray(y, dtype=float).copy())
+
+    return {
+        "states": np.asarray(states, dtype=float),
+        "outputs": np.asarray(outputs, dtype=float),
+        "inputs": input_sequence.copy(),
+    }
+
+
+def plot_results_statespace_python(validation_cases, output_labels, Ts, title_prefix="Identified vs nonlinear", show=True):
+    """
+    Plot nonlinear and identified step responses for a list of validation
+    cases. Each case must provide `name`, `measured_outputs`, and
+    `predicted_outputs`.
+    """
+
+    output_labels = list(output_labels)
+    validation_cases = list(validation_cases)
+    if not validation_cases:
+        raise ValueError("validation_cases must not be empty.")
+
+    n_outputs = len(output_labels)
+    n_cases = len(validation_cases)
+    fig, axs = plt.subplots(
+        n_outputs,
+        n_cases,
+        figsize=(5.5 * n_cases, 3.8 * n_outputs),
+        squeeze=False,
+        constrained_layout=True,
+    )
+
+    def fit_percent(y_sim, y_meas):
+        y_sim = np.asarray(y_sim, dtype=float).ravel()
+        y_meas = np.asarray(y_meas, dtype=float).ravel()
+        denom = np.linalg.norm(y_meas - np.mean(y_meas))
+        if denom < 1e-12:
+            return 0.0
+        return 100.0 * (1.0 - np.linalg.norm(y_sim - y_meas) / denom)
+
+    for col, case in enumerate(validation_cases):
+        measured_outputs = np.asarray(case["measured_outputs"], dtype=float)
+        predicted_outputs = np.asarray(case["predicted_outputs"], dtype=float)
+        if measured_outputs.shape != predicted_outputs.shape:
+            raise ValueError("Measured and predicted outputs must have the same shape per validation case.")
+
+        t = np.arange(measured_outputs.shape[0], dtype=float) * float(Ts)
+        for row, output_label in enumerate(output_labels):
+            fit = fit_percent(predicted_outputs[:, row], measured_outputs[:, row])
+            ax = axs[row, col]
+            ax.plot(t, measured_outputs[:, row], "r-", linewidth=2, label="Nonlinear")
+            ax.plot(t, predicted_outputs[:, row], "b--", linewidth=2, label="Identified")
+            ax.set_xlabel("Time (h)")
+            ax.set_ylabel(output_label)
+            ax.set_title(f"{title_prefix}\n{case['name']} | FIT={fit:.1f}%")
+            ax.grid(True)
+            if row == 0 and col == 0:
+                ax.legend()
+
+    if show:
+        plt.show()
+    return fig, axs

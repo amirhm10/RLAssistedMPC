@@ -1,0 +1,182 @@
+\section{Van de Vusse System Identification}
+
+This report adds the Van de Vusse CSTR as the third case-study seed in the repository, but limits the implementation to the nonlinear plant and system-identification layer. No MPC or RL workflow is introduced in this phase.
+
+\subsection{Benchmark Role}
+
+The benchmark is attractive for later assisted-MPC work because it combines:
+\begin{itemize}
+    \item fast nonlinear dynamics,
+    \item thermal and concentration coupling,
+    \item disturbances through the inlet concentration,
+    \item nonminimum-phase behavior in the relevant operating region, and
+    \item a compact two-input, two-output control surface.
+\end{itemize}
+
+The active plant outputs for this repo are chosen as
+\[
+y = \begin{bmatrix} c_B \\ T \end{bmatrix},
+\]
+which provides one quality variable and one thermal variable for the later MPC layer.
+
+\subsection{Reaction System and Nonlinear Plant}
+
+The Van de Vusse reaction network is
+\[
+A \rightarrow B,\qquad
+B \rightarrow C,\qquad
+2A \rightarrow D.
+\]
+
+The nonlinear plant is implemented with the Kelvin-form state vector
+\[
+x = \begin{bmatrix} c_A & c_B & T & T_K \end{bmatrix}^\top
+\]
+and manipulated inputs
+\[
+u = \begin{bmatrix} F & Q_K \end{bmatrix}^\top.
+\]
+
+The model is
+\[
+\frac{dc_A}{dt} = F(c_{A0} - c_A) - k_1(T)c_A - k_3(T)c_A^2
+\]
+\[
+\frac{dc_B}{dt} = -Fc_B + k_1(T)c_A - k_2(T)c_B
+\]
+\[
+\frac{dT}{dt} = F(T_{in} - T)
+- \frac{k_1(T)c_A \Delta H_{AB} + k_2(T)c_B \Delta H_{BC} + k_3(T)c_A^2 \Delta H_{AD}}{\rho C_p}
++ \frac{k_w A_R}{\rho C_p V_R}(T_K - T)
+\]
+\[
+\frac{dT_K}{dt} = \frac{Q_K + k_w A_R(T - T_K)}{m_K C_{pK}}
+\]
+with Arrhenius-rate definitions
+\[
+k_i(T) = k_{i0}\exp\!\left(\frac{E_{ai}}{T}\right).
+\]
+
+The ODE structure and nominal parameter table follow the PINN-oriented modeling paper, while the benchmark operating point and constraints follow the Klatt/Engell control benchmark description.
+
+\subsection{Benchmark Operating Point and Constraints}
+
+The local identification workflow is centered on the benchmark operating inputs
+\[
+F_s = 18.83\ \mathrm{h}^{-1}, \qquad
+Q_{K,s} = -4495.7\ \mathrm{kJ/h}.
+\]
+
+The benchmark state seed used for the steady-state solve is
+\[
+c_{A,s} = 1.235,\quad
+c_{B,s} = 0.9,\quad
+T_s = 407.29\ \mathrm{K},\quad
+T_{K,s} = 402.10\ \mathrm{K}.
+\]
+
+The implemented plant still solves its own steady state from the nonlinear PINN-parameterized model and the chosen input pair. The benchmark point is therefore used as a physically meaningful seed, not as a hard-coded plant state.
+
+The adopted operating constraints are:
+\begin{itemize}
+    \item \(5 \leq F \leq 35\ \mathrm{h}^{-1}\)
+    \item \(-8500 \leq Q_K \leq 0\ \mathrm{kJ/h}\)
+    \item \(4.5 \leq c_{A0} \leq 5.7\ \mathrm{mol/L}\)
+    \item \(0.7 \leq c_B \leq 0.95\ \mathrm{mol/L}\)
+\end{itemize}
+
+\subsection{Step-Test Design}
+
+The control benchmark does not prescribe system-identification steps directly, so the system-ID notebook uses local signed steps around the operating point while remaining well inside the benchmark bounds.
+
+The canonical sample time is
+\[
+\Delta t = 0.01\ \mathrm{h}
+\]
+with:
+\begin{itemize}
+    \item initial hold \(= 0.2\ \mathrm{h}\)
+    \item stepped hold \(= 1.2\ \mathrm{h}\)
+\end{itemize}
+
+The eight fitting tests are:
+\begin{itemize}
+    \item \(F \pm 2.0\)
+    \item \(F \pm 4.0\)
+    \item \(Q_K \pm 500\)
+    \item \(Q_K \pm 1000\)
+\end{itemize}
+
+One extra validation case is also saved:
+\[
+\Delta F = +2.0,\qquad \Delta Q_K = -500.
+\]
+
+These steps are deliberately local. The goal is a clean nominal linear model for future offset-free MPC, not a global nonlinear approximation.
+
+\subsection{FOPDT Identification}
+
+Each input-output channel is identified with a delayed first-order model
+\[
+G_{ij}(s) = \frac{K_{ij}}{\tau_{ij}s + 1} e^{-\theta_{ij}s}.
+\]
+
+The implementation keeps the current repository spirit by using a 28/63-style heuristic, but it is fully automatic and non-interactive. For each saved step test the notebook estimates:
+\begin{itemize}
+    \item channel gain \(K_{ij}\),
+    \item time constant \(\tau_{ij}\),
+    \item delay \(\theta_{ij}\).
+\end{itemize}
+
+The per-input channel estimates are aggregated across the signed small and medium steps using the median, which keeps the first-pass workflow simple and robust to one-off nonlinear asymmetries.
+
+\subsection{Python Delay Absorption}
+
+The new Van de Vusse workflow does not call MATLAB \texttt{absorbDelay}. Instead, each FOPDT channel is converted to a discrete-time realization directly in Python.
+
+For the non-delayed first-order part:
+\[
+a_{ij} = e^{-T_s/\tau_{ij}}, \qquad
+b_{ij} = K_{ij}(1-a_{ij}).
+\]
+
+This yields the scalar dynamic state
+\[
+x_{ij}[k+1] = a_{ij} x_{ij}[k] + b_{ij} v_{ij}[k].
+\]
+
+The delay is quantized to an integer number of samples
+\[
+m_{ij} = \mathrm{round}(\theta_{ij}/T_s)
+\]
+and absorbed with a shift register:
+\[
+d_{ij,1}[k+1] = u_j[k], \qquad
+d_{ij,\ell+1}[k+1] = d_{ij,\ell}[k].
+\]
+
+If \(m_{ij}=0\), then \(v_{ij}[k]=u_j[k]\). Otherwise, \(v_{ij}[k]\) is the last delay-chain state. The global MIMO realization stacks one dynamic state plus the needed delay states for each channel and sums the channel contributions into each measured output.
+
+This keeps the Van de Vusse system-identification path fully inspectable and removes any new MATLAB dependency for the new case study.
+
+\subsection{Saved Artifacts}
+
+The canonical notebook saves its outputs under:
+\begin{itemize}
+    \item \texttt{VanDeVusse/Data}
+    \item \texttt{VanDeVusse/Results}
+\end{itemize}
+
+The main saved artifacts are:
+\begin{itemize}
+    \item nine step-test CSV files,
+    \item \texttt{system\_dict.pickle} with identified \(A, B, C, D\),
+    \item \texttt{scaling\_factor.pickle},
+    \item \texttt{min\_max\_states.pickle},
+    \item metadata pickle/json describing the fitted channels and delay steps,
+    \item comparison plots between the nonlinear plant and the identified model.
+\end{itemize}
+
+\subsection{Next Step}
+
+This report intentionally stops at the plant-plus-identification stage. The next phase can use the saved Van de Vusse matrices and scaling artifacts to build a canonical offset-free MPC notebook and then RL-assisted supervisory layers, following the same overall progression already used for polymer and distillation.

@@ -50,6 +50,46 @@ VANDEVUSSE_INPUT_BOUNDS = {
 }
 VANDEVUSSE_CA0_RANGE = np.array([4.5, 5.7], dtype=float)
 VANDEVUSSE_CB_TARGET_RANGE = np.array([0.7, 0.95], dtype=float)
+VANDEVUSSE_BASELINE_SETPOINTS_PHYS = np.array(
+    [
+        [0.90, 407.29],
+        [0.85, 407.29],
+        [0.93, 407.29],
+        [0.90, 407.29],
+    ],
+    dtype=float,
+)
+VANDEVUSSE_BASELINE_THERMAL_STUDY_SETPOINTS_PHYS = np.array(
+    [
+        [0.90, 406.90],
+        [0.90, 407.60],
+    ],
+    dtype=float,
+)
+VANDEVUSSE_BASELINE_SETPOINT_RANGE_PHYS = np.array([[0.85, 406.90], [0.93, 407.60]], dtype=float)
+VANDEVUSSE_BASELINE_DISTURBANCE_PROFILES = ("none", "ca0_blocks")
+VANDEVUSSE_BASELINE_CA0_BLOCKS = np.array([5.10, 4.70, 5.50, 5.10], dtype=float)
+VANDEVUSSE_BASELINE_TIN_BLOCKS = np.array([378.10, 378.10, 378.10, 378.10], dtype=float)
+VANDEVUSSE_BASELINE_OBSERVER_POLES_DEFAULT = np.array([0.45, 0.50, 0.55, 0.60, 0.70, 0.75], dtype=float)
+VANDEVUSSE_BASELINE_OBSERVER_POLES_FALLBACK = np.array([0.55, 0.60, 0.65, 0.70, 0.80, 0.85], dtype=float)
+VANDEVUSSE_BASELINE_Q_OUT = np.array([1.0, 1.0], dtype=float)
+VANDEVUSSE_BASELINE_R_IN = np.array([1.0, 1.0], dtype=float)
+VANDEVUSSE_BASELINE_RUN_PROFILES = {
+    ("nominal", "none"): {
+        "n_tests": 2,
+        "set_points_len": 100,
+        "warm_start": 0,
+        "test_cycle": [False, False],
+        "plot_start_episode": 1,
+    },
+    ("disturb", "ca0_blocks"): {
+        "n_tests": 20,
+        "set_points_len": 100,
+        "warm_start": 0,
+        "test_cycle": [False, False, False, False, False],
+        "plot_start_episode": 2,
+    },
+}
 
 # The active Van de Vusse identification workflow now uses direct local
 # linearization at the benchmark operating point. Step tests remain only for

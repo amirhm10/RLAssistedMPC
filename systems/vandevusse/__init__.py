@@ -1,4 +1,15 @@
 from .config import (
+    VANDEVUSSE_BASELINE_CA0_BLOCKS,
+    VANDEVUSSE_BASELINE_DISTURBANCE_PROFILES,
+    VANDEVUSSE_BASELINE_OBSERVER_POLES_DEFAULT,
+    VANDEVUSSE_BASELINE_OBSERVER_POLES_FALLBACK,
+    VANDEVUSSE_BASELINE_Q_OUT,
+    VANDEVUSSE_BASELINE_R_IN,
+    VANDEVUSSE_BASELINE_RUN_PROFILES,
+    VANDEVUSSE_BASELINE_SETPOINT_RANGE_PHYS,
+    VANDEVUSSE_BASELINE_SETPOINTS_PHYS,
+    VANDEVUSSE_BASELINE_THERMAL_STUDY_SETPOINTS_PHYS,
+    VANDEVUSSE_BASELINE_TIN_BLOCKS,
     VANDEVUSSE_BENCHMARK_STATE_SEED,
     VANDEVUSSE_CA0_RANGE,
     VANDEVUSSE_CB_TARGET_RANGE,
@@ -17,14 +28,25 @@ from .config import (
     VANDEVUSSE_SYSTEM_PARAMS,
 )
 from .data_io import (
+    canonical_baseline_path,
     ensure_vandevusse_directories,
     load_vandevusse_system_data,
     resolve_vandevusse_data_dir,
     resolve_vandevusse_result_dir,
 )
+from .baseline_mpc import (
+    prepare_vandevusse_offset_free_mpc_runtime,
+    resolve_vandevusse_observer_gain,
+    run_vandevusse_offset_free_mpc,
+)
 from .labels import VANDEVUSSE_SYSTEM_METADATA
 from .notebook_params import get_vandevusse_notebook_defaults
 from .plant import VanDeVusseCSTR, build_vandevusse_system, vandevusse_system_stepper
+from .scenarios import (
+    build_vandevusse_disturbance_schedule,
+    canonical_disturbance_profile,
+    validate_run_profile,
+)
 from .system_id import (
     apply_vandevusse_deviation_form,
     build_vandevusse_nominal_linear_model,
@@ -42,6 +64,17 @@ from .system_id import (
 )
 
 __all__ = [
+    "VANDEVUSSE_BASELINE_CA0_BLOCKS",
+    "VANDEVUSSE_BASELINE_DISTURBANCE_PROFILES",
+    "VANDEVUSSE_BASELINE_OBSERVER_POLES_DEFAULT",
+    "VANDEVUSSE_BASELINE_OBSERVER_POLES_FALLBACK",
+    "VANDEVUSSE_BASELINE_Q_OUT",
+    "VANDEVUSSE_BASELINE_R_IN",
+    "VANDEVUSSE_BASELINE_RUN_PROFILES",
+    "VANDEVUSSE_BASELINE_SETPOINT_RANGE_PHYS",
+    "VANDEVUSSE_BASELINE_SETPOINTS_PHYS",
+    "VANDEVUSSE_BASELINE_THERMAL_STUDY_SETPOINTS_PHYS",
+    "VANDEVUSSE_BASELINE_TIN_BLOCKS",
     "VANDEVUSSE_BENCHMARK_STATE_SEED",
     "VANDEVUSSE_CA0_RANGE",
     "VANDEVUSSE_CB_TARGET_RANGE",
@@ -61,23 +94,30 @@ __all__ = [
     "VANDEVUSSE_SYSTEM_PARAMS",
     "VanDeVusseCSTR",
     "apply_vandevusse_deviation_form",
+    "build_vandevusse_disturbance_schedule",
     "build_vandevusse_nominal_linear_model",
     "build_vandevusse_step_test_inputs",
     "build_vandevusse_system",
+    "canonical_baseline_path",
+    "canonical_disturbance_profile",
     "compute_vandevusse_min_max_states",
     "discretize_vandevusse_linear_model",
     "ensure_vandevusse_directories",
     "get_vandevusse_notebook_defaults",
     "linearize_vandevusse_continuous",
     "load_vandevusse_system_data",
+    "prepare_vandevusse_offset_free_mpc_runtime",
+    "resolve_vandevusse_observer_gain",
     "resolve_vandevusse_data_dir",
     "resolve_vandevusse_result_dir",
     "run_vandevusse_step_test_experiment",
+    "run_vandevusse_offset_free_mpc",
     "save_vandevusse_identification_artifacts",
     "scaling_min_max_factors",
     "simulate_vandevusse_linear_model",
     "simulate_vandevusse_system",
     "solve_vandevusse_nominal_steady_state",
+    "validate_run_profile",
     "validate_vandevusse_linearized_model",
     "vandevusse_system_stepper",
 ]

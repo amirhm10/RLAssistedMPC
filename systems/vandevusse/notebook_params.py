@@ -5,6 +5,16 @@ from copy import deepcopy
 import numpy as np
 
 from .config import (
+    VANDEVUSSE_BASELINE_CA0_BLOCKS,
+    VANDEVUSSE_BASELINE_OBSERVER_POLES_DEFAULT,
+    VANDEVUSSE_BASELINE_OBSERVER_POLES_FALLBACK,
+    VANDEVUSSE_BASELINE_Q_OUT,
+    VANDEVUSSE_BASELINE_R_IN,
+    VANDEVUSSE_BASELINE_RUN_PROFILES,
+    VANDEVUSSE_BASELINE_SETPOINT_RANGE_PHYS,
+    VANDEVUSSE_BASELINE_SETPOINTS_PHYS,
+    VANDEVUSSE_BASELINE_THERMAL_STUDY_SETPOINTS_PHYS,
+    VANDEVUSSE_BASELINE_TIN_BLOCKS,
     VANDEVUSSE_BENCHMARK_STATE_SEED,
     VANDEVUSSE_CA0_RANGE,
     VANDEVUSSE_CB_TARGET_RANGE,
@@ -23,6 +33,21 @@ from .config import (
 VANDEVUSSE_COMMON_PATH_DEFAULTS = {
     "data_dir_override": None,
     "results_dir_override": None,
+    "result_prefix_override": None,
+    "baseline_save_path_override": None,
+}
+
+VANDEVUSSE_COMMON_DISPLAY_DEFAULTS = {
+    "style_profile": "hybrid",
+    "save_pdf": False,
+}
+
+VANDEVUSSE_COMMON_OVERRIDE_DEFAULTS = {
+    "n_tests_override": None,
+    "set_points_len_override": None,
+    "warm_start_override": None,
+    "test_cycle_override": None,
+    "plot_start_episode_override": None,
 }
 
 VANDEVUSSE_SYSTEM_SETUP = {
@@ -68,8 +93,39 @@ VANDEVUSSE_SYSTEM_IDENTIFICATION_DEFAULTS = {
     "system_setup": deepcopy(VANDEVUSSE_SYSTEM_SETUP),
 }
 
+VANDEVUSSE_BASELINE_SYSTEM_SETUP = {
+    **deepcopy(VANDEVUSSE_SYSTEM_SETUP),
+    "setpoint_range_phys": np.asarray(VANDEVUSSE_BASELINE_SETPOINT_RANGE_PHYS, float).copy(),
+    "baseline_setpoints_phys": np.asarray(VANDEVUSSE_BASELINE_SETPOINTS_PHYS, float).copy(),
+    "thermal_study_setpoints_phys": np.asarray(VANDEVUSSE_BASELINE_THERMAL_STUDY_SETPOINTS_PHYS, float).copy(),
+    "observer_poles_default": np.asarray(VANDEVUSSE_BASELINE_OBSERVER_POLES_DEFAULT, float).copy(),
+    "observer_poles_fallback": np.asarray(VANDEVUSSE_BASELINE_OBSERVER_POLES_FALLBACK, float).copy(),
+    "disturbance_block_values": {
+        "c_A0": np.asarray(VANDEVUSSE_BASELINE_CA0_BLOCKS, float).copy(),
+        "T_in": np.asarray(VANDEVUSSE_BASELINE_TIN_BLOCKS, float).copy(),
+    },
+}
+
+VANDEVUSSE_BASELINE_DEFAULTS = {
+    "run_mode": "disturb",
+    "disturbance_profile": "ca0_blocks",
+    **deepcopy(VANDEVUSSE_COMMON_DISPLAY_DEFAULTS),
+    **deepcopy(VANDEVUSSE_COMMON_PATH_DEFAULTS),
+    **deepcopy(VANDEVUSSE_COMMON_OVERRIDE_DEFAULTS),
+    "run_profiles": {key: dict(value) for key, value in VANDEVUSSE_BASELINE_RUN_PROFILES.items()},
+    "controller": {
+        "predict_h": 10,
+        "cont_h": 3,
+        "Q_out": np.asarray(VANDEVUSSE_BASELINE_Q_OUT, float).copy(),
+        "R_in": np.asarray(VANDEVUSSE_BASELINE_R_IN, float).copy(),
+        "use_shifted_mpc_warm_start": False,
+    },
+    "system_setup": deepcopy(VANDEVUSSE_BASELINE_SYSTEM_SETUP),
+}
+
 VANDEVUSSE_NOTEBOOK_DEFAULTS = {
     "system_identification": VANDEVUSSE_SYSTEM_IDENTIFICATION_DEFAULTS,
+    "baseline": VANDEVUSSE_BASELINE_DEFAULTS,
 }
 
 

@@ -44,6 +44,13 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
     system_stepper = runtime_ctx.get("system_stepper")
     system_metadata = runtime_ctx.get("system_metadata")
     disturbance_labels = runtime_ctx.get("disturbance_labels")
+    observer_update_mode = str(
+        runtime_ctx.get("observer_update_mode", mpc_cfg.get("observer_update_mode", "legacy_previous_measurement"))
+    ).strip().lower()
+    if observer_update_mode not in {"legacy_previous_measurement", "predictor_corrector_current"}:
+        raise ValueError(
+            "observer_update_mode must be 'legacy_previous_measurement' or 'predictor_corrector_current'."
+        )
 
     run_mode = str(mpc_cfg["run_mode"]).lower()
     if run_mode not in {"nominal", "disturb"}:
@@ -144,12 +151,21 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
         delta_y = y_current_scaled - y_sp[i, :]
         delta_y_storage[i, :] = delta_y
 
-        yhat[:, i] = mpc_obj.C @ xhatdhat[:, i]
-        xhatdhat[:, i + 1] = (
-            mpc_obj.A @ xhatdhat[:, i]
-            + mpc_obj.B @ (u_mpc[i, :] - ss_scaled_inputs)
-            + L @ (y_prev_scaled - yhat[:, i]).T
-        )
+        u_dev_i = u_mpc[i, :] - ss_scaled_inputs
+        if observer_update_mode == "predictor_corrector_current":
+            x_pred = mpc_obj.A @ xhatdhat[:, i] + mpc_obj.B @ u_dev_i
+            y_pred_next = mpc_obj.C @ x_pred
+            # This loop applies u_i, steps the plant, then receives y_{i+1}, so
+            # the innovation must use the newly available current measurement.
+            xhatdhat[:, i + 1] = x_pred + L @ (y_current_scaled - y_pred_next).T
+            yhat[:, i] = mpc_obj.C @ xhatdhat[:, i + 1]
+        else:
+            yhat[:, i] = mpc_obj.C @ xhatdhat[:, i]
+            xhatdhat[:, i + 1] = (
+                mpc_obj.A @ xhatdhat[:, i]
+                + mpc_obj.B @ u_dev_i
+                + L @ (y_prev_scaled - yhat[:, i]).T
+            )
 
         y_sp_phys = reverse_min_max(y_sp[i, :] + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
         reward = float(reward_fn(delta_y, delta_u, y_sp_phys))
@@ -178,6 +194,17 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
         disturbance_labels=disturbance_labels,
     )
 
+    u_phys = reverse_min_max(u_mpc, data_min[:n_inputs], data_max[:n_inputs])
+    u_lower = np.asarray(runtime_ctx.get("u_lower_phys", np.min(u_phys, axis=0)), float).reshape(-1)
+    u_upper = np.asarray(runtime_ctx.get("u_upper_phys", np.max(u_phys, axis=0)), float).reshape(-1)
+    sat_tol = float(runtime_ctx.get("input_saturation_tol", 1e-6))
+    saturation_summary = {
+        "lower_fraction": np.mean(np.abs(u_phys - u_lower) <= sat_tol, axis=0),
+        "upper_fraction": np.mean(np.abs(u_phys - u_upper) <= sat_tol, axis=0),
+        "first_scaled_moves": np.asarray(u_mpc[: min(5, nFE), :], float),
+        "first_physical_moves": np.asarray(u_phys[: min(5, nFE), :], float),
+    }
+
     return {
         "run_mode": run_mode,
         "system_metadata": system_metadata,
@@ -187,7 +214,7 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
         "delta_t": float(system.delta_t),
         "time_in_sub_episodes": int(time_in_sub_episodes),
         "y": y_mpc,
-        "u": reverse_min_max(u_mpc, data_min[:n_inputs], data_max[:n_inputs]),
+        "u": u_phys,
         "avg_rewards": np.asarray(avg_rewards, float),
         "avg_rewards_mpc": np.asarray(avg_rewards_mpc, float),
         "rewards_step": rewards,
@@ -204,4 +231,6 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
         "warm_start_step": int(warm_start_step),
         "mpc_horizons": (int(mpc_cfg["predict_h"]), int(mpc_cfg["cont_h"])),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
+        "observer_update_mode": observer_update_mode,
+        "input_saturation_summary": saturation_summary,
     }

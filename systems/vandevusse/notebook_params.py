@@ -6,6 +6,7 @@ import numpy as np
 
 from .config import (
     VANDEVUSSE_BASELINE_CA0_BLOCKS,
+    VANDEVUSSE_BASELINE_OBSERVER_UPDATE_MODE_DEFAULT,
     VANDEVUSSE_BASELINE_OBSERVER_POLES_DEFAULT,
     VANDEVUSSE_BASELINE_OBSERVER_POLES_FALLBACK,
     VANDEVUSSE_BASELINE_Q_OUT,
@@ -112,13 +113,30 @@ VANDEVUSSE_BASELINE_SYSTEM_SETUP = {
     },
 }
 
+VANDEVUSSE_BASELINE_POLE_SEARCH_DEFAULTS = {
+    "run_search": False,
+    "n_samples": 50,
+    "seed": 42,
+    "low": 0.55,
+    "high": 0.92,
+    "mode": "uniform",
+    "top_k": 5,
+    "n_tests_override": 1,
+    "set_points_len_override": 25,
+    "test_cycle_override": [False],
+}
+
 VANDEVUSSE_BASELINE_DEFAULTS = {
     "run_mode": "disturb",
     "disturbance_profile": "ca0_blocks",
+    "observer_update_mode": str(VANDEVUSSE_BASELINE_OBSERVER_UPDATE_MODE_DEFAULT),
+    "use_manual_observer_poles": False,
+    "manual_observer_poles": np.asarray(VANDEVUSSE_BASELINE_OBSERVER_POLES_DEFAULT, float).copy(),
     **deepcopy(VANDEVUSSE_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(VANDEVUSSE_COMMON_PATH_DEFAULTS),
     **deepcopy(VANDEVUSSE_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": {key: dict(value) for key, value in VANDEVUSSE_BASELINE_RUN_PROFILES.items()},
+    "pole_search": deepcopy(VANDEVUSSE_BASELINE_POLE_SEARCH_DEFAULTS),
     "controller": {
         "predict_h": 10,
         "cont_h": 3,

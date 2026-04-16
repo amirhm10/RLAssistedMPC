@@ -43,6 +43,11 @@ from .baseline_mpc import (
 )
 from .labels import VANDEVUSSE_SYSTEM_METADATA
 from .notebook_params import get_vandevusse_notebook_defaults
+from .pole_search import (
+    run_vandevusse_observer_pole_search,
+    sample_vandevusse_observer_poles,
+    score_vandevusse_observer_poles,
+)
 from .plant import (
     VanDeVusseCSTR,
     benchmark_vandevusse_residual_diagnostic,
@@ -124,10 +129,13 @@ __all__ = [
     "resolve_vandevusse_observer_gain",
     "resolve_vandevusse_data_dir",
     "resolve_vandevusse_result_dir",
+    "run_vandevusse_observer_pole_search",
     "run_vandevusse_step_test_experiment",
     "run_vandevusse_offset_free_mpc",
+    "sample_vandevusse_observer_poles",
     "save_vandevusse_identification_artifacts",
     "scaling_min_max_factors",
+    "score_vandevusse_observer_poles",
     "simulate_vandevusse_linear_model",
     "simulate_vandevusse_system",
     "solve_vandevusse_nominal_steady_state",

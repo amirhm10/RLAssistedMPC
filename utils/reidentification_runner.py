@@ -30,6 +30,7 @@ from utils.reidentification import (
     attempt_observer_refresh,
     blend_prediction_model,
     build_or_load_reidentification_basis,
+    compute_blend_validity_scale,
     build_reidentification_policy_state,
     eta_to_raw_action,
     map_action_to_dual_eta,
@@ -226,9 +227,24 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
     )
     force_eta_constant = normalize_force_eta_constant(reid_cfg.get("force_eta_constant"))
     disable_identification = bool(reid_cfg.get("disable_identification", False))
+    freeze_identification_during_warm_start = bool(reid_cfg.get("freeze_identification_during_warm_start", False))
     observer_refresh_enabled = bool(reid_cfg.get("observer_refresh_enabled", False))
     observer_refresh_every_episodes = int(reid_cfg.get("observer_refresh_every_episodes", 10))
     rho_obs = float(reid_cfg.get("rho_obs", 0.25))
+    max_theta_clipped_fraction = float(reid_cfg.get("max_theta_clipped_fraction", 1.0))
+    max_condition_number = float(reid_cfg.get("max_condition_number", np.inf))
+    max_validation_residual_ratio = float(reid_cfg.get("max_validation_residual_ratio", 1.0))
+    max_full_residual_ratio = float(reid_cfg.get("max_full_residual_ratio", 1.0))
+    blend_validity_mode = str(reid_cfg.get("blend_validity_mode", "off"))
+    blend_validity_scale_floor = float(reid_cfg.get("blend_validity_scale_floor", 0.0))
+    blend_validity_residual_soft = float(reid_cfg.get("blend_validity_residual_soft", np.inf))
+    blend_validity_residual_hard = float(reid_cfg.get("blend_validity_residual_hard", np.inf))
+    blend_validity_clipped_soft = float(reid_cfg.get("blend_validity_clipped_soft", 1.0))
+    blend_validity_clipped_hard = float(reid_cfg.get("blend_validity_clipped_hard", 1.0))
+    blend_validity_condition_soft = float(reid_cfg.get("blend_validity_condition_soft", np.inf))
+    blend_validity_condition_hard = float(reid_cfg.get("blend_validity_condition_hard", np.inf))
+    blend_validity_fallback_scale = float(reid_cfg.get("blend_validity_fallback_scale", 1.0))
+    blend_validity_invalid_candidate_scale = float(reid_cfg.get("blend_validity_invalid_candidate_scale", 1.0))
     if observer_refresh_every_episodes <= 0:
         raise ValueError("observer_refresh_every_episodes must be positive.")
 
@@ -311,8 +327,12 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
 
     eta_A_log = np.zeros(nFE)
     eta_B_log = np.zeros(nFE)
+    eta_A_requested_log = np.zeros(nFE)
+    eta_B_requested_log = np.zeros(nFE)
     eta_A_raw_log = np.zeros(nFE)
     eta_B_raw_log = np.zeros(nFE)
+    blend_validity_scale_A_log = np.ones(nFE)
+    blend_validity_scale_B_log = np.ones(nFE)
     action_raw_log = np.zeros((nFE, 2))
     theta_hat_log = np.zeros((nFE, theta_nominal.size))
     theta_active_log = np.zeros((nFE, theta_nominal.size))
@@ -322,7 +342,11 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
     theta_upper_hit_mask_log = np.zeros((nFE, theta_nominal.size), dtype=int)
     theta_clipped_fraction_log = np.zeros(nFE)
     id_residual_norm_log = np.zeros(nFE)
+    id_residual_norm_prev_log = np.zeros(nFE)
+    id_residual_norm_train_log = np.zeros(nFE)
     id_condition_number_log = np.zeros(nFE)
+    id_residual_ratio_full_log = np.full(nFE, np.nan)
+    id_residual_ratio_val_log = np.full(nFE, np.nan)
     id_update_event_log = np.zeros(nFE, dtype=int)
     id_update_success_log = np.zeros(nFE, dtype=int)
     id_fallback_log = np.zeros(nFE, dtype=int)
@@ -355,12 +379,18 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
     theta_hat = theta_nominal.copy()
     eta_prev = np.zeros(2, dtype=float)
     last_id_residual_norm = 0.0
+    last_id_residual_norm_prev = 0.0
+    last_id_residual_norm_train = 0.0
     last_id_condition_number = 0.0
+    last_id_residual_ratio_full = 1.0
+    last_id_residual_ratio_val = float("nan")
     last_candidate_A_ratio = 0.0
     last_candidate_B_ratio = 0.0
     last_candidate_valid_flag = 0.0
     last_observer_refresh_success_flag = 0.0
     last_fallback_flag = 0.0
+    last_theta_clipped_fraction = 0.0
+    last_identification_ready_flag = 0.0
     invalid_id_solve_count = 0
     id_solver_failure_count = 0
     id_update_success_count = 0
@@ -437,22 +467,46 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         if i <= warm_start_step:
             raw_action = np.array([-1.0, -1.0], dtype=float)
             eta_raw = np.zeros(2, dtype=float)
-            eta = np.zeros(2, dtype=float)
+            eta_requested = np.zeros(2, dtype=float)
         elif force_eta_constant is not None:
             raw_action = eta_to_raw_action(force_eta_constant)
             eta_raw = np.asarray(force_eta_constant, dtype=float).copy()
-            eta = smooth_eta(eta_prev, eta_raw, eta_tau)
+            eta_requested = smooth_eta(eta_prev, eta_raw, eta_tau)
         else:
             if not test:
                 action = np.asarray(agent.take_action(current_rl_state, explore=True), float).reshape(-1)
             else:
                 action = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
             raw_action, eta_raw = map_action_to_dual_eta(action[:2])
-            eta = smooth_eta(eta_prev, eta_raw, eta_tau)
+            eta_requested = smooth_eta(eta_prev, eta_raw, eta_tau)
+
+        blend_validity_scale, _ = compute_blend_validity_scale(
+            residual_norm=last_id_residual_norm,
+            theta_clipped_fraction=last_theta_clipped_fraction,
+            condition_number=last_id_condition_number,
+            candidate_valid_flag=last_candidate_valid_flag,
+            fallback_flag=last_fallback_flag,
+            identification_ready_flag=last_identification_ready_flag,
+            validity_mode=blend_validity_mode,
+            scale_floor=blend_validity_scale_floor,
+            residual_soft=blend_validity_residual_soft,
+            residual_hard=blend_validity_residual_hard,
+            clipped_soft=blend_validity_clipped_soft,
+            clipped_hard=blend_validity_clipped_hard,
+            condition_soft=blend_validity_condition_soft,
+            condition_hard=blend_validity_condition_hard,
+            fallback_scale=blend_validity_fallback_scale,
+            invalid_candidate_scale=blend_validity_invalid_candidate_scale,
+        )
+        eta = np.clip(np.asarray(eta_requested, dtype=float) * blend_validity_scale, 0.0, 1.0)
 
         action_raw_log[i, :] = raw_action
         eta_A_raw_log[i] = float(eta_raw[0])
         eta_B_raw_log[i] = float(eta_raw[1])
+        eta_A_requested_log[i] = float(eta_requested[0])
+        eta_B_requested_log[i] = float(eta_requested[1])
+        blend_validity_scale_A_log[i] = float(blend_validity_scale[0])
+        blend_validity_scale_B_log[i] = float(blend_validity_scale[1])
         eta_A_log[i] = float(eta[0])
         eta_B_log[i] = float(eta[1])
 
@@ -478,7 +532,11 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         theta_candidate_log[i, :] = theta_hat
         theta_unclipped_log[i, :] = theta_hat
         id_residual_norm_log[i] = last_id_residual_norm
+        id_residual_norm_prev_log[i] = last_id_residual_norm_prev
+        id_residual_norm_train_log[i] = last_id_residual_norm_train
         id_condition_number_log[i] = last_id_condition_number
+        id_residual_ratio_full_log[i] = last_id_residual_ratio_full
+        id_residual_ratio_val_log[i] = last_id_residual_ratio_val
         id_candidate_valid_log[i] = int(last_candidate_valid_flag > 0.5)
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
@@ -568,7 +626,12 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         candidate_valid_flag = last_candidate_valid_flag
         observer_refresh_success_state_flag = last_observer_refresh_success_flag
 
-        if not disable_identification and (i + 1) % id_update_period == 0 and len(id_buffer) >= id_window:
+        if (
+            not disable_identification
+            and (not freeze_identification_during_warm_start or i > warm_start_step)
+            and (i + 1) % id_update_period == 0
+            and len(id_buffer) >= id_window
+        ):
             id_update_event_log[i] = 1
             solver_result = solve_reidentification_batch(
                 batch=id_buffer.get_recent(id_window),
@@ -579,7 +642,12 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
                 cfg=reid_cfg,
             )
             last_id_residual_norm = float(solver_result["residual_norm"])
+            last_id_residual_norm_prev = float(solver_result.get("residual_norm_prev_full", last_id_residual_norm_prev))
+            last_id_residual_norm_train = float(solver_result.get("residual_norm_train", last_id_residual_norm_train))
             last_id_condition_number = float(solver_result["condition_number"])
+            last_id_residual_ratio_full = float(solver_result.get("residual_ratio_full", last_id_residual_ratio_full))
+            last_id_residual_ratio_val = float(solver_result.get("residual_ratio_val", last_id_residual_ratio_val))
+            last_identification_ready_flag = 1.0
 
             if solver_result["success"]:
                 A_candidate, B_candidate = reconstruct_model_from_theta(
@@ -603,6 +671,8 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
                     theta_high=theta_high,
                     delta_A_max=delta_A_max,
                     delta_B_max=delta_B_max,
+                    guard_cfg=reid_cfg,
+                    solver_result=solver_result,
                 )
                 theta_candidate = np.asarray(solver_result["theta"], float)
                 theta_unclipped = np.asarray(solver_result.get("theta_unclipped", solver_result["theta"]), float)
@@ -624,6 +694,8 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
                     theta_high=theta_high,
                     delta_A_max=delta_A_max,
                     delta_B_max=delta_B_max,
+                    guard_cfg=reid_cfg,
+                    solver_result=solver_result,
                 )
                 theta_candidate = theta_hat.copy()
                 theta_unclipped = theta_hat.copy()
@@ -643,6 +715,7 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
             id_candidate_valid_log[i] = int(selection["candidate_eval"]["valid"])
             last_candidate_A_ratio = float(candidate_A_ratio)
             last_candidate_B_ratio = float(candidate_B_ratio)
+            last_theta_clipped_fraction = float(selection["theta_eval"].get("clipped_fraction", last_theta_clipped_fraction))
 
             if selection["update_success"]:
                 id_update_success_count += 1
@@ -815,6 +888,21 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         "normalize_blend_extras": bool(reid_cfg.get("normalize_blend_extras", REIDENTIFICATION_NORMALIZE_BLEND_EXTRAS)),
         "blend_extra_clip": blend_extra_clip,
         "blend_residual_scale": blend_residual_scale,
+        "freeze_identification_during_warm_start": freeze_identification_during_warm_start,
+        "max_theta_clipped_fraction": max_theta_clipped_fraction,
+        "max_condition_number": max_condition_number,
+        "max_validation_residual_ratio": max_validation_residual_ratio,
+        "max_full_residual_ratio": max_full_residual_ratio,
+        "blend_validity_mode": blend_validity_mode,
+        "blend_validity_scale_floor": blend_validity_scale_floor,
+        "blend_validity_residual_soft": blend_validity_residual_soft,
+        "blend_validity_residual_hard": blend_validity_residual_hard,
+        "blend_validity_clipped_soft": blend_validity_clipped_soft,
+        "blend_validity_clipped_hard": blend_validity_clipped_hard,
+        "blend_validity_condition_soft": blend_validity_condition_soft,
+        "blend_validity_condition_hard": blend_validity_condition_hard,
+        "blend_validity_fallback_scale": blend_validity_fallback_scale,
+        "blend_validity_invalid_candidate_scale": blend_validity_invalid_candidate_scale,
         "log_theta_clipping": log_theta_clipping,
         "id_basis_name": basis["basis_name"],
         "theta_labels": list(basis["theta_labels"]),
@@ -844,7 +932,11 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         "theta_upper_hit_mask_log": theta_upper_hit_mask_log,
         "theta_clipped_fraction_log": theta_clipped_fraction_log,
         "id_residual_norm_log": id_residual_norm_log,
+        "id_residual_norm_prev_log": id_residual_norm_prev_log,
+        "id_residual_norm_train_log": id_residual_norm_train_log,
         "id_condition_number_log": id_condition_number_log,
+        "id_residual_ratio_full_log": id_residual_ratio_full_log,
+        "id_residual_ratio_val_log": id_residual_ratio_val_log,
         "id_update_event_log": id_update_event_log,
         "id_update_success_log": id_update_success_log,
         "id_fallback_log": id_fallback_log,
@@ -878,8 +970,12 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         "basis_singular_values_B": np.asarray(basis.get("singular_values_B", []), float),
         "eta_A_log": eta_A_log,
         "eta_B_log": eta_B_log,
+        "eta_A_requested_log": eta_A_requested_log,
+        "eta_B_requested_log": eta_B_requested_log,
         "eta_A_raw_log": eta_A_raw_log,
         "eta_B_raw_log": eta_B_raw_log,
+        "blend_validity_scale_A_log": blend_validity_scale_A_log,
+        "blend_validity_scale_B_log": blend_validity_scale_B_log,
         "action_raw_log": action_raw_log,
         "invalid_id_solve_count": int(invalid_id_solve_count),
         "id_solver_failure_count": int(id_solver_failure_count),

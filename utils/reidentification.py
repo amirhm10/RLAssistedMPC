@@ -22,6 +22,23 @@ REIDENTIFICATION_NORMALIZE_BLEND_EXTRAS = True
 REIDENTIFICATION_BLEND_EXTRA_CLIP = 3.0
 REIDENTIFICATION_BLEND_RESIDUAL_SCALE = 1.0
 REIDENTIFICATION_LOG_THETA_CLIPPING = True
+REIDENTIFICATION_GUARD_VALIDATION_FRACTION = 0.0
+REIDENTIFICATION_GUARD_MIN_VALIDATION_SAMPLES = 0
+REIDENTIFICATION_GUARD_MIN_TRAIN_SAMPLES = 1
+REIDENTIFICATION_GUARD_MAX_THETA_CLIPPED_FRACTION = 1.0
+REIDENTIFICATION_GUARD_MAX_CONDITION_NUMBER = np.inf
+REIDENTIFICATION_GUARD_MAX_VALIDATION_RESIDUAL_RATIO = 1.0
+REIDENTIFICATION_GUARD_MAX_FULL_RESIDUAL_RATIO = 1.0
+REIDENTIFICATION_BLEND_VALIDITY_MODE = "off"
+REIDENTIFICATION_BLEND_VALIDITY_SCALE_FLOOR = 0.0
+REIDENTIFICATION_BLEND_VALIDITY_RESIDUAL_SOFT = np.inf
+REIDENTIFICATION_BLEND_VALIDITY_RESIDUAL_HARD = np.inf
+REIDENTIFICATION_BLEND_VALIDITY_CLIPPED_SOFT = 1.0
+REIDENTIFICATION_BLEND_VALIDITY_CLIPPED_HARD = 1.0
+REIDENTIFICATION_BLEND_VALIDITY_CONDITION_SOFT = np.inf
+REIDENTIFICATION_BLEND_VALIDITY_CONDITION_HARD = np.inf
+REIDENTIFICATION_BLEND_VALIDITY_FALLBACK_SCALE = 1.0
+REIDENTIFICATION_BLEND_VALIDITY_INVALID_CANDIDATE_SCALE = 1.0
 
 
 def resolve_basis_family(basis_family=None) -> str:
@@ -599,6 +616,47 @@ def resolve_reidentification_lambda_vectors(basis: dict, cfg: dict) -> tuple[np.
     return lambda_prev_vec.astype(float), lambda_0_vec.astype(float)
 
 
+def _compute_regression_residual_norm(Phi: np.ndarray, residual_vec: np.ndarray, theta: np.ndarray) -> float:
+    Phi = np.asarray(Phi, dtype=float)
+    residual_vec = _as_1d_float(residual_vec)
+    theta = _as_1d_float(theta, Phi.shape[1] if Phi.ndim == 2 else None)
+    if Phi.ndim != 2:
+        raise ValueError("Phi must be 2D.")
+    return float(np.linalg.norm(residual_vec - Phi @ theta))
+
+
+def _split_identification_batch(batch: RollingIDBatch, cfg: dict) -> tuple[RollingIDBatch, RollingIDBatch | None]:
+    validation_fraction = float(cfg.get("guard_validation_fraction", REIDENTIFICATION_GUARD_VALIDATION_FRACTION))
+    min_validation_samples = int(cfg.get("guard_min_validation_samples", REIDENTIFICATION_GUARD_MIN_VALIDATION_SAMPLES))
+    min_train_samples = int(cfg.get("guard_min_train_samples", REIDENTIFICATION_GUARD_MIN_TRAIN_SAMPLES))
+
+    n_samples = int(batch.x_t.shape[0])
+    if validation_fraction <= 0.0 or n_samples <= 1:
+        return batch, None
+
+    min_train_samples = max(1, min_train_samples)
+    min_validation_samples = max(1, min_validation_samples)
+    if n_samples < min_train_samples + min_validation_samples:
+        return batch, None
+
+    proposed_validation = max(min_validation_samples, int(round(validation_fraction * n_samples)))
+    validation_count = min(proposed_validation, n_samples - min_train_samples)
+    if validation_count <= 0:
+        return batch, None
+
+    fit_batch = RollingIDBatch(
+        x_t=np.asarray(batch.x_t[:-validation_count], dtype=float),
+        u_t=np.asarray(batch.u_t[:-validation_count], dtype=float),
+        x_tp1=np.asarray(batch.x_tp1[:-validation_count], dtype=float),
+    )
+    validation_batch = RollingIDBatch(
+        x_t=np.asarray(batch.x_t[-validation_count:], dtype=float),
+        u_t=np.asarray(batch.u_t[-validation_count:], dtype=float),
+        x_tp1=np.asarray(batch.x_tp1[-validation_count:], dtype=float),
+    )
+    return fit_batch, validation_batch
+
+
 def solve_batch_ridge(
     Phi: np.ndarray,
     residual_vec: np.ndarray,
@@ -685,7 +743,9 @@ def solve_reidentification_batch(
     theta_prev: np.ndarray,
     cfg: dict,
 ) -> dict:
-    Phi, residual_vec = assemble_batch_regression(batch, A0_phys=A0_phys, B0_phys=B0_phys, basis=basis)
+    fit_batch, validation_batch = _split_identification_batch(batch, cfg)
+    Phi_fit, residual_fit = assemble_batch_regression(fit_batch, A0_phys=A0_phys, B0_phys=B0_phys, basis=basis)
+    Phi_full, residual_full = assemble_batch_regression(batch, A0_phys=A0_phys, B0_phys=B0_phys, basis=basis)
     theta_prev = _as_1d_float(theta_prev, basis["theta_dim"])
     theta_low, theta_high = resolve_reidentification_theta_bounds(basis=basis, cfg=cfg)
     lambda_prev_vec, lambda_0_vec = resolve_reidentification_lambda_vectors(basis=basis, cfg=cfg)
@@ -693,8 +753,8 @@ def solve_reidentification_batch(
 
     if solver == "ridge_closed_form":
         result = solve_batch_ridge(
-            Phi=Phi,
-            residual_vec=residual_vec,
+            Phi=Phi_fit,
+            residual_vec=residual_fit,
             theta_prev=theta_prev,
             lambda_prev_vec=lambda_prev_vec,
             lambda_0_vec=lambda_0_vec,
@@ -703,8 +763,8 @@ def solve_reidentification_batch(
         )
     elif solver == "bounded_least_squares":
         result = solve_bounded_least_squares(
-            Phi=Phi,
-            residual_vec=residual_vec,
+            Phi=Phi_fit,
+            residual_vec=residual_fit,
             theta_prev=theta_prev,
             lambda_prev_vec=lambda_prev_vec,
             lambda_0_vec=lambda_0_vec,
@@ -714,8 +774,43 @@ def solve_reidentification_batch(
     else:
         raise ValueError("id_solver must be 'ridge_closed_form' or 'bounded_least_squares'.")
 
-    result["Phi_shape"] = tuple(Phi.shape)
+    candidate_theta = np.asarray(result["theta"], dtype=float)
+    residual_norm_prev_train = _compute_regression_residual_norm(Phi_fit, residual_fit, theta_prev)
+    residual_norm_candidate_train = float(result["residual_norm"])
+    residual_norm_prev_full = _compute_regression_residual_norm(Phi_full, residual_full, theta_prev)
+    residual_norm_candidate_full = _compute_regression_residual_norm(Phi_full, residual_full, candidate_theta)
+
+    if validation_batch is not None:
+        Phi_val, residual_val = assemble_batch_regression(validation_batch, A0_phys=A0_phys, B0_phys=B0_phys, basis=basis)
+        residual_norm_prev_val = _compute_regression_residual_norm(Phi_val, residual_val, theta_prev)
+        residual_norm_candidate_val = _compute_regression_residual_norm(Phi_val, residual_val, candidate_theta)
+        validation_active = True
+        validation_sample_count = int(validation_batch.x_t.shape[0])
+    else:
+        residual_norm_prev_val = float("nan")
+        residual_norm_candidate_val = float("nan")
+        validation_active = False
+        validation_sample_count = 0
+
+    eps = 1e-12
+    result["residual_norm_train"] = residual_norm_candidate_train
+    result["residual_norm"] = residual_norm_candidate_full
+    result["residual_norm_prev_train"] = residual_norm_prev_train
+    result["residual_norm_prev_full"] = residual_norm_prev_full
+    result["residual_norm_val"] = residual_norm_candidate_val
+    result["residual_norm_prev_val"] = residual_norm_prev_val
+    result["residual_ratio_train"] = float(residual_norm_candidate_train / max(residual_norm_prev_train, eps))
+    result["residual_ratio_full"] = float(residual_norm_candidate_full / max(residual_norm_prev_full, eps))
+    result["residual_ratio_val"] = (
+        float(residual_norm_candidate_val / max(residual_norm_prev_val, eps))
+        if validation_active
+        else float("nan")
+    )
+    result["Phi_shape"] = tuple(Phi_fit.shape)
     result["sample_count"] = int(batch.x_t.shape[0])
+    result["train_sample_count"] = int(fit_batch.x_t.shape[0])
+    result["validation_sample_count"] = validation_sample_count
+    result["validation_active"] = validation_active
     result["theta_low"] = theta_low
     result["theta_high"] = theta_high
     result["lambda_prev_vec"] = lambda_prev_vec
@@ -801,6 +896,77 @@ def compute_theta_clipping_diagnostics(
     }
 
 
+def _guard_scale(value: float, soft: float, hard: float) -> float:
+    value = float(value)
+    soft = float(soft)
+    hard = float(hard)
+    if not np.isfinite(value):
+        return 0.0
+    if hard <= soft:
+        return 1.0 if value <= soft else 0.0
+    if value <= soft:
+        return 1.0
+    if value >= hard:
+        return 0.0
+    return float(1.0 - (value - soft) / (hard - soft))
+
+
+def compute_blend_validity_scale(
+    *,
+    residual_norm: float,
+    theta_clipped_fraction: float,
+    condition_number: float,
+    candidate_valid_flag: float,
+    fallback_flag: float,
+    identification_ready_flag: float,
+    validity_mode: str = REIDENTIFICATION_BLEND_VALIDITY_MODE,
+    scale_floor: float = REIDENTIFICATION_BLEND_VALIDITY_SCALE_FLOOR,
+    residual_soft: float = REIDENTIFICATION_BLEND_VALIDITY_RESIDUAL_SOFT,
+    residual_hard: float = REIDENTIFICATION_BLEND_VALIDITY_RESIDUAL_HARD,
+    clipped_soft: float = REIDENTIFICATION_BLEND_VALIDITY_CLIPPED_SOFT,
+    clipped_hard: float = REIDENTIFICATION_BLEND_VALIDITY_CLIPPED_HARD,
+    condition_soft: float = REIDENTIFICATION_BLEND_VALIDITY_CONDITION_SOFT,
+    condition_hard: float = REIDENTIFICATION_BLEND_VALIDITY_CONDITION_HARD,
+    fallback_scale: float = REIDENTIFICATION_BLEND_VALIDITY_FALLBACK_SCALE,
+    invalid_candidate_scale: float = REIDENTIFICATION_BLEND_VALIDITY_INVALID_CANDIDATE_SCALE,
+) -> tuple[np.ndarray, dict]:
+    mode = str(validity_mode).strip().lower()
+    diagnostics = {
+        "mode": mode,
+        "identification_ready": bool(identification_ready_flag > 0.5),
+        "residual_scale": 1.0,
+        "clipped_scale": 1.0,
+        "condition_scale": 1.0,
+        "event_scale": 1.0,
+    }
+    if mode in {"", "none", "off"} or identification_ready_flag <= 0.5:
+        return np.ones(2, dtype=float), diagnostics
+
+    diagnostics["residual_scale"] = _guard_scale(residual_norm, residual_soft, residual_hard)
+    diagnostics["clipped_scale"] = _guard_scale(theta_clipped_fraction, clipped_soft, clipped_hard)
+    diagnostics["condition_scale"] = _guard_scale(condition_number, condition_soft, condition_hard)
+
+    event_scale = 1.0
+    if fallback_flag > 0.5:
+        event_scale = min(event_scale, float(np.clip(fallback_scale, 0.0, 1.0)))
+    if candidate_valid_flag <= 0.5:
+        event_scale = min(event_scale, float(np.clip(invalid_candidate_scale, 0.0, 1.0)))
+    diagnostics["event_scale"] = event_scale
+
+    floor = float(np.clip(scale_floor, 0.0, 1.0))
+    scalar = max(
+        floor,
+        min(
+            diagnostics["residual_scale"],
+            diagnostics["clipped_scale"],
+            diagnostics["condition_scale"],
+            diagnostics["event_scale"],
+        ),
+    )
+    diagnostics["scalar_scale"] = scalar
+    return np.full(2, scalar, dtype=float), diagnostics
+
+
 def select_reidentified_model(
     *,
     A_candidate: np.ndarray | None,
@@ -817,9 +983,13 @@ def select_reidentified_model(
     theta_high: np.ndarray,
     delta_A_max: float,
     delta_B_max: float,
+    guard_cfg: dict | None = None,
+    solver_result: dict | None = None,
 ) -> dict:
     theta_low = _as_1d_float(theta_low, theta_prev.size)
     theta_high = _as_1d_float(theta_high, theta_prev.size)
+    guard_cfg = {} if guard_cfg is None else dict(guard_cfg)
+    guard_mode = str(guard_cfg.get("candidate_guard_mode", REIDENTIFICATION_CANDIDATE_GUARD_MODE)).strip().lower()
 
     if not solve_success or A_candidate is None or B_candidate is None or theta_candidate is None:
         return {
@@ -837,11 +1007,11 @@ def select_reidentified_model(
                 "A_ok": True,
                 "B_ok": True,
                 "reason": "solver_failure",
-                "guard_mode": REIDENTIFICATION_CANDIDATE_GUARD_MODE,
+                "guard_mode": guard_mode,
             },
             "theta_eval": {
                 "theta_within_bounds": False,
-                "guard_mode": REIDENTIFICATION_CANDIDATE_GUARD_MODE,
+                "guard_mode": guard_mode,
             },
         }
 
@@ -853,7 +1023,7 @@ def select_reidentified_model(
         theta_low=theta_low,
         theta_high=theta_high,
     )
-    theta_eval["guard_mode"] = REIDENTIFICATION_CANDIDATE_GUARD_MODE
+    theta_eval["guard_mode"] = guard_mode
 
     eval_info = evaluate_identified_candidate(
         A_candidate=A_candidate,
@@ -863,7 +1033,50 @@ def select_reidentified_model(
         delta_A_max=delta_A_max,
         delta_B_max=delta_B_max,
     )
-    eval_info["guard_mode"] = REIDENTIFICATION_CANDIDATE_GUARD_MODE
+    eval_info["guard_mode"] = guard_mode
+
+    guard_reason = str(eval_info["reason"])
+    if eval_info["valid"] and guard_mode != "fro_only" and solver_result is not None:
+        max_theta_clipped_fraction = float(
+            guard_cfg.get("max_theta_clipped_fraction", REIDENTIFICATION_GUARD_MAX_THETA_CLIPPED_FRACTION)
+        )
+        max_condition_number = float(guard_cfg.get("max_condition_number", REIDENTIFICATION_GUARD_MAX_CONDITION_NUMBER))
+        max_validation_residual_ratio = float(
+            guard_cfg.get("max_validation_residual_ratio", REIDENTIFICATION_GUARD_MAX_VALIDATION_RESIDUAL_RATIO)
+        )
+        max_full_residual_ratio = float(
+            guard_cfg.get("max_full_residual_ratio", REIDENTIFICATION_GUARD_MAX_FULL_RESIDUAL_RATIO)
+        )
+        validation_active = bool(solver_result.get("validation_active", False))
+        validation_ratio = float(solver_result.get("residual_ratio_val", float("nan")))
+        full_ratio = float(solver_result.get("residual_ratio_full", float("nan")))
+        condition_number = float(solver_result.get("condition_number", float("nan")))
+        clipped_fraction = float(theta_eval["clipped_fraction"])
+
+        eval_info["validation_active"] = validation_active
+        eval_info["validation_residual_ratio"] = validation_ratio
+        eval_info["full_residual_ratio"] = full_ratio
+        eval_info["condition_number"] = condition_number
+        eval_info["max_theta_clipped_fraction"] = max_theta_clipped_fraction
+        eval_info["max_condition_number"] = max_condition_number
+        eval_info["max_validation_residual_ratio"] = max_validation_residual_ratio
+        eval_info["max_full_residual_ratio"] = max_full_residual_ratio
+
+        if clipped_fraction > max_theta_clipped_fraction:
+            eval_info["valid"] = False
+            guard_reason = "theta_clipping_guard"
+        elif not np.isfinite(condition_number) or condition_number > max_condition_number:
+            eval_info["valid"] = False
+            guard_reason = "condition_guard"
+        elif validation_active and np.isfinite(validation_ratio) and validation_ratio > max_validation_residual_ratio:
+            eval_info["valid"] = False
+            guard_reason = "validation_residual_guard"
+        elif np.isfinite(full_ratio) and full_ratio > max_full_residual_ratio:
+            eval_info["valid"] = False
+            guard_reason = "full_residual_guard"
+
+        eval_info["reason"] = guard_reason
+    theta_eval["guard_reason"] = guard_reason
 
     if eval_info["valid"]:
         return {
@@ -1105,6 +1318,23 @@ __all__ = [
     "REIDENTIFICATION_BLEND_EXTRA_CLIP",
     "REIDENTIFICATION_BLEND_RESIDUAL_SCALE",
     "REIDENTIFICATION_LOG_THETA_CLIPPING",
+    "REIDENTIFICATION_GUARD_VALIDATION_FRACTION",
+    "REIDENTIFICATION_GUARD_MIN_VALIDATION_SAMPLES",
+    "REIDENTIFICATION_GUARD_MIN_TRAIN_SAMPLES",
+    "REIDENTIFICATION_GUARD_MAX_THETA_CLIPPED_FRACTION",
+    "REIDENTIFICATION_GUARD_MAX_CONDITION_NUMBER",
+    "REIDENTIFICATION_GUARD_MAX_VALIDATION_RESIDUAL_RATIO",
+    "REIDENTIFICATION_GUARD_MAX_FULL_RESIDUAL_RATIO",
+    "REIDENTIFICATION_BLEND_VALIDITY_MODE",
+    "REIDENTIFICATION_BLEND_VALIDITY_SCALE_FLOOR",
+    "REIDENTIFICATION_BLEND_VALIDITY_RESIDUAL_SOFT",
+    "REIDENTIFICATION_BLEND_VALIDITY_RESIDUAL_HARD",
+    "REIDENTIFICATION_BLEND_VALIDITY_CLIPPED_SOFT",
+    "REIDENTIFICATION_BLEND_VALIDITY_CLIPPED_HARD",
+    "REIDENTIFICATION_BLEND_VALIDITY_CONDITION_SOFT",
+    "REIDENTIFICATION_BLEND_VALIDITY_CONDITION_HARD",
+    "REIDENTIFICATION_BLEND_VALIDITY_FALLBACK_SCALE",
+    "REIDENTIFICATION_BLEND_VALIDITY_INVALID_CANDIDATE_SCALE",
     "RollingIDBatch",
     "RollingIDBuffer",
     "assemble_batch_regression",
@@ -1114,6 +1344,7 @@ __all__ = [
     "build_or_load_reidentification_basis",
     "build_or_load_polymer_reidentification_basis",
     "build_reidentification_policy_state",
+    "compute_blend_validity_scale",
     "compute_theta_clipping_diagnostics",
     "eta_to_raw_action",
     "evaluate_identified_candidate",

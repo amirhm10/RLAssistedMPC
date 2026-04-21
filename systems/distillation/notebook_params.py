@@ -11,6 +11,9 @@ from .config import (
     DISTILLATION_COMBINED_SETPOINTS_PHYS,
     DISTILLATION_INPUT_BOUNDS,
     DISTILLATION_MATRIX_RUN_PROFILES,
+    DISTILLATION_MATRIX_ALPHA_UPPER_CAP,
+    DISTILLATION_DEFAULT_MULTIPLIER_LOW,
+    DISTILLATION_DEFAULT_MULTIPLIER_HIGH,
     DISTILLATION_NOMINAL_CONDITIONS,
     DISTILLATION_OBSERVER_POLES,
     DISTILLATION_REIDENTIFICATION_RUN_PROFILES,
@@ -444,6 +447,10 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "use_shifted_mpc_warm_start": False,
         "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
         "range_profile": "wide",  # Options: "tight" | "default" | "wide". Wide is the active default for cross-system structured analysis.
+        "a_low_override": DISTILLATION_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for A-side structured bounds.
+        "a_high_override": min(DISTILLATION_DEFAULT_MULTIPLIER_HIGH, DISTILLATION_MATRIX_ALPHA_UPPER_CAP),  # Cap A-side widening at the analyzed alpha limit.
+        "b_low_override": DISTILLATION_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for B-side structured bounds.
+        "b_high_override": DISTILLATION_DEFAULT_MULTIPLIER_HIGH,  # Keep B-side wide for gain-authority studies.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition.
         "band_offsets": [0, 1, 2],  # Non-negative offsets used in band mode. Must include 0.

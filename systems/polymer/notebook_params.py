@@ -81,6 +81,24 @@ def _copy_residual_authority_defaults():
     }
 
 
+POLYMER_MATRIX_ALPHA_UPPER_CAP = 1.0566
+POLYMER_DEFAULT_MULTIPLIER_LOW = 0.75
+POLYMER_DEFAULT_MULTIPLIER_HIGH = 1.25
+
+
+def _polymer_matrix_multiplier_bounds():
+    low = np.full(3, POLYMER_DEFAULT_MULTIPLIER_LOW, dtype=float)
+    high = np.array(
+        [
+            min(POLYMER_DEFAULT_MULTIPLIER_HIGH, POLYMER_MATRIX_ALPHA_UPPER_CAP),
+            POLYMER_DEFAULT_MULTIPLIER_HIGH,
+            POLYMER_DEFAULT_MULTIPLIER_HIGH,
+        ],
+        dtype=float,
+    )
+    return low, high
+
+
 # -----------------------------------------------------------------------------
 # Polymer notebook defaults
 # -----------------------------------------------------------------------------
@@ -408,8 +426,8 @@ POLYMER_MATRIX_DEFAULTS = {
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
         "R2_penalty": 1.0,
-        "low_coef": np.array([0.85, 0.85, 0.85], float),
-        "high_coef": np.array([1.20, 1.20, 1.20], float),
+        "low_coef": _polymer_matrix_multiplier_bounds()[0],
+        "high_coef": _polymer_matrix_multiplier_bounds()[1],
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
@@ -500,6 +518,10 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
         "use_shifted_mpc_warm_start": False,
         "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
         "range_profile": "wide",  # Options: "tight" | "default" | "wide". Wide is the active polymer default for analysis.
+        "a_low_override": POLYMER_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for A-side structured bounds.
+        "a_high_override": min(POLYMER_DEFAULT_MULTIPLIER_HIGH, POLYMER_MATRIX_ALPHA_UPPER_CAP),  # Cap A-side widening at the analyzed alpha limit.
+        "b_low_override": POLYMER_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for B-side structured bounds.
+        "b_high_override": POLYMER_DEFAULT_MULTIPLIER_HIGH,  # Allow wider B-side uncertainty than A-side.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition, e.g. [[0, 1], [2, 3], [4, 5, 6]].
         "band_offsets": [0, 1, 2],  # Non-negative offsets used in band mode. Must include 0.
@@ -827,8 +849,8 @@ POLYMER_COMBINED_DEFAULTS = {
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
         "R2_penalty": 1.0,
-        "model_low": np.array([0.95, 0.95, 0.95], float),
-        "model_high": np.array([1.05, 1.05, 1.05], float),
+        "model_low": _polymer_matrix_multiplier_bounds()[0],
+        "model_high": _polymer_matrix_multiplier_bounds()[1],
         "weights_low": np.array([0.75, 0.75, 0.75, 0.75], float),
         "weights_high": np.array([2.0, 2.0, 2.0, 2.0], float),
         "residual_low": np.array([-0.5, -0.5], float),

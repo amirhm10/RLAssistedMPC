@@ -52,6 +52,26 @@ def _solve_assisted_prediction_step(mpc_obj, y_sp, u_prev_dev, x0_model, initial
     return sol
 
 
+def _build_structured_update_payload(*, update_builder, update_family, A_base, B_base, n_outputs, update_cfg, theta_A, theta_B):
+    if update_family == "block":
+        return update_builder(
+            A_aug=A_base,
+            B_aug=B_base,
+            n_outputs=n_outputs,
+            block_cfg=update_cfg,
+            theta_A=theta_A,
+            theta_B=theta_B,
+        )
+    return update_builder(
+        A_aug=A_base,
+        B_aug=B_base,
+        n_outputs=n_outputs,
+        band_cfg=update_cfg,
+        theta_A=theta_A,
+        theta_B=theta_B,
+    )
+
+
 def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     """
     Run the TD3/SAC structured matrix-update supervisor and return a normalized result bundle.
@@ -128,6 +148,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     b_dim = int(structured_spec["b_dim"])
     low_bounds = np.asarray(structured_spec["low_bounds"], float)
     high_bounds = np.asarray(structured_spec["high_bounds"], float)
+    prediction_fallback_on_solve_failure = bool(structured_cfg.get("prediction_fallback_on_solve_failure", True))
     structured_baseline_raw = map_multipliers_to_normalized_action(
         np.ones(action_dim, dtype=float),
         low_bounds,
@@ -181,14 +202,23 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     delta_y_storage = np.zeros((nFE, n_outputs))
     delta_u_storage = np.zeros((nFE, n_inputs))
     raw_action_log = np.zeros((nFE, action_dim))
+    effective_action_log = np.zeros((nFE, action_dim))
     mapped_multiplier_log = np.zeros((nFE, action_dim))
+    effective_multiplier_log = np.zeros((nFE, action_dim))
     theta_a_log = np.zeros((nFE, a_dim))
     theta_b_log = np.zeros((nFE, b_dim))
+    effective_theta_a_log = np.zeros((nFE, a_dim))
+    effective_theta_b_log = np.zeros((nFE, b_dim))
     A_fro_ratio_log = np.zeros(nFE)
     B_fro_ratio_log = np.zeros(nFE)
     spectral_radius_log = np.zeros(nFE)
+    candidate_A_fro_ratio_log = np.zeros(nFE)
+    candidate_B_fro_ratio_log = np.zeros(nFE)
+    candidate_spectral_radius_log = np.zeros(nFE)
     action_saturation_fraction_log = np.zeros(nFE)
     near_bound_fraction_log = np.zeros(nFE)
+    prediction_fallback_active_log = np.zeros(nFE, dtype=int)
+    prediction_fallback_reason_log = np.zeros(nFE, dtype=int)
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     innovation_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
@@ -199,12 +229,23 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     update_cfg = structured_spec["block_cfg"] if update_family == "block" else structured_spec["band_cfg"]
     A_base = np.asarray(mpc_obj.A, float).copy()
     B_base = np.asarray(mpc_obj.B, float).copy()
+    nominal_update_payload = _build_structured_update_payload(
+        update_builder=update_builder,
+        update_family=update_family,
+        A_base=A_base,
+        B_base=B_base,
+        n_outputs=n_outputs,
+        update_cfg=update_cfg,
+        theta_A=np.ones(a_dim, dtype=float),
+        theta_B=np.ones(b_dim, dtype=float),
+    )
     A_est = A_base.copy()
     B_est = B_base.copy()
     L_nom = compute_observer_gain(A_est, C_aug, poles)
     test = False
     nonfinite_action_count = 0
     structured_update_fallback_count = 0
+    structured_prediction_fallback_count = 0
     saturation_threshold = float(structured_cfg.get("action_saturation_threshold", 0.98))
     near_bound_tolerance = float(structured_cfg.get("near_bound_relative_tolerance", 0.05))
 
@@ -284,54 +325,29 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
 
         try:
             mapped = map_normalized_action_to_multipliers(action, low_bounds, high_bounds)
-            if update_family == "block":
-                update_payload = update_builder(
-                    A_aug=A_base,
-                    B_aug=B_base,
-                    n_outputs=n_outputs,
-                    block_cfg=update_cfg,
-                    theta_A=mapped[:a_dim],
-                    theta_B=mapped[a_dim:],
-                )
-            else:
-                update_payload = update_builder(
-                    A_aug=A_base,
-                    B_aug=B_base,
-                    n_outputs=n_outputs,
-                    band_cfg=update_cfg,
-                    theta_A=mapped[:a_dim],
-                    theta_B=mapped[a_dim:],
-                )
+            update_payload = _build_structured_update_payload(
+                update_builder=update_builder,
+                update_family=update_family,
+                A_base=A_base,
+                B_base=B_base,
+                n_outputs=n_outputs,
+                update_cfg=update_cfg,
+                theta_A=mapped[:a_dim],
+                theta_B=mapped[a_dim:],
+            )
         except Exception:
             action = structured_baseline_raw.copy()
             mapped = np.ones(action_dim, dtype=float)
-            if update_family == "block":
-                update_payload = update_builder(
-                    A_aug=A_base,
-                    B_aug=B_base,
-                    n_outputs=n_outputs,
-                    block_cfg=update_cfg,
-                    theta_A=mapped[:a_dim],
-                    theta_B=mapped[a_dim:],
-                )
-            else:
-                update_payload = update_builder(
-                    A_aug=A_base,
-                    B_aug=B_base,
-                    n_outputs=n_outputs,
-                    band_cfg=update_cfg,
-                    theta_A=mapped[:a_dim],
-                    theta_B=mapped[a_dim:],
-                )
+            update_payload = nominal_update_payload
             structured_update_fallback_count += 1
 
         raw_action_log[i, :] = action
         mapped_multiplier_log[i, :] = mapped
         theta_a_log[i, :] = mapped[:a_dim]
         theta_b_log[i, :] = mapped[a_dim:]
-        A_fro_ratio_log[i] = float(update_payload["A_fro_ratio"])
-        B_fro_ratio_log[i] = float(update_payload["B_fro_ratio"])
-        spectral_radius_log[i] = float(update_payload["spectral_radius"]) if log_spectral_radius else np.nan
+        candidate_A_fro_ratio_log[i] = float(update_payload["A_fro_ratio"])
+        candidate_B_fro_ratio_log[i] = float(update_payload["B_fro_ratio"])
+        candidate_spectral_radius_log[i] = float(update_payload["spectral_radius"]) if log_spectral_radius else np.nan
         action_saturation_fraction_log[i] = float(np.mean(np.abs(action) >= saturation_threshold))
         bound_span = np.maximum(high_bounds - low_bounds, 1e-12)
         near_low = (mapped - low_bounds) <= near_bound_tolerance * bound_span
@@ -340,21 +356,74 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
 
         A_candidate = np.asarray(update_payload["A_aug"], float)
         B_candidate = np.asarray(update_payload["B_aug"], float)
+        prediction_payload = update_payload
+        effective_action = action.copy()
+        effective_mapped = mapped.copy()
+        prediction_fallback_reason = 0
+
         if not (np.all(np.isfinite(A_candidate)) and np.all(np.isfinite(B_candidate))):
-            raise RuntimeError(f"Assisted structured matrix prediction model became non-finite at step {i}.")
+            if not prediction_fallback_on_solve_failure:
+                raise RuntimeError(f"Assisted structured matrix prediction model became non-finite at step {i}.")
+            prediction_payload = nominal_update_payload
+            effective_action = structured_baseline_raw.copy()
+            effective_mapped = np.ones(action_dim, dtype=float)
+            prediction_fallback_active_log[i] = 1
+            prediction_fallback_reason = 1
+            structured_prediction_fallback_count += 1
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
-        mpc_obj.A = A_candidate
-        mpc_obj.B = B_candidate
-        sol = _solve_assisted_prediction_step(
-            mpc_obj=mpc_obj,
-            y_sp=y_sp[i, :],
-            u_prev_dev=scaled_current_input_dev,
-            x0_model=xhatdhat[:, i],
-            initial_guess=ic_opt_step,
-            bounds=original_bounds,
-            step_idx=i,
-        )
+        mpc_obj.A = np.asarray(prediction_payload["A_aug"], float)
+        mpc_obj.B = np.asarray(prediction_payload["B_aug"], float)
+        try:
+            sol = _solve_assisted_prediction_step(
+                mpc_obj=mpc_obj,
+                y_sp=y_sp[i, :],
+                u_prev_dev=scaled_current_input_dev,
+                x0_model=xhatdhat[:, i],
+                initial_guess=ic_opt_step,
+                bounds=original_bounds,
+                step_idx=i,
+            )
+        except RuntimeError as exc:
+            if not prediction_fallback_on_solve_failure:
+                raise
+            if prediction_fallback_reason != 0:
+                raise RuntimeError(
+                    f"Assisted structured-matrix MPC solve failed at step {i} while already on nominal fallback: {exc}"
+                ) from exc
+            prediction_payload = nominal_update_payload
+            effective_action = structured_baseline_raw.copy()
+            effective_mapped = np.ones(action_dim, dtype=float)
+            mpc_obj.A = np.asarray(prediction_payload["A_aug"], float)
+            mpc_obj.B = np.asarray(prediction_payload["B_aug"], float)
+            prediction_fallback_active_log[i] = 1
+            prediction_fallback_reason = 2
+            structured_prediction_fallback_count += 1
+            try:
+                sol = _solve_assisted_prediction_step(
+                    mpc_obj=mpc_obj,
+                    y_sp=y_sp[i, :],
+                    u_prev_dev=scaled_current_input_dev,
+                    x0_model=xhatdhat[:, i],
+                    initial_guess=ic_opt_step,
+                    bounds=original_bounds,
+                    step_idx=i,
+                )
+            except RuntimeError as fallback_exc:
+                raise RuntimeError(
+                    f"Assisted structured-matrix MPC solve failed at step {i}; "
+                    f"nominal fallback also failed. Candidate error: {exc}. "
+                    f"Fallback error: {fallback_exc}"
+                ) from fallback_exc
+
+        effective_action_log[i, :] = effective_action
+        effective_multiplier_log[i, :] = effective_mapped
+        effective_theta_a_log[i, :] = effective_mapped[:a_dim]
+        effective_theta_b_log[i, :] = effective_mapped[a_dim:]
+        A_fro_ratio_log[i] = float(prediction_payload["A_fro_ratio"])
+        B_fro_ratio_log[i] = float(prediction_payload["B_fro_ratio"])
+        spectral_radius_log[i] = float(prediction_payload["spectral_radius"]) if log_spectral_radius else np.nan
+        prediction_fallback_reason_log[i] = int(prediction_fallback_reason)
 
         if use_shifted_mpc_warm_start:
             ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
@@ -429,7 +498,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         if not test:
             agent.push(
                 current_rl_state,
-                np.asarray(action, np.float32),
+                np.asarray(effective_action, np.float32),
                 reward,
                 next_rl_state,
                 0.0,
@@ -502,8 +571,10 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "recalculate_observer_on_matrix_change": recalculate_observer_requested,
         "recalculate_observer_on_matrix_change_ignored": True,
         "log_spectral_radius": log_spectral_radius,
+        "prediction_fallback_on_solve_failure": prediction_fallback_on_solve_failure,
         "nonfinite_matrix_action_count": int(nonfinite_action_count),
         "structured_update_fallback_count": int(structured_update_fallback_count),
+        "structured_prediction_fallback_count": int(structured_prediction_fallback_count),
         "n_step": int(getattr(agent, "n_step", 1)),
         "multistep_mode": str(getattr(agent, "multistep_mode", "one_step")),
         "lambda_value": getattr(agent, "lambda_value", None),
@@ -546,14 +617,23 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "block_cfg": structured_spec["block_cfg"],
         "band_cfg": structured_spec["band_cfg"],
         "raw_action_log": raw_action_log,
+        "effective_action_log": effective_action_log,
         "mapped_multiplier_log": mapped_multiplier_log,
+        "effective_multiplier_log": effective_multiplier_log,
         "theta_a_log": theta_a_log,
         "theta_b_log": theta_b_log,
+        "effective_theta_a_log": effective_theta_a_log,
+        "effective_theta_b_log": effective_theta_b_log,
         "A_model_delta_ratio_log": A_fro_ratio_log,
         "B_model_delta_ratio_log": B_fro_ratio_log,
         "spectral_radius_log": spectral_radius_log,
+        "candidate_A_model_delta_ratio_log": candidate_A_fro_ratio_log,
+        "candidate_B_model_delta_ratio_log": candidate_B_fro_ratio_log,
+        "candidate_spectral_radius_log": candidate_spectral_radius_log,
         "action_saturation_fraction_log": action_saturation_fraction_log,
         "near_bound_fraction_log": near_bound_fraction_log,
+        "prediction_fallback_active_log": prediction_fallback_active_log,
+        "prediction_fallback_reason_log": prediction_fallback_reason_log,
         "near_bound_relative_tolerance": float(near_bound_tolerance),
         "action_saturation_threshold": float(saturation_threshold),
         "episode_avg_theta_a": np.asarray(episode_avg_theta_a, float),

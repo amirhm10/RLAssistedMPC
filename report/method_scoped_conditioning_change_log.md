@@ -130,7 +130,8 @@ That means:
 
 - polymer mismatch notebooks now exercise running `xhat` normalization by default
 - both systems use signed-log mismatch transforms by default
-- both systems use current-measurement observer alignment by default where the shared mismatch path reads it from the controller config
+- both systems keep the legacy observer state-update alignment by default
+- innovation and tracking still use the current measured output in the RL state-feature path
 - residual and combined residual branches now default to the new `rho` map and deadband settings
 
 ## How To Return To Legacy Behavior

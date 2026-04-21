@@ -60,7 +60,7 @@ def _copy_mismatch_defaults():
         "mismatch_feature_transform_mode": "signed_log",
         "mismatch_transform_tanh_scale": 3.0,
         "mismatch_transform_post_clip": None,
-        "observer_update_alignment": "current_measurement_corrector",
+        "observer_update_alignment": "legacy_previous_measurement",
     }
 
 
@@ -574,7 +574,7 @@ POLYMER_REIDENTIFICATION_DEFAULTS = {
     "reidentification": {
         "basis_family": "lowrank_polymer",
         "id_component_mode": "AB",
-        "observer_update_alignment": "current_measurement_corrector",
+        "observer_update_alignment": "legacy_previous_measurement",
         "candidate_guard_mode": "fro_only",
         "normalize_blend_extras": True,
         "blend_extra_clip": 3.0,

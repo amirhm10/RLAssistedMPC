@@ -28,6 +28,50 @@ from utils.structured_model_update import (
 )
 
 
+def _structured_spec_matches_cfg(structured_spec, structured_cfg):
+    if structured_spec is None:
+        return False
+
+    def _arr_or_none(value):
+        if value is None:
+            return None
+        return np.asarray(value, float).reshape(-1)
+
+    if str(structured_spec.get("update_family", "")).lower() != str(structured_cfg.get("update_family", "")).lower():
+        return False
+    if str(structured_spec.get("range_profile", "")).lower() != str(structured_cfg.get("range_profile", "tight")).lower():
+        return False
+
+    low_a_spec = _arr_or_none(structured_spec.get("low_a"))
+    high_a_spec = _arr_or_none(structured_spec.get("high_a"))
+    low_b_spec = _arr_or_none(structured_spec.get("low_b"))
+    high_b_spec = _arr_or_none(structured_spec.get("high_b"))
+    low_a_cfg = _arr_or_none(structured_cfg.get("a_low_override"))
+    high_a_cfg = _arr_or_none(structured_cfg.get("a_high_override"))
+    low_b_cfg = _arr_or_none(structured_cfg.get("b_low_override"))
+    high_b_cfg = _arr_or_none(structured_cfg.get("b_high_override"))
+
+    def _override_matches(spec_arr, cfg_arr):
+        if cfg_arr is None:
+            return True
+        if spec_arr is None:
+            return False
+        if cfg_arr.size == 1:
+            return np.allclose(spec_arr, float(cfg_arr[0]))
+        return spec_arr.shape == cfg_arr.shape and np.allclose(spec_arr, cfg_arr)
+
+    if not _override_matches(low_a_spec, low_a_cfg):
+        return False
+    if not _override_matches(high_a_spec, high_a_cfg):
+        return False
+    if not _override_matches(low_b_spec, low_b_cfg):
+        return False
+    if not _override_matches(high_b_spec, high_b_cfg):
+        return False
+
+    return True
+
+
 def _solve_assisted_prediction_step(mpc_obj, y_sp, u_prev_dev, x0_model, initial_guess, bounds, step_idx):
     try:
         sol = spo.minimize(
@@ -130,7 +174,8 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     )
 
     structured_spec = structured_cfg.get("structured_spec")
-    if structured_spec is None:
+    structured_spec_refreshed = False
+    if not _structured_spec_matches_cfg(structured_spec, structured_cfg):
         structured_spec = build_structured_update_spec(
             A_aug=A_aug,
             B_aug=B_aug,
@@ -145,6 +190,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             b_low_override=structured_cfg.get("b_low_override"),
             b_high_override=structured_cfg.get("b_high_override"),
         )
+        structured_spec_refreshed = True
 
     update_family = str(structured_spec["update_family"]).lower()
     action_dim = int(structured_spec["action_dim"])
@@ -618,6 +664,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "structured_high_a": np.asarray(structured_spec["high_a"], float),
         "structured_low_b": np.asarray(structured_spec["low_b"], float),
         "structured_high_b": np.asarray(structured_spec["high_b"], float),
+        "structured_spec_refreshed": bool(structured_spec_refreshed),
         "block_cfg": structured_spec["block_cfg"],
         "band_cfg": structured_spec["band_cfg"],
         "raw_action_log": raw_action_log,

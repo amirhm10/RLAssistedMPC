@@ -44,16 +44,64 @@ All compared runs use the same polymer disturbance schedule. The saved `qi`, `qs
 - Structured wide is mixed. Its overall late-run tail MAE improves from `0.1673` to `0.1537`, but the held-out final test gets worse: `0.1642` to `0.1925` (+17.2%).
 - Reidentification still fails to convert the richer RL state into better control. Its final test MAE remains `0.1770`, worse than matrix wide and worse than baseline MPC.
 
-![Reward curves for matrix and structured narrow versus wide runs](./polymer_wide_range_matrix_structured/figures/wide_range_reward_curves.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_reward_curves.png" alt="Reward curves for matrix and structured narrow versus wide runs" width="1200" style="max-width: 100%; height: auto;" />
 
 The reward curves show the same pattern in both wide runs: a severe early deterioration followed by recovery to a better late-stage reward than the narrow runs. The matrix wide trough is deeper (`-34.5039` at episode `19`) than the structured wide trough (`-24.2145` at episode `12`), but both recover only much later, around episodes `139` and `141` respectively.
 
 ## Final Test Episode
 
-![Final held-out test episode outputs for matrix and structured families](./polymer_wide_range_matrix_structured/figures/wide_range_final_test_outputs.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_final_test_outputs.png" alt="Final held-out test episode outputs for matrix and structured families" width="1200" style="max-width: 100%; height: auto;" />
 
 Matrix wide improves both outputs in the held-out test episode: output 1 MAE falls from `0.0627` to `0.0494`, and output 2 MAE falls from `0.2833` to `0.2574`.
 Structured wide does not. Output 1 improves from `0.0637` to `0.0521`, but output 2 gets substantially worse: `0.2647` to `0.3330`. This is why the final test mean degrades even though the overall late-run tail and reward look better.
+
+## Latest High-Cap Reruns
+
+After the earlier report, new polymer matrix and structured runs were generated under the widened default bounds with the intended physical `A` cap logic. Those reruns matter because they test whether the new cap policy helps in practice.
+
+| Run | Saved bundle | Tail phys MAE | Final test phys MAE | Out1 MAE | Out2 MAE | Final-10 reward | Final test input move |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Matrix latest capped rerun | `Polymer/Results/td3_multipliers_disturb/20260421_174016/input_data.pkl` | 0.1491 | 0.1487 | 0.0530 | 0.2443 | -3.5948 | 0.0302 |
+| Structured latest rerun | `Polymer/Results/td3_structured_matrices_disturb/20260421_174057/input_data.pkl` | 0.3146 | 0.2454 | 0.0825 | 0.4082 | -4.6748 | 0.0679 |
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_latest_cap_reruns.png" alt="Latest matrix and structured reruns after the cap update" width="1200" style="max-width: 100%; height: auto;" />
+
+The latest matrix rerun is a real improvement. Final test MAE moves from `0.1534` in the previous wide run to `0.1487`, and output-2 MAE drops from `0.2574` to `0.2443` while final test input movement also falls from `0.0338` to `0.0302`.
+The latest structured rerun is worse, not better. Final test MAE rises from `0.1925` to `0.2454`, output 2 degrades further to `0.4082`, and tail MAE jumps to `0.3146`.
+
+The reason is important: the latest matrix rerun actually used the capped `A` bound, but the latest structured rerun did not. The saved matrix bundle shows `high_coef = [1.0566, 1.25, 1.25]`, so the scalar `A` multiplier was capped as intended. The saved structured bundle, however, still shows `structured_high_bounds = [1.25, 1.25, 1.25, 1.25, 1.25, 1.25]`. So the structured notebook wiring did not pass the intended `A/B` overrides into the structured spec when that run was created.
+
+That means the latest structured failure is not evidence that the matrix-derived `A` cap failed for structured. It is evidence that the structured training run was still effectively uncapped on the `A` side. The saved spectral diagnostics confirm that: previous structured wide had mean/p95 spectral radius `1.1054` / `1.1357`, while the latest structured rerun still reaches `0.9459` / `1.1598` with `3` fallback events logged over the full rollout.
+
+## Does Structured Need A Different Cap Than Matrix?
+
+Probably yes in the long run, but the current failed rerun does not prove that yet because it was not actually capped. There are two separate questions:
+
+1. If the intended structured `A` cap is truly enforced, is it mathematically reasonable?
+2. Even if it is mathematically reasonable, should structured still use a stricter cap than matrix because it perturbs several coupled `A` groups at once?
+
+The first question can be answered directly from the model family. I sampled the polymer block-structured family with `B \in [0.75, 1.25]` fixed and varied only the `A`-side upper bound:
+
+| Structured A high | Unstable frac | Near-unit frac | Spectral p95 | Spectral max |
+| --- | --- | --- | --- | --- |
+| 1.0000 | 0.000 | 0.000 | 0.9337 | 0.9464 |
+| 1.0200 | 0.000 | 0.000 | 0.9506 | 0.9652 |
+| 1.0300 | 0.000 | 0.000 | 0.9613 | 0.9747 |
+| 1.0400 | 0.000 | 0.016 | 0.9710 | 0.9842 |
+| 1.0500 | 0.000 | 0.042 | 0.9781 | 0.9936 |
+| 1.0566 | 0.000 | 0.077 | 0.9870 | 0.9998 |
+| 1.0800 | 0.066 | 0.187 | 1.0043 | 1.0221 |
+| 1.1000 | 0.175 | 0.274 | 1.0236 | 1.0410 |
+| 1.1500 | 0.370 | 0.455 | 1.0698 | 1.0881 |
+| 1.2500 | 0.595 | 0.652 | 1.1598 | 1.1830 |
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_structured_asymmetric_cap_frontier.png" alt="Structured asymmetric A/B cap frontier" width="1200" style="max-width: 100%; height: auto;" />
+
+That frontier shows that the intended structured `A` cap of `1.0566` is actually a reasonable first bound when `B` stays wide. In random sampling, `A_high = 1.0566` gives unstable fraction `0.000`, spectral p95 `0.9870`, and spectral max `0.9998`. So the matrix-derived cap is not obviously too loose for the structured family in a pure admissibility sense.
+
+But structured is still more delicate than matrix because its action changes several `A`-side groups and the off-diagonal coupling together. A single scalar `alpha` cap from the plain matrix family does not fully capture that geometry. The frontier suggests a practical structured hierarchy:
+
+- `A_high ~= 1.0566` is a reasonable first structured cap and should be tested with the notebook wiring fixed.
+- If you want more margin, `A_high ~= 1.04-1.05` is cleaner: unstable fraction stays zero and the near-unit fraction drops sharply.
+- Only after a properly capped structured rerun should we conclude that structured needs an even tighter cap or a separate off-diagonal cap.
 
 ## Why Matrix Wide Worked And Reidentification Did Not
 
@@ -89,7 +137,7 @@ So the relevant output balance is not just the raw `Q_diag`. It is `Q_diag` filt
 | SP1 | out2 | 324.000 | 0.0972 | 0.12437 | 0.2239 | 0.0974 |
 | SP2 | out1 | 3.400 | 0.0102 | 0.04602 | 0.4767 | 0.0768 |
 | SP2 | out2 | 321.000 | 0.0963 | 0.12322 | 0.2218 | 0.0957 |
-![Reward geometry and implied equalization targets](./polymer_wide_range_matrix_structured/figures/wide_range_reward_balance.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_reward_balance.png" alt="Reward geometry and implied equalization targets" width="1200" style="max-width: 100%; height: auto;" />
 
 If `Q2` stays at `90`, then an edge-equalized `Q1` would be about `212.4`, while a bonus-equalized `Q1` would be about `510.3`. The current `Q1 = 518.0` is therefore almost exactly the bonus-equalized value, not the edge-equalized value.
 That is the rigorous explanation for the "even output" issue. Inside the reward band, the outputs are treated much more evenly than the old report implied. But outside the band, output 1 still carries a much steeper correction slope, so the policy can gain reward by helping output 1 more aggressively even when output 2 gets worse.
@@ -108,7 +156,7 @@ The saved runs already show this reward tradeoff in the final test episode:
 | Matrix wide | 0.2105 | 0.3198 | 2.6903 | 0.4212 | 0.0507 | 0.0305 | 0.0119 | 0.0188 | 0.0338 | -3.1837 |
 | Structured narrow refresh | 0.2751 | 0.3292 | 3.6805 | 0.4387 | 0.0692 | 0.0310 | 0.0278 | 0.0234 | 0.0294 | -4.1771 |
 | Structured wide | 0.2227 | 0.4169 | 2.6586 | 0.4779 | 0.0523 | 0.0381 | 0.0051 | 0.0075 | 0.0702 | -3.2593 |
-![Reward versus evaluation tradeoff for the wide matrix and structured runs](./polymer_wide_range_matrix_structured/figures/wide_range_reward_tradeoff.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_reward_tradeoff.png" alt="Reward versus evaluation tradeoff for the wide matrix and structured runs" width="1200" style="max-width: 100%; height: auto;" />
 
 Structured wide improves output 1 sharply: final test scaled MAE drops from `0.2751` to `0.2227`. But output 2 worsens from `0.3292` to `0.4169`. Under the actual polymer reward, the output-1 quadratic and linear penalties both fall materially, while the output-2 penalties rise by less. The reward therefore improves even though the held-out mean physical error gets worse.
 
@@ -129,7 +177,7 @@ For any `alpha > 0`, these are just row-wise or column-wise scalings of the nomi
 | 0.850 | 0.8044 | 7 | 7 | 171.2 | 1136.9 |
 | 1.000 | 0.9464 | 7 | 7 | 108.4 | 716.3 |
 | 1.200 | 1.1357 | 7 | 7 | 97.1 | 550.0 |
-![Matrix and structured admissibility frontier](./polymer_wide_range_matrix_structured/figures/wide_range_admissibility_frontier.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_admissibility_frontier.png" alt="Matrix and structured admissibility frontier" width="1200" style="max-width: 100%; height: auto;" />
 
 The useful matrix bound comes instead from open-loop spectral admissibility. Since `rho(A_nom) = 0.9464`, requiring `rho(alpha A) < 1` gives `alpha < 1 / rho(A_nom) = 1.0566`. That is the clean analytical upper bound if every candidate prediction `A` must remain open-loop stable.
 The lower bound is different. For positive `alpha`, neither observability nor open-loop stability imposes a nontrivial lower bound. So there is no comparable analytical `alpha_min > 0` from these criteria alone. The practical lower bound comes from how much model-speed distortion you are willing to tolerate, not from rank loss.
@@ -177,7 +225,7 @@ $$
 
 So the predicted output gain of input `j` scales linearly with `delta_j`, while the input move required to get the same correction scales approximately like `1 / delta_j`.
 
-![B-multiplier gain and move-ratio explanation](./polymer_wide_range_matrix_structured/figures/wide_range_b_multiplier_design.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_b_multiplier_design.png" alt="B-multiplier gain and move-ratio explanation" width="1200" style="max-width: 100%; height: auto;" />
 
 That means `B` selection should be done with actuator and trust considerations, not with pole placement logic. A practical lower-bound calculation is
 
@@ -218,7 +266,7 @@ That is why the safest widening order is still `B` before `A`: `B` does not move
 
 The same mathematics does not transfer one-for-one across systems. Distillation is much less fragile than polymer at the model level.
 
-![Cross-system admissibility comparison](./polymer_wide_range_matrix_structured/figures/wide_range_cross_system_admissibility.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_cross_system_admissibility.png" alt="Cross-system admissibility comparison" width="1200" style="max-width: 100%; height: auto;" />
 
 | System | rho(A_nom) | alpha_max stable | Structured unstable frac at 1.20 | Structured p95 spectral at 1.20 |
 | --- | --- | --- | --- | --- |
@@ -233,7 +281,7 @@ However, the currently saved disturbance runs do not yet show that widening alon
 | Distillation baseline fluctuation | 0.0954 | 0.0016 | 0.1892 | -0.2651 | n/a |
 | Distillation matrix SAC disturbance | 0.1569 | 0.0047 | 0.3091 | -0.5055 | alpha mean 0.9849, p95 0.9943 |
 | Distillation structured SAC disturbance | 0.2544 | 0.0042 | 0.5045 | -0.7832 | spectral mean 0.7721, p95 0.7758 |
-![Distillation final-test counterpart](./polymer_wide_range_matrix_structured/figures/wide_range_distillation_counterpart.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_distillation_counterpart.png" alt="Distillation final-test counterpart" width="1200" style="max-width: 100%; height: auto;" />
 
 The current saved disturbance matrix run does not beat baseline (`0.1569` vs `0.0954`), and the current saved structured disturbance run is worse still (`0.2544`). So the distillation section changes the conclusion in an important way: the model-level admissibility landscape is wider, but the currently saved RL policies are not exploiting it well.
 
@@ -273,7 +321,7 @@ The important distinction for this repo is that warm start is primarily a solver
 | distillation | residual | 1 | 0 | 1 | 0 | param_noise |
 | distillation | reidentification | 1 | 0 | 1 | 1 | param_noise |
 | distillation | combined | 1 | 0 | 0 | 0 | mixed: horizon=noisy, cont=param_noise |
-![Warm-start and exploration diagnostics across methods](./polymer_wide_range_matrix_structured/figures/wide_range_warmstart_exploration.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_warmstart_exploration.png" alt="Warm-start and exploration diagnostics across methods" width="1200" style="max-width: 100%; height: auto;" />
 
 | Representative run | Saved bundle | Mean normalized step change | P95 normalized step change | Decision change fraction | Reward trough gap |
 | --- | --- | --- | --- | --- | --- |
@@ -312,7 +360,7 @@ so a fixed nominal observer becomes less appropriate when the controller keeps t
 | Polymer structured wide | 0.1573 | 0.1462 | 1.1054 |
 | Distillation matrix SAC | 0.0161 | 0.0189 | n/a |
 | Distillation structured SAC | 0.0120 | 0.0157 | 0.7721 |
-![Observer-refresh support diagnostics](./polymer_wide_range_matrix_structured/figures/wide_range_observer_refresh_support.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_observer_refresh_support.png" alt="Observer-refresh support diagnostics" width="1200" style="max-width: 100%; height: auto;" />
 
 | Reidentification run | Candidate valid frac | Update success frac | Update event frac | Condition median | Condition p95 |
 | --- | --- | --- | --- | --- | --- |
@@ -350,7 +398,7 @@ The control literature and RL literature both suggest practical fixes:
 - Data-aware excitation only when needed: if model learning is part of the method, add excitation only when uncertainty is high or the data are not informative enough [Heirung2015] [Heirung2017] [Oshima2024].
 - Robust uncertainty-set shaping: treat the multiplier family as an uncertainty set and grow that set only while feasibility and worst-case behavior remain acceptable [Chen2024] [Limon2013] [Kothare1996].
 
-![Literature-backed practical fixes explained](./polymer_wide_range_matrix_structured/figures/wide_range_practical_fixes_explainer.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_practical_fixes_explainer.png" alt="Literature-backed practical fixes explained" width="1200" style="max-width: 100%; height: auto;" />
 
 The four panels in the figure are not copied from the papers. They are explanatory plots built from the mechanisms those papers discuss, translated into this project's setting.
 
@@ -393,7 +441,7 @@ $$
 
 The same equation applies to structured multipliers `theta_t`. This keeps the policy free to make large corrections when tracking is bad, but collapses back toward the nominal model near setpoint.
 
-![Residual-style gate effect on multiplier deviation](./polymer_wide_range_matrix_structured/figures/wide_range_authority_gate.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_authority_gate.png" alt="Residual-style gate effect on multiplier deviation" width="1200" style="max-width: 100%; height: auto;" />
 
 | Run | Tracking bin | Count | Current mean deviation | Gated mean deviation |
 | --- | --- | --- | --- | --- |
@@ -432,7 +480,7 @@ For this project, a practical safe-widening recipe is:
 
 ## Model-Usage Diagnostics
 
-![Wide-range multiplier usage and spectral-radius diagnostics](./polymer_wide_range_matrix_structured/figures/wide_range_model_usage.png)
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_model_usage.png" alt="Wide-range multiplier usage and spectral-radius diagnostics" width="1200" style="max-width: 100%; height: auto;" />
 
 Matrix wide uses the expanded range in a targeted way. It does not simply saturate everything upward. Instead, it tends to push the first input gain higher while keeping `A` on average below nominal. Structured wide behaves differently: several grouped multipliers have p95 equal to the hard upper bound `1.2`, and the test spectral radius stays above `1.1` on average. That explains why structured wide can still improve reward while giving an over-aggressive held-out trajectory.
 
@@ -447,9 +495,12 @@ That said, the literature does not support calling reidentification useless in g
 ## Conclusions
 
 - The latest matrix wide run is genuinely more successful than the previous matrix runs. Its final test MAE `0.1534` beats the previous narrow refresh `0.1730`, the legacy matrix run `0.1717`, and baseline MPC `0.1701`.
-- Structured wide is not a clean success. It improves late-run reward and aggregate tail MAE, but its held-out final test MAE degrades from `0.1642` to `0.1925` because it over-optimizes the first output relative to the evaluation metric and becomes much more aggressive on the prediction model and control effort.
+- The newest capped matrix rerun is better again: final test MAE improves further to `0.1487`. The policy uses the capped `A` side correctly and shifts more of the correction burden onto the `B` side.
+- The newest structured rerun is worse, but that run still used uniform structured bounds up to `1.25` on all grouped multipliers. So it does not show that the structured `A` cap failed; it shows that the structured notebook did not yet apply the intended cap during that run.
+- Structured wide is therefore still not a clean success. The current uncapped/over-wide structured reruns over-optimize output 1, degrade output 2, and keep the prediction model much more aggressive than the matrix family.
 - The actual polymer reward is bonus-balanced more than edge-balanced. If both outputs should matter more evenly in evaluation, the most direct reward fix is to reduce `Q1` toward about `212` or to separate inside-band bonus weights from outside-band penalty weights.
 - For the matrix family, observability and controllability do not bound positive `alpha`; the meaningful analytical upper bound is `alpha < 1.0566` if all candidate `A` matrices must stay open-loop stable. There is no comparable analytical lower bound, so the lower side should be chosen by a trust-region or time-scale rule. For `B`, the useful bounds are about gain-trust and actuator headroom, not spectral stability.
+- For structured updates, the matrix-derived cap `1.0566` is still a sensible first `A`-side bound. Monte Carlo sampling with `B_high = 1.25` gives zero unstable fraction at that cap. If more margin is wanted, the report's asymmetric frontier suggests `A_high` around `1.04-1.05` before tightening `B`.
 - Distillation is mathematically much less fragile than polymer: `alpha_max_stable` is `1.1929` instead of `1.0566`, and the structured unstable fraction at `1.20` is only `0.013` instead of `0.556`. But the currently saved disturbance RL runs still do not beat the distillation baseline, so wider admissibility alone is not enough.
 - Shifted MPC warm start is worth testing beyond the matrix family, but primarily as a solver-quality improvement. The highest-payoff candidates in the current codebase are residual, matrix, structured, weights, and reidentification. Horizon is a weaker target because the subproblem dimension changes too often.
 - Periodic observer redesign should not be treated as a blanket fix. It is most defensible when sustained model drift is present and the refreshed model is trustworthy. That makes polymer matrix/structured and distillation reidentification more plausible targets than current polymer reidentification.

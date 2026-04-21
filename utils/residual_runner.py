@@ -11,9 +11,15 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
+from utils.observation_conditioning import update_observer_state
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
-from utils.residual_authority import map_from_bounds, project_residual_action
-from utils.state_features import build_rl_state, compute_tracking_scale_now, resolve_mismatch_settings
+from utils.residual_authority import compute_residual_rho, map_from_bounds, project_residual_action
+from utils.state_features import (
+    build_rl_state,
+    compute_tracking_scale_now,
+    make_state_conditioner_from_settings,
+    resolve_mismatch_settings,
+)
 
 
 def run_residual_supervisor(residual_cfg, runtime_ctx):
@@ -67,6 +73,10 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         n_inputs=B_aug.shape[1],
     )
     mismatch_clip = mismatch_cfg["mismatch_clip"]
+    state_conditioner = make_state_conditioner_from_settings(mismatch_cfg)
+    observer_update_alignment = (
+        mismatch_cfg["observer_update_alignment"] if state_mode == "mismatch" else "legacy_previous_measurement"
+    )
 
     low_coef = np.asarray(residual_cfg["low_coef"], float).reshape(-1)
     high_coef = np.asarray(residual_cfg["high_coef"], float).reshape(-1)
@@ -130,6 +140,11 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         raise ValueError("authority_beta_res and authority_du0_res must match the number of manipulated inputs.")
     authority_rho_floor = float(residual_cfg.get("authority_rho_floor", 0.15))
     authority_rho_power = float(residual_cfg.get("authority_rho_power", 1.0))
+    rho_mapping_mode = str(residual_cfg.get("rho_mapping_mode", "clipped_linear")).strip().lower()
+    authority_rho_k = float(residual_cfg.get("authority_rho_k", 0.55))
+    residual_zero_deadband_enabled = bool(residual_cfg.get("residual_zero_deadband_enabled", False))
+    residual_zero_tracking_raw_threshold = float(residual_cfg.get("residual_zero_tracking_raw_threshold", 0.1))
+    residual_zero_innovation_raw_threshold = float(residual_cfg.get("residual_zero_innovation_raw_threshold", 0.1))
     append_rho_to_state = bool(residual_cfg.get("append_rho_to_state", True))
 
     cont_h = int(residual_cfg.get("cont_h", 1))
@@ -155,11 +170,16 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     delta_u_res_raw_log = np.zeros((nFE, n_inputs), dtype=float)
     delta_u_res_exec_log = np.zeros((nFE, n_inputs), dtype=float)
     rho_log = np.zeros(nFE) if state_mode == "mismatch" else None
+    rho_raw_log = np.zeros(nFE) if state_mode == "mismatch" else None
     rho_eff_log = np.zeros(nFE) if state_mode == "mismatch" else None
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    innovation_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    tracking_error_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_scale_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    deadband_active_log = np.zeros(nFE, dtype=int)
     projection_active_log = np.zeros(nFE, dtype=int)
+    projection_due_to_deadband_log = np.zeros(nFE, dtype=int)
     projection_due_to_authority_log = np.zeros(nFE, dtype=int)
     projection_due_to_headroom_log = np.zeros(nFE, dtype=int)
     test = False
@@ -187,13 +207,11 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
                 tracking_scale_floor=mismatch_cfg["tracking_scale_floor"],
             )
             rho_state = float(
-                np.clip(
-                    np.max(
-                        np.abs((y_prev_scaled - y_sp[i, :]) / np.maximum(tracking_scale_now, 1e-12))
-                    ),
-                    0.0,
-                    1.0,
-                )
+                compute_residual_rho(
+                    tracking_values=(y_prev_scaled - y_sp[i, :]) / np.maximum(tracking_scale_now, 1e-12),
+                    rho_mapping_mode=rho_mapping_mode,
+                    authority_rho_k=authority_rho_k,
+                )["rho"]
             )
         current_rl_state, state_debug = build_rl_state(
             min_max_dict=min_max_dict,
@@ -208,10 +226,17 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             mismatch_clip=mismatch_clip,
             append_rho_to_state=bool(state_mode == "mismatch" and append_rho_to_state),
             rho_value=rho_state,
+            state_conditioner=state_conditioner,
+            update_state_conditioner=True,
+            mismatch_feature_transform_mode=mismatch_cfg["mismatch_feature_transform_mode"],
+            mismatch_transform_tanh_scale=mismatch_cfg["mismatch_transform_tanh_scale"],
+            mismatch_transform_post_clip=mismatch_cfg["mismatch_transform_post_clip"],
         )
         if innovation_log is not None:
             innovation_log[i, :] = state_debug["innovation"]
+            innovation_raw_log[i, :] = state_debug["innovation_raw"]
             tracking_error_log[i, :] = state_debug["tracking_error"]
+            tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
         if i > warm_start_step:
@@ -255,15 +280,25 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             apply_authority=(state_mode == "mismatch"),
             authority_use_rho=authority_use_rho,
             tracking_error_feat=state_debug["tracking_error"],
+            tracking_error_raw=state_debug["tracking_error_raw"],
+            innovation_raw=state_debug["innovation_raw"],
             authority_beta_res=authority_beta_res,
             authority_du0_res=authority_du0_res,
             authority_rho_floor=authority_rho_floor,
             authority_rho_power=authority_rho_power,
+            rho_mapping_mode=rho_mapping_mode,
+            authority_rho_k=authority_rho_k,
+            residual_zero_deadband_enabled=residual_zero_deadband_enabled,
+            residual_zero_tracking_raw_threshold=residual_zero_tracking_raw_threshold,
+            residual_zero_innovation_raw_threshold=residual_zero_innovation_raw_threshold,
         )
         if rho_log is not None:
             rho_log[i] = float(projection["rho"])
+            rho_raw_log[i] = float(projection["rho_raw"])
             rho_eff_log[i] = float(projection["rho_eff"])
+        deadband_active_log[i] = int(projection["deadband_active"])
         projection_active_log[i] = int(projection["projection_active"])
+        projection_due_to_deadband_log[i] = int(projection["projection_due_to_deadband"])
         projection_due_to_authority_log[i] = int(projection["projection_due_to_authority"])
         projection_due_to_headroom_log[i] = int(projection["projection_due_to_headroom"])
         delta_u_res_raw_log[i, :] = projection["delta_u_res_raw"]
@@ -290,11 +325,16 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         delta_y = y_current_scaled - y_sp[i, :]
         delta_y_storage[i, :] = delta_y
 
-        yhat[:, i] = yhat_pred
-        xhatdhat[:, i + 1] = (
-            mpc_obj.A @ xhatdhat[:, i]
-            + mpc_obj.B @ (u_rl_scaled[i, :] - ss_scaled_inputs)
-            + L @ (y_prev_scaled - yhat[:, i]).T
+        xhatdhat[:, i + 1], yhat[:, i], observer_update_alignment = update_observer_state(
+            A=mpc_obj.A,
+            B=mpc_obj.B,
+            C=mpc_obj.C,
+            L=L,
+            x_prev=xhatdhat[:, i],
+            u_dev=(u_rl_scaled[i, :] - ss_scaled_inputs),
+            y_prev_scaled=y_prev_scaled,
+            y_current_scaled=y_current_scaled,
+            observer_update_alignment=observer_update_alignment,
         )
 
         reward = float(reward_fn(delta_y, delta_u, y_sp_phys))
@@ -316,13 +356,11 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
                 tracking_scale_floor=mismatch_cfg["tracking_scale_floor"],
             )
             next_rho_state = float(
-                np.clip(
-                    np.max(
-                        np.abs((y_current_scaled - y_sp[i, :]) / np.maximum(next_tracking_scale_now, 1e-12))
-                    ),
-                    0.0,
-                    1.0,
-                )
+                compute_residual_rho(
+                    tracking_values=(y_current_scaled - y_sp[i, :]) / np.maximum(next_tracking_scale_now, 1e-12),
+                    rho_mapping_mode=rho_mapping_mode,
+                    authority_rho_k=authority_rho_k,
+                )["rho"]
             )
         next_rl_state, _ = build_rl_state(
             min_max_dict=min_max_dict,
@@ -337,6 +375,11 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             mismatch_clip=mismatch_clip,
             append_rho_to_state=bool(state_mode == "mismatch" and append_rho_to_state),
             rho_value=next_rho_state,
+            state_conditioner=state_conditioner,
+            update_state_conditioner=False,
+            mismatch_feature_transform_mode=mismatch_cfg["mismatch_feature_transform_mode"],
+            mismatch_transform_tanh_scale=mismatch_cfg["mismatch_transform_tanh_scale"],
+            mismatch_transform_post_clip=mismatch_cfg["mismatch_transform_post_clip"],
         )
 
         if not test:
@@ -403,23 +446,42 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "residual_raw_log": delta_u_res_raw_log,
         "residual_exec_log": delta_u_res_exec_log,
         "rho_log": rho_log,
+        "rho_raw_log": rho_raw_log,
         "rho_eff_log": rho_eff_log,
+        "deadband_active_log": deadband_active_log,
         "projection_active_log": projection_active_log,
+        "projection_due_to_deadband_log": projection_due_to_deadband_log,
         "projection_due_to_authority_log": projection_due_to_authority_log,
         "projection_due_to_headroom_log": projection_due_to_headroom_log,
         "low_coef": low_coef,
         "high_coef": high_coef,
         "innovation_log": innovation_log,
+        "innovation_raw_log": innovation_raw_log,
         "tracking_error_log": tracking_error_log,
+        "tracking_error_raw_log": tracking_error_raw_log,
         "innovation_scale_ref": mismatch_cfg["innovation_scale_ref"],
         "tracking_scale_log": tracking_scale_log,
         "band_ref_scaled": mismatch_cfg["band_ref_scaled"],
         "mismatch_clip": mismatch_clip,
+        "base_state_norm_mode": mismatch_cfg["base_state_norm_mode"],
+        "base_state_running_norm_clip": mismatch_cfg["base_state_running_norm_clip"],
+        "base_state_running_norm_eps": mismatch_cfg["base_state_running_norm_eps"],
+        "base_state_norm_stats": state_conditioner.export_state(),
+        "mismatch_feature_transform_mode": mismatch_cfg["mismatch_feature_transform_mode"],
+        "mismatch_transform_tanh_scale": mismatch_cfg["mismatch_transform_tanh_scale"],
+        "mismatch_transform_post_clip": mismatch_cfg["mismatch_transform_post_clip"],
         "append_rho_to_state": append_rho_to_state,
         "authority_beta_res": authority_beta_res,
         "authority_du0_res": authority_du0_res,
         "authority_rho_floor": authority_rho_floor,
         "authority_rho_power": authority_rho_power,
+        "rho_mapping_mode": rho_mapping_mode,
+        "authority_rho_k": authority_rho_k,
+        "rho_raw_source": "tracking_error_raw",
+        "residual_zero_deadband_enabled": residual_zero_deadband_enabled,
+        "residual_zero_tracking_raw_threshold": residual_zero_tracking_raw_threshold,
+        "residual_zero_innovation_raw_threshold": residual_zero_innovation_raw_threshold,
+        "observer_update_alignment": observer_update_alignment,
         "test_train_dict": test_train_dict,
         "sub_episodes_changes_dict": sub_episodes_changes_dict,
         "disturbance_profile": disturbance_profile,

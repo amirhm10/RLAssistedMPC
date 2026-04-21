@@ -1,0 +1,11 @@
+system,label,run_path,innovation_gt1_frac,innovation_gt3_frac,innovation_gt10_frac,tracking_gt1_frac,tracking_gt3_frac,tracking_gt10_frac,innovation_p99_ch1,innovation_p99_ch2,tracking_p99_ch1,tracking_p99_ch2
+distillation,"Residual TD3
+mismatch",Distillation\Results\distillation_residual_td3_disturb_fluctuation_mismatch_rho_unified\20260420_180906\input_data.pkl,0.0083625,0.0,0.0,0.29561875,0.1044875,0.01795,0.6706495593700514,1.142106295359471,5.94658598817026,16.271571599534898
+distillation,"Residual SAC
+mismatch",Distillation\Results\distillation_residual_sac_disturb_fluctuation_mismatch_rho_unified\20260415_191909\input_data.pkl,0.10480625,0.033975,0.0002125,0.84415625,0.68070625,0.293525,5.632626150096382,6.413411691642703,64.21921172943887,80.36208732605316
+distillation,"Reid TD3
+mismatch",Distillation\Results\distillation_reidentification_td3_disturb_fluctuation_mismatch_unified\20260418_115020\input_data.pkl,0.008975,6.25e-06,0.0,0.38209375,0.12163125,0.01955625,0.7621012882547809,1.3383695293203406,6.331588491747123,18.58744761910047
+polymer,"Residual TD3
+mismatch",Polymer\Results\td3_residual_disturb\20260413_004620\input_data.pkl,0.100646875,0.0497125,0.02506875,0.523015625,0.408378125,0.262840625,21.05930487105569,0.880205560648686,311.78232373811596,93.42365045039446
+polymer,"Reid TD3
+mismatch",Polymer\Results\td3_reidentification_disturb\20260415_120803\input_data.pkl,0.10595,0.071953125,0.027675,0.577975,0.44584375,0.2939,31.944663176461333,0.5672229254149866,316.7613288197985,96.24586683936167

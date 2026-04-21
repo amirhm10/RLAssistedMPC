@@ -48,12 +48,19 @@ def _copy_replay_defaults():
 def _copy_mismatch_defaults():
     return {
         "mismatch_clip": 3.0,
+        "base_state_norm_mode": "fixed_minmax",
+        "base_state_running_norm_clip": 10.0,
+        "base_state_running_norm_eps": 1e-8,
         "innovation_scale_mode": "band_ref",
         "innovation_scale_ref": None,
         "tracking_scale_mode": "eta_band",
         "tracking_eta_tol": 0.3,
         "tracking_scale_floor": None,
         "tracking_scale_floor_mode": "half_eta_band_ref",
+        "mismatch_feature_transform_mode": "hard_clip",
+        "mismatch_transform_tanh_scale": 3.0,
+        "mismatch_transform_post_clip": None,
+        "observer_update_alignment": "legacy_previous_measurement",
     }
 
 
@@ -66,6 +73,11 @@ def _copy_residual_authority_defaults():
         "authority_eta_tol": 0.3,
         "authority_rho_floor": 0.15,
         "authority_rho_power": 1.0,
+        "rho_mapping_mode": "clipped_linear",
+        "authority_rho_k": 0.55,
+        "residual_zero_deadband_enabled": False,
+        "residual_zero_tracking_raw_threshold": 0.1,
+        "residual_zero_innovation_raw_threshold": 0.1,
     }
 
 
@@ -321,8 +333,8 @@ POLYMER_HORIZON_DUELING_DEFAULTS = {
     },
     "episode_defaults": {
         "n_tests": 200,
-        "set_points_len": 200,
-        "warm_start": 5,
+        "set_points_len": 400,
+        "warm_start": 10,
         "test_cycle": [False, False, False, False, False],
     },
     "controller": {

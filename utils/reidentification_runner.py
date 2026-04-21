@@ -17,6 +17,7 @@ from utils.helpers import (
     shift_control_sequence,
     step_system_with_disturbance,
 )
+from utils.observation_conditioning import update_observer_state as shared_update_observer_state
 from utils.reidentification import (
     REIDENTIFICATION_BASIS_FAMILY,
     REIDENTIFICATION_BLEND_EXTRA_CLIP,
@@ -43,7 +44,12 @@ from utils.reidentification import (
     solve_reidentification_batch,
 )
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
-from utils.state_features import build_rl_state, compute_tracking_scale_now, resolve_mismatch_settings
+from utils.state_features import (
+    build_rl_state,
+    compute_tracking_scale_now,
+    make_state_conditioner_from_settings,
+    resolve_mismatch_settings,
+)
 
 
 def _relative_fro(candidate, nominal):
@@ -79,8 +85,30 @@ def _solve_prediction_step(mpc_obj, y_sp, u_prev_dev, x0_model, initial_guess, b
     return sol
 
 
-def _update_observer_state(*, A_obs_aug, B_obs_aug, L_obs, x_prev, u_dev, y_prev_scaled, yhat_current):
-    return A_obs_aug @ x_prev + B_obs_aug @ u_dev + L_obs @ (y_prev_scaled - yhat_current).T
+def _update_observer_state(
+    *,
+    A_obs_aug,
+    B_obs_aug,
+    C_aug,
+    L_obs,
+    x_prev,
+    u_dev,
+    y_prev_scaled,
+    y_current_scaled,
+    observer_update_alignment,
+):
+    x_next, _, _ = shared_update_observer_state(
+        A=A_obs_aug,
+        B=B_obs_aug,
+        C=C_aug,
+        L=L_obs,
+        x_prev=x_prev,
+        u_dev=u_dev,
+        y_prev_scaled=y_prev_scaled,
+        y_current_scaled=y_current_scaled,
+        observer_update_alignment=observer_update_alignment,
+    )
+    return x_next
 
 
 def _resolve_system_name(reid_cfg, runtime_ctx) -> str:
@@ -194,6 +222,10 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         n_inputs=n_inputs,
     )
     mismatch_clip = mismatch_cfg["mismatch_clip"]
+    state_conditioner = make_state_conditioner_from_settings(mismatch_cfg)
+    observer_update_alignment = str(
+        reid_cfg.get("observer_update_alignment", mismatch_cfg.get("observer_update_alignment", REIDENTIFICATION_OBSERVER_ALIGNMENT))
+    ).strip().lower()
 
     use_shifted_mpc_warm_start = bool(reid_cfg.get("use_shifted_mpc_warm_start", False))
     id_window = int(reid_cfg.get("id_window", 80))
@@ -322,7 +354,9 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
     delta_y_storage = np.zeros((nFE, n_outputs))
     delta_u_storage = np.zeros((nFE, n_inputs))
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    innovation_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    tracking_error_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_scale_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
 
     eta_A_log = np.zeros(nFE)
@@ -441,6 +475,11 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
             innovation_scale_ref=mismatch_cfg["innovation_scale_ref"],
             tracking_scale_now=tracking_scale_now,
             mismatch_clip=mismatch_clip,
+            state_conditioner=state_conditioner,
+            update_state_conditioner=True,
+            mismatch_feature_transform_mode=mismatch_cfg["mismatch_feature_transform_mode"],
+            mismatch_transform_tanh_scale=mismatch_cfg["mismatch_transform_tanh_scale"],
+            mismatch_transform_post_clip=mismatch_cfg["mismatch_transform_post_clip"],
         )
         current_active_A_ratio = _relative_fro(A_id_phys, A0_phys)
         current_active_B_ratio = _relative_fro(B_id_phys, B0_phys)
@@ -461,7 +500,9 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         )
         if innovation_log is not None:
             innovation_log[i, :] = state_debug["innovation"]
+            innovation_raw_log[i, :] = state_debug["innovation_raw"]
             tracking_error_log[i, :] = state_debug["tracking_error"]
+            tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
         if i <= warm_start_step:
@@ -579,11 +620,13 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         xhatdhat[:, i + 1] = _update_observer_state(
             A_obs_aug=A_obs_aug,
             B_obs_aug=B_obs_aug,
+            C_aug=C_aug,
             L_obs=L_obs_current,
             x_prev=xhatdhat[:, i],
             u_dev=(u_mpc[i, :] - ss_scaled_inputs),
             y_prev_scaled=y_prev_scaled,
-            yhat_current=yhat[:, i],
+            y_current_scaled=y_current_scaled,
+            observer_update_alignment=observer_update_alignment,
         )
 
         reward = float(reward_fn(delta_y, delta_u, y_sp_phys))
@@ -615,6 +658,11 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
             innovation_scale_ref=mismatch_cfg["innovation_scale_ref"],
             tracking_scale_now=next_tracking_scale_now,
             mismatch_clip=mismatch_clip,
+            state_conditioner=state_conditioner,
+            update_state_conditioner=False,
+            mismatch_feature_transform_mode=mismatch_cfg["mismatch_feature_transform_mode"],
+            mismatch_transform_tanh_scale=mismatch_cfg["mismatch_transform_tanh_scale"],
+            mismatch_transform_post_clip=mismatch_cfg["mismatch_transform_post_clip"],
         )
 
         x_phys_t = xhatdhat[:n_phys, i]
@@ -868,11 +916,20 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         "warm_start_step": int(warm_start_step),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "innovation_log": innovation_log,
+        "innovation_raw_log": innovation_raw_log,
         "tracking_error_log": tracking_error_log,
+        "tracking_error_raw_log": tracking_error_raw_log,
         "innovation_scale_ref": mismatch_cfg["innovation_scale_ref"],
         "tracking_scale_log": tracking_scale_log,
         "band_ref_scaled": mismatch_cfg["band_ref_scaled"],
         "mismatch_clip": mismatch_clip,
+        "base_state_norm_mode": mismatch_cfg["base_state_norm_mode"],
+        "base_state_running_norm_clip": mismatch_cfg["base_state_running_norm_clip"],
+        "base_state_running_norm_eps": mismatch_cfg["base_state_running_norm_eps"],
+        "base_state_norm_stats": state_conditioner.export_state(),
+        "mismatch_feature_transform_mode": mismatch_cfg["mismatch_feature_transform_mode"],
+        "mismatch_transform_tanh_scale": mismatch_cfg["mismatch_transform_tanh_scale"],
+        "mismatch_transform_post_clip": mismatch_cfg["mismatch_transform_post_clip"],
         "mpc_horizons": (
             int(reid_cfg["predict_h"]),
             int(reid_cfg["cont_h"]),
@@ -883,7 +940,7 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         "prediction_model_mode": "online_lowrank_reidentification_dual_blend",
         "basis_family": str(basis.get("basis_family", basis_family)),
         "id_component_mode": str(reid_cfg.get("id_component_mode", REIDENTIFICATION_COMPONENT_MODE)),
-        "observer_update_alignment": str(reid_cfg.get("observer_update_alignment", REIDENTIFICATION_OBSERVER_ALIGNMENT)),
+        "observer_update_alignment": observer_update_alignment,
         "candidate_guard_mode": str(reid_cfg.get("candidate_guard_mode", REIDENTIFICATION_CANDIDATE_GUARD_MODE)),
         "normalize_blend_extras": bool(reid_cfg.get("normalize_blend_extras", REIDENTIFICATION_NORMALIZE_BLEND_EXTRAS)),
         "blend_extra_clip": blend_extra_clip,

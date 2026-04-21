@@ -1,0 +1,4 @@
+label,system,id_window,id_update_period,rank_B,lambda_prev_B,lambda_0_B,theta_B_halfwidth,freeze_identification_during_warm_start,guard_enabled,candidate_guard_mode,blend_validity_mode,force_eta_constant,has_small_fixed_eta_isolation,normalize_blend_extras,blend_extra_clip,blend_residual_scale,eta_tau_B,guard_validation_fraction,guard_min_validation_samples,guard_min_train_samples,max_theta_clipped_fraction,max_condition_number,max_validation_residual_ratio,max_full_residual_ratio
+polymer current,polymer,80,5,2,0.1,0.001,0.08,False,False,fro_only,n/a,,False,True,3.0,1.0,0.1,nan,nan,nan,nan,nan,nan,nan
+distillation current,distillation,160,20,1,0.5,0.005,0.04,True,True,fro_only,off,,False,False,1000000.0,1000000.0,1.0,0.25,32,80,0.05,30000.0,0.995,1.0
+polymer next-step,polymer,160,20,1,0.5,0.005,0.04,True,True,fro_validation_clip,off (first) / diagnostic_fade later,"[0.05, 0.05]",True,False,1000000.0,1000000.0,1.0,0.25,32,80,0.05,30000.0,0.995,1.0

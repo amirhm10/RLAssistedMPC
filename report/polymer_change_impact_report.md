@@ -1,6 +1,6 @@
 # Polymer Change-Impact Report
 
-Date: 2026-04-20
+Date: 2026-04-21
 
 This report is now self-contained: the comparison tables, figures, explanations, and source notes are inside the report instead of being listed as external links only.
 
@@ -125,6 +125,12 @@ So the transform change clearly improved what the policy can distinguish. The re
 
 The reidentification failure diagnosis is strong:
 
+The update math makes the failure mode explicit. The shared reidentification path is solving a regularized batch problem of the form
+
+`theta_hat = argmin_theta ||Y - Phi theta||_2^2 + lambda_prev ||theta - theta_prev||_2^2 + lambda_0 ||theta||_2^2`
+
+on each accepted identification window. The information content of that window is carried by the Gram matrix `G = Phi^T Phi`. If `G` is poorly conditioned, then small data noise produces large parameter movement; this is why the report tracks the condition number `kappa(G) = sigma_max(G) / sigma_min(G)` and the candidate residual ratios. In practice, a useful candidate should satisfy `r_val = ||e_val,cand|| / ||e_val,prev|| < 1` and `r_full = ||e_full,cand|| / ||e_full,prev|| <= 1` while staying inside the parameter and conditioning guards.
+
 - Updates are attempted often enough. The update-event fraction is `0.1999` in the refreshed run, essentially the same as legacy.
 - But almost none of those attempts survive the guard. Candidate-valid fraction is only `0.0011`, and update-success fraction is only `0.0002`.
 - The regression windows are numerically bad. The refreshed run has a median condition number of `185509.1` and p95 of `2199603.2`.
@@ -142,6 +148,58 @@ That interpretation is consistent with the literature:
 
 The result in this repository matches that story closely. The refreshed reidentification run still sees the mismatch better than before, but the identification subproblem is not healthy enough to convert that information into good model updates.
 
+## How To Extend Polymer Reidentification
+
+The next polymer reidentification work should not start from scratch. The shared runner already contains several hardening levers that were added for the distillation branch and can be reused here.
+
+| Surface | id_window | id_update_period | rank_B | theta_B halfwidth | lambda_prev_B | lambda_0_B | freeze warm-start | validation guard | guard mode | blend mode | force_eta_constant |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| polymer current | 80 | 5 | 2 | 0.080 | 1.0e-01 | 1.0e-03 | no | no | fro_only | n/a | None |
+| distillation current | 160 | 20 | 1 | 0.040 | 5.0e-01 | 5.0e-03 | yes | yes | fro_only | off | None |
+| polymer next-step | 160 | 20 | 1 | 0.040 | 5.0e-01 | 5.0e-03 | yes | yes | fro_validation_clip | off (first) / diagnostic_fade later | [0.05, 0.05] |
+
+![Polymer versus distillation reidentification hardening levers and polymer next-step recommendation](./polymer_change_impact/figures/polymer_reid_extension_comparison.png)
+
+This comparison suggests a practical three-layer extension strategy for polymer reidentification:
+
+1. Borrow the hardening that already exists in the distillation path. The biggest immediate differences are cadence and warm-start protection: polymer still runs at `80/5`, while distillation moved to `160/20` and enables `freeze_identification_during_warm_start=True`. The distillation diagnostics in this repo showed that the slower `160/20` cadence did not cause collapse by itself; warm-start hidden drift and excessive blend authority were the real problems.
+2. Make the polymer B-side more conservative. Distillation already tightened the B side to `rank_B=1`, `lambda_prev_B=5.0e-01`, `lambda_0_B=5.0e-03`, and `theta_B` halfwidth `0.040`. Polymer is still at `rank_B=2`, `lambda_prev_B=1.0e-01`, `lambda_0_B=1.0e-03`, and halfwidth `0.080`. Given how rarely polymer accepts candidate updates, reducing B flexibility is a reasonable next ablation.
+3. Turn on the validation-aware guard layer before trusting the RL blend again. The shared runner already supports `guard_validation_fraction`, minimum train/validation sample thresholds, clipped-theta checks, and residual-ratio / condition-number limits. Polymer is not using any of them now, but the recommended next-step surface in the table enables them with the same thresholds already tested on distillation.
+
+The one distillation idea that should be borrowed only as a diagnostic, not as the final method, is `force_eta_constant`. In the distillation branch, a small fixed `eta` was useful to separate "identification quality" from "RL blend authority." That same isolation test is worthwhile in polymer: if polymer still fails with a tiny fixed blend such as `[0.05, 0.05]`, the bottleneck is the identification engine itself, not the policy.
+
+The one distillation idea that should not be copied blindly is `blend_validity_mode`. Distillation explored validity-aware fading, but the current active defaults are still `off`. For polymer, the correct order is:
+
+- first make candidates valid more often with cadence, warm-start freeze, B-side restriction, and validation guards
+- then use `diagnostic_fade` only as a second-stage ablation if candidate quality improves but aggressive blend authority still hurts control
+
+## Literature-Backed Reidentification Roadmap
+
+The literature suggests three extensions beyond the current repo surface:
+
+1. Informative-window gating and explicit excitation.
+   Persistence of excitation is the condition that makes identification informative. The adaptive MPC literature now includes PE conditions directly in the controller or in the update trigger, rather than passively hoping the closed-loop trajectory contains enough information [Berberich2022] [Lu2023]. For polymer, that means the update trigger should depend not only on buffer length but also on an information or singular-value test. When the test fails, the safest next step is not to update the model.
+
+2. Active exploration when identification is starved.
+   Dual/adaptive MPC literature treats control as both a performance input and an identification input [Parsi2020]. In this project that does not mean abandoning RL-assisted MPC. It means adding a small, bounded probing policy or excitation schedule that is activated only when the identification window is uninformative and the plant is in a safe region. This is more targeted than letting the blend policy indirectly create excitation.
+
+3. More robust online estimators.
+   The polymer logs look like a noisy, ill-conditioned regression problem. The recursive identification literature suggests regularized recursive least-squares or total least-squares variants when both regressors and outputs are noisy [Lim2016]. The current batch ridge solve is a reasonable baseline, but if polymer remains condition-limited after the guard/cadence changes, a recursive regularized estimator is the next algorithmic step worth testing.
+
+A concrete borrowing path from distillation is therefore:
+
+- Step 1: move polymer to the distillation-style hardening surface without changing the RL policy structure: slower `id_window/id_update_period`, `freeze_identification_during_warm_start=True`, smaller `rank_B`, tighter `theta_B` bounds, and the existing validation/conditioning guard thresholds.
+- Step 2: run a fixed-small-eta study exactly as an isolation tool. If a tiny constant `eta` still fails, the identification engine is the blocker. If a tiny constant `eta` works but learned `eta` does not, then the next work is blend supervision rather than estimator redesign.
+- Step 3: add informative-window gating before candidate construction. Concretely, require the buffer Gram matrix or its smallest singular value to clear a threshold before solving the batch update, so the policy cannot keep pushing on a statistically empty window.
+- Step 4: only after steps 1-3, consider validity-aware blend fading or bounded excitation triggers. Those are second-stage tools, not substitutes for a non-informative window.
+
+A practical order for polymer is therefore:
+
+- Stage A: enable distillation-style hardening in the current shared runner
+- Stage B: run a fixed-small-eta isolation study to separate blend problems from identification problems
+- Stage C: add informative-window gating and, if needed, bounded excitation triggers
+- Stage D: only after A-C, test stronger blend policies or new recursive estimators
+
 ## Conclusions
 
 From the saved polymer runs, the recent changes did matter, but not in one uniform way:
@@ -151,7 +209,7 @@ From the saved polymer runs, the recent changes did matter, but not in one unifo
 - yes, they affected matrix and structured matrix, but matrix is sensitive to the observer choice and structured matrix is mostly reward-level improvement rather than a clear tail-MAE win
 - no, the same changes did not fix polymer reidentification, because that family is currently bottlenecked by candidate-model quality, conditioning, and validity, not only by RL-state scaling
 
-The immediate project implication is that polymer residual remains the strongest beneficiary of the new conditioning path, matrix and structured matrix are secondary candidates for further tuning, and polymer reidentification needs identification-layer changes next: informative-window gating, stronger candidate validation, and likely some regularization in the online estimator.
+The immediate project implication is that polymer residual remains the strongest beneficiary of the new conditioning path, matrix and structured matrix are secondary candidates for further tuning, and polymer reidentification needs identification-layer changes next: distillation-style hardening first, then informative-window gating, and then stronger online estimation methods if the candidate-valid fraction remains near zero.
 
 ## Sources
 
@@ -159,6 +217,9 @@ The immediate project implication is that polymer residual remains the strongest
 - [Mu2022] Mu et al., *Persistence of excitation for identifying switched linear systems*, Automatica 2022.
 - [Binette2016] Binette and Srinivasan, *On the Use of Nonlinear Model Predictive Control without Parameter Adaptation for Batch Processes*, Processes 2016.
 - [Wang2022] *Offset-free ARX-based adaptive model predictive control applied to a nonlinear process*, ISA Transactions 2022.
+- [Berberich2022] *Forward-looking persistent excitation in model predictive control*, Automatica 2022.
+- [Lu2023] *Robust adaptive model predictive control with persistent excitation conditions*, Automatica 2023.
+- [Parsi2020] *Active exploration in adaptive model predictive control*, ETH Zurich research collection 2020.
 - [Hochstenbach2011] Hochstenbach and Reichel, *Fractional Tikhonov regularization for linear discrete ill-posed problems*, BIT Numerical Mathematics 2011.
 - [Lim2016] Lim and Pang, *l1-regularized recursive total least squares based sparse system identification for the error-in-variables*, SpringerPlus 2016.
 
@@ -166,5 +227,8 @@ The immediate project implication is that polymer residual remains the strongest
 [Mu2022]: https://doi.org/10.1016/j.automatica.2021.110142
 [Binette2016]: https://www.mdpi.com/2227-9717/4/3/27
 [Wang2022]: https://www.sciencedirect.com/science/article/abs/pii/S0019057821002937
+[Berberich2022]: https://doi.org/10.1016/j.automatica.2021.110033
+[Lu2023]: https://doi.org/10.1016/j.automatica.2023.110959
+[Parsi2020]: https://www.research-collection.ethz.ch/handle/20.500.11850/461407
 [Hochstenbach2011]: https://doi.org/10.1007/s10543-011-0313-9
 [Lim2016]: https://doi.org/10.1186/s40064-016-3120-6

@@ -17,44 +17,132 @@ DATA_ROOT = REPORT_ROOT / "data"
 BASELINE_PATH = REPO_ROOT / "Polymer" / "Data" / "mpc_results_dist.pickle"
 POLYMER_MINMAX_PATH = REPO_ROOT / "Polymer" / "Data" / "min_max_states.pickle"
 
+OUTPUT_LABELS = ["eta", "T"]
+FAMILY_TITLES = {
+    "baseline": "Baseline MPC",
+    "residual": "Residual",
+    "matrix": "Matrix",
+    "structured": "Structured Matrix",
+    "reidentification": "Reidentification",
+}
+FAMILY_COLORS = {
+    "baseline": "#4A4A4A",
+    "residual": "#1F77B4",
+    "matrix": "#F28E2B",
+    "structured": "#59A14F",
+    "reidentification": "#E15759",
+}
+VARIANT_HATCH = {
+    "baseline": "",
+    "legacy": "",
+    "refreshed_current_observer": "//",
+    "refreshed_legacy_observer": "xx",
+}
+
 
 @dataclass(frozen=True)
 class RunSpec:
     family: str
+    variant_key: str
+    variant_label: str
     run_label: str
     path: Path
     is_refreshed: bool
+
+    @property
+    def run_id(self) -> str:
+        return f"{self.family}:{self.variant_key}"
+
+    @property
+    def short_label(self) -> str:
+        base = {
+            "residual": "Residual",
+            "matrix": "Matrix",
+            "structured": "Structured",
+            "reidentification": "ReID",
+        }[self.family]
+        variant = {
+            "legacy": "legacy",
+            "refreshed_current_observer": "refresh current",
+            "refreshed_legacy_observer": "refresh legacy",
+        }[self.variant_key]
+        return f"{base}\n{variant}"
 
 
 RUN_SPECS = [
     RunSpec(
         family="residual",
+        variant_key="legacy",
+        variant_label="legacy",
         run_label="Residual legacy",
         path=REPO_ROOT / "Polymer" / "Results" / "td3_residual_disturb" / "20260413_004620" / "input_data.pkl",
         is_refreshed=False,
     ),
     RunSpec(
         family="residual",
+        variant_key="refreshed_current_observer",
+        variant_label="refreshed (current-observer run)",
         run_label="Residual refreshed",
         path=REPO_ROOT / "Polymer" / "Results" / "td3_residual_disturb" / "20260420_225631" / "input_data.pkl",
         is_refreshed=True,
     ),
     RunSpec(
         family="matrix",
+        variant_key="legacy",
+        variant_label="legacy",
         run_label="Matrix legacy",
         path=REPO_ROOT / "Polymer" / "Results" / "td3_multipliers_disturb" / "20260411_011134" / "input_data.pkl",
         is_refreshed=False,
     ),
     RunSpec(
         family="matrix",
-        run_label="Matrix refreshed",
+        variant_key="refreshed_current_observer",
+        variant_label="refreshed (current-observer run)",
+        run_label="Matrix refreshed current-observer",
         path=REPO_ROOT / "Polymer" / "Results" / "td3_multipliers_disturb" / "20260420_215528" / "input_data.pkl",
         is_refreshed=True,
     ),
+    RunSpec(
+        family="matrix",
+        variant_key="refreshed_legacy_observer",
+        variant_label="refreshed (legacy-observer run)",
+        run_label="Matrix refreshed legacy-observer",
+        path=REPO_ROOT / "Polymer" / "Results" / "td3_multipliers_disturb" / "20260420_234944" / "input_data.pkl",
+        is_refreshed=True,
+    ),
+    RunSpec(
+        family="structured",
+        variant_key="legacy",
+        variant_label="legacy",
+        run_label="Structured matrix legacy",
+        path=REPO_ROOT / "Polymer" / "Results" / "td3_structured_matrices_disturb" / "20260409_193654" / "input_data.pkl",
+        is_refreshed=False,
+    ),
+    RunSpec(
+        family="structured",
+        variant_key="refreshed_legacy_observer",
+        variant_label="refreshed (legacy-observer run)",
+        run_label="Structured matrix refreshed legacy-observer",
+        path=REPO_ROOT / "Polymer" / "Results" / "td3_structured_matrices_disturb" / "20260420_235100" / "input_data.pkl",
+        is_refreshed=True,
+    ),
+    RunSpec(
+        family="reidentification",
+        variant_key="legacy",
+        variant_label="legacy",
+        run_label="Reidentification legacy",
+        path=REPO_ROOT / "Polymer" / "Results" / "td3_reidentification_disturb" / "20260415_120803" / "input_data.pkl",
+        is_refreshed=False,
+    ),
+    RunSpec(
+        family="reidentification",
+        variant_key="refreshed_legacy_observer",
+        variant_label="refreshed (legacy-observer run)",
+        run_label="Reidentification refreshed legacy-observer",
+        path=REPO_ROOT / "Polymer" / "Results" / "td3_reidentification_disturb" / "20260420_234346" / "input_data.pkl",
+        is_refreshed=True,
+    ),
 ]
-
-
-OUTPUT_LABELS = ["eta", "T"]
 
 
 class RunningFeatureNormalizer:
@@ -91,6 +179,10 @@ def load_pickle(path: Path):
         return pickle.load(fh)
 
 
+def repo_rel(path: Path) -> str:
+    return str(path.relative_to(REPO_ROOT)).replace("\\", "/")
+
+
 def y_array(bundle: dict) -> np.ndarray:
     return np.asarray(bundle.get("y", bundle.get("y_mpc")), float)[:-1]
 
@@ -114,7 +206,11 @@ def detect_setpoint_change_segments(y_sp: np.ndarray) -> list[tuple[int, int]]:
 
 def late_segment_mask(y_sp: np.ndarray) -> np.ndarray:
     mask = np.zeros(len(y_sp), dtype=bool)
-    for start, end in detect_setpoint_change_segments(y_sp):
+    segments = detect_setpoint_change_segments(y_sp)
+    if not segments:
+        mask[max(0, len(y_sp) - min(40, len(y_sp))) :] = True
+        return mask
+    for start, end in segments:
         window = max(10, min(30, (end - start) // 4))
         mask[max(start, end - window) : end] = True
     return mask
@@ -153,6 +249,8 @@ def state_span_summary(bundle: dict, min_s: np.ndarray, max_s: np.ndarray, mode_
     y_sp = np.asarray(bundle["y_sp"], float)
     late_mask = late_segment_mask(y_sp)
     states = physical_xhat_policy_block(bundle, min_s, max_s, mode_override=mode_override)
+    if not np.any(late_mask):
+        late_mask[:] = True
     full_span = quantile_span(states)
     late_span = quantile_span(states[late_mask])
     return {
@@ -164,6 +262,18 @@ def state_span_summary(bundle: dict, min_s: np.ndarray, max_s: np.ndarray, mode_
 
 def exact_clip_fraction(arr: np.ndarray, clip_value: float = 3.0) -> np.ndarray:
     return np.mean(np.isclose(np.abs(arr), clip_value, atol=1e-8), axis=0)
+
+
+def nanmean_pair(values: list[float]) -> float:
+    arr = np.asarray(values, float)
+    if np.all(np.isnan(arr)):
+        return np.nan
+    return float(np.nanmean(arr))
+
+
+def percentile_stats(arr: np.ndarray) -> tuple[float, float, float]:
+    arr = np.asarray(arr, float)
+    return float(np.percentile(arr, 50)), float(np.percentile(arr, 95)), float(np.percentile(arr, 99))
 
 
 def compute_metrics(bundle: dict, baseline_bundle: dict | None = None) -> dict:
@@ -194,34 +304,39 @@ def compute_metrics(bundle: dict, baseline_bundle: dict | None = None) -> dict:
     }
 
     for key in ("innovation_log", "tracking_error_log"):
+        prefix = key.replace("_log", "")
         if bundle.get(key) is not None:
             arr = np.asarray(bundle[key], float)
-            prefix = key.replace("_log", "")
             metrics[f"{prefix}_p99_out1"] = float(np.percentile(np.abs(arr[:, 0]), 99))
             metrics[f"{prefix}_p99_out2"] = float(np.percentile(np.abs(arr[:, 1]), 99))
             metrics[f"{prefix}_exact3_out1"] = float(exact_clip_fraction(arr)[0])
             metrics[f"{prefix}_exact3_out2"] = float(exact_clip_fraction(arr)[1])
         else:
-            prefix = key.replace("_log", "")
             metrics[f"{prefix}_p99_out1"] = np.nan
             metrics[f"{prefix}_p99_out2"] = np.nan
             metrics[f"{prefix}_exact3_out1"] = np.nan
             metrics[f"{prefix}_exact3_out2"] = np.nan
 
     for key in ("innovation_raw_log", "tracking_error_raw_log"):
+        prefix = key.replace("_raw_log", "_raw")
         if bundle.get(key) is not None:
             arr = np.asarray(bundle[key], float)
-            prefix = key.replace("_raw_log", "_raw")
             metrics[f"{prefix}_p99_out1"] = float(np.percentile(np.abs(arr[:, 0]), 99))
             metrics[f"{prefix}_p99_out2"] = float(np.percentile(np.abs(arr[:, 1]), 99))
             metrics[f"{prefix}_gt3_out1"] = float(np.mean(np.abs(arr[:, 0]) > 3.0))
             metrics[f"{prefix}_gt3_out2"] = float(np.mean(np.abs(arr[:, 1]) > 3.0))
         else:
-            prefix = key.replace("_raw_log", "_raw")
             metrics[f"{prefix}_p99_out1"] = np.nan
             metrics[f"{prefix}_p99_out2"] = np.nan
             metrics[f"{prefix}_gt3_out1"] = np.nan
             metrics[f"{prefix}_gt3_out2"] = np.nan
+
+    metrics["innovation_p99_mean"] = nanmean_pair([metrics["innovation_p99_out1"], metrics["innovation_p99_out2"]])
+    metrics["tracking_error_p99_mean"] = nanmean_pair([metrics["tracking_error_p99_out1"], metrics["tracking_error_p99_out2"]])
+    metrics["innovation_raw_p99_mean"] = nanmean_pair([metrics["innovation_raw_p99_out1"], metrics["innovation_raw_p99_out2"]])
+    metrics["tracking_error_raw_p99_mean"] = nanmean_pair([metrics["tracking_error_raw_p99_out1"], metrics["tracking_error_raw_p99_out2"]])
+    metrics["innovation_exact3_mean"] = nanmean_pair([metrics["innovation_exact3_out1"], metrics["innovation_exact3_out2"]])
+    metrics["tracking_error_exact3_mean"] = nanmean_pair([metrics["tracking_error_exact3_out1"], metrics["tracking_error_exact3_out2"]])
 
     if bundle.get("rho_log") is not None:
         rho = np.asarray(bundle["rho_log"], float)
@@ -244,6 +359,16 @@ def compute_metrics(bundle: dict, baseline_bundle: dict | None = None) -> dict:
         metrics["residual_norm_mean"] = np.nan
         metrics["residual_norm_tail"] = np.nan
 
+    if bundle.get("mapped_multiplier_log") is not None:
+        mapped = np.asarray(bundle["mapped_multiplier_log"], float)
+        metrics["multiplier_abs_mean"] = float(np.mean(np.abs(mapped)))
+        metrics["multiplier_abs_p95"] = float(np.percentile(np.abs(mapped), 95))
+        metrics["multiplier_step_norm_p95"] = float(np.percentile(np.linalg.norm(mapped, axis=1), 95))
+    else:
+        metrics["multiplier_abs_mean"] = np.nan
+        metrics["multiplier_abs_p95"] = np.nan
+        metrics["multiplier_step_norm_p95"] = np.nan
+
     if baseline_bundle is not None:
         baseline_err_scaled = np.asarray(baseline_bundle["delta_y_storage"], float)
         baseline_y_err_phys = y_array(baseline_bundle) - setpoint_phys(baseline_bundle)
@@ -260,12 +385,83 @@ def compute_metrics(bundle: dict, baseline_bundle: dict | None = None) -> dict:
     return metrics
 
 
-def moving_average(values: np.ndarray, window: int = 10) -> np.ndarray:
-    values = np.asarray(values, float)
-    if values.size < window:
-        return values.copy()
-    kernel = np.ones(window, dtype=float) / float(window)
-    return np.convolve(values, kernel, mode="same")
+def compute_reid_metrics(bundle: dict) -> dict:
+    if bundle.get("id_update_event_log") is None:
+        return {
+            "candidate_valid_frac": np.nan,
+            "fallback_frac": np.nan,
+            "update_event_frac": np.nan,
+            "update_success_frac": np.nan,
+            "condition_median": np.nan,
+            "condition_p95": np.nan,
+            "condition_p99": np.nan,
+            "residual_norm_median": np.nan,
+            "residual_norm_p95": np.nan,
+            "residual_norm_p99": np.nan,
+            "residual_ratio_median": np.nan,
+            "residual_ratio_p95": np.nan,
+            "residual_ratio_p99": np.nan,
+            "eta_A_requested_p95": np.nan,
+            "eta_A_applied_p95": np.nan,
+            "eta_B_requested_p95": np.nan,
+            "eta_B_applied_p95": np.nan,
+            "blend_A_p50": np.nan,
+            "blend_B_p50": np.nan,
+            "source0_frac": np.nan,
+            "source1_frac": np.nan,
+            "source2_frac": np.nan,
+        }
+
+    condition_log = np.asarray(bundle.get("id_condition_number_log", []), float)
+    residual_norm_log = np.asarray(bundle.get("id_residual_norm_log", []), float)
+    residual_ratio_log = bundle.get("id_residual_ratio_full_log")
+    if residual_ratio_log is None:
+        residual_ratio_median = np.nan
+        residual_ratio_p95 = np.nan
+        residual_ratio_p99 = np.nan
+    else:
+        residual_ratio_median, residual_ratio_p95, residual_ratio_p99 = percentile_stats(residual_ratio_log)
+    condition_median, condition_p95, condition_p99 = percentile_stats(condition_log)
+    residual_norm_median, residual_norm_p95, residual_norm_p99 = percentile_stats(residual_norm_log)
+
+    source_codes = np.asarray(bundle.get("id_source_code_log", []), int)
+
+    def pct95(name: str) -> float:
+        values = bundle.get(name)
+        if values is None:
+            return np.nan
+        return float(np.percentile(np.asarray(values, float), 95))
+
+    def pct50(name: str) -> float:
+        values = bundle.get(name)
+        if values is None:
+            return np.nan
+        return float(np.percentile(np.asarray(values, float), 50))
+
+    return {
+        "candidate_valid_frac": float(np.mean(np.asarray(bundle["id_candidate_valid_log"], float))),
+        "fallback_frac": float(np.mean(np.asarray(bundle["id_fallback_log"], float))),
+        "update_event_frac": float(np.mean(np.asarray(bundle["id_update_event_log"], float))),
+        "update_success_frac": float(np.mean(np.asarray(bundle["id_update_success_log"], float))),
+        "condition_median": condition_median,
+        "condition_p95": condition_p95,
+        "condition_p99": condition_p99,
+        "residual_norm_median": residual_norm_median,
+        "residual_norm_p95": residual_norm_p95,
+        "residual_norm_p99": residual_norm_p99,
+        "residual_ratio_median": residual_ratio_median,
+        "residual_ratio_p95": residual_ratio_p95,
+        "residual_ratio_p99": residual_ratio_p99,
+        "eta_A_requested_p95": pct95("eta_A_requested_log"),
+        "eta_A_applied_p95": pct95("eta_A_log"),
+        "eta_B_requested_p95": pct95("eta_B_requested_log"),
+        "eta_B_applied_p95": pct95("eta_B_log"),
+        "blend_A_p50": pct50("blend_validity_scale_A_log"),
+        "blend_B_p50": pct50("blend_validity_scale_B_log"),
+        "source0_frac": float(np.mean(source_codes == 0)) if source_codes.size else np.nan,
+        "source1_frac": float(np.mean(source_codes == 1)) if source_codes.size else np.nan,
+        "source2_frac": float(np.mean(source_codes == 2)) if source_codes.size else np.nan,
+    }
 
 
 def save_csv(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
@@ -276,139 +472,6 @@ def save_csv(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
             writer.writerow({field: row.get(field) for field in fieldnames})
 
 
-def nanmean_pair(values: list[float]) -> float:
-    arr = np.asarray(values, float)
-    if np.all(np.isnan(arr)):
-        return np.nan
-    return float(np.nanmean(arr))
-
-
-def plot_reward_curves(baseline_bundle: dict, runs: dict[str, dict]) -> None:
-    fig, axs = plt.subplots(2, 1, figsize=(12, 8), constrained_layout=True)
-    colors = {"baseline": "#444444", "legacy": "#3A7CA5", "refreshed": "#D66A4E"}
-    baseline_rewards = moving_average(np.asarray(baseline_bundle["avg_rewards"], float))
-
-    for ax, family in zip(axs, ("residual", "matrix")):
-        legacy = runs[f"{family}_legacy"]
-        refreshed = runs[f"{family}_refreshed"]
-        ax.plot(baseline_rewards, color=colors["baseline"], linewidth=2.0, label="Baseline MPC")
-        ax.plot(moving_average(np.asarray(legacy["bundle"]["avg_rewards"], float)), color=colors["legacy"], linewidth=1.8, label=f"{family.title()} legacy")
-        ax.plot(moving_average(np.asarray(refreshed["bundle"]["avg_rewards"], float)), color=colors["refreshed"], linewidth=1.8, label=f"{family.title()} refreshed")
-        ax.set_title(f"{family.title()} average reward by sub-episode")
-        ax.set_ylabel("avg reward")
-        ax.legend(loc="lower right", fontsize=8)
-    axs[-1].set_xlabel("Sub-episode")
-    fig.savefig(FIG_ROOT / "polymer_change_reward_curves.png", dpi=220)
-    plt.close(fig)
-
-
-def plot_tail_traces(baseline_bundle: dict, runs: dict[str, dict]) -> None:
-    fig, axs = plt.subplots(2, 2, figsize=(13, 8), constrained_layout=True)
-    colors = {"baseline": "#444444", "legacy": "#3A7CA5", "refreshed": "#D66A4E"}
-    tail_n = 400
-
-    for row_idx, family in enumerate(("residual", "matrix")):
-        baseline_y = y_array(baseline_bundle)[-tail_n:]
-        baseline_sp = setpoint_phys(baseline_bundle)[-tail_n:]
-        legacy_y = y_array(runs[f"{family}_legacy"]["bundle"])[-tail_n:]
-        refreshed_y = y_array(runs[f"{family}_refreshed"]["bundle"])[-tail_n:]
-        time = np.arange(tail_n)
-        for out_idx, label in enumerate(OUTPUT_LABELS):
-            ax = axs[row_idx, out_idx]
-            ax.plot(time, baseline_sp[:, out_idx], color="black", linestyle="--", linewidth=1.2, label="setpoint")
-            ax.plot(time, baseline_y[:, out_idx], color=colors["baseline"], linewidth=1.8, label="baseline MPC")
-            ax.plot(time, legacy_y[:, out_idx], color=colors["legacy"], linewidth=1.4, label="legacy")
-            ax.plot(time, refreshed_y[:, out_idx], color=colors["refreshed"], linewidth=1.4, label="refreshed")
-            ax.set_title(f"{family.title()} tail trace: {label}")
-            if out_idx == 0:
-                ax.set_ylabel("physical output")
-            if row_idx == 1:
-                ax.set_xlabel("Step")
-            if row_idx == 0 and out_idx == 1:
-                ax.legend(loc="best", fontsize=8)
-    fig.savefig(FIG_ROOT / "polymer_change_tail_traces.png", dpi=220)
-    plt.close(fig)
-
-
-def plot_performance_bars(summary_rows: list[dict]) -> None:
-    fig, axs = plt.subplots(2, 2, figsize=(12.5, 8.5), constrained_layout=True)
-    order = ["baseline", "legacy", "refreshed"]
-    colors = {"baseline": "#444444", "legacy": "#3A7CA5", "refreshed": "#D66A4E"}
-
-    for row_idx, family in enumerate(("residual", "matrix")):
-        rows = [row for row in summary_rows if row["family"] == family or row["family"] == "baseline"]
-        rows = sorted(rows, key=lambda row: order.index(row["variant"]))
-        x = np.arange(len(rows))
-        axs[row_idx, 0].bar(x, [row["phys_mae_tail_mean"] for row in rows], color=[colors[row["variant"]] for row in rows])
-        axs[row_idx, 0].set_title(f"{family.title()} tail physical MAE (mean across outputs)")
-        axs[row_idx, 0].set_xticks(x)
-        axs[row_idx, 0].set_xticklabels([row["variant"] for row in rows])
-        axs[row_idx, 0].set_ylabel("MAE")
-
-        axs[row_idx, 1].bar(x, [row["reward_final20_mean"] for row in rows], color=[colors[row["variant"]] for row in rows])
-        axs[row_idx, 1].set_title(f"{family.title()} final-20 sub-episode reward")
-        axs[row_idx, 1].set_xticks(x)
-        axs[row_idx, 1].set_xticklabels([row["variant"] for row in rows])
-        axs[row_idx, 1].set_ylabel("avg reward")
-
-    fig.savefig(FIG_ROOT / "polymer_change_performance_bars.png", dpi=220)
-    plt.close(fig)
-
-
-def plot_state_conditioning(state_rows: list[dict]) -> None:
-    fig, axs = plt.subplots(1, 2, figsize=(12.5, 4.8), constrained_layout=True)
-    colors = {"legacy actual": "#3A7CA5", "refreshed actual": "#D66A4E", "refreshed fixed counterfactual": "#7B8C9B"}
-    families = ["residual", "matrix"]
-    labels = ["legacy actual", "refreshed actual", "refreshed fixed counterfactual"]
-
-    for ax, family in zip(axs, families):
-        rows = [row for row in state_rows if row["family"] == family]
-        x = np.arange(len(labels))
-        full_vals = [next(row for row in rows if row["view"] == label)["full_span_med"] for label in labels]
-        late_vals = [next(row for row in rows if row["view"] == label)["late_span_med"] for label in labels]
-        width = 0.35
-        ax.bar(x - width / 2, full_vals, width=width, color=[colors[label] for label in labels], label="full 5-95% span")
-        ax.bar(x + width / 2, late_vals, width=width, color=[colors[label] for label in labels], alpha=0.45, label="late-window 5-95% span")
-        ax.set_title(f"{family.title()} policy-visible physical xhat span")
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels, rotation=12, ha="right")
-        ax.set_ylabel("median span")
-        ax.legend(fontsize=8, loc="upper left")
-    fig.savefig(FIG_ROOT / "polymer_change_state_conditioning.png", dpi=220)
-    plt.close(fig)
-
-
-def plot_feature_diagnostics(summary_rows: list[dict]) -> None:
-    fig, axs = plt.subplots(1, 2, figsize=(12.5, 4.8), constrained_layout=True)
-
-    residual_rows = [row for row in summary_rows if row["family"] == "residual" and row["variant"] in {"legacy", "refreshed"}]
-    residual_rows = sorted(residual_rows, key=lambda row: row["variant"])
-    x = np.arange(len(residual_rows))
-    axs[0].bar(x - 0.22, [row["tracking_error_exact3_mean"] for row in residual_rows], width=0.22, label="tracking exact |3| frac")
-    axs[0].bar(x, [row["innovation_exact3_mean"] for row in residual_rows], width=0.22, label="innovation exact |3| frac")
-    axs[0].bar(x + 0.22, [row["rho_eq1_frac"] for row in residual_rows], width=0.22, label="rho=1 frac")
-    axs[0].plot(x + 0.22, [row["deadband_frac"] for row in residual_rows], color="black", marker="o", linewidth=1.2, label="deadband frac")
-    axs[0].set_title("Residual supervisory diagnostics")
-    axs[0].set_xticks(x)
-    axs[0].set_xticklabels([row["variant"] for row in residual_rows])
-    axs[0].set_ylabel("fraction")
-    axs[0].legend(fontsize=8, loc="upper right")
-
-    matrix_rows = [row for row in summary_rows if row["family"] == "matrix" and row["variant"] in {"legacy", "refreshed"}]
-    matrix_rows = sorted(matrix_rows, key=lambda row: row["variant"])
-    x = np.arange(len(matrix_rows))
-    axs[1].bar(x - 0.18, [row["tracking_error_p99_mean"] for row in matrix_rows], width=0.18, label="tracking p99 |transformed|")
-    axs[1].bar(x, [row["innovation_p99_mean"] for row in matrix_rows], width=0.18, label="innovation p99 |transformed|")
-    axs[1].bar(x + 0.18, [row["tracking_error_raw_p99_mean"] for row in matrix_rows], width=0.18, label="tracking p99 |raw|")
-    axs[1].set_title("Matrix mismatch-feature dynamic range")
-    axs[1].set_xticks(x)
-    axs[1].set_xticklabels([row["variant"] for row in matrix_rows])
-    axs[1].set_ylabel("magnitude")
-    axs[1].legend(fontsize=8, loc="upper right")
-    fig.savefig(FIG_ROOT / "polymer_change_feature_diagnostics.png", dpi=220)
-    plt.close(fig)
-
-
 def fmt(value: float, digits: int = 4) -> str:
     if value != value:
         return "n/a"
@@ -416,112 +479,657 @@ def fmt(value: float, digits: int = 4) -> str:
 
 
 def pct_change(new_value: float, old_value: float) -> str:
-    if abs(old_value) < 1e-12:
+    if old_value != old_value or abs(old_value) < 1e-12 or new_value != new_value:
         return "n/a"
     return f"{100.0 * (new_value - old_value) / old_value:+.1f}%"
+
+
+def markdown_table(headers: list[str], rows: list[list[str]]) -> list[str]:
+    lines = [
+        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join(["---"] * len(headers)) + " |",
+    ]
+    for row in rows:
+        lines.append("| " + " | ".join(row) + " |")
+    return lines
+
+
+def image_lines(filename: str, alt: str) -> list[str]:
+    return [f"![{alt}](./polymer_change_impact/figures/{filename})", ""]
+
+
+def add_bar_annotations(ax, values: list[float]) -> None:
+    ymin, ymax = ax.get_ylim()
+    span = max(ymax - ymin, 1e-12)
+    for idx, value in enumerate(values):
+        if value != value:
+            continue
+        ax.text(idx, value + 0.02 * span, f"{value:.3f}", ha="center", va="bottom", fontsize=7, rotation=90)
+
+
+def plot_performance_overview(summary_rows: list[dict], state_rows: list[dict], spec_map: dict[str, RunSpec]) -> None:
+    fig, axs = plt.subplots(2, 2, figsize=(16, 10), constrained_layout=True)
+
+    baseline_row = next(row for row in summary_rows if row["family"] == "baseline")
+    run_rows = [row for row in summary_rows if row["family"] != "baseline"]
+    labels = ["Baseline\nMPC"] + [spec_map[row["run_id"]].short_label for row in run_rows]
+    colors = [FAMILY_COLORS["baseline"]] + [FAMILY_COLORS[row["family"]] for row in run_rows]
+    hatches = [""] + [VARIANT_HATCH[row["variant_key"]] for row in run_rows]
+
+    mae_values = [baseline_row["phys_mae_tail_mean"]] + [row["phys_mae_tail_mean"] for row in run_rows]
+    reward_values = [baseline_row["reward_final20_mean"]] + [row["reward_final20_mean"] for row in run_rows]
+    delta_values = [0.0] + [row["tail_phys_mae_delta_vs_baseline"] for row in run_rows]
+
+    ax = axs[0, 0]
+    x = np.arange(len(labels))
+    bars = ax.bar(x, mae_values, color=colors)
+    for bar, hatch in zip(bars, hatches):
+        bar.set_hatch(hatch)
+    ax.set_title("Tail physical MAE mean across saved polymer runs")
+    ax.set_ylabel("MAE")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+
+    ax = axs[0, 1]
+    bars = ax.bar(x, reward_values, color=colors)
+    for bar, hatch in zip(bars, hatches):
+        bar.set_hatch(hatch)
+    ax.set_title("Final-20 sub-episode reward across saved polymer runs")
+    ax.set_ylabel("avg reward")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+
+    ax = axs[1, 0]
+    bars = ax.bar(x, delta_values, color=colors)
+    for bar, hatch in zip(bars, hatches):
+        bar.set_hatch(hatch)
+    ax.axhline(0.0, color="black", linewidth=1.0)
+    ax.set_title("Tail physical MAE delta vs baseline MPC")
+    ax.set_ylabel("MAE delta")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+
+    ax = axs[1, 1]
+    refreshed_ids = [run_id for run_id, spec in spec_map.items() if spec.is_refreshed]
+    refreshed_labels = []
+    gains = []
+    gain_colors = []
+    gain_hatches = []
+    for run_id in refreshed_ids:
+        actual = next(row for row in state_rows if row["run_id"] == run_id and row["view"] == "actual")
+        fixed = next(row for row in state_rows if row["run_id"] == run_id and row["view"] == "fixed counterfactual")
+        refreshed_labels.append(spec_map[run_id].short_label)
+        gains.append(actual["full_span_med"] / max(fixed["full_span_med"], 1e-12))
+        gain_colors.append(FAMILY_COLORS[spec_map[run_id].family])
+        gain_hatches.append(VARIANT_HATCH[spec_map[run_id].variant_key])
+    x_gain = np.arange(len(refreshed_labels))
+    bars = ax.bar(x_gain, gains, color=gain_colors)
+    for bar, hatch in zip(bars, gain_hatches):
+        bar.set_hatch(hatch)
+    ax.axhline(1.0, color="black", linewidth=1.0, linestyle="--")
+    ax.set_title("Running normalization full-span gain vs fixed-minmax counterfactual")
+    ax.set_ylabel("gain")
+    ax.set_xticks(x_gain)
+    ax.set_xticklabels(refreshed_labels, rotation=25, ha="right")
+
+    fig.savefig(FIG_ROOT / "polymer_change_performance_overview.png", dpi=220)
+    plt.close(fig)
+
+
+def plot_family_tail_traces(baseline_bundle: dict, runs: dict[str, dict], spec_map: dict[str, RunSpec]) -> None:
+    fig, axs = plt.subplots(4, 2, figsize=(15, 15), constrained_layout=True)
+    tail_n = 400
+    baseline_y = y_array(baseline_bundle)[-tail_n:]
+    baseline_sp = setpoint_phys(baseline_bundle)[-tail_n:]
+    time = np.arange(tail_n)
+
+    family_rows = [
+        ("residual", ["residual:legacy", "residual:refreshed_current_observer"]),
+        ("matrix", ["matrix:legacy", "matrix:refreshed_current_observer", "matrix:refreshed_legacy_observer"]),
+        ("structured", ["structured:legacy", "structured:refreshed_legacy_observer"]),
+        ("reidentification", ["reidentification:legacy", "reidentification:refreshed_legacy_observer"]),
+    ]
+    line_colors = {
+        "baseline": "#4A4A4A",
+        "legacy": "#1F77B4",
+        "refreshed_current_observer": "#F28E2B",
+        "refreshed_legacy_observer": "#59A14F",
+    }
+
+    for row_idx, (family, run_ids) in enumerate(family_rows):
+        for out_idx, output_label in enumerate(OUTPUT_LABELS):
+            ax = axs[row_idx, out_idx]
+            ax.plot(time, baseline_sp[:, out_idx], color="black", linestyle="--", linewidth=1.2, label="setpoint")
+            ax.plot(time, baseline_y[:, out_idx], color=line_colors["baseline"], linewidth=1.8, label="baseline MPC")
+            for run_id in run_ids:
+                spec = spec_map[run_id]
+                run_y = y_array(runs[run_id]["bundle"])[-tail_n:]
+                ax.plot(
+                    time,
+                    run_y[:, out_idx],
+                    color=line_colors[spec.variant_key],
+                    linewidth=1.4,
+                    label=spec.variant_label,
+                )
+            ax.set_title(f"{FAMILY_TITLES[family]} tail trace: {output_label}")
+            if out_idx == 0:
+                ax.set_ylabel("physical output")
+            if row_idx == len(family_rows) - 1:
+                ax.set_xlabel("Step")
+            if row_idx == 0 and out_idx == 1:
+                ax.legend(loc="best", fontsize=8)
+
+    fig.savefig(FIG_ROOT / "polymer_change_family_tail_traces.png", dpi=220)
+    plt.close(fig)
+
+
+def plot_state_conditioning(state_rows: list[dict], spec_map: dict[str, RunSpec]) -> None:
+    refreshed_ids = [run_id for run_id, spec in spec_map.items() if spec.is_refreshed]
+    labels = []
+    full_gain = []
+    late_gain = []
+    colors = []
+    hatches = []
+
+    for run_id in refreshed_ids:
+        actual = next(row for row in state_rows if row["run_id"] == run_id and row["view"] == "actual")
+        fixed = next(row for row in state_rows if row["run_id"] == run_id and row["view"] == "fixed counterfactual")
+        labels.append(spec_map[run_id].short_label)
+        full_gain.append(actual["full_span_med"] / max(fixed["full_span_med"], 1e-12))
+        late_gain.append(actual["late_span_med"] / max(fixed["late_span_med"], 1e-12))
+        colors.append(FAMILY_COLORS[spec_map[run_id].family])
+        hatches.append(VARIANT_HATCH[spec_map[run_id].variant_key])
+
+    fig, axs = plt.subplots(1, 2, figsize=(14, 5), constrained_layout=True)
+    x = np.arange(len(labels))
+
+    bars = axs[0].bar(x, full_gain, color=colors)
+    for bar, hatch in zip(bars, hatches):
+        bar.set_hatch(hatch)
+    axs[0].axhline(1.0, color="black", linewidth=1.0, linestyle="--")
+    axs[0].set_title("Physical xhat full-span gain from running normalization")
+    axs[0].set_ylabel("actual / fixed-minmax")
+    axs[0].set_xticks(x)
+    axs[0].set_xticklabels(labels, rotation=25, ha="right")
+
+    bars = axs[1].bar(x, late_gain, color=colors)
+    for bar, hatch in zip(bars, hatches):
+        bar.set_hatch(hatch)
+    axs[1].axhline(1.0, color="black", linewidth=1.0, linestyle="--")
+    axs[1].set_title("Physical xhat late-window span gain from running normalization")
+    axs[1].set_ylabel("actual / fixed-minmax")
+    axs[1].set_xticks(x)
+    axs[1].set_xticklabels(labels, rotation=25, ha="right")
+
+    fig.savefig(FIG_ROOT / "polymer_change_state_conditioning.png", dpi=220)
+    plt.close(fig)
+
+
+def plot_feature_diagnostics(summary_rows: list[dict], spec_map: dict[str, RunSpec]) -> None:
+    run_rows = [row for row in summary_rows if row["family"] != "baseline"]
+    labels = [spec_map[row["run_id"]].short_label for row in run_rows]
+    colors = [FAMILY_COLORS[row["family"]] for row in run_rows]
+    hatches = [VARIANT_HATCH[row["variant_key"]] for row in run_rows]
+    x = np.arange(len(run_rows))
+
+    fig, axs = plt.subplots(2, 2, figsize=(16, 10), constrained_layout=True)
+
+    panels = [
+        ("innovation_exact3_mean", "Innovation exact |3| fraction", False),
+        ("tracking_error_exact3_mean", "Tracking exact |3| fraction", False),
+        ("innovation_raw_p99_mean", "Innovation raw p99 magnitude", True),
+        ("tracking_error_raw_p99_mean", "Tracking raw p99 magnitude", True),
+    ]
+
+    for ax, (key, title, log_scale) in zip(axs.ravel(), panels):
+        bars = ax.bar(x, [row[key] for row in run_rows], color=colors)
+        for bar, hatch in zip(bars, hatches):
+            bar.set_hatch(hatch)
+        if log_scale:
+            ax.set_yscale("log")
+        ax.set_title(title)
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=25, ha="right")
+        ax.set_ylabel("value")
+
+    fig.savefig(FIG_ROOT / "polymer_change_feature_diagnostics.png", dpi=220)
+    plt.close(fig)
+
+
+def plot_reid_health(reid_rows: list[dict]) -> None:
+    legacy = next(row for row in reid_rows if row["variant_key"] == "legacy")
+    refreshed = next(row for row in reid_rows if row["variant_key"] == "refreshed_legacy_observer")
+    fig, axs = plt.subplots(2, 3, figsize=(17, 9.5), constrained_layout=True)
+
+    labels = ["legacy", "refreshed"]
+    colors = [FAMILY_COLORS["reidentification"], "#F28E2B"]
+    x = np.arange(len(labels))
+
+    frac_keys = [
+        ("update_event_frac", "update event"),
+        ("candidate_valid_frac", "candidate valid"),
+        ("update_success_frac", "update success"),
+        ("fallback_frac", "fallback"),
+    ]
+    width = 0.18
+    for idx, (key, title) in enumerate(frac_keys):
+        axs[0, 0].bar(
+            x + (idx - 1.5) * width,
+            [legacy[key], refreshed[key]],
+            width=width,
+            label=title,
+        )
+    axs[0, 0].set_title("Reidentification event fractions")
+    axs[0, 0].set_xticks(x)
+    axs[0, 0].set_xticklabels(labels)
+    axs[0, 0].set_ylabel("fraction")
+    axs[0, 0].legend(fontsize=8, loc="upper right")
+
+    cond_keys = [("condition_median", "median"), ("condition_p95", "p95"), ("condition_p99", "p99")]
+    for idx, (key, title) in enumerate(cond_keys):
+        axs[0, 1].bar(
+            x + (idx - 1.0) * 0.24,
+            [legacy[key], refreshed[key]],
+            width=0.24,
+            label=title,
+        )
+    axs[0, 1].set_yscale("log")
+    axs[0, 1].set_title("Condition number distribution")
+    axs[0, 1].set_xticks(x)
+    axs[0, 1].set_xticklabels(labels)
+    axs[0, 1].set_ylabel("condition number")
+    axs[0, 1].legend(fontsize=8, loc="upper right")
+
+    ratio_keys = [("residual_ratio_median", "median"), ("residual_ratio_p95", "p95"), ("residual_ratio_p99", "p99")]
+    for idx, (key, title) in enumerate(ratio_keys):
+        axs[0, 2].bar(
+            x + (idx - 1.0) * 0.24,
+            [legacy[key], refreshed[key]],
+            width=0.24,
+            label=title,
+        )
+    axs[0, 2].axhline(1.0, color="black", linewidth=1.0, linestyle="--")
+    axs[0, 2].set_title("Residual-ratio distribution (candidate / incumbent)")
+    axs[0, 2].set_xticks(x)
+    axs[0, 2].set_xticklabels(labels)
+    axs[0, 2].set_ylabel("ratio")
+    axs[0, 2].legend(fontsize=8, loc="upper right")
+
+    eta_labels = ["A req p95", "A app p95", "B req p95", "B app p95"]
+    legacy_eta = [
+        legacy["eta_A_requested_p95"],
+        legacy["eta_A_applied_p95"],
+        legacy["eta_B_requested_p95"],
+        legacy["eta_B_applied_p95"],
+    ]
+    refreshed_eta = [
+        refreshed["eta_A_requested_p95"],
+        refreshed["eta_A_applied_p95"],
+        refreshed["eta_B_requested_p95"],
+        refreshed["eta_B_applied_p95"],
+    ]
+    eta_x = np.arange(len(eta_labels))
+    axs[1, 0].bar(eta_x - 0.18, legacy_eta, width=0.36, label="legacy")
+    axs[1, 0].bar(eta_x + 0.18, refreshed_eta, width=0.36, label="refreshed")
+    axs[1, 0].set_title("Eta requested vs applied p95")
+    axs[1, 0].set_xticks(eta_x)
+    axs[1, 0].set_xticklabels(eta_labels, rotation=15, ha="right")
+    axs[1, 0].set_ylabel("eta")
+    axs[1, 0].legend(fontsize=8, loc="upper right")
+
+    norm_keys = [("residual_norm_median", "median"), ("residual_norm_p95", "p95"), ("residual_norm_p99", "p99")]
+    for idx, (key, title) in enumerate(norm_keys):
+        axs[1, 1].bar(
+            x + (idx - 1.0) * 0.24,
+            [legacy[key], refreshed[key]],
+            width=0.24,
+            label=title,
+        )
+    axs[1, 1].set_yscale("log")
+    axs[1, 1].set_title("Identification residual norm distribution")
+    axs[1, 1].set_xticks(x)
+    axs[1, 1].set_xticklabels(labels)
+    axs[1, 1].set_ylabel("residual norm")
+    axs[1, 1].legend(fontsize=8, loc="upper right")
+
+    axs[1, 2].bar(
+        x,
+        [legacy["source0_frac"], refreshed["source0_frac"]],
+        label="source 0: no update event",
+    )
+    axs[1, 2].bar(
+        x,
+        [legacy["source1_frac"], refreshed["source1_frac"]],
+        bottom=[legacy["source0_frac"], refreshed["source0_frac"]],
+        label="source 1: candidate accepted",
+    )
+    axs[1, 2].bar(
+        x,
+        [legacy["source2_frac"], refreshed["source2_frac"]],
+        bottom=[
+            legacy["source0_frac"] + legacy["source1_frac"],
+            refreshed["source0_frac"] + refreshed["source1_frac"],
+        ],
+        label="source 2: fallback branch",
+    )
+    axs[1, 2].set_title("Reidentification source-code fractions")
+    axs[1, 2].set_xticks(x)
+    axs[1, 2].set_xticklabels(labels)
+    axs[1, 2].set_ylabel("fraction")
+    axs[1, 2].legend(fontsize=7, loc="upper right")
+
+    fig.savefig(FIG_ROOT / "polymer_reid_identification_health.png", dpi=220)
+    plt.close(fig)
 
 
 def write_markdown(
     config_rows: list[dict],
     summary_rows: list[dict],
     state_rows: list[dict],
+    reid_rows: list[dict],
+    spec_map: dict[str, RunSpec],
 ) -> None:
-    baseline = next(row for row in summary_rows if row["family"] == "baseline")
-    residual_legacy = next(row for row in summary_rows if row["family"] == "residual" and row["variant"] == "legacy")
-    residual_refreshed = next(row for row in summary_rows if row["family"] == "residual" and row["variant"] == "refreshed")
-    matrix_legacy = next(row for row in summary_rows if row["family"] == "matrix" and row["variant"] == "legacy")
-    matrix_refreshed = next(row for row in summary_rows if row["family"] == "matrix" and row["variant"] == "refreshed")
+    summary_by_id = {row["run_id"]: row for row in summary_rows if row["family"] != "baseline"}
+    baseline_row = next(row for row in summary_rows if row["family"] == "baseline")
 
-    residual_state = [row for row in state_rows if row["family"] == "residual"]
-    matrix_state = [row for row in state_rows if row["family"] == "matrix"]
+    residual_legacy = summary_by_id["residual:legacy"]
+    residual_refresh = summary_by_id["residual:refreshed_current_observer"]
+    matrix_legacy = summary_by_id["matrix:legacy"]
+    matrix_refresh_current = summary_by_id["matrix:refreshed_current_observer"]
+    matrix_refresh_legacy = summary_by_id["matrix:refreshed_legacy_observer"]
+    structured_legacy = summary_by_id["structured:legacy"]
+    structured_refresh = summary_by_id["structured:refreshed_legacy_observer"]
+    reid_legacy = summary_by_id["reidentification:legacy"]
+    reid_refresh = summary_by_id["reidentification:refreshed_legacy_observer"]
+    reid_legacy_health = next(row for row in reid_rows if row["run_id"] == "reidentification:legacy")
+    reid_refresh_health = next(row for row in reid_rows if row["run_id"] == "reidentification:refreshed_legacy_observer")
 
-    lines = [
-        "# Polymer Residual And Matrix Change-Impact Report",
+    lines: list[str] = [
+        "# Polymer Change-Impact Report",
         "",
         "Date: 2026-04-20",
         "",
-        "This report compares the latest polymer residual and matrix runs against the closest pre-change reference runs and the disturbance baseline MPC.",
+        "This report is now self-contained: the comparison tables, figures, explanations, and source notes are inside the report instead of being listed as external links only.",
         "",
-        "Important scope note:",
+        "It covers the polymer runs that are relevant to the recent method-scoped conditioning changes:",
         "",
-        "- the latest saved polymer runs analyzed here were generated before the later observer-default rollback",
-        "- so the refreshed runs in this report still use `observer_update_alignment=\"current_measurement_corrector\"`",
-        "- the report therefore answers the question \"did the changes affect the runs you actually executed?\" rather than \"what would happen under the final defaults after rollback?\"",
+        "- residual legacy vs refreshed",
+        "- matrix legacy vs two refreshed runs",
+        "- structured-matrix legacy vs refreshed",
+        "- reidentification legacy vs refreshed",
+        "- the disturbance baseline MPC for reference",
         "",
-        "## Runs Compared",
+        "Two scope notes matter:",
         "",
-        "| Family | Variant | Saved run |",
-        "| --- | --- | --- |",
+        "- the first refreshed residual and first refreshed matrix runs were executed before the later observer rollback, so they still used `observer_update_alignment=\"current_measurement_corrector\"`",
+        "- the later matrix, structured-matrix, and reidentification reruns used the final default `observer_update_alignment=\"legacy_previous_measurement\"`",
+        "",
+        "## Conditioning Mathematics",
+        "",
+        "The new polymer state-conditioning path changes the policy input in two places:",
+        "",
+        "1. Physical `xhat` block:",
+        "   fixed min-max uses `z = 2 (x - x_min) / (x_max - x_min) - 1`",
+        "   running normalization uses `z_t = clip((x_t - mu_t) / sqrt(var_t + eps), -c, c)`",
+        "",
+        "2. Mismatch extras (`innovation`, `tracking_error`):",
+        "   legacy path used hard clipping near `+/-3`",
+        "   new path uses `signed_log(e) = sign(e) log(1 + |e|)`",
+        "",
+        "For polymer, the motivation is that fixed min-max gives a very small local slope when the saved width is huge. Running z-score makes the local slope proportional to `1 / sigma_t`, which is exactly the idea used by Stable Baselines3 `VecNormalize` [SB3].",
+        "",
+        "For reidentification, the numerical issue is different. The identification window is solving a noisy regression problem. When the window is not informative enough, the information matrix becomes ill-conditioned, parameter updates become noise-sensitive, and a guard will reject almost every candidate. That is an inference from our logs, and it is consistent with the identification literature on persistency of excitation and regularized least squares [Mu2022] [Binette2016] [Wang2022] [Hochstenbach2011] [Lim2016].",
+        "",
+        "## Run Set And Configs",
+        "",
     ]
-    for row in config_rows:
-        lines.append(f"| {row['family']} | {row['variant']} | `{row['run_path']}` |")
 
-    lines += [
-        "",
-        "## Config Comparison",
-        "",
-        "| Family | Variant | base_state_norm_mode | mismatch_feature_transform_mode | observer_update_alignment | rho_mapping_mode | deadband |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
-    ]
+    config_table_rows = []
     for row in config_rows:
-        lines.append(
-            f"| {row['family']} | {row['variant']} | `{row['base_state_norm_mode']}` | `{row['mismatch_feature_transform_mode']}` | "
-            f"`{row['observer_update_alignment']}` | `{row['rho_mapping_mode']}` | `{row['residual_zero_deadband_enabled']}` |"
+        config_table_rows.append(
+            [
+                row["family"],
+                row["variant_label"],
+                f"`{row['run_path']}`",
+                f"`{row['base_state_norm_mode']}`",
+                f"`{row['mismatch_feature_transform_mode']}`",
+                f"`{row['observer_update_alignment']}`",
+                f"`{row['rho_mapping_mode']}`",
+                f"`{row['candidate_guard_mode']}`",
+                f"`{row['blend_validity_mode']}`",
+            ]
         )
-
+    lines += markdown_table(
+        [
+            "Family",
+            "Variant",
+            "Saved run",
+            "base_state_norm_mode",
+            "mismatch_transform",
+            "observer_alignment",
+            "rho_mapping",
+            "candidate_guard",
+            "blend_validity",
+        ],
+        config_table_rows,
+    )
     lines += [
         "",
         "## Performance Summary",
         "",
-        "| Family | Variant | Tail physical MAE mean | Tail scaled MAE mean | Final-20 avg reward | Tail MAE vs baseline |",
-        "| --- | --- | --- | --- | --- | --- |",
     ]
-    for row in summary_rows:
-        if row["family"] == "baseline":
-            lines.append(
-                f"| baseline | baseline | {fmt(row['phys_mae_tail_mean'])} | {fmt(row['scaled_mae_tail_mean'])} | {fmt(row['reward_final20_mean'])} | n/a |"
-            )
-        else:
-            lines.append(
-                f"| {row['family']} | {row['variant']} | {fmt(row['phys_mae_tail_mean'])} | {fmt(row['scaled_mae_tail_mean'])} | "
-                f"{fmt(row['reward_final20_mean'])} | {fmt(row['tail_phys_mae_delta_vs_baseline'])} |"
-            )
 
-    lines += [
-        "",
-        "## State-Conditioning Summary",
-        "",
-        "| Family | View | full-span median | late-span median | late/full ratio |",
-        "| --- | --- | --- | --- | --- |",
-    ]
-    for row in state_rows:
-        lines.append(
-            f"| {row['family']} | {row['view']} | {fmt(row['full_span_med'])} | {fmt(row['late_span_med'])} | {fmt(row['late_full_ratio_med'])} |"
+    perf_table_rows = []
+    perf_order = ["baseline"] + [spec.run_id for spec in RUN_SPECS]
+    for key in perf_order:
+        if key == "baseline":
+            row = baseline_row
+            perf_table_rows.append(
+                [
+                    "baseline",
+                    "baseline",
+                    fmt(row["phys_mae_tail_mean"]),
+                    fmt(row["scaled_mae_tail_mean"]),
+                    fmt(row["reward_final20_mean"]),
+                    "n/a",
+                    "n/a",
+                    "n/a",
+                ]
+            )
+            continue
+        row = summary_by_id[key]
+        perf_table_rows.append(
+            [
+                row["family"],
+                spec_map[key].variant_label,
+                fmt(row["phys_mae_tail_mean"]),
+                fmt(row["scaled_mae_tail_mean"]),
+                fmt(row["reward_final20_mean"]),
+                fmt(row["tail_phys_mae_delta_vs_baseline"]),
+                fmt(row["tracking_error_raw_p99_mean"]),
+                fmt(row["tracking_error_exact3_mean"]),
+            ]
         )
-
+    lines += markdown_table(
+        [
+            "Family",
+            "Variant",
+            "Tail phys MAE mean",
+            "Tail scaled MAE mean",
+            "Final-20 reward",
+            "Tail MAE delta vs baseline",
+            "Tracking raw p99",
+            "Tracking exact abs3 frac",
+        ],
+        perf_table_rows,
+    )
     lines += [
         "",
-        "## Main Findings",
+        "The top-level result is mixed rather than uniform:",
         "",
-        f"1. The refreshed residual run did make a material difference. Tail physical MAE mean improved from `{fmt(residual_legacy['phys_mae_tail_mean'])}` to `{fmt(residual_refreshed['phys_mae_tail_mean'])}` ({pct_change(residual_refreshed['phys_mae_tail_mean'], residual_legacy['phys_mae_tail_mean'])}), and final-20 reward improved from `{fmt(residual_legacy['reward_final20_mean'])}` to `{fmt(residual_refreshed['reward_final20_mean'])}` ({pct_change(residual_refreshed['reward_final20_mean'], residual_legacy['reward_final20_mean'])}). The refreshed run also reduced `rho=1` fraction from `{fmt(residual_legacy['rho_eq1_frac'])}` to `{fmt(residual_refreshed['rho_eq1_frac'])}` and activated the new deadband on `{fmt(residual_refreshed['deadband_frac'])}` of steps.",
-        f"2. The refreshed matrix run also changed behavior, but the gain is smaller and more mixed. Tail physical MAE mean improved from `{fmt(matrix_legacy['phys_mae_tail_mean'])}` to `{fmt(matrix_refreshed['phys_mae_tail_mean'])}` ({pct_change(matrix_refreshed['phys_mae_tail_mean'], matrix_legacy['phys_mae_tail_mean'])}), and final-20 reward improved from `{fmt(matrix_legacy['reward_final20_mean'])}` to `{fmt(matrix_refreshed['reward_final20_mean'])}` ({pct_change(matrix_refreshed['reward_final20_mean'], matrix_legacy['reward_final20_mean'])}). Output 1 improved more clearly than output 2.",
-        f"3. The new polymer state conditioning definitely changed what the policy saw. On the refreshed residual trajectory, the median full-span of the policy-visible physical `xhat` block is `{fmt(next(row for row in residual_state if row['view'] == 'refreshed actual')['full_span_med'])}` under running normalization versus `{fmt(next(row for row in residual_state if row['view'] == 'refreshed fixed counterfactual')['full_span_med'])}` under a fixed-minmax counterfactual. On the refreshed matrix trajectory, the same comparison is `{fmt(next(row for row in matrix_state if row['view'] == 'refreshed actual')['full_span_med'])}` versus `{fmt(next(row for row in matrix_state if row['view'] == 'refreshed fixed counterfactual')['full_span_med'])}`.",
-        f"4. The residual mismatch features no longer pile up at the hard clip. In the legacy residual run, transformed tracking hit exact `|3|` on `{fmt(residual_legacy['tracking_error_exact3_mean'])}` of samples on average across outputs. In the refreshed residual run, exact-`|3|` mass is essentially zero while the raw tracking p99 is still very large at `{fmt(residual_refreshed['tracking_error_raw_p99_mean'])}`. That means the new transform is exposing severity information instead of flattening it.",
-        f"5. The matrix refreshed run also exposes much more mismatch-feature dynamic range than the legacy run. The mean transformed tracking p99 rises from `{fmt(matrix_legacy['tracking_error_p99_mean'])}` to `{fmt(matrix_refreshed['tracking_error_p99_mean'])}`, and the raw tracking p99 in the refreshed run is `{fmt(matrix_refreshed['tracking_error_raw_p99_mean'])}`. So the changes absolutely affected the matrix policy input, even though the closed-loop improvement is modest rather than dramatic.",
+        f"- Residual improved clearly: tail physical MAE mean moved from `{fmt(residual_legacy['phys_mae_tail_mean'])}` to `{fmt(residual_refresh['phys_mae_tail_mean'])}` ({pct_change(residual_refresh['phys_mae_tail_mean'], residual_legacy['phys_mae_tail_mean'])}), and final-20 reward moved from `{fmt(residual_legacy['reward_final20_mean'])}` to `{fmt(residual_refresh['reward_final20_mean'])}` ({pct_change(residual_refresh['reward_final20_mean'], residual_legacy['reward_final20_mean'])}).",
+        f"- Matrix improved in the first refreshed run, but not robustly in the second. The current-observer rerun reached `{fmt(matrix_refresh_current['phys_mae_tail_mean'])}` tail physical MAE mean, while the later legacy-observer rerun moved back to `{fmt(matrix_refresh_legacy['phys_mae_tail_mean'])}`. Reward stayed better than legacy in both refreshed runs, but the tail-tracking gain was not stable.",
+        f"- Structured matrix changed the policy input and improved reward modestly, but not tail MAE. Tail physical MAE mean stayed essentially flat, from `{fmt(structured_legacy['phys_mae_tail_mean'])}` to `{fmt(structured_refresh['phys_mae_tail_mean'])}`, while final-20 reward improved from `{fmt(structured_legacy['reward_final20_mean'])}` to `{fmt(structured_refresh['reward_final20_mean'])}` ({pct_change(structured_refresh['reward_final20_mean'], structured_legacy['reward_final20_mean'])}).",
+        f"- Reidentification is the one family that did not benefit. Tail physical MAE mean worsened from `{fmt(reid_legacy['phys_mae_tail_mean'])}` to `{fmt(reid_refresh['phys_mae_tail_mean'])}`, and the refreshed run ended slightly worse than baseline MPC by `{fmt(reid_refresh['tail_phys_mae_delta_vs_baseline'])}`.",
         "",
-        "## Figures",
+    ]
+    lines += image_lines("polymer_change_performance_overview.png", "Polymer performance overview across residual, matrix, structured matrix, and reidentification runs")
+    lines += [
+        "The overview figure shows two separate effects:",
         "",
-        "- [Reward curves](./polymer_change_impact/figures/polymer_change_reward_curves.png)",
-        "- [Tail traces](./polymer_change_impact/figures/polymer_change_tail_traces.png)",
-        "- [Performance bars](./polymer_change_impact/figures/polymer_change_performance_bars.png)",
-        "- [State conditioning](./polymer_change_impact/figures/polymer_change_state_conditioning.png)",
-        "- [Feature diagnostics](./polymer_change_impact/figures/polymer_change_feature_diagnostics.png)",
+        "- the policy input changed a lot in the refreshed polymer runs, because the normalized physical `xhat` block became much wider than the fixed-minmax counterfactual",
+        "- the control benefit is family-dependent: residual benefits the most, matrix and structured matrix benefit partly, and reidentification does not",
         "",
-        "## Data Tables",
+        "## Family Tail Traces",
         "",
-        "- [Config summary](./polymer_change_impact/data/config_summary.csv)",
-        "- [Performance summary](./polymer_change_impact/data/performance_summary.csv)",
-        "- [State conditioning summary](./polymer_change_impact/data/state_conditioning_summary.csv)",
+    ]
+    lines += image_lines("polymer_change_family_tail_traces.png", "Tail traces for residual, matrix, structured matrix, and reidentification polymer runs")
+    lines += [
+        "The tail traces make the family-level behavior easier to see:",
+        "",
+        "- residual refreshed stays visibly tighter to the setpoint than residual legacy",
+        "- matrix current-observer refresh is the strongest matrix run, while the later legacy-observer refresh gives back part of that tail-tracking gain",
+        "- structured matrix refreshed is not a no-op, but its gain is milder than residual: reward improves, while tail MAE stays nearly unchanged",
+        "- reidentification refreshed does not settle better than legacy, and it does not beat baseline MPC in the tail",
+        "",
+        "## State Conditioning",
+        "",
+    ]
+
+    state_table_rows = []
+    for run_id in [spec.run_id for spec in RUN_SPECS if spec.is_refreshed]:
+        actual = next(row for row in state_rows if row["run_id"] == run_id and row["view"] == "actual")
+        fixed = next(row for row in state_rows if row["run_id"] == run_id and row["view"] == "fixed counterfactual")
+        state_table_rows.append(
+            [
+                spec_map[run_id].run_label,
+                fmt(actual["full_span_med"]),
+                fmt(fixed["full_span_med"]),
+                fmt(actual["full_span_med"] / max(fixed["full_span_med"], 1e-12)),
+                fmt(actual["late_span_med"]),
+                fmt(fixed["late_span_med"]),
+                fmt(actual["late_span_med"] / max(fixed["late_span_med"], 1e-12)),
+            ]
+        )
+    lines += markdown_table(
+        [
+            "Run",
+            "Actual full-span med",
+            "Fixed CF full-span med",
+            "Full-span gain",
+            "Actual late-span med",
+            "Fixed CF late-span med",
+            "Late-span gain",
+        ],
+        state_table_rows,
+    )
+    lines += [
+        "",
+    ]
+    lines += image_lines("polymer_change_state_conditioning.png", "Running-normalization gain on polymer physical xhat policy span")
+    lines += [
+        "This figure confirms that the observation-conditioning change is real, not cosmetic. The refreshed polymer runs all present a much wider physical `xhat` signal to the policy than the fixed-minmax counterfactual on the same saved trajectory. That is why it was reasonable to expect an effect from the new defaults, and the residual family is the clearest case where the better state spread translated into better closed-loop performance.",
+        "",
+        "## Mismatch-Feature Diagnostics",
+        "",
+    ]
+    lines += image_lines("polymer_change_feature_diagnostics.png", "Polymer mismatch feature diagnostics across legacy and refreshed runs")
+    lines += [
+        "The feature-diagnostic figure shows why the transform change matters:",
+        "",
+        f"- legacy residual tracking piled up at exact `|3|` on `{fmt(residual_legacy['tracking_error_exact3_mean'])}` of samples on average across outputs",
+        f"- refreshed residual tracking exact-`|3|` mass is effectively zero, even though raw tracking p99 stays huge at `{fmt(residual_refresh['tracking_error_raw_p99_mean'])}`",
+        f"- the same pattern appears in the matrix, structured-matrix, and reidentification refreshed runs: the raw mismatch magnitude is still large, but the transform is no longer flattening it into a single clipped bucket",
+        "",
+        "So the transform change clearly improved what the policy can distinguish. The remaining question is whether the downstream family can exploit that richer mismatch information. Residual does. Reidentification currently does not.",
+        "",
+        "## Reidentification: Why It Is Not Working",
+        "",
+    ]
+
+    reid_table_rows = []
+    for row in reid_rows:
+        reid_table_rows.append(
+            [
+                spec_map[row["run_id"]].variant_label,
+                fmt(row["candidate_valid_frac"]),
+                fmt(row["update_event_frac"]),
+                fmt(row["update_success_frac"]),
+                fmt(row["fallback_frac"]),
+                fmt(row["condition_median"], digits=1),
+                fmt(row["condition_p95"], digits=1),
+                fmt(row["residual_ratio_median"]),
+                fmt(row["residual_ratio_p95"]),
+                fmt(row["eta_A_requested_p95"]),
+                fmt(row["eta_A_applied_p95"]),
+            ]
+        )
+    lines += markdown_table(
+        [
+            "Variant",
+            "Candidate valid frac",
+            "Update event frac",
+            "Update success frac",
+            "Fallback frac",
+            "Cond median",
+            "Cond p95",
+            "Residual ratio median",
+            "Residual ratio p95",
+            "eta_A req p95",
+            "eta_A app p95",
+        ],
+        reid_table_rows,
+    )
+    lines += [
+        "",
+    ]
+    lines += image_lines("polymer_reid_identification_health.png", "Polymer reidentification health diagnostics")
+    lines += [
+        "The reidentification failure diagnosis is strong:",
+        "",
+        f"- Updates are attempted often enough. The update-event fraction is `{fmt(reid_refresh_health['update_event_frac'])}` in the refreshed run, essentially the same as legacy.",
+        f"- But almost none of those attempts survive the guard. Candidate-valid fraction is only `{fmt(reid_refresh_health['candidate_valid_frac'])}`, and update-success fraction is only `{fmt(reid_refresh_health['update_success_frac'])}`.",
+        f"- The regression windows are numerically bad. The refreshed run has a median condition number of `{fmt(reid_refresh_health['condition_median'], digits=1)}` and p95 of `{fmt(reid_refresh_health['condition_p95'], digits=1)}`.",
+        f"- Even when a candidate is formed, it usually does not improve the fit enough. The refreshed residual-ratio median is `{fmt(reid_refresh_health['residual_ratio_median'])}`, which is effectively one, and p95 is `{fmt(reid_refresh_health['residual_ratio_p95'])}`, which means many candidate windows are much worse than the incumbent model.",
+        f"- The RL agent is still requesting aggressive identification authority. In the refreshed run, `eta_A` requested p95 is `{fmt(reid_refresh_health['eta_A_requested_p95'])}` and applied p95 is `{fmt(reid_refresh_health['eta_A_applied_p95'])}`; for `eta_B`, those are `{fmt(reid_refresh_health['eta_B_requested_p95'])}` and `{fmt(reid_refresh_health['eta_B_applied_p95'])}`. Because `blend_validity_mode` is off, there is almost no moderation from the validity layer.",
+        "",
+        "So the main problem is not that the RL state is blind anymore. The main problem is that the online identification layer almost never produces a trustworthy candidate model. The policy is asking for identification action, but the identification engine mostly rejects or falls back, and when it does evaluate a candidate the window is poorly conditioned and often not actually better.",
+        "",
+        "That interpretation is consistent with the literature:",
+        "",
+        "- persistency of excitation is the condition that makes the regression informative enough to uniquely determine parameters [Mu2022]",
+        "- in process-control settings, online re-identification may be impossible without enough excitation [Binette2016]",
+        "- adaptive MPC papers therefore use information-matrix tests to decide whether a data window is informative enough to trigger a model update [Wang2022]",
+        "- when the least-squares problem is ill-conditioned, regularization is a standard fix because it reduces sensitivity to noise and numerical error [Hochstenbach2011] [Lim2016]",
+        "",
+        "The result in this repository matches that story closely. The refreshed reidentification run still sees the mismatch better than before, but the identification subproblem is not healthy enough to convert that information into good model updates.",
+        "",
+        "## Conclusions",
+        "",
+        "From the saved polymer runs, the recent changes did matter, but not in one uniform way:",
+        "",
+        "- yes, the observation-conditioning and mismatch-transform changes are clearly changing the policy-visible state in polymer",
+        "- yes, those changes helped the residual family materially",
+        "- yes, they affected matrix and structured matrix, but matrix is sensitive to the observer choice and structured matrix is mostly reward-level improvement rather than a clear tail-MAE win",
+        "- no, the same changes did not fix polymer reidentification, because that family is currently bottlenecked by candidate-model quality, conditioning, and validity, not only by RL-state scaling",
+        "",
+        "The immediate project implication is that polymer residual remains the strongest beneficiary of the new conditioning path, matrix and structured matrix are secondary candidates for further tuning, and polymer reidentification needs identification-layer changes next: informative-window gating, stronger candidate validation, and likely some regularization in the online estimator.",
+        "",
+        "## Sources",
+        "",
+        "- [SB3] Stable Baselines3 `VecNormalize` implementation and running-mean/running-variance observation normalization.",
+        "- [Mu2022] Mu et al., *Persistence of excitation for identifying switched linear systems*, Automatica 2022.",
+        "- [Binette2016] Binette and Srinivasan, *On the Use of Nonlinear Model Predictive Control without Parameter Adaptation for Batch Processes*, Processes 2016.",
+        "- [Wang2022] *Offset-free ARX-based adaptive model predictive control applied to a nonlinear process*, ISA Transactions 2022.",
+        "- [Hochstenbach2011] Hochstenbach and Reichel, *Fractional Tikhonov regularization for linear discrete ill-posed problems*, BIT Numerical Mathematics 2011.",
+        "- [Lim2016] Lim and Pang, *l1-regularized recursive total least squares based sparse system identification for the error-in-variables*, SpringerPlus 2016.",
+        "",
+        "[SB3]: https://stable-baselines3.readthedocs.io/en/v2.7.0/_modules/stable_baselines3/common/vec_env/vec_normalize.html",
+        "[Mu2022]: https://doi.org/10.1016/j.automatica.2021.110142",
+        "[Binette2016]: https://www.mdpi.com/2227-9717/4/3/27",
+        "[Wang2022]: https://www.sciencedirect.com/science/article/abs/pii/S0019057821002937",
+        "[Hochstenbach2011]: https://doi.org/10.1007/s10543-011-0313-9",
+        "[Lim2016]: https://doi.org/10.1186/s40064-016-3120-6",
     ]
 
     (REPO_ROOT / "report" / "polymer_change_impact_report.md").write_text("\n".join(lines), encoding="utf-8")
@@ -534,103 +1142,138 @@ def main() -> None:
     min_s = np.asarray(minmax["min_s"], float)
     max_s = np.asarray(minmax["max_s"], float)
 
+    spec_map = {spec.run_id: spec for spec in RUN_SPECS}
     runs: dict[str, dict] = {}
     config_rows: list[dict] = [
         {
+            "run_id": "baseline",
             "family": "baseline",
-            "variant": "baseline",
-            "run_path": str(BASELINE_PATH.relative_to(REPO_ROOT)),
+            "variant_key": "baseline",
+            "variant_label": "baseline",
+            "run_path": repo_rel(BASELINE_PATH),
             "base_state_norm_mode": "n/a",
             "mismatch_feature_transform_mode": "n/a",
             "observer_update_alignment": "n/a",
             "rho_mapping_mode": "n/a",
-            "residual_zero_deadband_enabled": "n/a",
+            "candidate_guard_mode": "n/a",
+            "blend_validity_mode": "n/a",
         }
     ]
     summary_rows: list[dict] = [
         {
+            "run_id": "baseline",
             "family": "baseline",
-            "variant": "baseline",
-            "run_path": str(BASELINE_PATH.relative_to(REPO_ROOT)),
+            "variant_key": "baseline",
+            "variant_label": "baseline",
+            "run_path": repo_rel(BASELINE_PATH),
             **compute_metrics(baseline_bundle),
-            "innovation_p99_mean": np.nan,
-            "tracking_error_p99_mean": np.nan,
-            "innovation_raw_p99_mean": np.nan,
-            "tracking_error_raw_p99_mean": np.nan,
-            "innovation_exact3_mean": np.nan,
-            "tracking_error_exact3_mean": np.nan,
         }
     ]
     state_rows: list[dict] = []
+    reid_rows: list[dict] = []
 
     for spec in RUN_SPECS:
         bundle = load_pickle(spec.path)
-        variant = "refreshed" if spec.is_refreshed else "legacy"
-        key = f"{spec.family}_{variant}"
-        runs[key] = {"spec": spec, "bundle": bundle}
+        runs[spec.run_id] = {"spec": spec, "bundle": bundle}
 
         metrics = compute_metrics(bundle, baseline_bundle=baseline_bundle)
-        metrics["innovation_p99_mean"] = nanmean_pair([metrics["innovation_p99_out1"], metrics["innovation_p99_out2"]])
-        metrics["tracking_error_p99_mean"] = nanmean_pair([metrics["tracking_error_p99_out1"], metrics["tracking_error_p99_out2"]])
-        metrics["innovation_raw_p99_mean"] = nanmean_pair([metrics["innovation_raw_p99_out1"], metrics["innovation_raw_p99_out2"]])
-        metrics["tracking_error_raw_p99_mean"] = nanmean_pair([metrics["tracking_error_raw_p99_out1"], metrics["tracking_error_raw_p99_out2"]])
-        metrics["innovation_exact3_mean"] = nanmean_pair([metrics["innovation_exact3_out1"], metrics["innovation_exact3_out2"]])
-        metrics["tracking_error_exact3_mean"] = nanmean_pair([metrics["tracking_error_exact3_out1"], metrics["tracking_error_exact3_out2"]])
         summary_rows.append(
             {
+                "run_id": spec.run_id,
                 "family": spec.family,
-                "variant": variant,
-                "run_path": str(spec.path.relative_to(REPO_ROOT)),
+                "variant_key": spec.variant_key,
+                "variant_label": spec.variant_label,
+                "run_path": repo_rel(spec.path),
                 **metrics,
             }
         )
 
         config_rows.append(
             {
+                "run_id": spec.run_id,
                 "family": spec.family,
-                "variant": variant,
-                "run_path": str(spec.path.relative_to(REPO_ROOT)),
+                "variant_key": spec.variant_key,
+                "variant_label": spec.variant_label,
+                "run_path": repo_rel(spec.path),
                 "base_state_norm_mode": str(bundle.get("base_state_norm_mode", "legacy_fixed_minmax")),
                 "mismatch_feature_transform_mode": str(bundle.get("mismatch_feature_transform_mode", "legacy_hard_clip")),
                 "observer_update_alignment": str(bundle.get("observer_update_alignment", "legacy_previous_measurement")),
                 "rho_mapping_mode": str(bundle.get("rho_mapping_mode", "legacy_clipped_linear")),
-                "residual_zero_deadband_enabled": bool(bundle.get("residual_zero_deadband_enabled", False)),
+                "candidate_guard_mode": str(bundle.get("candidate_guard_mode", "n/a")),
+                "blend_validity_mode": str(bundle.get("blend_validity_mode", "n/a")),
             }
         )
 
-        actual_state = state_span_summary(bundle, min_s=min_s, max_s=max_s, mode_override=bundle.get("base_state_norm_mode", "fixed_minmax"))
-        state_rows.append({"family": spec.family, "view": f"{variant} actual", **actual_state})
-        if spec.is_refreshed:
-            fixed_counterfactual = state_span_summary(bundle, min_s=min_s, max_s=max_s, mode_override="fixed_minmax")
-            state_rows.append({"family": spec.family, "view": "refreshed fixed counterfactual", **fixed_counterfactual})
+        actual_state = state_span_summary(
+            bundle,
+            min_s=min_s,
+            max_s=max_s,
+            mode_override=bundle.get("base_state_norm_mode", "fixed_minmax"),
+        )
+        state_rows.append(
+            {
+                "run_id": spec.run_id,
+                "family": spec.family,
+                "variant_key": spec.variant_key,
+                "view": "actual",
+                **actual_state,
+            }
+        )
+        if str(bundle.get("base_state_norm_mode", "fixed_minmax")).strip().lower() != "fixed_minmax":
+            fixed_state = state_span_summary(bundle, min_s=min_s, max_s=max_s, mode_override="fixed_minmax")
+            state_rows.append(
+                {
+                    "run_id": spec.run_id,
+                    "family": spec.family,
+                    "variant_key": spec.variant_key,
+                    "view": "fixed counterfactual",
+                    **fixed_state,
+                }
+            )
+
+        if spec.family == "reidentification":
+            reid_rows.append(
+                {
+                    "run_id": spec.run_id,
+                    "family": spec.family,
+                    "variant_key": spec.variant_key,
+                    "variant_label": spec.variant_label,
+                    **compute_reid_metrics(bundle),
+                }
+            )
 
     save_csv(
         DATA_ROOT / "config_summary.csv",
         config_rows,
-        ["family", "variant", "run_path", "base_state_norm_mode", "mismatch_feature_transform_mode", "observer_update_alignment", "rho_mapping_mode", "residual_zero_deadband_enabled"],
+        [
+            "run_id",
+            "family",
+            "variant_key",
+            "variant_label",
+            "run_path",
+            "base_state_norm_mode",
+            "mismatch_feature_transform_mode",
+            "observer_update_alignment",
+            "rho_mapping_mode",
+            "candidate_guard_mode",
+            "blend_validity_mode",
+        ],
     )
     save_csv(
         DATA_ROOT / "performance_summary.csv",
         summary_rows,
         [
+            "run_id",
             "family",
-            "variant",
+            "variant_key",
+            "variant_label",
             "run_path",
-            "scaled_mae_out1",
-            "scaled_mae_out2",
             "scaled_mae_mean",
             "scaled_mae_tail_mean",
-            "phys_mae_out1",
-            "phys_mae_out2",
             "phys_mae_mean",
-            "phys_mae_tail_out1",
-            "phys_mae_tail_out2",
             "phys_mae_tail_mean",
-            "u_move_mean",
-            "u_move_tail",
             "reward_final20_mean",
-            "reward_best",
-            "reward_last",
+            "tail_phys_mae_delta_vs_baseline",
             "innovation_p99_mean",
             "tracking_error_p99_mean",
             "innovation_raw_p99_mean",
@@ -642,22 +1285,61 @@ def main() -> None:
             "deadband_frac",
             "residual_norm_mean",
             "residual_norm_tail",
-            "tail_scaled_mae_delta_vs_baseline",
-            "tail_phys_mae_delta_vs_baseline",
+            "multiplier_abs_mean",
+            "multiplier_abs_p95",
+            "multiplier_step_norm_p95",
         ],
     )
     save_csv(
         DATA_ROOT / "state_conditioning_summary.csv",
         state_rows,
-        ["family", "view", "full_span_med", "late_span_med", "late_full_ratio_med"],
+        ["run_id", "family", "variant_key", "view", "full_span_med", "late_span_med", "late_full_ratio_med"],
+    )
+    save_csv(
+        DATA_ROOT / "reidentification_health_summary.csv",
+        reid_rows,
+        [
+            "run_id",
+            "family",
+            "variant_key",
+            "variant_label",
+            "candidate_valid_frac",
+            "fallback_frac",
+            "update_event_frac",
+            "update_success_frac",
+            "condition_median",
+            "condition_p95",
+            "condition_p99",
+            "residual_norm_median",
+            "residual_norm_p95",
+            "residual_norm_p99",
+            "residual_ratio_median",
+            "residual_ratio_p95",
+            "residual_ratio_p99",
+            "eta_A_requested_p95",
+            "eta_A_applied_p95",
+            "eta_B_requested_p95",
+            "eta_B_applied_p95",
+            "blend_A_p50",
+            "blend_B_p50",
+            "source0_frac",
+            "source1_frac",
+            "source2_frac",
+        ],
     )
 
-    plot_reward_curves(baseline_bundle=baseline_bundle, runs=runs)
-    plot_tail_traces(baseline_bundle=baseline_bundle, runs=runs)
-    plot_performance_bars(summary_rows=summary_rows)
-    plot_state_conditioning(state_rows=state_rows)
-    plot_feature_diagnostics(summary_rows=summary_rows)
-    write_markdown(config_rows=config_rows, summary_rows=summary_rows, state_rows=state_rows)
+    plot_performance_overview(summary_rows=summary_rows, state_rows=state_rows, spec_map=spec_map)
+    plot_family_tail_traces(baseline_bundle=baseline_bundle, runs=runs, spec_map=spec_map)
+    plot_state_conditioning(state_rows=state_rows, spec_map=spec_map)
+    plot_feature_diagnostics(summary_rows=summary_rows, spec_map=spec_map)
+    plot_reid_health(reid_rows=reid_rows)
+    write_markdown(
+        config_rows=config_rows,
+        summary_rows=summary_rows,
+        state_rows=state_rows,
+        reid_rows=reid_rows,
+        spec_map=spec_map,
+    )
 
 
 if __name__ == "__main__":

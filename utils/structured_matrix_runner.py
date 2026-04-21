@@ -11,8 +11,14 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observer import compute_observer_gain
+from utils.observation_conditioning import update_observer_state
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
-from utils.state_features import build_rl_state, compute_tracking_scale_now, resolve_mismatch_settings
+from utils.state_features import (
+    build_rl_state,
+    compute_tracking_scale_now,
+    make_state_conditioner_from_settings,
+    resolve_mismatch_settings,
+)
 from utils.structured_model_update import (
     build_band_scaled_model,
     build_block_scaled_model,
@@ -98,6 +104,10 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         n_inputs=B_aug.shape[1],
     )
     mismatch_clip = mismatch_cfg["mismatch_clip"]
+    state_conditioner = make_state_conditioner_from_settings(mismatch_cfg)
+    observer_update_alignment = (
+        mismatch_cfg["observer_update_alignment"] if state_mode == "mismatch" else "legacy_previous_measurement"
+    )
 
     structured_spec = structured_cfg.get("structured_spec")
     if structured_spec is None:
@@ -180,7 +190,9 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     action_saturation_fraction_log = np.zeros(nFE)
     near_bound_fraction_log = np.zeros(nFE)
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    innovation_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    tracking_error_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_scale_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
 
     update_builder = build_block_scaled_model if update_family == "block" else build_band_scaled_model
@@ -245,10 +257,17 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             innovation_scale_ref=mismatch_cfg["innovation_scale_ref"],
             tracking_scale_now=tracking_scale_now,
             mismatch_clip=mismatch_clip,
+            state_conditioner=state_conditioner,
+            update_state_conditioner=True,
+            mismatch_feature_transform_mode=mismatch_cfg["mismatch_feature_transform_mode"],
+            mismatch_transform_tanh_scale=mismatch_cfg["mismatch_transform_tanh_scale"],
+            mismatch_transform_post_clip=mismatch_cfg["mismatch_transform_post_clip"],
         )
         if innovation_log is not None:
             innovation_log[i, :] = state_debug["innovation"]
+            innovation_raw_log[i, :] = state_debug["innovation_raw"]
             tracking_error_log[i, :] = state_debug["tracking_error"]
+            tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
         if i > warm_start_step:
@@ -360,11 +379,16 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         delta_y = y_current_scaled - y_sp[i, :]
         delta_y_storage[i, :] = delta_y
 
-        yhat[:, i] = yhat_pred
-        xhatdhat[:, i + 1] = (
-            A_est @ xhatdhat[:, i]
-            + B_est @ (u_mpc[i, :] - ss_scaled_inputs)
-            + L_nom @ (y_prev_scaled - yhat[:, i]).T
+        xhatdhat[:, i + 1], yhat[:, i], observer_update_alignment = update_observer_state(
+            A=A_est,
+            B=B_est,
+            C=C_aug,
+            L=L_nom,
+            x_prev=xhatdhat[:, i],
+            u_dev=(u_mpc[i, :] - ss_scaled_inputs),
+            y_prev_scaled=y_prev_scaled,
+            y_current_scaled=y_current_scaled,
+            observer_update_alignment=observer_update_alignment,
         )
 
         reward = float(reward_fn(delta_y, delta_u, y_sp_phys))
@@ -395,6 +419,11 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             innovation_scale_ref=mismatch_cfg["innovation_scale_ref"],
             tracking_scale_now=next_tracking_scale_now,
             mismatch_clip=mismatch_clip,
+            state_conditioner=state_conditioner,
+            update_state_conditioner=False,
+            mismatch_feature_transform_mode=mismatch_cfg["mismatch_feature_transform_mode"],
+            mismatch_transform_tanh_scale=mismatch_cfg["mismatch_transform_tanh_scale"],
+            mismatch_transform_post_clip=mismatch_cfg["mismatch_transform_post_clip"],
         )
 
         if not test:
@@ -479,11 +508,21 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "multistep_mode": str(getattr(agent, "multistep_mode", "one_step")),
         "lambda_value": getattr(agent, "lambda_value", None),
         "innovation_log": innovation_log,
+        "innovation_raw_log": innovation_raw_log,
         "tracking_error_log": tracking_error_log,
+        "tracking_error_raw_log": tracking_error_raw_log,
         "innovation_scale_ref": mismatch_cfg["innovation_scale_ref"],
         "tracking_scale_log": tracking_scale_log,
         "band_ref_scaled": mismatch_cfg["band_ref_scaled"],
         "mismatch_clip": mismatch_clip,
+        "base_state_norm_mode": mismatch_cfg["base_state_norm_mode"],
+        "base_state_running_norm_clip": mismatch_cfg["base_state_running_norm_clip"],
+        "base_state_running_norm_eps": mismatch_cfg["base_state_running_norm_eps"],
+        "base_state_norm_stats": state_conditioner.export_state(),
+        "mismatch_feature_transform_mode": mismatch_cfg["mismatch_feature_transform_mode"],
+        "mismatch_transform_tanh_scale": mismatch_cfg["mismatch_transform_tanh_scale"],
+        "mismatch_transform_post_clip": mismatch_cfg["mismatch_transform_post_clip"],
+        "observer_update_alignment": observer_update_alignment,
         "mpc_horizons": (
             int(structured_cfg["predict_h"]),
             int(structured_cfg["cont_h"]),

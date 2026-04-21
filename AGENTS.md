@@ -164,7 +164,7 @@ Legacy split notebooks were removed after the unified migration. Historical mism
 - When tracing an experiment, read the notebook cells that define the supervisor function before assuming the reusable module layer is complete.
 - When comparing outputs, use the run-folder naming convention plus `input_data.pkl` to identify provenance instead of guessing from image names alone.
 - If a task asks for "the training loop" or "current experiment logic," verify whether the notebook-local supervisor is the active implementation before editing module-level helpers.
-- For major repo changes, add a short markdown note under `change-reports/`, include it in the commit, and push the result to `origin`.
+- For major repo changes, add a short markdown note under `change-reports/`, include it in the commit, and push the resulting commit to GitHub via `origin`.
 
 ## Environment Caveats
 

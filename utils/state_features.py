@@ -1,6 +1,11 @@
 import numpy as np
 
 from utils.helpers import apply_rl_scaled, reverse_min_max
+from utils.observation_conditioning import (
+    create_state_conditioner,
+    normalize_observer_update_alignment,
+    transform_mismatch_feature,
+)
 
 
 def default_mismatch_scale(min_max_dict, floor=1e-3):
@@ -66,6 +71,17 @@ def resolve_mismatch_settings(
     state_mode = str(state_mode).lower()
     mismatch_cfg = dict(mismatch_cfg or {})
     mismatch_clip = mismatch_cfg.get("mismatch_clip", 3.0)
+    base_state_norm_mode = str(mismatch_cfg.get("base_state_norm_mode", "fixed_minmax")).strip().lower()
+    base_state_running_norm_clip = float(mismatch_cfg.get("base_state_running_norm_clip", 10.0))
+    base_state_running_norm_eps = float(mismatch_cfg.get("base_state_running_norm_eps", 1e-8))
+    mismatch_feature_transform_mode = str(
+        mismatch_cfg.get("mismatch_feature_transform_mode", "hard_clip")
+    ).strip().lower()
+    mismatch_transform_tanh_scale = float(mismatch_cfg.get("mismatch_transform_tanh_scale", 3.0))
+    mismatch_transform_post_clip = mismatch_cfg.get("mismatch_transform_post_clip")
+    observer_update_alignment = normalize_observer_update_alignment(
+        mismatch_cfg.get("observer_update_alignment", "legacy_previous_measurement")
+    )
     if state_mode != "mismatch":
         return {
             "mismatch_clip": mismatch_clip,
@@ -79,6 +95,13 @@ def resolve_mismatch_settings(
             "append_rho_to_state": bool(mismatch_cfg.get("append_rho_to_state", False)),
             "k_rel": None,
             "band_floor_phys": None,
+            "base_state_norm_mode": base_state_norm_mode,
+            "base_state_running_norm_clip": base_state_running_norm_clip,
+            "base_state_running_norm_eps": base_state_running_norm_eps,
+            "mismatch_feature_transform_mode": mismatch_feature_transform_mode,
+            "mismatch_transform_tanh_scale": mismatch_transform_tanh_scale,
+            "mismatch_transform_post_clip": mismatch_transform_post_clip,
+            "observer_update_alignment": observer_update_alignment,
         }
 
     k_rel = np.asarray(reward_params.get("k_rel"), float)
@@ -124,6 +147,13 @@ def resolve_mismatch_settings(
         "append_rho_to_state": bool(mismatch_cfg.get("append_rho_to_state", False)),
         "k_rel": k_rel.astype(np.float32),
         "band_floor_phys": band_floor_phys.astype(np.float32),
+        "base_state_norm_mode": base_state_norm_mode,
+        "base_state_running_norm_clip": base_state_running_norm_clip,
+        "base_state_running_norm_eps": base_state_running_norm_eps,
+        "mismatch_feature_transform_mode": mismatch_feature_transform_mode,
+        "mismatch_transform_tanh_scale": mismatch_transform_tanh_scale,
+        "mismatch_transform_post_clip": mismatch_transform_post_clip,
+        "observer_update_alignment": observer_update_alignment,
     }
 
 
@@ -161,6 +191,33 @@ def get_rl_state_dim(base_aug_dim, n_outputs, n_inputs, state_mode, append_rho_t
     raise ValueError("state_mode must be 'standard' or 'mismatch'.")
 
 
+def make_state_conditioner_from_settings(mismatch_cfg):
+    mismatch_cfg = dict(mismatch_cfg or {})
+    return create_state_conditioner(
+        mode=mismatch_cfg.get("base_state_norm_mode", "fixed_minmax"),
+        clip_obs=mismatch_cfg.get("base_state_running_norm_clip", 10.0),
+        epsilon=mismatch_cfg.get("base_state_running_norm_eps", 1e-8),
+    )
+
+
+def compute_raw_mismatch_features(
+    *,
+    y_meas_scaled,
+    yhat_pred,
+    y_sp,
+    innovation_scale_ref,
+    tracking_scale_now,
+):
+    y_meas_scaled = np.asarray(y_meas_scaled, float).reshape(-1)
+    yhat_pred = np.asarray(yhat_pred, float).reshape(-1)
+    y_sp = np.asarray(y_sp, float).reshape(-1)
+    innovation_scale_ref = np.asarray(innovation_scale_ref, float).reshape(-1)
+    tracking_scale_now = np.asarray(tracking_scale_now, float).reshape(-1)
+    innovation_raw = (y_meas_scaled - yhat_pred) / np.maximum(innovation_scale_ref, 1e-12)
+    tracking_error_raw = (y_meas_scaled - y_sp) / np.maximum(tracking_scale_now, 1e-12)
+    return innovation_raw.astype(np.float32), tracking_error_raw.astype(np.float32)
+
+
 def build_rl_state(
     min_max_dict,
     x_d_states,
@@ -174,17 +231,37 @@ def build_rl_state(
     mismatch_clip=3.0,
     append_rho_to_state=False,
     rho_value=None,
+    state_conditioner=None,
+    update_state_conditioner=True,
+    mismatch_feature_transform_mode="hard_clip",
+    mismatch_transform_tanh_scale=3.0,
+    mismatch_transform_post_clip=None,
 ):
     state_mode = str(state_mode).lower()
-    base_state = np.asarray(apply_rl_scaled(min_max_dict, x_d_states, y_sp, u), np.float32)
+    base_state_legacy = np.asarray(apply_rl_scaled(min_max_dict, x_d_states, y_sp, u), np.float32)
+    if state_conditioner is None:
+        base_state = base_state_legacy.copy()
+        base_state_norm_stats = None
+    else:
+        base_state, base_state_norm_stats = state_conditioner.transform(
+            base_state=base_state_legacy,
+            x_d_states=x_d_states,
+            n_outputs=np.asarray(y_sp, float).reshape(-1).size,
+            update=bool(update_state_conditioner),
+        )
 
     if state_mode == "standard":
         return base_state, {
             "innovation": None,
+            "innovation_raw": None,
             "tracking_error": None,
+            "tracking_error_raw": None,
             "innovation_scale_ref": None,
             "tracking_scale_now": None,
             "rho_feature": None,
+            "base_state_legacy": base_state_legacy,
+            "base_state_conditioned": base_state,
+            "base_state_norm_stats": base_state_norm_stats,
         }
 
     if state_mode != "mismatch":
@@ -207,14 +284,27 @@ def build_rl_state(
     if tracking_scale_now.shape[0] != y_sp.shape[0]:
         raise ValueError("tracking_scale_now must match the number of outputs.")
 
-    innovation = (y_prev_scaled - yhat_pred) / np.maximum(innovation_scale_ref, 1e-12)
-    tracking_error = (y_prev_scaled - y_sp) / np.maximum(tracking_scale_now, 1e-12)
-    if mismatch_clip is not None:
-        mismatch_clip = float(mismatch_clip)
-        innovation = np.clip(innovation, -mismatch_clip, mismatch_clip)
-        tracking_error = np.clip(tracking_error, -mismatch_clip, mismatch_clip)
-    innovation = innovation.astype(np.float32)
-    tracking_error = tracking_error.astype(np.float32)
+    innovation_raw, tracking_error_raw = compute_raw_mismatch_features(
+        y_meas_scaled=y_prev_scaled,
+        yhat_pred=yhat_pred,
+        y_sp=y_sp,
+        innovation_scale_ref=innovation_scale_ref,
+        tracking_scale_now=tracking_scale_now,
+    )
+    innovation = transform_mismatch_feature(
+        innovation_raw,
+        mode=mismatch_feature_transform_mode,
+        mismatch_clip=mismatch_clip,
+        tanh_scale=mismatch_transform_tanh_scale,
+        post_clip=mismatch_transform_post_clip,
+    )
+    tracking_error = transform_mismatch_feature(
+        tracking_error_raw,
+        mode=mismatch_feature_transform_mode,
+        mismatch_clip=mismatch_clip,
+        tanh_scale=mismatch_transform_tanh_scale,
+        post_clip=mismatch_transform_post_clip,
+    )
 
     state_parts = [base_state, innovation, tracking_error]
     rho_feature = None
@@ -227,8 +317,14 @@ def build_rl_state(
     state = np.concatenate(state_parts, axis=0).astype(np.float32)
     return state, {
         "innovation": innovation,
+        "innovation_raw": innovation_raw,
         "tracking_error": tracking_error,
+        "tracking_error_raw": tracking_error_raw,
         "innovation_scale_ref": innovation_scale_ref.astype(np.float32),
         "tracking_scale_now": tracking_scale_now.astype(np.float32),
         "rho_feature": rho_feature,
+        "base_state_legacy": base_state_legacy,
+        "base_state_conditioned": base_state,
+        "base_state_norm_stats": base_state_norm_stats,
+        "mismatch_feature_transform_mode": str(mismatch_feature_transform_mode),
     }

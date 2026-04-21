@@ -1,0 +1,25 @@
+system,label,run_path,state_mode,algorithm,method_family,n_states,n_phys,phys_late_full_med,dhat_late_full_med,phys_peak_to_late_med,dhat_peak_to_late_med,outside_max,innovation_clip_frac,tracking_clip_frac,rho_one_frac,innovation_peak_to_late_med,tracking_peak_to_late_med
+distillation,"Horizon DDQN
+standard",Distillation\Results\distillation_horizon_disturb_fluctuation_standard_unified\20260416_192434\input_data.pkl,standard,ddqn,horizon,7,5,0.9675233760701886,0.9473268144919024,1.189910339138403,1.2294321638592605,0.0,,,,,
+distillation,"Matrix SAC
+standard",Distillation\Results\distillation_matrix_sac_disturb_fluctuation_standard_unified\20260415_104840\input_data.pkl,standard,sac,matrix,7,5,1.0190466065926937,1.035917299771333,1.0447310136300587,1.0414201101918015,0.015825,,,,,
+distillation,"Weights SAC
+standard",Distillation\Results\distillation_weights_sac_disturb_fluctuation_standard_unified\20260416_192555\input_data.pkl,standard,sac,weights,7,5,1.0057303430614333,0.9925172663017892,1.157440262644899,1.191468985594168,0.0,,,,,
+distillation,"Residual TD3
+mismatch",Distillation\Results\distillation_residual_td3_disturb_fluctuation_mismatch_rho_unified\20260420_180906\input_data.pkl,mismatch,td3,residual,7,5,1.0660648062372944,1.008695020744439,1.13176763777065,1.1706691801192992,0.0,0.0,0.1044875,0.4157,204.26175202210146,30.14099833752067
+distillation,"Residual SAC
+mismatch",Distillation\Results\distillation_residual_sac_disturb_fluctuation_mismatch_rho_unified\20260415_191909\input_data.pkl,mismatch,sac,residual,7,5,1.056165374462019,1.0193286866066238,1.11501365474095,1.1494903348006156,0.0,0.033975,0.68070625,0.9791,304.2918243898821,3.0674299722782896
+distillation,"Reid TD3
+mismatch",Distillation\Results\distillation_reidentification_td3_disturb_fluctuation_mismatch_unified\20260418_115020\input_data.pkl,mismatch,td3,None,7,5,1.0466109256123468,1.0620717467427472,1.093250198960858,1.1104423611096481,0.000325,6.25e-06,0.12163125,,166.55242061717965,23.925861473740248
+polymer,"Horizon DDQN
+mismatch",Polymer\Results\horizon_disturb_unified\20260407_175020\input_data.pkl,mismatch,ddqn,horizon,9,7,0.0037472713009547515,0.9668219792994703,1276.1814321213828,2.895511336678018,0.02949375,0.0,0.0,,226928.1542084903,126518.30070981043
+polymer,"Dueling DDQN
+standard",Polymer\Results\dueling_horizon_disturb_unified\20260417_035217\input_data.pkl,standard,dueling_ddqn,None,9,7,0.0037587691501900253,0.9582697758476706,1292.8797340881795,2.8927906089477533,0.02971875,,,,,
+polymer,"Matrix TD3
+mismatch",Polymer\Results\td3_multipliers_disturb\20260411_011134\input_data.pkl,mismatch,td3,matrix,9,7,0.0070508616508397955,0.8544822103572606,394.9809184701676,2.5312670143383267,0.0198125,0.0,0.0,,6043.197149537942,3371.4594777031234
+polymer,"Weights TD3
+standard",Polymer\Results\td3_weights_disturb\20260417_031734\input_data.pkl,standard,td3,weights,9,7,0.004953875910453143,0.9114559621127477,614.1423855504938,3.194779286420972,0.02681875,,,,,
+polymer,"Residual TD3
+mismatch",Polymer\Results\td3_residual_disturb\20260413_004620\input_data.pkl,mismatch,td3,residual,9,7,0.01118148573638456,0.8518580355562436,566.3767960261921,2.686015058894035,0.0181,0.0497125,0.408378125,0.55471875,10194.126448111136,34.463426488031004
+polymer,"Reid TD3
+mismatch",Polymer\Results\td3_reidentification_disturb\20260415_120803\input_data.pkl,mismatch,td3,None,9,7,0.05215386988858473,0.8720603513127644,175.3164732790894,2.660767182715482,0.02935,0.071953125,0.44584375,,17005.14488407636,67.17748865735645

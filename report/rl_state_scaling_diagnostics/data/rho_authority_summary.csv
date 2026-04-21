@@ -1,0 +1,7 @@
+system,label,run_path,rho_one_frac,authority_projection_frac,median_exec_raw_ratio,p95_exec_raw_ratio
+distillation,"Residual TD3
+mismatch",Distillation\Results\distillation_residual_td3_disturb_fluctuation_mismatch_rho_unified\20260420_180906\input_data.pkl,0.4157,0.9494375,0.028439760613121742,0.15231091121283247
+distillation,"Residual SAC
+mismatch",Distillation\Results\distillation_residual_sac_disturb_fluctuation_mismatch_rho_unified\20260415_191909\input_data.pkl,0.9791,0.94975,0.034792962652548325,0.16943651944971094
+polymer,"Residual TD3
+mismatch",Polymer\Results\td3_residual_disturb\20260413_004620\input_data.pkl,0.55471875,0.94909375,0.006374009211620477,0.30672531960896354

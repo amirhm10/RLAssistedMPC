@@ -1,0 +1,3 @@
+system,horizon_mismatch_default,matrix_mismatch_default,weights_mismatch_default,residual_mismatch_default,rho_default_active,residual_agent_kind
+polymer,0,0,0,0,0,td3
+distillation,0,0,0,1,1,td3

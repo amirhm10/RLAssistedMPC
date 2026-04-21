@@ -1,0 +1,13 @@
+system,family_key,family,default_state_mode,mismatch_default,rho_default_active,guardrail_type,changes_horizon,changes_model,changes_weights,changes_direct_input,online_identification,bounded_action_set,method_specific_guard
+polymer,horizon_standard,Horizon,mismatch,1,0,grid,1,0,0,0,0,1,0
+distillation,horizon_standard,Horizon,standard,0,0,grid,1,0,0,0,0,1,0
+polymer,matrix,Matrix,mismatch,1,0,model_box,0,1,0,0,0,1,0
+distillation,matrix,Matrix,standard,0,0,model_box,0,1,0,0,0,1,0
+polymer,structured_matrix,Structured Matrix,mismatch,1,0,model_box,0,1,0,0,0,1,1
+distillation,structured_matrix,Structured Matrix,standard,0,0,model_box,0,1,0,0,0,1,1
+polymer,weights,Weights,standard,0,0,weight_box,0,0,1,0,0,1,0
+distillation,weights,Weights,standard,0,0,weight_box,0,0,1,0,0,1,0
+polymer,residual,Residual,mismatch,1,1,residual_projection,0,0,0,1,0,1,1
+distillation,residual,Residual,mismatch,1,1,residual_projection,0,0,0,1,0,1,1
+polymer,reidentification,Reidentification,mismatch,1,0,candidate_guard,0,1,0,0,1,1,1
+distillation,reidentification,Reidentification,mismatch,1,0,candidate_guard,0,1,0,0,1,1,1

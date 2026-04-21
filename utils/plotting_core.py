@@ -214,28 +214,49 @@ def normalize_result_bundle(result_bundle):
         None if bundle.get("residual_decision_log") is None else np.asarray(bundle["residual_decision_log"], int).reshape(-1)
     )
     bundle["rho_log"] = None if bundle.get("rho_log") is None else np.asarray(bundle["rho_log"], float).reshape(-1)
+    bundle["rho_raw_log"] = None if bundle.get("rho_raw_log") is None else np.asarray(bundle["rho_raw_log"], float).reshape(-1)
     bundle["rho_eff_log"] = None if bundle.get("rho_eff_log") is None else np.asarray(bundle["rho_eff_log"], float).reshape(-1)
-    for key in ("projection_active_log", "projection_due_to_authority_log", "projection_due_to_headroom_log"):
+    for key in (
+        "deadband_active_log",
+        "projection_active_log",
+        "projection_due_to_deadband_log",
+        "projection_due_to_authority_log",
+        "projection_due_to_headroom_log",
+    ):
         bundle[key] = None if bundle.get(key) is None else np.asarray(bundle[key], int).reshape(-1)
     bundle["innovation_log"] = None if bundle.get("innovation_log") is None else np.asarray(bundle["innovation_log"], float)
+    bundle["innovation_raw_log"] = (
+        None if bundle.get("innovation_raw_log") is None else np.asarray(bundle["innovation_raw_log"], float)
+    )
     bundle["tracking_error_log"] = (
         None if bundle.get("tracking_error_log") is None else np.asarray(bundle["tracking_error_log"], float)
+    )
+    bundle["tracking_error_raw_log"] = (
+        None if bundle.get("tracking_error_raw_log") is None else np.asarray(bundle["tracking_error_raw_log"], float)
     )
     bundle["tracking_scale_log"] = (
         None if bundle.get("tracking_scale_log") is None else np.asarray(bundle["tracking_scale_log"], float)
     )
     for key in (
         "horizon_innovation_log",
+        "horizon_innovation_raw_log",
         "horizon_tracking_error_log",
+        "horizon_tracking_error_raw_log",
         "horizon_tracking_scale_log",
         "matrix_innovation_log",
+        "matrix_innovation_raw_log",
         "matrix_tracking_error_log",
+        "matrix_tracking_error_raw_log",
         "matrix_tracking_scale_log",
         "weight_innovation_log",
+        "weight_innovation_raw_log",
         "weight_tracking_error_log",
+        "weight_tracking_error_raw_log",
         "weight_tracking_scale_log",
         "residual_innovation_log",
+        "residual_innovation_raw_log",
         "residual_tracking_error_log",
+        "residual_tracking_error_raw_log",
         "residual_tracking_scale_log",
     ):
         bundle[key] = None if bundle.get(key) is None else np.asarray(bundle[key], float)
@@ -650,16 +671,24 @@ def normalize_result_bundle(result_bundle):
                 bundle[key] = bundle[key][: bundle["nFE"], :]
     for key in (
         "horizon_innovation_log",
+        "horizon_innovation_raw_log",
         "horizon_tracking_error_log",
+        "horizon_tracking_error_raw_log",
         "horizon_tracking_scale_log",
         "matrix_innovation_log",
+        "matrix_innovation_raw_log",
         "matrix_tracking_error_log",
+        "matrix_tracking_error_raw_log",
         "matrix_tracking_scale_log",
         "weight_innovation_log",
+        "weight_innovation_raw_log",
         "weight_tracking_error_log",
+        "weight_tracking_error_raw_log",
         "weight_tracking_scale_log",
         "residual_innovation_log",
+        "residual_innovation_raw_log",
         "residual_tracking_error_log",
+        "residual_tracking_error_raw_log",
         "residual_tracking_scale_log",
     ):
         if bundle[key] is not None:
@@ -3063,7 +3092,9 @@ def plot_residual_results_core(result_bundle, plot_cfg):
         _save_fig(fig, out_dir, "fig_residual_rho_trace", save_pdf=save_pdf)
 
     projection_keys = (
+        ("deadband_active_log", "Deadband active"),
         ("projection_active_log", "Projected"),
+        ("projection_due_to_deadband_log", "Deadband limited"),
         ("projection_due_to_authority_log", "Authority limited"),
         ("projection_due_to_headroom_log", "Headroom limited"),
     )
@@ -3078,7 +3109,7 @@ def plot_residual_results_core(result_bundle, plot_cfg):
             values.append(float(np.mean(np.asarray(series[start_step : start_step + W], float))))
         if values:
             fig, ax = plt.subplots(figsize=(7.0, 4.2))
-            ax.bar(np.arange(len(values)), values, color=["#355070", "#6D597A", "#B56576"][: len(values)])
+            ax.bar(np.arange(len(values)), values, color=["#2D6A4F", "#355070", "#8E5572", "#6D597A", "#B56576"][: len(values)])
             ax.set_xticks(np.arange(len(values)))
             ax.set_xticklabels(labels, rotation=10)
             ax.set_ylim(0.0, 1.0)
@@ -3607,12 +3638,14 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             ax.legend(loc="best")
         _save_fig(fig, out_dir, "fig_combined_rho_trace", save_pdf=save_pdf)
 
-    if debug_mode and any(bundle.get(key) is not None for key in ("projection_active_log", "projection_due_to_authority_log", "projection_due_to_headroom_log")):
+    if debug_mode and any(bundle.get(key) is not None for key in ("deadband_active_log", "projection_active_log", "projection_due_to_deadband_log", "projection_due_to_authority_log", "projection_due_to_headroom_log")):
         labels = []
         values = []
         colors = []
         for key, label, color in (
+            ("deadband_active_log", "Deadband active", "#2D6A4F"),
             ("projection_active_log", "Projected", "#355070"),
+            ("projection_due_to_deadband_log", "Deadband limited", "#8E5572"),
             ("projection_due_to_authority_log", "Authority limited", "#6D597A"),
             ("projection_due_to_headroom_log", "Headroom limited", "#B56576"),
         ):

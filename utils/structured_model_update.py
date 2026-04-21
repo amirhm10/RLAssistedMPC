@@ -1,5 +1,7 @@
 import numpy as np
 
+from utils.multiplier_mapping import map_centered_action_to_bounds, map_centered_bounds_to_action
+
 
 RANGE_PROFILES = {
     "tight": {
@@ -104,21 +106,12 @@ def split_augmented_model(A_aug, B_aug, n_outputs, atol=1e-10):
 
 def map_normalized_action_to_multipliers(action, low, high):
     low, high = validate_positive_bounds(low, high)
-    action = _as_float_array(action, "action")
-    if action.shape != low.shape:
-        raise ValueError("action and bounds must have the same shape.")
-    _require_finite("action", action)
-    action = np.clip(action, -1.0, 1.0)
-    return low + ((action + 1.0) / 2.0) * (high - low)
+    return map_centered_action_to_bounds(action, low, high, nominal=1.0)
 
 
 def map_multipliers_to_normalized_action(value, low, high):
     low, high = validate_positive_bounds(low, high)
-    value = _as_float_array(value, "value")
-    if value.shape != low.shape:
-        raise ValueError("value and bounds must have the same shape.")
-    _require_finite("value", value)
-    return 2.0 * (value - low) / (high - low) - 1.0
+    return map_centered_bounds_to_action(value, low, high, nominal=1.0)
 
 
 def resolve_block_groups(n_phys, group_count=None, groups=None):

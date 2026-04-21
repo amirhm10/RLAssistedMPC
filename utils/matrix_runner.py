@@ -12,6 +12,7 @@ from utils.helpers import (
 )
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
+from utils.multiplier_mapping import map_centered_action_to_bounds, map_centered_bounds_to_action
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.state_features import (
     build_rl_state,
@@ -22,17 +23,11 @@ from utils.state_features import (
 
 
 def _map_to_bounds(action, low, high):
-    action = np.asarray(action, float)
-    low = np.asarray(low, float)
-    high = np.asarray(high, float)
-    return low + ((action + 1.0) / 2.0) * (high - low)
+    return map_centered_action_to_bounds(action, low, high, nominal=1.0)
 
 
 def _map_from_bounds(value, low, high):
-    value = np.asarray(value, float)
-    low = np.asarray(low, float)
-    high = np.asarray(high, float)
-    return 2.0 * (value - low) / (high - low) - 1.0
+    return map_centered_bounds_to_action(value, low, high, nominal=1.0)
 
 
 def _relative_fro(candidate, nominal):

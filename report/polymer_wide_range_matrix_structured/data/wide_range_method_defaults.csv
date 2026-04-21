@@ -1,0 +1,19 @@
+system,family,warm_start_available,warm_start_default_on,fixed_size_subproblem,observer_refresh_hook,exploration_mode,observer_update_alignment,observer_refresh_enabled
+polymer,baseline,1,0,1,0,none,n/a,0
+polymer,horizon,1,0,0,0,epsilon,legacy_previous_measurement,0
+polymer,dueling_horizon,1,0,0,0,noisy,legacy_previous_measurement,0
+polymer,matrix,1,0,1,0,param_noise,legacy_previous_measurement,0
+polymer,structured,1,0,1,0,param_noise,legacy_previous_measurement,0
+polymer,weights,1,0,1,0,param_noise,legacy_previous_measurement,0
+polymer,residual,1,0,1,0,param_noise,legacy_previous_measurement,0
+polymer,reidentification,1,0,1,1,param_noise,legacy_previous_measurement,0
+polymer,combined,1,0,0,0,"mixed: horizon=epsilon, cont=param_noise",legacy_previous_measurement,0
+distillation,baseline,1,0,1,0,none,n/a,0
+distillation,horizon,1,0,0,0,noisy,legacy_previous_measurement,0
+distillation,dueling_horizon,1,0,0,0,noisy,legacy_previous_measurement,0
+distillation,matrix,1,0,1,0,param_noise,legacy_previous_measurement,0
+distillation,structured,1,0,1,0,param_noise,legacy_previous_measurement,0
+distillation,weights,1,0,1,0,param_noise,legacy_previous_measurement,0
+distillation,residual,1,0,1,0,param_noise,legacy_previous_measurement,0
+distillation,reidentification,1,0,1,1,param_noise,legacy_previous_measurement,0
+distillation,combined,1,0,0,0,"mixed: horizon=noisy, cont=param_noise",legacy_previous_measurement,0

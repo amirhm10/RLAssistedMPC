@@ -13,6 +13,8 @@ if str(REPO_ROOT) not in sys.path:
 import matplotlib.pyplot as plt
 import numpy as np
 from Simulation.mpc import augment_state_space
+import systems.distillation.notebook_params as distillation_nb
+import systems.polymer.notebook_params as polymer_nb
 from systems.polymer.config import POLYMER_RL_SETPOINTS_PHYS, RL_REWARD_DEFAULTS
 from utils.structured_model_update import (
     build_block_scaled_model,
@@ -29,6 +31,7 @@ DISTILLATION_SYS_DICT = REPO_ROOT / "Distillation" / "Data" / "system_dict_new.p
 DISTILLATION_BASELINE_PATH = REPO_ROOT / "Distillation" / "Results" / "distillation_baseline_disturb_fluctuation_unified" / "20260413_085608" / "input_data.pkl"
 DISTILLATION_MATRIX_DISTURB_PATH = REPO_ROOT / "Distillation" / "Results" / "distillation_matrix_sac_disturb_fluctuation_standard_unified" / "20260415_104840" / "input_data.pkl"
 DISTILLATION_STRUCTURED_DISTURB_PATH = REPO_ROOT / "Distillation" / "Results" / "distillation_structured_matrix_sac_disturb_fluctuation_standard_unified" / "20260415_120923" / "input_data.pkl"
+DISTILLATION_REID_DISTURB_PATH = REPO_ROOT / "Distillation" / "Results" / "distillation_reidentification_td3_disturb_fluctuation_mismatch_unified" / "20260420_171837" / "input_data.pkl"
 
 
 @dataclass(frozen=True)
@@ -36,6 +39,15 @@ class RunSpec:
     run_id: str
     family: str
     variant: str
+    label: str
+    path: Path
+
+
+@dataclass(frozen=True)
+class MethodDiagSpec:
+    run_id: str
+    system: str
+    family: str
     label: str
     path: Path
 
@@ -49,6 +61,19 @@ RUN_SPECS = [
     RunSpec("structured_refresh", "structured", "narrow_refresh", "Structured narrow refresh", REPO_ROOT / "Polymer" / "Results" / "td3_structured_matrices_disturb" / "20260420_235100" / "input_data.pkl"),
     RunSpec("structured_wide", "structured", "wide_refresh", "Structured wide", REPO_ROOT / "Polymer" / "Results" / "td3_structured_matrices_disturb" / "20260421_013208" / "input_data.pkl"),
     RunSpec("reid_refresh", "reidentification", "refresh", "Reidentification refresh", REPO_ROOT / "Polymer" / "Results" / "td3_reidentification_disturb" / "20260420_234346" / "input_data.pkl"),
+]
+
+
+METHOD_DIAG_SPECS = [
+    MethodDiagSpec("poly_horizon", "polymer", "horizon", "Polymer horizon", REPO_ROOT / "Polymer" / "Results" / "horizon_disturb_unified" / "20260421_133651" / "input_data.pkl"),
+    MethodDiagSpec("poly_matrix", "polymer", "matrix", "Polymer matrix wide", REPO_ROOT / "Polymer" / "Results" / "td3_multipliers_disturb" / "20260421_132620" / "input_data.pkl"),
+    MethodDiagSpec("poly_structured", "polymer", "structured", "Polymer structured wide", REPO_ROOT / "Polymer" / "Results" / "td3_structured_matrices_disturb" / "20260421_013208" / "input_data.pkl"),
+    MethodDiagSpec("poly_weights", "polymer", "weights", "Polymer weights", REPO_ROOT / "Polymer" / "Results" / "td3_weights_disturb" / "20260421_004946" / "input_data.pkl"),
+    MethodDiagSpec("poly_residual", "polymer", "residual", "Polymer residual", REPO_ROOT / "Polymer" / "Results" / "td3_residual_disturb" / "20260420_225631" / "input_data.pkl"),
+    MethodDiagSpec("poly_reidentification", "polymer", "reidentification", "Polymer reidentification", REPO_ROOT / "Polymer" / "Results" / "td3_reidentification_disturb" / "20260420_234346" / "input_data.pkl"),
+    MethodDiagSpec("dist_horizon", "distillation", "horizon", "Distillation horizon", REPO_ROOT / "Distillation" / "Results" / "distillation_horizon_disturb_fluctuation_standard_unified" / "20260420_175006" / "input_data.pkl"),
+    MethodDiagSpec("dist_matrix", "distillation", "matrix", "Distillation matrix SAC", DISTILLATION_MATRIX_DISTURB_PATH),
+    MethodDiagSpec("dist_structured", "distillation", "structured", "Distillation structured SAC", DISTILLATION_STRUCTURED_DISTURB_PATH),
 ]
 
 
@@ -115,6 +140,24 @@ def fmt(value: float, digits: int = 4) -> str:
     if np.isnan(float(value)):
         return "n/a"
     return f"{float(value):.{digits}f}"
+
+
+def schedule_value(start: float, end: float, steps: np.ndarray, mode: str, decay_rate: float, decay_steps: int | None = None) -> np.ndarray:
+    steps = np.asarray(steps, float)
+    mode = str(mode).lower()
+    if mode == "linear":
+        if decay_steps is None:
+            decay_steps = int(np.max(steps)) if steps.size else 1
+        frac = np.clip(steps / max(1, int(decay_steps)), 0.0, 1.0)
+        return start + (end - start) * frac
+    if mode == "exp":
+        return end + (start - end) * (float(decay_rate) ** steps)
+    if mode == "cosine":
+        if decay_steps is None:
+            decay_steps = int(np.max(steps)) if steps.size else 1
+        frac = np.clip(steps / max(1, int(decay_steps)), 0.0, 1.0)
+        return end + 0.5 * (start - end) * (1.0 + np.cos(np.pi * frac))
+    raise ValueError(f"Unsupported schedule mode: {mode}")
 
 
 def pct_change(new_value: float, old_value: float) -> str:
@@ -492,7 +535,214 @@ def compute_generic_run_summary(label: str, bundle: dict) -> dict:
                 "spectral_max_test": float(np.max(sr)),
             }
         )
+    if bundle.get("A_model_delta_ratio_log") is not None:
+        row["A_model_delta_ratio_mean_test"] = float(np.mean(np.asarray(bundle["A_model_delta_ratio_log"], float)[ts]))
+    if bundle.get("B_model_delta_ratio_log") is not None:
+        row["B_model_delta_ratio_mean_test"] = float(np.mean(np.asarray(bundle["B_model_delta_ratio_log"], float)[ts]))
     return row
+
+
+def build_family_default_rows() -> list[dict]:
+    family_specs = [
+        ("polymer", "baseline", polymer_nb.POLYMER_BASELINE_DEFAULTS, None, "baseline"),
+        ("polymer", "horizon", polymer_nb.POLYMER_HORIZON_STANDARD_DEFAULTS, "agent", "horizon"),
+        ("polymer", "dueling_horizon", polymer_nb.POLYMER_HORIZON_DUELING_DEFAULTS, "agent", "horizon"),
+        ("polymer", "matrix", polymer_nb.POLYMER_MATRIX_DEFAULTS, "td3_agent", "continuous"),
+        ("polymer", "structured", polymer_nb.POLYMER_STRUCTURED_MATRIX_DEFAULTS, "td3_agent", "continuous"),
+        ("polymer", "weights", polymer_nb.POLYMER_WEIGHT_DEFAULTS, "td3_agent", "continuous"),
+        ("polymer", "residual", polymer_nb.POLYMER_RESIDUAL_DEFAULTS, "td3_agent", "continuous"),
+        ("polymer", "reidentification", polymer_nb.POLYMER_REIDENTIFICATION_DEFAULTS, "td3_agent", "continuous"),
+        ("polymer", "combined", polymer_nb.POLYMER_COMBINED_DEFAULTS, None, "combined"),
+        ("distillation", "baseline", distillation_nb.DISTILLATION_BASELINE_DEFAULTS, None, "baseline"),
+        ("distillation", "horizon", distillation_nb.DISTILLATION_HORIZON_STANDARD_DEFAULTS, "agent", "horizon"),
+        ("distillation", "dueling_horizon", distillation_nb.DISTILLATION_HORIZON_DUELING_DEFAULTS, "agent", "horizon"),
+        ("distillation", "matrix", distillation_nb.DISTILLATION_MATRIX_DEFAULTS, "td3_agent", "continuous"),
+        ("distillation", "structured", distillation_nb.DISTILLATION_STRUCTURED_MATRIX_DEFAULTS, "td3_agent", "continuous"),
+        ("distillation", "weights", distillation_nb.DISTILLATION_WEIGHT_DEFAULTS, "td3_agent", "continuous"),
+        ("distillation", "residual", distillation_nb.DISTILLATION_RESIDUAL_DEFAULTS, "td3_agent", "continuous"),
+        ("distillation", "reidentification", distillation_nb.DISTILLATION_REIDENTIFICATION_DEFAULTS, "td3_agent", "continuous"),
+        ("distillation", "combined", distillation_nb.DISTILLATION_COMBINED_DEFAULTS, None, "combined"),
+    ]
+
+    rows: list[dict] = []
+    for system, family, cfg, agent_key, family_type in family_specs:
+        ctrl = cfg.get("controller", {})
+        reid = cfg.get("reidentification", {})
+        if family_type == "combined":
+            horizon_agent = cfg.get("horizon_agent", {})
+            cont_agent = cfg.get("td3_agent", {})
+            exploration_mode = f"mixed: horizon={horizon_agent.get('exploration_mode', 'n/a')}, cont={cont_agent.get('exploration_mode', 'n/a')}"
+        else:
+            agent_cfg = {} if agent_key is None else cfg.get(agent_key, {})
+            exploration_mode = str(agent_cfg.get("exploration_mode", "none"))
+        row = {
+            "system": system,
+            "family": family,
+            "warm_start_available": 1,
+            "warm_start_default_on": int(bool(ctrl.get("use_shifted_mpc_warm_start", False))),
+            "fixed_size_subproblem": int(family not in {"horizon", "dueling_horizon", "combined"}),
+            "observer_refresh_hook": int(family == "reidentification"),
+            "exploration_mode": exploration_mode,
+            "observer_update_alignment": str(ctrl.get("observer_update_alignment", reid.get("observer_update_alignment", "n/a"))),
+            "observer_refresh_enabled": int(bool(reid.get("observer_refresh_enabled", False))) if family == "reidentification" else 0,
+        }
+        rows.append(row)
+    return rows
+
+
+def _vector_step_norm(values: np.ndarray) -> np.ndarray:
+    values = np.asarray(values, float)
+    if values.ndim == 1:
+        return np.abs(np.diff(values))
+    return np.linalg.norm(np.diff(values, axis=0), axis=1)
+
+
+def _safe_span_norm(high: np.ndarray, low: np.ndarray) -> float:
+    span = float(np.linalg.norm(np.asarray(high, float) - np.asarray(low, float)))
+    return max(span, 1e-12)
+
+
+def compute_method_diag_row(spec: MethodDiagSpec, bundle: dict) -> dict:
+    rewards = np.asarray(bundle["avg_rewards"], float)
+    trough_idx = int(np.argmin(rewards))
+    target = float(np.mean(rewards[-10:]))
+    recover_idx = np.where(rewards[trough_idx:] >= target)[0]
+    recover_ep = int(trough_idx + 1 + recover_idx[0]) if recover_idx.size else np.nan
+    row = {
+        "run_id": spec.run_id,
+        "system": spec.system,
+        "family": spec.family,
+        "label": spec.label,
+        "run_path": repo_rel(spec.path),
+        "use_shifted_mpc_warm_start": int(bool(bundle.get("use_shifted_mpc_warm_start", False))),
+        "reward_trough_gap": float(target - np.min(rewards)),
+        "reward_recover_episode": recover_ep,
+        "observer_update_alignment": str(bundle.get("observer_update_alignment", "n/a")),
+        "param_noise_start": np.nan,
+        "param_noise_mid": np.nan,
+        "param_noise_end": np.nan,
+        "epsilon_start": np.nan,
+        "epsilon_mid": np.nan,
+        "epsilon_end": np.nan,
+        "normalized_step_change_mean": np.nan,
+        "normalized_step_change_p95": np.nan,
+        "decision_change_frac": np.nan,
+    }
+
+    if bundle.get("param_noise_scale_trace") is not None:
+        pn = np.asarray(bundle["param_noise_scale_trace"], float).reshape(-1)
+        if pn.size:
+            row["param_noise_start"] = float(pn[0])
+            row["param_noise_mid"] = float(pn[len(pn) // 2])
+            row["param_noise_end"] = float(pn[-1])
+    if bundle.get("epsilon_trace") is not None:
+        eps = np.asarray(bundle["epsilon_trace"], float).reshape(-1)
+        if eps.size:
+            row["epsilon_start"] = float(eps[0])
+            row["epsilon_mid"] = float(eps[len(eps) // 2])
+            row["epsilon_end"] = float(eps[-1])
+
+    if spec.family == "horizon":
+        horizon = np.asarray(bundle["horizon_trace"], float).reshape(-1)
+        horizon_grid = np.asarray(bundle["mpc_horizons"], float).reshape(-1)
+        step = np.abs(np.diff(horizon))
+        span = max(float(np.max(horizon_grid) - np.min(horizon_grid)), 1e-12)
+        row["normalized_step_change_mean"] = float(np.mean(step) / span)
+        row["normalized_step_change_p95"] = float(np.percentile(step, 95) / span)
+        row["decision_change_frac"] = float(np.mean(step > 0.0))
+        return row
+
+    if spec.family == "matrix":
+        alpha = np.asarray(bundle["alpha_log"], float).reshape(-1)
+        delta = np.asarray(bundle["delta_log"], float)
+        values = np.concatenate((alpha[:, None], delta), axis=1)
+        low = np.concatenate((np.asarray(bundle["low_coef"], float)[:1], np.asarray(bundle["low_coef"], float)[1:]))
+        high = np.concatenate((np.asarray(bundle["high_coef"], float)[:1], np.asarray(bundle["high_coef"], float)[1:]))
+    elif spec.family == "structured":
+        values = np.asarray(bundle["mapped_multiplier_log"], float)
+        low = np.asarray(bundle["structured_low_bounds"], float)
+        high = np.asarray(bundle["structured_high_bounds"], float)
+    elif spec.family == "weights":
+        values = np.asarray(bundle["weight_log"], float)
+        low = np.asarray(bundle["low_coef"], float)
+        high = np.asarray(bundle["high_coef"], float)
+    elif spec.family == "residual":
+        values = np.asarray(bundle["residual_exec_log"], float)
+        low = np.asarray(bundle["low_coef"], float)
+        high = np.asarray(bundle["high_coef"], float)
+    elif spec.family == "reidentification":
+        eta_a = np.asarray(bundle["eta_A_log"], float).reshape(-1)
+        eta_b = np.asarray(bundle["eta_B_log"], float).reshape(-1)
+        values = np.column_stack((eta_a, eta_b))
+        low = np.zeros(2, dtype=float)
+        high = np.ones(2, dtype=float)
+    else:
+        return row
+
+    step = _vector_step_norm(values)
+    span = _safe_span_norm(high, low)
+    row["normalized_step_change_mean"] = float(np.mean(step) / span)
+    row["normalized_step_change_p95"] = float(np.percentile(step, 95) / span)
+    row["decision_change_frac"] = float(np.mean(step > 0.0))
+    return row
+
+
+def compute_observer_support_rows(
+    polymer_matrix_row: dict,
+    polymer_structured_row: dict,
+    distillation_matrix_row: dict,
+    distillation_structured_row: dict,
+) -> list[dict]:
+    return [
+        {
+            "label": "Polymer matrix wide",
+            "system": "polymer",
+            "family": "matrix",
+            "A_drift_mean": float(polymer_matrix_row["A_model_delta_ratio_mean_test"]),
+            "B_drift_mean": float(polymer_matrix_row["B_model_delta_ratio_mean_test"]),
+            "spectral_mean": float(polymer_matrix_row.get("derived_spectral_mean_test", np.nan)),
+        },
+        {
+            "label": "Polymer structured wide",
+            "system": "polymer",
+            "family": "structured",
+            "A_drift_mean": float(polymer_structured_row["A_model_delta_ratio_mean_test"]),
+            "B_drift_mean": float(polymer_structured_row["B_model_delta_ratio_mean_test"]),
+            "spectral_mean": float(polymer_structured_row.get("spectral_mean_test", np.nan)),
+        },
+        {
+            "label": "Distillation matrix SAC",
+            "system": "distillation",
+            "family": "matrix",
+            "A_drift_mean": float(distillation_matrix_row.get("A_model_delta_ratio_mean_test", np.nan)),
+            "B_drift_mean": float(distillation_matrix_row.get("B_model_delta_ratio_mean_test", np.nan)),
+            "spectral_mean": float(distillation_matrix_row.get("derived_spectral_mean_test", np.nan)),
+        },
+        {
+            "label": "Distillation structured SAC",
+            "system": "distillation",
+            "family": "structured",
+            "A_drift_mean": float(distillation_structured_row.get("A_model_delta_ratio_mean_test", np.nan)),
+            "B_drift_mean": float(distillation_structured_row.get("B_model_delta_ratio_mean_test", np.nan)),
+            "spectral_mean": float(distillation_structured_row.get("spectral_mean_test", np.nan)),
+        },
+    ]
+
+
+def compute_reidentification_health(label: str, bundle: dict) -> dict:
+    cond = np.asarray(bundle["id_condition_number_log"], float)
+    cond = cond[np.isfinite(cond) & (cond > 0.0)]
+    valid = np.asarray(bundle["id_candidate_valid_log"], float)
+    success = np.asarray(bundle["id_update_success_log"], float)
+    events = np.asarray(bundle["id_update_event_log"], float)
+    return {
+        "label": label,
+        "candidate_valid_frac": float(np.mean(valid > 0.0)),
+        "update_success_frac": float(np.mean(success > 0.0)),
+        "update_event_frac": float(np.mean(events > 0.0)),
+        "condition_median": float(np.median(cond)) if cond.size else np.nan,
+        "condition_p95": float(np.percentile(cond, 95)) if cond.size else np.nan,
+    }
 
 
 def plot_cross_system_admissibility(
@@ -687,6 +937,103 @@ def plot_distillation_counterpart(distillation_runs: dict[str, dict]) -> None:
     plt.close(fig)
 
 
+def plot_warmstart_and_exploration(method_rows: list[dict], default_rows: list[dict]) -> None:
+    color_map = {"polymer": "#F28E2B", "distillation": "#4E79A7"}
+    polymer_rows = [row for row in method_rows if row["system"] == "polymer"]
+    fig, axs = plt.subplots(2, 2, figsize=(18, 10), constrained_layout=True)
+
+    labels = [row["label"].replace("Polymer ", "P-").replace("Distillation ", "D-").replace(" SAC", "") for row in method_rows]
+    x = np.arange(len(method_rows))
+    axs[0, 0].bar(
+        x,
+        [row["normalized_step_change_mean"] for row in method_rows],
+        color=[color_map[row["system"]] for row in method_rows],
+        alpha=0.85,
+    )
+    axs[0, 0].set_xticks(x)
+    axs[0, 0].set_xticklabels(labels, rotation=35, ha="right")
+    axs[0, 0].set_ylabel("Mean normalized step change")
+    axs[0, 0].set_title("Representative decision continuity by method")
+    axs[0, 0].grid(alpha=0.25, axis="y")
+
+    px = np.arange(len(polymer_rows))
+    axs[0, 1].bar(px, [row["reward_trough_gap"] for row in polymer_rows], color="#E15759", alpha=0.85)
+    axs[0, 1].set_xticks(px)
+    axs[0, 1].set_xticklabels([row["family"] for row in polymer_rows], rotation=30, ha="right")
+    axs[0, 1].set_ylabel("Final-10 reward minus trough")
+    axs[0, 1].set_title("Polymer early deterioration depth by method")
+    axs[0, 1].grid(alpha=0.25, axis="y")
+
+    steps = np.arange(0, 100_001)
+    eps = schedule_value(0.30, 0.01, steps, mode="exp", decay_rate=0.99999)
+    param_noise = schedule_value(0.20, 0.02, steps, mode="exp", decay_rate=0.99995)
+    axs[1, 0].plot(steps, eps, color="#4E79A7", lw=2.0, label="Horizon epsilon schedule")
+    axs[1, 0].plot(steps, param_noise, color="#F28E2B", lw=2.0, label="Continuous param-noise scale")
+    axs[1, 0].axvline(50_000, color="#999999", lw=1.0, ls=":")
+    axs[1, 0].text(52_500, 0.11, "TD3/SAC resample interval = 4 steps", fontsize=9)
+    axs[1, 0].set_xlabel("Training step")
+    axs[1, 0].set_ylabel("Exploration amplitude")
+    axs[1, 0].set_title("Current default exploration schedules")
+    axs[1, 0].legend(fontsize=8)
+    axs[1, 0].grid(alpha=0.25)
+
+    family_order = ["baseline", "horizon", "dueling_horizon", "matrix", "structured", "weights", "residual", "reidentification", "combined"]
+    polymer_defaults = {row["family"]: row for row in default_rows if row["system"] == "polymer"}
+    heat = np.array(
+        [
+            [
+                polymer_defaults[family]["warm_start_available"],
+                polymer_defaults[family]["fixed_size_subproblem"],
+                polymer_defaults[family]["observer_refresh_hook"],
+            ]
+            for family in family_order
+        ],
+        dtype=float,
+    )
+    im = axs[1, 1].imshow(heat, cmap="Blues", vmin=0.0, vmax=1.0, aspect="auto")
+    axs[1, 1].set_xticks(np.arange(3))
+    axs[1, 1].set_xticklabels(["Warm-start\nimplemented", "Fixed-size\nMPC problem", "Observer\nrefresh hook"])
+    axs[1, 1].set_yticks(np.arange(len(family_order)))
+    axs[1, 1].set_yticklabels(family_order)
+    axs[1, 1].set_title("Method structure in the current code path")
+    for i in range(heat.shape[0]):
+        for j in range(heat.shape[1]):
+            axs[1, 1].text(j, i, str(int(heat[i, j])), ha="center", va="center", color="black", fontsize=9)
+    fig.colorbar(im, ax=axs[1, 1], fraction=0.046, pad=0.04)
+
+    fig.savefig(FIG_ROOT / "wide_range_warmstart_exploration.png", dpi=220)
+    plt.close(fig)
+
+
+def plot_observer_refresh_support(observer_rows: list[dict], reid_rows: list[dict]) -> None:
+    fig, axs = plt.subplots(1, 2, figsize=(16, 6), constrained_layout=True)
+    x = np.arange(len(observer_rows))
+    width = 0.36
+    axs[0].bar(x - width / 2, [row["A_drift_mean"] for row in observer_rows], width, color="#4E79A7", label="Mean A drift ratio")
+    axs[0].bar(x + width / 2, [row["B_drift_mean"] for row in observer_rows], width, color="#F28E2B", label="Mean B drift ratio")
+    axs[0].set_xticks(x)
+    axs[0].set_xticklabels([row["label"].replace("Polymer ", "P-").replace("Distillation ", "D-").replace(" SAC", "") for row in observer_rows], rotation=25, ha="right")
+    axs[0].set_ylabel("Relative model drift")
+    axs[0].set_title("Where a periodic observer redesign could matter")
+    axs[0].legend(fontsize=8)
+    axs[0].grid(alpha=0.25, axis="y")
+
+    x2 = np.arange(len(reid_rows))
+    axs[1].bar(x2 - width / 2, [row["candidate_valid_frac"] for row in reid_rows], width, color="#59A14F", label="Candidate valid frac")
+    axs[1].bar(x2 + width / 2, [row["update_success_frac"] for row in reid_rows], width, color="#E15759", label="Update success frac")
+    axs[1].set_xticks(x2)
+    axs[1].set_xticklabels([row["label"] for row in reid_rows])
+    axs[1].set_ylabel("Fraction of all steps")
+    axs[1].set_title("Reidentification model quality limits observer refresh")
+    axs[1].legend(fontsize=8)
+    axs[1].grid(alpha=0.25, axis="y")
+    for idx, row in enumerate(reid_rows):
+        axs[1].text(idx, max(row["candidate_valid_frac"], row["update_success_frac"]) + 0.015, f"cond med {row['condition_median']:.1e}", ha="center", fontsize=8)
+
+    fig.savefig(FIG_ROOT / "wide_range_observer_refresh_support.png", dpi=220)
+    plt.close(fig)
+
+
 def compute_summary(spec: RunSpec, bundle: dict, baseline_bundle: dict, nominal_A_radius: float) -> dict:
     y = y_array(bundle)
     sp = setpoint_phys(bundle)
@@ -765,6 +1112,11 @@ def compute_summary(spec: RunSpec, bundle: dict, baseline_bundle: dict, nominal_
                 "derived_spectral_max_test": float(np.max(derived_sr)),
             }
         )
+
+    if bundle.get("A_model_delta_ratio_log") is not None:
+        row["A_model_delta_ratio_mean_test"] = float(np.mean(np.asarray(bundle["A_model_delta_ratio_log"], float)[ts]))
+    if bundle.get("B_model_delta_ratio_log") is not None:
+        row["B_model_delta_ratio_mean_test"] = float(np.mean(np.asarray(bundle["B_model_delta_ratio_log"], float)[ts]))
 
     if bundle.get("mapped_multiplier_log") is not None:
         mapped = np.asarray(bundle["mapped_multiplier_log"], float)[ts]
@@ -1132,6 +1484,10 @@ def write_markdown(
     distillation_summary: dict[str, dict],
     distillation_matrix_frontier_rows: list[dict],
     distillation_structured_frontier_rows: list[dict],
+    family_default_rows: list[dict],
+    method_diag_rows: list[dict],
+    observer_rows: list[dict],
+    reid_health_rows: list[dict],
 ) -> None:
     summary = {row["run_id"]: row for row in rows}
     matrix_legacy = summary["matrix_legacy"]
@@ -1148,6 +1504,10 @@ def write_markdown(
     alpha_max_stable_dist = 1.0 / nominal_A_radius_dist
     matrix_frontier_selected = [min(matrix_frontier_rows, key=lambda row: abs(row["alpha"] - alpha)) for alpha in [0.85, 1.00, 1.20]]
     distillation_matrix_frontier_selected = [min(distillation_matrix_frontier_rows, key=lambda row: abs(row["alpha"] - alpha)) for alpha in [0.95, 1.00, 1.20]]
+    polymer_default_rows = [row for row in family_default_rows if row["system"] == "polymer"]
+    distillation_default_rows = [row for row in family_default_rows if row["system"] == "distillation"]
+    method_diag_map = {row["run_id"]: row for row in method_diag_rows}
+    polymer_method_diag_rows = [row for row in method_diag_rows if row["system"] == "polymer"]
 
     lines: list[str] = [
         "# Polymer Wide-Range Matrix and Structured Report With Distillation Counterpart",
@@ -1588,6 +1948,122 @@ def write_markdown(
         "",
         "That is exactly why the cross-system figure matters. Polymer needs guards because the model family is fragile. Distillation does not need those guards for the same mathematical reason, but it still needs better policy learning and reward alignment before wider ranges will automatically help.",
         "",
+        "## Will Shifted MPC Warm Start Help Across Methods?",
+        "",
+        "Here `shifted MPC warm start` means initializing the solver with the previous optimal move sequence shifted one step forward, not the notebook's episode-schedule warm-start segment. The optimizer-level idea is",
+        "",
+        "$$",
+        "U_t^\\star = \\arg\\min_U J_t(U),",
+        "\\qquad",
+        "U_t^{(0)} = \\mathcal{S}(U_{t-1}^\\star),",
+        "$$",
+        "",
+        "where `\\mathcal{S}` drops the first move of the previous solution and appends a terminal guess. MPC warm-start literature uses this because consecutive subproblems are usually close in parameter space, so a shifted initialization reduces solver work and can reduce abnormal solves when the optimization problem size stays fixed [Diehl2005] [Jerez2014].",
+        "",
+        "The important distinction for this repo is that warm start is primarily a solver-conditioning tool, not a learning fix. It can help matrix, structured, weights, residual, reidentification, combined, and even baseline MPC solves converge more smoothly. It does not by itself fix the early wide-range deterioration if the underlying issue is that exploration is driving the policy through a much worse model family.",
+        "",
+    ]
+    lines += markdown_table(
+        ["System", "Family", "Warm start implemented", "Default on", "Fixed-size MPC subproblem", "Observer refresh hook", "Exploration mode"],
+        [
+            [
+                row["system"],
+                row["family"],
+                str(int(row["warm_start_available"])),
+                str(int(row["warm_start_default_on"])),
+                str(int(row["fixed_size_subproblem"])),
+                str(int(row["observer_refresh_hook"])),
+                row["exploration_mode"],
+            ]
+            for row in polymer_default_rows + distillation_default_rows
+        ],
+    )
+    lines += image_lines("wide_range_warmstart_exploration.png", "Warm-start and exploration diagnostics across methods")
+    lines += markdown_table(
+        ["Representative run", "Saved bundle", "Mean normalized step change", "P95 normalized step change", "Decision change fraction", "Reward trough gap"],
+        [
+            [
+                row["label"],
+                f"`{row['run_path']}`",
+                fmt(row["normalized_step_change_mean"]),
+                fmt(row["normalized_step_change_p95"]),
+                fmt(row["decision_change_frac"]),
+                fmt(row["reward_trough_gap"]),
+            ]
+            for row in method_diag_rows
+        ],
+    )
+    lines += [
+        "",
+        f"Across the codebase, shifted warm start is already implemented in every MPC-solving runner, but the current defaults leave it off everywhere. The figure and representative-run table show why the likely payoff is method-dependent.",
+        "",
+        f"- Horizon methods are the weakest warm-start candidates. Their normalized decision change is about `{fmt(method_diag_map['poly_horizon']['normalized_step_change_mean'])}` in polymer and `{fmt(method_diag_map['dist_horizon']['normalized_step_change_mean'])}` in distillation, and the decision changes on more than `{fmt(method_diag_map['poly_horizon']['decision_change_frac'])}` and `{fmt(method_diag_map['dist_horizon']['decision_change_frac'])}` of steps. Because the chosen horizon changes frequently, the underlying MPC dimension changes too, so shifted warm start has limited structural value here.",
+        f"- Matrix and structured methods are stronger warm-start candidates. Their normalized decision change is much lower: about `{fmt(method_diag_map['poly_matrix']['normalized_step_change_mean'])}` for polymer matrix wide, `{fmt(method_diag_map['poly_structured']['normalized_step_change_mean'])}` for polymer structured wide, and even lower for the current distillation disturbance runs. Those methods keep a fixed-size subproblem and only change the prediction model or weights, which is the regime where warm-start logic is most defensible.",
+        f"- Residual is the cleanest candidate. The current polymer residual representative run has normalized residual-action step change only `{fmt(method_diag_map['poly_residual']['normalized_step_change_mean'])}`. That means a shifted move sequence is likely to help solver continuity, especially near setpoint, without asking the optimizer to absorb large structural changes.",
+        f"- Weights and reidentification sit between those extremes. Weights has moderate normalized step change `{fmt(method_diag_map['poly_weights']['normalized_step_change_mean'])}`, so warm start is likely worth trying. Reidentification has very smooth blend coefficients `{fmt(method_diag_map['poly_reidentification']['normalized_step_change_mean'])}`, but warm start alone will not solve its model-quality bottleneck.",
+        "",
+        "So the practical conclusion is: yes, warm start is worth testing beyond matrices, but mainly as a solve-quality and solve-time improvement. The most promising first targets are residual, matrix, structured, weights, and reidentification. Horizon should be lower priority because its problem size changes too often.",
+        "",
+        "## Would Periodic Observer Updating Help?",
+        "",
+        "Every mismatch-capable method already updates the observer state every step. The real question is whether the observer model or observer gain should be redesigned occasionally when the effective prediction model drifts. With a fixed observer gain `L`, the estimation error behaves qualitatively like",
+        "",
+        "$$",
+        "e_{k+1} \\approx (\\hat A - L C)e_k + (\\Delta A\\,x_k + \\Delta B\\,u_k),",
+        "$$",
+        "",
+        "so a fixed nominal observer becomes less appropriate when the controller keeps the prediction model far from nominal for long intervals. Adaptive/output-feedback MPC literature supports observer redesign when the model is time-varying or adaptively updated, but only when the redesigned observer is built from a sufficiently trustworthy model [Mayne2009] [Souza2021] [Heirung2017].",
+        "",
+    ]
+    lines += markdown_table(
+        ["Case", "Mean A drift", "Mean B drift", "Mean spectral radius"],
+        [
+            [
+                row["label"],
+                fmt(row["A_drift_mean"]),
+                fmt(row["B_drift_mean"]),
+                fmt(row["spectral_mean"]),
+            ]
+            for row in observer_rows
+        ],
+    )
+    lines += image_lines("wide_range_observer_refresh_support.png", "Observer-refresh support diagnostics")
+    lines += markdown_table(
+        ["Reidentification run", "Candidate valid frac", "Update success frac", "Update event frac", "Condition median", "Condition p95"],
+        [
+            [
+                row["label"],
+                fmt(row["candidate_valid_frac"]),
+                fmt(row["update_success_frac"]),
+                fmt(row["update_event_frac"]),
+                fmt(row["condition_median"], digits=1),
+                fmt(row["condition_p95"], digits=1),
+            ]
+            for row in reid_health_rows
+        ],
+    )
+    lines += [
+        "",
+        f"The observer-refresh question splits cleanly by system. In the polymer wide runs, mean model drift is substantial: around `{fmt(observer_rows[0]['A_drift_mean'])}` to `{fmt(observer_rows[1]['A_drift_mean'])}` on the `A` side and `{fmt(observer_rows[0]['B_drift_mean'])}` to `{fmt(observer_rows[1]['B_drift_mean'])}` on the `B` side. In the current distillation matrix/structured runs, the same drift is only about `{fmt(observer_rows[2]['A_drift_mean'])}` to `{fmt(observer_rows[3]['A_drift_mean'])}`. That means periodic observer redesign is far more plausible as a polymer-wide-multiplier stabilization tool than as a fix for the current distillation matrix/structured runs.",
+        "",
+        f"But periodic observer refresh only helps if the refreshed model is trustworthy. That is exactly why it is not a good first fix for current polymer reidentification: candidate-valid fraction is only `{fmt(reid_health_rows[0]['candidate_valid_frac'])}` and update-success fraction is only `{fmt(reid_health_rows[0]['update_success_frac'])}`. There is almost no accepted model stream to refresh from. Distillation reidentification is materially healthier on that axis: candidate-valid fraction `{fmt(reid_health_rows[1]['candidate_valid_frac'])}`, update-success fraction `{fmt(reid_health_rows[1]['update_success_frac'])}`, and condition numbers an order of magnitude lower.",
+        "",
+        "So the practical recommendation is narrow, not blanket: periodic observer redesign is worth exploring if it is based on a smoothed accepted effective model and protected by the same admissibility checks as the controller. The best first candidates are polymer matrix/structured with slow refresh from interval-mean effective models, and distillation reidentification where candidate quality is already much better than polymer. Polymer reidentification should not use observer refresh as a primary rescue mechanism until its identification layer becomes trustworthy.",
+        "",
+        "## Is The Current Exploration Noise Making The Wide-Range Problem Worse?",
+        "",
+        "Yes, especially in the continuous multiplier families. The current defaults use the same continuous exploration schedule across matrix, structured, weights, residual, reidentification, and the continuous branches of combined supervision: parameter-noise scale starts at `0.2`, decays toward `0.02` with an exponential factor `0.99995`, and the perturbed actor is resampled every `4` environment steps. Horizon uses epsilon/noisy exploration instead. That means the continuous methods see the same exploration magnitude even when the feasible model family has been widened dramatically.",
+        "",
+        f"The representative diagnostics make the distinction clear. Residual and reidentification are smooth under their current policy outputs, with normalized step change about `{fmt(method_diag_map['poly_residual']['normalized_step_change_mean'])}` and `{fmt(method_diag_map['poly_reidentification']['normalized_step_change_mean'])}`. Polymer matrix and structured wide are much more aggressive, around `{fmt(method_diag_map['poly_matrix']['normalized_step_change_mean'])}` and `{fmt(method_diag_map['poly_structured']['normalized_step_change_mean'])}`, and weights is similar at `{fmt(method_diag_map['poly_weights']['normalized_step_change_mean'])}`. Those are exactly the families that show the deepest early reward troughs.",
+        "",
+        "This is why warm start and exploration should not be conflated. Warm start can reduce solver friction, but it does not remove the fact that the current actor-noise process is injecting the same nominal exploration scale into a much larger admissible model set. Literature on parameter-noise exploration and temporally coherent policies supports making exploration smoother or staged when the action-to-dynamics map is very sensitive [Plappert2018] [Korenkevych2019] [Seo2025].",
+        "",
+        "In practical repo terms, the most sensible order is:",
+        "",
+        "1. keep the current wide bounds, but enable shifted warm start first in residual, matrix, structured, weights, and reidentification,",
+        "2. reduce early continuous exploration amplitude or slow the param-noise resample cadence when the range is widened,",
+        "3. only then consider periodic observer redesign where sustained model drift justifies it.",
+        "",
         "## Why The Wide Runs First Degrade And Then Recover",
         "",
         "The early deterioration is consistent with a larger action/model-search space. Widening the multiplier ranges expands the set of prediction models the agent can induce. Early in training, the replay buffer is dominated by low-quality exploratory transitions from this larger space, so the policy gets worse before it learns which stronger corrections are actually useful. Once enough informative transitions accumulate, the policy recovers and starts exploiting the wider authority.",
@@ -1713,25 +2189,37 @@ def write_markdown(
         f"- The actual polymer reward is bonus-balanced more than edge-balanced. If both outputs should matter more evenly in evaluation, the most direct reward fix is to reduce `Q1` toward about `{fmt(reward_targets['q1_equal_edge_mean'], digits=0)}` or to separate inside-band bonus weights from outside-band penalty weights.",
         f"- For the matrix family, observability and controllability do not bound positive `alpha`; the meaningful analytical upper bound is `alpha < {fmt(alpha_max_stable)}` if all candidate `A` matrices must stay open-loop stable. There is no comparable analytical lower bound, so the lower side should be chosen by a trust-region or time-scale rule. For `B`, the useful bounds are about gain-trust and actuator headroom, not spectral stability.",
         f"- Distillation is mathematically much less fragile than polymer: `alpha_max_stable` is `{fmt(alpha_max_stable_dist)}` instead of `{fmt(alpha_max_stable)}`, and the structured unstable fraction at `1.20` is only `{fmt(distillation_structured_frontier_rows[-1]['unstable_frac'], digits=3)}` instead of `{fmt(structured_frontier_rows[-1]['unstable_frac'], digits=3)}`. But the currently saved disturbance RL runs still do not beat the distillation baseline, so wider admissibility alone is not enough.",
+        "- Shifted MPC warm start is worth testing beyond the matrix family, but primarily as a solver-quality improvement. The highest-payoff candidates in the current codebase are residual, matrix, structured, weights, and reidentification. Horizon is a weaker target because the subproblem dimension changes too often.",
+        "- Periodic observer redesign should not be treated as a blanket fix. It is most defensible when sustained model drift is present and the refreshed model is trustworthy. That makes polymer matrix/structured and distillation reidentification more plausible targets than current polymer reidentification.",
         "- The degradation-then-recovery pattern is expected after abrupt widening. The most practical fix is staged widening, smoother exploration, mismatch-gated authority, and uncertainty-set shaping before wider training ranges are accepted.",
         "- Polymer reidentification is currently dominated by the widened direct-multiplier methods and should be deprioritized until the identification layer itself is redesigned around informative-window generation and candidate validation.",
         "",
         "## Sources",
         "",
+        "- [Diehl2005] A Real-Time Iteration Scheme for Nonlinear Optimization in Optimal Feedback Control.",
+        "- [Jerez2014] Embedded online optimization for model predictive control at megahertz rates.",
         "- [Berberich2022] Forward-looking persistent excitation in model predictive control.",
         "- [Heirung2015] MPC-based dual control with online experiment design.",
         "- [Heirung2017] Dual adaptive model predictive control.",
+        "- [Mayne2009] Robust output feedback model predictive control of constrained linear systems: Time varying case.",
         "- [Oshima2024] Targeted excitation and re-identification methods for multivariate process and model predictive control.",
+        "- [Plappert2018] Parameter Space Noise for Exploration.",
+        "- [Souza2021] Stochastic MPC with adaptive nonlinear Kalman filtering for output-feedback control of systems subject to multiplicative uncertainty.",
         "- [Korenkevych2019] Autoregressive Policies for Continuous Control Deep Reinforcement Learning.",
         "- [Seo2025] Continuous Control with Coarse-to-fine Reinforcement Learning.",
         "- [Chen2024] Robust model predictive control with polytopic model uncertainty through System Level Synthesis.",
         "- [Limon2013] Robust feedback model predictive control of constrained uncertain systems.",
         "- [Kothare1996] Robust constrained model predictive control using linear matrix inequalities.",
         "",
+        "[Diehl2005]: https://doi.org/10.1137/S0363012902400713",
+        "[Jerez2014]: https://doi.org/10.1109/TAC.2014.2351991",
         "[Berberich2022]: https://doi.org/10.1016/j.automatica.2021.110033",
         "[Heirung2015]: https://doi.org/10.1016/j.jprocont.2015.04.012",
         "[Heirung2017]: https://doi.org/10.1016/j.automatica.2017.01.030",
+        "[Mayne2009]: https://doi.org/10.1016/j.automatica.2009.05.009",
         "[Oshima2024]: https://doi.org/10.1016/j.jprocont.2024.103190",
+        "[Plappert2018]: https://openreview.net/forum?id=ByBAl2eAZ",
+        "[Souza2021]: https://doi.org/10.1016/j.automatica.2021.109951",
         "[Korenkevych2019]: https://www.ijcai.org/proceedings/2019/0382.pdf",
         "[Seo2025]: https://proceedings.mlr.press/v270/seo25a.html",
         "[Chen2024]: https://doi.org/10.1016/j.automatica.2023.111431",
@@ -1769,6 +2257,7 @@ def main() -> None:
         "matrix": {"bundle": load_pickle(DISTILLATION_MATRIX_DISTURB_PATH)},
         "structured": {"bundle": load_pickle(DISTILLATION_STRUCTURED_DISTURB_PATH)},
     }
+    distillation_reid_bundle = load_pickle(DISTILLATION_REID_DISTURB_PATH)
 
     baseline_bundle = runs["baseline"]["bundle"]
     rows = [compute_summary(spec=spec, bundle=runs[spec.run_id]["bundle"], baseline_bundle=baseline_bundle, nominal_A_radius=nominal_A_radius) for spec in RUN_SPECS]
@@ -1778,6 +2267,18 @@ def main() -> None:
         "matrix": compute_generic_run_summary("Distillation matrix SAC disturbance", distillation_runs["matrix"]["bundle"]),
         "structured": compute_generic_run_summary("Distillation structured SAC disturbance", distillation_runs["structured"]["bundle"]),
     }
+    family_default_rows = build_family_default_rows()
+    method_diag_rows = [compute_method_diag_row(spec, load_pickle(spec.path)) for spec in METHOD_DIAG_SPECS]
+    observer_rows = compute_observer_support_rows(
+        polymer_matrix_row=summary_map["matrix_wide"],
+        polymer_structured_row=summary_map["structured_wide"],
+        distillation_matrix_row=distillation_summary["matrix"],
+        distillation_structured_row=distillation_summary["structured"],
+    )
+    reid_health_rows = [
+        compute_reidentification_health("Polymer reidentification", runs["reid_refresh"]["bundle"]),
+        compute_reidentification_health("Distillation reidentification", distillation_reid_bundle),
+    ]
 
     save_csv(
         DATA_ROOT / "wide_range_summary.csv",
@@ -1836,6 +2337,50 @@ def main() -> None:
             "residual_ratio_p95",
         ],
     )
+    save_csv(
+        DATA_ROOT / "wide_range_method_defaults.csv",
+        family_default_rows,
+        [
+            "system",
+            "family",
+            "warm_start_available",
+            "warm_start_default_on",
+            "fixed_size_subproblem",
+            "observer_refresh_hook",
+            "exploration_mode",
+            "observer_update_alignment",
+            "observer_refresh_enabled",
+        ],
+    )
+    save_csv(
+        DATA_ROOT / "wide_range_method_diagnostics.csv",
+        method_diag_rows,
+        [
+            "run_id",
+            "system",
+            "family",
+            "label",
+            "run_path",
+            "use_shifted_mpc_warm_start",
+            "normalized_step_change_mean",
+            "normalized_step_change_p95",
+            "decision_change_frac",
+            "reward_trough_gap",
+            "reward_recover_episode",
+            "observer_update_alignment",
+            "param_noise_start",
+            "param_noise_mid",
+            "param_noise_end",
+            "epsilon_start",
+            "epsilon_mid",
+            "epsilon_end",
+        ],
+    )
+    save_csv(
+        DATA_ROOT / "wide_range_observer_refresh.csv",
+        observer_rows + reid_health_rows,
+        sorted({k for row in observer_rows + reid_health_rows for k in row.keys()}),
+    )
 
     plot_reward_curves(runs)
     plot_final_test_outputs(runs)
@@ -1870,6 +2415,8 @@ def main() -> None:
     plot_b_multiplier_design()
     plot_practical_fixes_explainer(structured_frontier_rows, distillation_structured_frontier_rows)
     plot_distillation_counterpart(distillation_runs)
+    plot_warmstart_and_exploration(method_diag_rows, family_default_rows)
+    plot_observer_refresh_support(observer_rows, reid_health_rows)
     write_markdown(
         rows,
         nominal_A_radius=nominal_A_radius,
@@ -1881,6 +2428,10 @@ def main() -> None:
         distillation_summary=distillation_summary,
         distillation_matrix_frontier_rows=distillation_matrix_frontier_rows,
         distillation_structured_frontier_rows=distillation_structured_frontier_rows,
+        family_default_rows=family_default_rows,
+        method_diag_rows=method_diag_rows,
+        observer_rows=observer_rows,
+        reid_health_rows=reid_health_rows,
     )
 
 

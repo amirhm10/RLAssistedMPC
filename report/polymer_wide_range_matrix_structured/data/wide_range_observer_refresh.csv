@@ -1,0 +1,7 @@
+A_drift_mean,B_drift_mean,candidate_valid_frac,condition_median,condition_p95,family,label,spectral_mean,system,update_event_frac,update_success_frac
+0.08724433268795838,0.12572423720868128,,,,matrix,Polymer matrix wide,0.9024518980623649,polymer,,
+0.15729894102188063,0.14616913759778652,,,,structured,Polymer structured wide,1.1054120570178458,polymer,,
+0.016146749694133197,0.018944549432157034,,,,matrix,Distillation matrix SAC,nan,distillation,,
+0.012045747896771042,0.015697113572236455,,,,structured,Distillation structured SAC,0.7720996041055117,distillation,,
+,,0.0010625,185536.0340742331,2199679.819349429,,Polymer reidentification,,,0.19990625,0.0002125
+,,0.21775,20706.927505156567,33159.21332153312,,Distillation reidentification,,,0.0475,0.0108875

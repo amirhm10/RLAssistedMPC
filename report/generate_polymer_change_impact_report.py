@@ -2,14 +2,20 @@ from __future__ import annotations
 
 import csv
 import pickle
+import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+from systems.distillation.notebook_params import get_distillation_notebook_defaults
+from systems.polymer.notebook_params import get_polymer_notebook_defaults
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
 REPORT_ROOT = REPO_ROOT / "report" / "polymer_change_impact"
 FIG_ROOT = REPORT_ROOT / "figures"
 DATA_ROOT = REPORT_ROOT / "data"
@@ -464,6 +470,89 @@ def compute_reid_metrics(bundle: dict) -> dict:
     }
 
 
+def extract_reid_default_surface(system_name: str, defaults: dict) -> dict:
+    reid = dict(defaults["reidentification"])
+    theta_low_b = float(reid["theta_low_B"])
+    theta_high_b = float(reid["theta_high_B"])
+    guard_enabled = all(
+        key in reid
+        for key in (
+            "guard_validation_fraction",
+            "guard_min_validation_samples",
+            "guard_min_train_samples",
+            "max_theta_clipped_fraction",
+            "max_condition_number",
+            "max_validation_residual_ratio",
+            "max_full_residual_ratio",
+        )
+    )
+    return {
+        "label": f"{system_name} current",
+        "system": system_name,
+        "id_window": int(reid["id_window"]),
+        "id_update_period": int(reid["id_update_period"]),
+        "rank_B": int(reid["rank_B"]),
+        "lambda_prev_B": float(reid["lambda_prev_B"]),
+        "lambda_0_B": float(reid["lambda_0_B"]),
+        "theta_B_halfwidth": float(max(abs(theta_low_b), abs(theta_high_b))),
+        "freeze_identification_during_warm_start": bool(reid.get("freeze_identification_during_warm_start", False)),
+        "guard_enabled": bool(guard_enabled),
+        "candidate_guard_mode": str(reid.get("candidate_guard_mode", "n/a")),
+        "blend_validity_mode": str(reid.get("blend_validity_mode", "n/a")),
+        "force_eta_constant": reid.get("force_eta_constant"),
+        "has_small_fixed_eta_isolation": bool(reid.get("force_eta_constant") is not None),
+        "normalize_blend_extras": bool(reid.get("normalize_blend_extras", False)),
+        "blend_extra_clip": float(reid.get("blend_extra_clip", np.nan)),
+        "blend_residual_scale": float(reid.get("blend_residual_scale", np.nan)),
+        "eta_tau_B": float(reid.get("eta_tau_B", np.nan)),
+        "guard_validation_fraction": float(reid.get("guard_validation_fraction", np.nan)),
+        "guard_min_validation_samples": int(reid.get("guard_min_validation_samples", 0)) if reid.get("guard_min_validation_samples") is not None else np.nan,
+        "guard_min_train_samples": int(reid.get("guard_min_train_samples", 0)) if reid.get("guard_min_train_samples") is not None else np.nan,
+        "max_theta_clipped_fraction": float(reid.get("max_theta_clipped_fraction", np.nan)),
+        "max_condition_number": float(reid.get("max_condition_number", np.nan)),
+        "max_validation_residual_ratio": float(reid.get("max_validation_residual_ratio", np.nan)),
+        "max_full_residual_ratio": float(reid.get("max_full_residual_ratio", np.nan)),
+    }
+
+
+def build_reid_extension_rows() -> list[dict]:
+    polymer_defaults = get_polymer_notebook_defaults("reidentification")
+    distillation_defaults = get_distillation_notebook_defaults("reidentification")
+    polymer_current = extract_reid_default_surface("polymer", polymer_defaults)
+    distillation_current = extract_reid_default_surface("distillation", distillation_defaults)
+
+    polymer_next_step = dict(polymer_current)
+    polymer_next_step.update(
+        {
+            "label": "polymer next-step",
+            "id_window": 160,
+            "id_update_period": 20,
+            "rank_B": 1,
+            "lambda_prev_B": 5.0e-1,
+            "lambda_0_B": 5.0e-3,
+            "theta_B_halfwidth": 0.04,
+            "freeze_identification_during_warm_start": True,
+            "guard_enabled": True,
+            "candidate_guard_mode": "fro_validation_clip",
+            "blend_validity_mode": "off (first) / diagnostic_fade later",
+            "force_eta_constant": [0.05, 0.05],
+            "has_small_fixed_eta_isolation": True,
+            "normalize_blend_extras": False,
+            "blend_extra_clip": 1.0e6,
+            "blend_residual_scale": 1.0e6,
+            "eta_tau_B": 1.0,
+            "guard_validation_fraction": 0.25,
+            "guard_min_validation_samples": 32,
+            "guard_min_train_samples": 80,
+            "max_theta_clipped_fraction": 0.05,
+            "max_condition_number": 3.0e4,
+            "max_validation_residual_ratio": 0.995,
+            "max_full_residual_ratio": 1.0,
+        }
+    )
+    return [polymer_current, distillation_current, polymer_next_step]
+
+
 def save_csv(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
     with path.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=fieldnames)
@@ -822,11 +911,66 @@ def plot_reid_health(reid_rows: list[dict]) -> None:
     plt.close(fig)
 
 
+def plot_reid_extension_comparison(extension_rows: list[dict]) -> None:
+    labels = [row["label"].replace(" ", "\n") for row in extension_rows]
+    colors = ["#E15759", "#4E79A7", "#59A14F"]
+    x = np.arange(len(labels))
+    fig, axs = plt.subplots(2, 2, figsize=(16, 10), constrained_layout=True)
+
+    width = 0.35
+    axs[0, 0].bar(x - width / 2, [row["id_window"] for row in extension_rows], width=width, label="id_window")
+    axs[0, 0].bar(x + width / 2, [row["id_update_period"] for row in extension_rows], width=width, label="id_update_period")
+    axs[0, 0].set_title("Identification cadence")
+    axs[0, 0].set_xticks(x)
+    axs[0, 0].set_xticklabels(labels)
+    axs[0, 0].set_ylabel("steps")
+    axs[0, 0].legend(fontsize=8, loc="upper right")
+
+    axs[0, 1].bar(x - width / 2, [row["rank_B"] for row in extension_rows], width=width, label="rank_B")
+    axs[0, 1].bar(x + width / 2, [row["theta_B_halfwidth"] for row in extension_rows], width=width, label="theta_B halfwidth")
+    axs[0, 1].set_title("B-side structural restriction")
+    axs[0, 1].set_xticks(x)
+    axs[0, 1].set_xticklabels(labels)
+    axs[0, 1].legend(fontsize=8, loc="upper right")
+
+    axs[1, 0].bar(x - width / 2, [row["lambda_prev_B"] for row in extension_rows], width=width, label="lambda_prev_B")
+    axs[1, 0].bar(x + width / 2, [row["lambda_0_B"] for row in extension_rows], width=width, label="lambda_0_B")
+    axs[1, 0].set_yscale("log")
+    axs[1, 0].set_title("B-side regularization")
+    axs[1, 0].set_xticks(x)
+    axs[1, 0].set_xticklabels(labels)
+    axs[1, 0].legend(fontsize=8, loc="upper right")
+
+    flag_names = [
+        ("freeze_identification_during_warm_start", "freeze warm-start"),
+        ("guard_enabled", "validation guard"),
+        ("has_small_fixed_eta_isolation", "fixed small eta test"),
+    ]
+    flag_width = 0.22
+    for idx, (key, title) in enumerate(flag_names):
+        axs[1, 1].bar(
+            x + (idx - 1.0) * flag_width,
+            [1.0 if row[key] else 0.0 for row in extension_rows],
+            width=flag_width,
+            label=title,
+        )
+    axs[1, 1].set_title("Borrowable hardening levers")
+    axs[1, 1].set_xticks(x)
+    axs[1, 1].set_xticklabels(labels)
+    axs[1, 1].set_ylim(0.0, 1.15)
+    axs[1, 1].set_ylabel("enabled")
+    axs[1, 1].legend(fontsize=8, loc="upper right")
+
+    fig.savefig(FIG_ROOT / "polymer_reid_extension_comparison.png", dpi=220)
+    plt.close(fig)
+
+
 def write_markdown(
     config_rows: list[dict],
     summary_rows: list[dict],
     state_rows: list[dict],
     reid_rows: list[dict],
+    extension_rows: list[dict],
     spec_map: dict[str, RunSpec],
 ) -> None:
     summary_by_id = {row["run_id"]: row for row in summary_rows if row["family"] != "baseline"}
@@ -844,10 +988,14 @@ def write_markdown(
     reid_legacy_health = next(row for row in reid_rows if row["run_id"] == "reidentification:legacy")
     reid_refresh_health = next(row for row in reid_rows if row["run_id"] == "reidentification:refreshed_legacy_observer")
 
+    polymer_extension = next(row for row in extension_rows if row["label"] == "polymer next-step")
+    polymer_current_ext = next(row for row in extension_rows if row["label"] == "polymer current")
+    distillation_current_ext = next(row for row in extension_rows if row["label"] == "distillation current")
+
     lines: list[str] = [
         "# Polymer Change-Impact Report",
         "",
-        "Date: 2026-04-20",
+        "Date: 2026-04-21",
         "",
         "This report is now self-contained: the comparison tables, figures, explanations, and source notes are inside the report instead of being listed as external links only.",
         "",
@@ -1087,6 +1235,12 @@ def write_markdown(
     lines += [
         "The reidentification failure diagnosis is strong:",
         "",
+        "The update math makes the failure mode explicit. The shared reidentification path is solving a regularized batch problem of the form",
+        "",
+        "`theta_hat = argmin_theta ||Y - Phi theta||_2^2 + lambda_prev ||theta - theta_prev||_2^2 + lambda_0 ||theta||_2^2`",
+        "",
+        "on each accepted identification window. The information content of that window is carried by the Gram matrix `G = Phi^T Phi`. If `G` is poorly conditioned, then small data noise produces large parameter movement; this is why the report tracks the condition number `kappa(G) = sigma_max(G) / sigma_min(G)` and the candidate residual ratios. In practice, a useful candidate should satisfy `r_val = ||e_val,cand|| / ||e_val,prev|| < 1` and `r_full = ||e_full,cand|| / ||e_full,prev|| <= 1` while staying inside the parameter and conditioning guards.",
+        "",
         f"- Updates are attempted often enough. The update-event fraction is `{fmt(reid_refresh_health['update_event_frac'])}` in the refreshed run, essentially the same as legacy.",
         f"- But almost none of those attempts survive the guard. Candidate-valid fraction is only `{fmt(reid_refresh_health['candidate_valid_frac'])}`, and update-success fraction is only `{fmt(reid_refresh_health['update_success_frac'])}`.",
         f"- The regression windows are numerically bad. The refreshed run has a median condition number of `{fmt(reid_refresh_health['condition_median'], digits=1)}` and p95 of `{fmt(reid_refresh_health['condition_p95'], digits=1)}`.",
@@ -1104,6 +1258,92 @@ def write_markdown(
         "",
         "The result in this repository matches that story closely. The refreshed reidentification run still sees the mismatch better than before, but the identification subproblem is not healthy enough to convert that information into good model updates.",
         "",
+        "## How To Extend Polymer Reidentification",
+        "",
+        "The next polymer reidentification work should not start from scratch. The shared runner already contains several hardening levers that were added for the distillation branch and can be reused here.",
+        "",
+    ]
+
+    extension_table_rows = []
+    for row in extension_rows:
+        extension_table_rows.append(
+            [
+                row["label"],
+                str(row["id_window"]),
+                str(row["id_update_period"]),
+                str(row["rank_B"]),
+                fmt(row["theta_B_halfwidth"], digits=3),
+                f"{row['lambda_prev_B']:.1e}",
+                f"{row['lambda_0_B']:.1e}",
+                "yes" if row["freeze_identification_during_warm_start"] else "no",
+                "yes" if row["guard_enabled"] else "no",
+                str(row["candidate_guard_mode"]),
+                str(row["blend_validity_mode"]),
+                str(row["force_eta_constant"]),
+            ]
+        )
+    lines += markdown_table(
+        [
+            "Surface",
+            "id_window",
+            "id_update_period",
+            "rank_B",
+            "theta_B halfwidth",
+            "lambda_prev_B",
+            "lambda_0_B",
+            "freeze warm-start",
+            "validation guard",
+            "guard mode",
+            "blend mode",
+            "force_eta_constant",
+        ],
+        extension_table_rows,
+    )
+    lines += [
+        "",
+    ]
+    lines += image_lines("polymer_reid_extension_comparison.png", "Polymer versus distillation reidentification hardening levers and polymer next-step recommendation")
+    lines += [
+        "This comparison suggests a practical three-layer extension strategy for polymer reidentification:",
+        "",
+        f"1. Borrow the hardening that already exists in the distillation path. The biggest immediate differences are cadence and warm-start protection: polymer still runs at `{polymer_current_ext['id_window']}/{polymer_current_ext['id_update_period']}`, while distillation moved to `{distillation_current_ext['id_window']}/{distillation_current_ext['id_update_period']}` and enables `freeze_identification_during_warm_start=True`. The distillation diagnostics in this repo showed that the slower `160/20` cadence did not cause collapse by itself; warm-start hidden drift and excessive blend authority were the real problems.",
+        f"2. Make the polymer B-side more conservative. Distillation already tightened the B side to `rank_B={distillation_current_ext['rank_B']}`, `lambda_prev_B={distillation_current_ext['lambda_prev_B']:.1e}`, `lambda_0_B={distillation_current_ext['lambda_0_B']:.1e}`, and `theta_B` halfwidth `{distillation_current_ext['theta_B_halfwidth']:.3f}`. Polymer is still at `rank_B={polymer_current_ext['rank_B']}`, `lambda_prev_B={polymer_current_ext['lambda_prev_B']:.1e}`, `lambda_0_B={polymer_current_ext['lambda_0_B']:.1e}`, and halfwidth `{polymer_current_ext['theta_B_halfwidth']:.3f}`. Given how rarely polymer accepts candidate updates, reducing B flexibility is a reasonable next ablation.",
+        f"3. Turn on the validation-aware guard layer before trusting the RL blend again. The shared runner already supports `guard_validation_fraction`, minimum train/validation sample thresholds, clipped-theta checks, and residual-ratio / condition-number limits. Polymer is not using any of them now, but the recommended next-step surface in the table enables them with the same thresholds already tested on distillation.",
+        "",
+        "The one distillation idea that should be borrowed only as a diagnostic, not as the final method, is `force_eta_constant`. In the distillation branch, a small fixed `eta` was useful to separate \"identification quality\" from \"RL blend authority.\" That same isolation test is worthwhile in polymer: if polymer still fails with a tiny fixed blend such as `[0.05, 0.05]`, the bottleneck is the identification engine itself, not the policy.",
+        "",
+        "The one distillation idea that should not be copied blindly is `blend_validity_mode`. Distillation explored validity-aware fading, but the current active defaults are still `off`. For polymer, the correct order is:",
+        "",
+        "- first make candidates valid more often with cadence, warm-start freeze, B-side restriction, and validation guards",
+        "- then use `diagnostic_fade` only as a second-stage ablation if candidate quality improves but aggressive blend authority still hurts control",
+        "",
+        "## Literature-Backed Reidentification Roadmap",
+        "",
+        "The literature suggests three extensions beyond the current repo surface:",
+        "",
+        "1. Informative-window gating and explicit excitation.",
+        "   Persistence of excitation is the condition that makes identification informative. The adaptive MPC literature now includes PE conditions directly in the controller or in the update trigger, rather than passively hoping the closed-loop trajectory contains enough information [Berberich2022] [Lu2023]. For polymer, that means the update trigger should depend not only on buffer length but also on an information or singular-value test. When the test fails, the safest next step is not to update the model.",
+        "",
+        "2. Active exploration when identification is starved.",
+        "   Dual/adaptive MPC literature treats control as both a performance input and an identification input [Parsi2020]. In this project that does not mean abandoning RL-assisted MPC. It means adding a small, bounded probing policy or excitation schedule that is activated only when the identification window is uninformative and the plant is in a safe region. This is more targeted than letting the blend policy indirectly create excitation.",
+        "",
+        "3. More robust online estimators.",
+        "   The polymer logs look like a noisy, ill-conditioned regression problem. The recursive identification literature suggests regularized recursive least-squares or total least-squares variants when both regressors and outputs are noisy [Lim2016]. The current batch ridge solve is a reasonable baseline, but if polymer remains condition-limited after the guard/cadence changes, a recursive regularized estimator is the next algorithmic step worth testing.",
+        "",
+        "A concrete borrowing path from distillation is therefore:",
+        "",
+        "- Step 1: move polymer to the distillation-style hardening surface without changing the RL policy structure: slower `id_window/id_update_period`, `freeze_identification_during_warm_start=True`, smaller `rank_B`, tighter `theta_B` bounds, and the existing validation/conditioning guard thresholds.",
+        "- Step 2: run a fixed-small-eta study exactly as an isolation tool. If a tiny constant `eta` still fails, the identification engine is the blocker. If a tiny constant `eta` works but learned `eta` does not, then the next work is blend supervision rather than estimator redesign.",
+        "- Step 3: add informative-window gating before candidate construction. Concretely, require the buffer Gram matrix or its smallest singular value to clear a threshold before solving the batch update, so the policy cannot keep pushing on a statistically empty window.",
+        "- Step 4: only after steps 1-3, consider validity-aware blend fading or bounded excitation triggers. Those are second-stage tools, not substitutes for a non-informative window.",
+        "",
+        "A practical order for polymer is therefore:",
+        "",
+        "- Stage A: enable distillation-style hardening in the current shared runner",
+        "- Stage B: run a fixed-small-eta isolation study to separate blend problems from identification problems",
+        "- Stage C: add informative-window gating and, if needed, bounded excitation triggers",
+        "- Stage D: only after A-C, test stronger blend policies or new recursive estimators",
+        "",
         "## Conclusions",
         "",
         "From the saved polymer runs, the recent changes did matter, but not in one uniform way:",
@@ -1113,7 +1353,7 @@ def write_markdown(
         "- yes, they affected matrix and structured matrix, but matrix is sensitive to the observer choice and structured matrix is mostly reward-level improvement rather than a clear tail-MAE win",
         "- no, the same changes did not fix polymer reidentification, because that family is currently bottlenecked by candidate-model quality, conditioning, and validity, not only by RL-state scaling",
         "",
-        "The immediate project implication is that polymer residual remains the strongest beneficiary of the new conditioning path, matrix and structured matrix are secondary candidates for further tuning, and polymer reidentification needs identification-layer changes next: informative-window gating, stronger candidate validation, and likely some regularization in the online estimator.",
+        "The immediate project implication is that polymer residual remains the strongest beneficiary of the new conditioning path, matrix and structured matrix are secondary candidates for further tuning, and polymer reidentification needs identification-layer changes next: distillation-style hardening first, then informative-window gating, and then stronger online estimation methods if the candidate-valid fraction remains near zero.",
         "",
         "## Sources",
         "",
@@ -1121,6 +1361,9 @@ def write_markdown(
         "- [Mu2022] Mu et al., *Persistence of excitation for identifying switched linear systems*, Automatica 2022.",
         "- [Binette2016] Binette and Srinivasan, *On the Use of Nonlinear Model Predictive Control without Parameter Adaptation for Batch Processes*, Processes 2016.",
         "- [Wang2022] *Offset-free ARX-based adaptive model predictive control applied to a nonlinear process*, ISA Transactions 2022.",
+        "- [Berberich2022] *Forward-looking persistent excitation in model predictive control*, Automatica 2022.",
+        "- [Lu2023] *Robust adaptive model predictive control with persistent excitation conditions*, Automatica 2023.",
+        "- [Parsi2020] *Active exploration in adaptive model predictive control*, ETH Zurich research collection 2020.",
         "- [Hochstenbach2011] Hochstenbach and Reichel, *Fractional Tikhonov regularization for linear discrete ill-posed problems*, BIT Numerical Mathematics 2011.",
         "- [Lim2016] Lim and Pang, *l1-regularized recursive total least squares based sparse system identification for the error-in-variables*, SpringerPlus 2016.",
         "",
@@ -1128,6 +1371,9 @@ def write_markdown(
         "[Mu2022]: https://doi.org/10.1016/j.automatica.2021.110142",
         "[Binette2016]: https://www.mdpi.com/2227-9717/4/3/27",
         "[Wang2022]: https://www.sciencedirect.com/science/article/abs/pii/S0019057821002937",
+        "[Berberich2022]: https://doi.org/10.1016/j.automatica.2021.110033",
+        "[Lu2023]: https://doi.org/10.1016/j.automatica.2023.110959",
+        "[Parsi2020]: https://www.research-collection.ethz.ch/handle/20.500.11850/461407",
         "[Hochstenbach2011]: https://doi.org/10.1007/s10543-011-0313-9",
         "[Lim2016]: https://doi.org/10.1186/s40064-016-3120-6",
     ]
@@ -1143,6 +1389,7 @@ def main() -> None:
     max_s = np.asarray(minmax["max_s"], float)
 
     spec_map = {spec.run_id: spec for spec in RUN_SPECS}
+    extension_rows = build_reid_extension_rows()
     runs: dict[str, dict] = {}
     config_rows: list[dict] = [
         {
@@ -1327,17 +1574,50 @@ def main() -> None:
             "source2_frac",
         ],
     )
+    save_csv(
+        DATA_ROOT / "reidentification_extension_plan_summary.csv",
+        extension_rows,
+        [
+            "label",
+            "system",
+            "id_window",
+            "id_update_period",
+            "rank_B",
+            "lambda_prev_B",
+            "lambda_0_B",
+            "theta_B_halfwidth",
+            "freeze_identification_during_warm_start",
+            "guard_enabled",
+            "candidate_guard_mode",
+            "blend_validity_mode",
+            "force_eta_constant",
+            "has_small_fixed_eta_isolation",
+            "normalize_blend_extras",
+            "blend_extra_clip",
+            "blend_residual_scale",
+            "eta_tau_B",
+            "guard_validation_fraction",
+            "guard_min_validation_samples",
+            "guard_min_train_samples",
+            "max_theta_clipped_fraction",
+            "max_condition_number",
+            "max_validation_residual_ratio",
+            "max_full_residual_ratio",
+        ],
+    )
 
     plot_performance_overview(summary_rows=summary_rows, state_rows=state_rows, spec_map=spec_map)
     plot_family_tail_traces(baseline_bundle=baseline_bundle, runs=runs, spec_map=spec_map)
     plot_state_conditioning(state_rows=state_rows, spec_map=spec_map)
     plot_feature_diagnostics(summary_rows=summary_rows, spec_map=spec_map)
     plot_reid_health(reid_rows=reid_rows)
+    plot_reid_extension_comparison(extension_rows=extension_rows)
     write_markdown(
         config_rows=config_rows,
         summary_rows=summary_rows,
         state_rows=state_rows,
         reid_rows=reid_rows,
+        extension_rows=extension_rows,
         spec_map=spec_map,
     )
 

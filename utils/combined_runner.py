@@ -14,6 +14,7 @@ from utils.helpers import (
     shift_control_sequence,
     step_system_with_disturbance,
 )
+from utils.multiplier_mapping import map_centered_action_to_bounds, map_centered_bounds_to_action
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
 from utils.replay_snapshot import capture_named_agent_replay_snapshots
@@ -208,7 +209,12 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     model_high = np.asarray(matrix_cfg.get("high_coef", np.ones(1 + n_inputs)), float).reshape(-1)
     if model_low.size != 1 + n_inputs or model_high.size != 1 + n_inputs:
         raise ValueError("matrix_cfg low/high bounds must have length 1 + n_inputs.")
-    model_baseline_raw = _map_from_bounds(np.ones(1 + n_inputs, dtype=float), model_low, model_high)
+    model_baseline_raw = map_centered_bounds_to_action(
+        np.ones(1 + n_inputs, dtype=float),
+        model_low,
+        model_high,
+        nominal=1.0,
+    )
 
     weights_low = np.asarray(weight_cfg.get("low_coef", np.ones(4)), float).reshape(-1)
     weights_high = np.asarray(weight_cfg.get("high_coef", np.ones(4)), float).reshape(-1)
@@ -541,7 +547,12 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             else:
                 model_raw = model_baseline_raw.copy()
             nonfinite_matrix_action_count += 1
-        model_mapped = _map_to_bounds(model_raw, model_low, model_high)
+        model_mapped = map_centered_action_to_bounds(
+            model_raw,
+            model_low,
+            model_high,
+            nominal=1.0,
+        )
         alpha = float(model_mapped[0])
         delta = np.asarray(model_mapped[1 : 1 + n_inputs], float).reshape(-1)
         matrix_alpha_log[i] = alpha

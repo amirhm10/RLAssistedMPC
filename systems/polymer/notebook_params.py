@@ -48,7 +48,7 @@ def _copy_replay_defaults():
 def _copy_mismatch_defaults():
     return {
         "mismatch_clip": 3.0,
-        "base_state_norm_mode": "fixed_minmax",
+        "base_state_norm_mode": "running_zscore_physical_xhat",
         "base_state_running_norm_clip": 10.0,
         "base_state_running_norm_eps": 1e-8,
         "innovation_scale_mode": "band_ref",
@@ -57,10 +57,10 @@ def _copy_mismatch_defaults():
         "tracking_eta_tol": 0.3,
         "tracking_scale_floor": None,
         "tracking_scale_floor_mode": "half_eta_band_ref",
-        "mismatch_feature_transform_mode": "hard_clip",
+        "mismatch_feature_transform_mode": "signed_log",
         "mismatch_transform_tanh_scale": 3.0,
         "mismatch_transform_post_clip": None,
-        "observer_update_alignment": "legacy_previous_measurement",
+        "observer_update_alignment": "current_measurement_corrector",
     }
 
 
@@ -73,9 +73,9 @@ def _copy_residual_authority_defaults():
         "authority_eta_tol": 0.3,
         "authority_rho_floor": 0.15,
         "authority_rho_power": 1.0,
-        "rho_mapping_mode": "clipped_linear",
+        "rho_mapping_mode": "exp_raw_tracking",
         "authority_rho_k": 0.55,
-        "residual_zero_deadband_enabled": False,
+        "residual_zero_deadband_enabled": True,
         "residual_zero_tracking_raw_threshold": 0.1,
         "residual_zero_innovation_raw_threshold": 0.1,
     }
@@ -309,7 +309,7 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
 
 POLYMER_HORIZON_DUELING_DEFAULTS = {
     "run_mode": "disturb",
-    "state_mode": "standard",
+    "state_mode": "mismatch",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
@@ -574,7 +574,7 @@ POLYMER_REIDENTIFICATION_DEFAULTS = {
     "reidentification": {
         "basis_family": "lowrank_polymer",
         "id_component_mode": "AB",
-        "observer_update_alignment": "legacy_previous_measurement",
+        "observer_update_alignment": "current_measurement_corrector",
         "candidate_guard_mode": "fro_only",
         "normalize_blend_extras": True,
         "blend_extra_clip": 3.0,
@@ -616,7 +616,7 @@ POLYMER_REIDENTIFICATION_DEFAULTS = {
 POLYMER_WEIGHT_DEFAULTS = {
     "agent_kind": "td3",
     "run_mode": "disturb",
-    "state_mode": "standard",
+    "state_mode": "mismatch",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
@@ -800,16 +800,16 @@ POLYMER_COMBINED_DEFAULTS = {
     #   True -> instantiate that agent block
     #   False -> leave it out of the combined supervisor
     "enable_horizon": True,
-    "horizon_state_mode": "standard",
+    "horizon_state_mode": "mismatch",
     "enable_matrix": True,
     "matrix_agent_kind": "td3",
-    "matrix_state_mode": "standard",
+    "matrix_state_mode": "mismatch",
     "enable_weights": True,
     "weights_agent_kind": "td3",
-    "weights_state_mode": "standard",
+    "weights_state_mode": "mismatch",
     "enable_residual": True,
     "residual_agent_kind": "td3",
-    "residual_state_mode": "standard",
+    "residual_state_mode": "mismatch",
     **_copy_residual_authority_defaults(),
     "use_rho_authority": True,  # Legacy alias kept for notebook compatibility.
     "run_profiles": {

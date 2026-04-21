@@ -67,10 +67,10 @@ def _copy_mismatch_defaults():
         "tracking_eta_tol": 0.3,
         "tracking_scale_floor": None,
         "tracking_scale_floor_mode": "half_eta_band_ref",
-        "mismatch_feature_transform_mode": "hard_clip",
+        "mismatch_feature_transform_mode": "signed_log",
         "mismatch_transform_tanh_scale": 3.0,
         "mismatch_transform_post_clip": None,
-        "observer_update_alignment": "legacy_previous_measurement",
+        "observer_update_alignment": "current_measurement_corrector",
     }
 
 
@@ -83,9 +83,9 @@ def _copy_residual_authority_defaults(action_dim):
         "authority_eta_tol": 0.3,
         "authority_rho_floor": 0.2,
         "authority_rho_power": 1.0,
-        "rho_mapping_mode": "clipped_linear",
+        "rho_mapping_mode": "exp_raw_tracking",
         "authority_rho_k": 0.55,
-        "residual_zero_deadband_enabled": False,
+        "residual_zero_deadband_enabled": True,
         "residual_zero_tracking_raw_threshold": 0.1,
         "residual_zero_innovation_raw_threshold": 0.1,
     }
@@ -232,7 +232,7 @@ DISTILLATION_BASELINE_DEFAULTS = {
 DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
     "run_mode": "disturb",
     "disturbance_profile": "fluctuation",
-    "state_mode": "standard",  # "standard" | "mismatch"
+    "state_mode": "mismatch",  # "standard" | "mismatch"
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
@@ -296,7 +296,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS["run_profiles"] = {
 DISTILLATION_HORIZON_DUELING_DEFAULTS = {
     "run_mode": "disturb",
     "disturbance_profile": "fluctuation",
-    "state_mode": "standard",
+    "state_mode": "mismatch",
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
@@ -339,7 +339,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
     "agent_kind": "td3",  # "td3" | "sac"
     "run_mode": "disturb",
     "disturbance_profile": "fluctuation",
-    "state_mode": "standard",
+    "state_mode": "mismatch",
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
@@ -427,7 +427,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
     "agent_kind": "td3",  # "td3" | "sac"
     "run_mode": "disturb",
     "disturbance_profile": "fluctuation",
-    "state_mode": "standard",
+    "state_mode": "mismatch",
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
@@ -465,7 +465,7 @@ DISTILLATION_WEIGHT_DEFAULTS = {
     "agent_kind": "td3",
     "run_mode": "disturb",
     "disturbance_profile": "fluctuation",
-    "state_mode": "standard",
+    "state_mode": "mismatch",
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
@@ -610,7 +610,7 @@ DISTILLATION_REIDENTIFICATION_DEFAULTS = {
     "reidentification": {
         "basis_family": "lowrank_distillation",
         "id_component_mode": "AB",
-        "observer_update_alignment": "legacy_previous_measurement",
+        "observer_update_alignment": "current_measurement_corrector",
         "candidate_guard_mode": "fro_only",
         "normalize_blend_extras": False,
         "blend_extra_clip": 1.0e6,
@@ -675,13 +675,13 @@ DISTILLATION_COMBINED_DEFAULTS = {
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     "enable_horizon": True,
-    "horizon_state_mode": "standard",
+    "horizon_state_mode": "mismatch",
     "enable_matrix": True,
     "matrix_agent_kind": "td3",
-    "matrix_state_mode": "standard",
+    "matrix_state_mode": "mismatch",
     "enable_weights": True,
     "weights_agent_kind": "td3",
-    "weights_state_mode": "standard",
+    "weights_state_mode": "mismatch",
     "enable_residual": True,
     "residual_agent_kind": "td3",
     "residual_state_mode": "mismatch",

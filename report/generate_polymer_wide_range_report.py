@@ -32,6 +32,8 @@ DISTILLATION_BASELINE_PATH = REPO_ROOT / "Distillation" / "Results" / "distillat
 DISTILLATION_MATRIX_DISTURB_PATH = REPO_ROOT / "Distillation" / "Results" / "distillation_matrix_sac_disturb_fluctuation_standard_unified" / "20260415_104840" / "input_data.pkl"
 DISTILLATION_STRUCTURED_DISTURB_PATH = REPO_ROOT / "Distillation" / "Results" / "distillation_structured_matrix_sac_disturb_fluctuation_standard_unified" / "20260415_120923" / "input_data.pkl"
 DISTILLATION_REID_DISTURB_PATH = REPO_ROOT / "Distillation" / "Results" / "distillation_reidentification_td3_disturb_fluctuation_mismatch_unified" / "20260420_171837" / "input_data.pkl"
+POLYMER_MATRIX_NEW_CAP_PATH = REPO_ROOT / "Polymer" / "Results" / "td3_multipliers_disturb" / "20260421_174016" / "input_data.pkl"
+POLYMER_STRUCTURED_NEW_CAP_PATH = REPO_ROOT / "Polymer" / "Results" / "td3_structured_matrices_disturb" / "20260421_174057" / "input_data.pkl"
 
 
 @dataclass(frozen=True)
@@ -130,7 +132,10 @@ def markdown_table(headers: list[str], rows: list[list[str]]) -> list[str]:
 
 
 def image_lines(filename: str, alt: str) -> list[str]:
-    return [f"![{alt}](./polymer_wide_range_matrix_structured/figures/{filename})", ""]
+    return [
+        f'<img src="./polymer_wide_range_matrix_structured/figures/{filename}" alt="{alt}" width="1200" style="max-width: 100%; height: auto;" />',
+        "",
+    ]
 
 
 def fmt(value: float, digits: int = 4) -> str:
@@ -1034,6 +1039,134 @@ def plot_observer_refresh_support(observer_rows: list[dict], reid_rows: list[dic
     plt.close(fig)
 
 
+def structured_asymmetric_cap_frontier(
+    *,
+    A_aug: np.ndarray,
+    B_aug: np.ndarray,
+    C: np.ndarray,
+    a_high_grid: np.ndarray,
+    a_low: float = 0.75,
+    b_low: float = 0.75,
+    b_high: float = 1.25,
+    seed: int = 11,
+    samples_per_cap: int = 4000,
+) -> list[dict]:
+    rng = np.random.default_rng(seed)
+    rows: list[dict] = []
+    n_outputs = int(C.shape[0])
+    for a_high in np.asarray(a_high_grid, float):
+        spec = build_structured_update_spec(
+            A_aug=A_aug,
+            B_aug=B_aug,
+            n_outputs=n_outputs,
+            update_family="block",
+            range_profile="wide",
+            a_low_override=a_low,
+            a_high_override=float(a_high),
+            b_low_override=b_low,
+            b_high_override=b_high,
+        )
+        low = np.asarray(spec["low_bounds"], float)
+        high = np.asarray(spec["high_bounds"], float)
+        sampled = rng.uniform(low, high, size=(samples_per_cap, low.size))
+        spectral = np.zeros(samples_per_cap, dtype=float)
+        for idx, theta in enumerate(sampled):
+            payload = build_block_scaled_model(
+                A_aug=A_aug,
+                B_aug=B_aug,
+                n_outputs=n_outputs,
+                block_cfg=spec["block_cfg"],
+                theta_A=theta[: spec["a_dim"]],
+                theta_B=theta[spec["a_dim"] :],
+            )
+            spectral[idx] = float(np.max(np.abs(np.linalg.eigvals(payload["A_phys"]))))
+        rows.append(
+            {
+                "a_high": float(a_high),
+                "b_high": float(b_high),
+                "unstable_frac": float(np.mean(spectral >= 1.0)),
+                "near_unit_frac": float(np.mean(spectral >= 0.98)),
+                "spectral_mean": float(np.mean(spectral)),
+                "spectral_p95": float(np.percentile(spectral, 95)),
+                "spectral_max": float(np.max(spectral)),
+            }
+        )
+    return rows
+
+
+def plot_latest_cap_comparison(latest_rows: list[dict]) -> None:
+    fig, axs = plt.subplots(1, 2, figsize=(16, 6), constrained_layout=True)
+    order = [row["label"] for row in latest_rows]
+    x = np.arange(len(order))
+    axs[0].bar(x - 0.15, [row["test_phys_mae_out1"] for row in latest_rows], 0.3, label="Output 1 MAE", color="#4E79A7")
+    axs[0].bar(x + 0.15, [row["test_phys_mae_out2"] for row in latest_rows], 0.3, label="Output 2 MAE", color="#F28E2B")
+    axs[0].set_xticks(x)
+    axs[0].set_xticklabels(order, rotation=20, ha="right")
+    axs[0].set_ylabel("Final test physical MAE")
+    axs[0].set_title("Latest matrix/structured reruns versus previous wide")
+    axs[0].legend(fontsize=8)
+    axs[0].grid(alpha=0.25, axis="y")
+
+    spec_rows = [row for row in latest_rows if "spectral_p95" in row]
+    if spec_rows:
+        axs[1].plot(
+            [row["label"] for row in spec_rows],
+            [row["spectral_mean"] for row in spec_rows],
+            marker="o",
+            lw=2.0,
+            color="#59A14F",
+            label="Mean spectral radius",
+        )
+        axs[1].plot(
+            [row["label"] for row in spec_rows],
+            [row["spectral_p95"] for row in spec_rows],
+            marker="s",
+            lw=2.0,
+            color="#E15759",
+            label="P95 spectral radius",
+        )
+        axs[1].axhline(1.0, color="black", lw=1.0, ls=":")
+        axs[1].set_ylabel("Spectral radius")
+        axs[1].set_title("Structured spectral diagnostics")
+        axs[1].legend(fontsize=8)
+        axs[1].grid(alpha=0.25)
+
+    fig.savefig(FIG_ROOT / "wide_range_latest_cap_reruns.png", dpi=220)
+    plt.close(fig)
+
+
+def save_latest_cap_rows_csv(path: Path, rows: list[dict]) -> None:
+    keys = sorted({k for row in rows for k in row.keys()})
+    save_csv(path, rows, keys)
+
+
+def plot_structured_asymmetric_cap_frontier(rows: list[dict], alpha_cap: float) -> None:
+    fig, axs = plt.subplots(1, 2, figsize=(16, 6), constrained_layout=True)
+    a_high = [row["a_high"] for row in rows]
+    axs[0].plot(a_high, [row["unstable_frac"] for row in rows], marker="o", lw=2.0, color="#E15759", label="Unstable fraction")
+    axs[0].plot(a_high, [row["near_unit_frac"] for row in rows], marker="s", lw=2.0, color="#4E79A7", label="Near-unit fraction")
+    axs[0].axvline(alpha_cap, color="#59A14F", lw=1.0, ls="--", label=f"matrix-derived cap {alpha_cap:.4f}")
+    axs[0].set_xlabel("Structured A-side upper bound")
+    axs[0].set_ylabel("Fraction of sampled models")
+    axs[0].set_title("Structured stability sensitivity with B kept wide")
+    axs[0].legend(fontsize=8)
+    axs[0].grid(alpha=0.25)
+
+    axs[1].plot(a_high, [row["spectral_mean"] for row in rows], marker="o", lw=2.0, color="#59A14F", label="Mean spectral radius")
+    axs[1].plot(a_high, [row["spectral_p95"] for row in rows], marker="s", lw=2.0, color="#F28E2B", label="P95 spectral radius")
+    axs[1].plot(a_high, [row["spectral_max"] for row in rows], marker="^", lw=2.0, color="#B07AA1", label="Max spectral radius")
+    axs[1].axhline(1.0, color="black", lw=1.0, ls=":")
+    axs[1].axvline(alpha_cap, color="#59A14F", lw=1.0, ls="--", label=f"matrix-derived cap {alpha_cap:.4f}")
+    axs[1].set_xlabel("Structured A-side upper bound")
+    axs[1].set_ylabel("Spectral radius")
+    axs[1].set_title("Structured spectral frontier under asymmetric caps")
+    axs[1].legend(fontsize=8)
+    axs[1].grid(alpha=0.25)
+
+    fig.savefig(FIG_ROOT / "wide_range_structured_asymmetric_cap_frontier.png", dpi=220)
+    plt.close(fig)
+
+
 def compute_summary(spec: RunSpec, bundle: dict, baseline_bundle: dict, nominal_A_radius: float) -> dict:
     y = y_array(bundle)
     sp = setpoint_phys(bundle)
@@ -1479,6 +1612,8 @@ def write_markdown(
     reference_bundle: dict,
     matrix_frontier_rows: list[dict],
     structured_frontier_rows: list[dict],
+    structured_asym_rows: list[dict],
+    latest_cap_rows: list[dict],
     gate_map: dict[str, dict],
     nominal_A_radius_dist: float,
     distillation_summary: dict[str, dict],
@@ -1508,6 +1643,7 @@ def write_markdown(
     distillation_default_rows = [row for row in family_default_rows if row["system"] == "distillation"]
     method_diag_map = {row["run_id"]: row for row in method_diag_rows}
     polymer_method_diag_rows = [row for row in method_diag_rows if row["system"] == "polymer"]
+    latest_cap_map = {row["run_id"]: row for row in latest_cap_rows}
 
     lines: list[str] = [
         "# Polymer Wide-Range Matrix and Structured Report With Distillation Counterpart",
@@ -1621,6 +1757,69 @@ def write_markdown(
     lines += [
         f"Matrix wide improves both outputs in the held-out test episode: output 1 MAE falls from `{fmt(matrix_refresh['test_phys_mae_out1'])}` to `{fmt(matrix_wide['test_phys_mae_out1'])}`, and output 2 MAE falls from `{fmt(matrix_refresh['test_phys_mae_out2'])}` to `{fmt(matrix_wide['test_phys_mae_out2'])}`.",
         f"Structured wide does not. Output 1 improves from `{fmt(structured_refresh['test_phys_mae_out1'])}` to `{fmt(structured_wide['test_phys_mae_out1'])}`, but output 2 gets substantially worse: `{fmt(structured_refresh['test_phys_mae_out2'])}` to `{fmt(structured_wide['test_phys_mae_out2'])}`. This is why the final test mean degrades even though the overall late-run tail and reward look better.",
+        "",
+        "## Latest High-Cap Reruns",
+        "",
+        "After the earlier report, new polymer matrix and structured runs were generated under the widened default bounds with the intended physical `A` cap logic. Those reruns matter because they test whether the new cap policy helps in practice.",
+        "",
+    ]
+    lines += markdown_table(
+        ["Run", "Saved bundle", "Tail phys MAE", "Final test phys MAE", "Out1 MAE", "Out2 MAE", "Final-10 reward", "Final test input move"],
+        [
+            [
+                row["label"],
+                f"`{row['run_path']}`",
+                fmt(row["tail_phys_mae_mean"]),
+                fmt(row["test_phys_mae_mean"]),
+                fmt(row["test_phys_mae_out1"]),
+                fmt(row["test_phys_mae_out2"]),
+                fmt(row["reward_final10_mean"]),
+                fmt(row["test_u_move"]),
+            ]
+            for row in latest_cap_rows
+        ],
+    )
+    lines += image_lines("wide_range_latest_cap_reruns.png", "Latest matrix and structured reruns after the cap update")
+    lines += [
+        f"The latest matrix rerun is a real improvement. Final test MAE moves from `{fmt(matrix_wide['test_phys_mae_mean'])}` in the previous wide run to `{fmt(latest_cap_map['matrix_new_cap']['test_phys_mae_mean'])}`, and output-2 MAE drops from `{fmt(matrix_wide['test_phys_mae_out2'])}` to `{fmt(latest_cap_map['matrix_new_cap']['test_phys_mae_out2'])}` while final test input movement also falls from `{fmt(matrix_wide['test_u_move'])}` to `{fmt(latest_cap_map['matrix_new_cap']['test_u_move'])}`.",
+        f"The latest structured rerun is worse, not better. Final test MAE rises from `{fmt(structured_wide['test_phys_mae_mean'])}` to `{fmt(latest_cap_map['structured_new_cap']['test_phys_mae_mean'])}`, output 2 degrades further to `{fmt(latest_cap_map['structured_new_cap']['test_phys_mae_out2'])}`, and tail MAE jumps to `{fmt(latest_cap_map['structured_new_cap']['tail_phys_mae_mean'])}`.",
+        "",
+        "The reason is important: the latest matrix rerun actually used the capped `A` bound, but the latest structured rerun did not. The saved matrix bundle shows `high_coef = [1.0566, 1.25, 1.25]`, so the scalar `A` multiplier was capped as intended. The saved structured bundle, however, still shows `structured_high_bounds = [1.25, 1.25, 1.25, 1.25, 1.25, 1.25]`. So the structured notebook wiring did not pass the intended `A/B` overrides into the structured spec when that run was created.",
+        "",
+        f"That means the latest structured failure is not evidence that the matrix-derived `A` cap failed for structured. It is evidence that the structured training run was still effectively uncapped on the `A` side. The saved spectral diagnostics confirm that: previous structured wide had mean/p95 spectral radius `{fmt(structured_wide['spectral_mean_test'])}` / `{fmt(structured_wide['spectral_p95_test'])}`, while the latest structured rerun still reaches `{fmt(latest_cap_map['structured_new_cap']['spectral_mean_test'])}` / `{fmt(latest_cap_map['structured_new_cap']['spectral_p95_test'])}` with `3` fallback events logged over the full rollout.",
+        "",
+        "## Does Structured Need A Different Cap Than Matrix?",
+        "",
+        "Probably yes in the long run, but the current failed rerun does not prove that yet because it was not actually capped. There are two separate questions:",
+        "",
+        "1. If the intended structured `A` cap is truly enforced, is it mathematically reasonable?",
+        "2. Even if it is mathematically reasonable, should structured still use a stricter cap than matrix because it perturbs several coupled `A` groups at once?",
+        "",
+        "The first question can be answered directly from the model family. I sampled the polymer block-structured family with `B \\in [0.75, 1.25]` fixed and varied only the `A`-side upper bound:",
+        "",
+    ]
+    lines += markdown_table(
+        ["Structured A high", "Unstable frac", "Near-unit frac", "Spectral p95", "Spectral max"],
+        [
+            [
+                fmt(row["a_high"], digits=4),
+                fmt(row["unstable_frac"], digits=3),
+                fmt(row["near_unit_frac"], digits=3),
+                fmt(row["spectral_p95"], digits=4),
+                fmt(row["spectral_max"], digits=4),
+            ]
+            for row in structured_asym_rows
+        ],
+    )
+    lines += image_lines("wide_range_structured_asymmetric_cap_frontier.png", "Structured asymmetric A/B cap frontier")
+    lines += [
+        f"That frontier shows that the intended structured `A` cap of `{fmt(alpha_max_stable)}` is actually a reasonable first bound when `B` stays wide. In random sampling, `A_high = {fmt(alpha_max_stable)}` gives unstable fraction `0.000`, spectral p95 `{fmt(min(structured_asym_rows, key=lambda row: abs(row['a_high'] - alpha_max_stable))['spectral_p95'])}`, and spectral max `{fmt(min(structured_asym_rows, key=lambda row: abs(row['a_high'] - alpha_max_stable))['spectral_max'])}`. So the matrix-derived cap is not obviously too loose for the structured family in a pure admissibility sense.",
+        "",
+        "But structured is still more delicate than matrix because its action changes several `A`-side groups and the off-diagonal coupling together. A single scalar `alpha` cap from the plain matrix family does not fully capture that geometry. The frontier suggests a practical structured hierarchy:",
+        "",
+        "- `A_high ~= 1.0566` is a reasonable first structured cap and should be tested with the notebook wiring fixed.",
+        "- If you want more margin, `A_high ~= 1.04-1.05` is cleaner: unstable fraction stays zero and the near-unit fraction drops sharply.",
+        "- Only after a properly capped structured rerun should we conclude that structured needs an even tighter cap or a separate off-diagonal cap.",
         "",
         "## Why Matrix Wide Worked And Reidentification Did Not",
         "",
@@ -2185,9 +2384,12 @@ def write_markdown(
         "## Conclusions",
         "",
         f"- The latest matrix wide run is genuinely more successful than the previous matrix runs. Its final test MAE `{fmt(matrix_wide['test_phys_mae_mean'])}` beats the previous narrow refresh `{fmt(matrix_refresh['test_phys_mae_mean'])}`, the legacy matrix run `{fmt(matrix_legacy['test_phys_mae_mean'])}`, and baseline MPC `{fmt(baseline['test_phys_mae_mean'])}`.",
-        f"- Structured wide is not a clean success. It improves late-run reward and aggregate tail MAE, but its held-out final test MAE degrades from `{fmt(structured_refresh['test_phys_mae_mean'])}` to `{fmt(structured_wide['test_phys_mae_mean'])}` because it over-optimizes the first output relative to the evaluation metric and becomes much more aggressive on the prediction model and control effort.",
+        f"- The newest capped matrix rerun is better again: final test MAE improves further to `{fmt(latest_cap_map['matrix_new_cap']['test_phys_mae_mean'])}`. The policy uses the capped `A` side correctly and shifts more of the correction burden onto the `B` side.",
+        f"- The newest structured rerun is worse, but that run still used uniform structured bounds up to `1.25` on all grouped multipliers. So it does not show that the structured `A` cap failed; it shows that the structured notebook did not yet apply the intended cap during that run.",
+        f"- Structured wide is therefore still not a clean success. The current uncapped/over-wide structured reruns over-optimize output 1, degrade output 2, and keep the prediction model much more aggressive than the matrix family.",
         f"- The actual polymer reward is bonus-balanced more than edge-balanced. If both outputs should matter more evenly in evaluation, the most direct reward fix is to reduce `Q1` toward about `{fmt(reward_targets['q1_equal_edge_mean'], digits=0)}` or to separate inside-band bonus weights from outside-band penalty weights.",
         f"- For the matrix family, observability and controllability do not bound positive `alpha`; the meaningful analytical upper bound is `alpha < {fmt(alpha_max_stable)}` if all candidate `A` matrices must stay open-loop stable. There is no comparable analytical lower bound, so the lower side should be chosen by a trust-region or time-scale rule. For `B`, the useful bounds are about gain-trust and actuator headroom, not spectral stability.",
+        f"- For structured updates, the matrix-derived cap `{fmt(alpha_max_stable)}` is still a sensible first `A`-side bound. Monte Carlo sampling with `B_high = 1.25` gives zero unstable fraction at that cap. If more margin is wanted, the report's asymmetric frontier suggests `A_high` around `1.04-1.05` before tightening `B`.",
         f"- Distillation is mathematically much less fragile than polymer: `alpha_max_stable` is `{fmt(alpha_max_stable_dist)}` instead of `{fmt(alpha_max_stable)}`, and the structured unstable fraction at `1.20` is only `{fmt(distillation_structured_frontier_rows[-1]['unstable_frac'], digits=3)}` instead of `{fmt(structured_frontier_rows[-1]['unstable_frac'], digits=3)}`. But the currently saved disturbance RL runs still do not beat the distillation baseline, so wider admissibility alone is not enough.",
         "- Shifted MPC warm start is worth testing beyond the matrix family, but primarily as a solver-quality improvement. The highest-payoff candidates in the current codebase are residual, matrix, structured, weights, and reidentification. Horizon is a weaker target because the subproblem dimension changes too often.",
         "- Periodic observer redesign should not be treated as a blanket fix. It is most defensible when sustained model drift is present and the refreshed model is trustworthy. That makes polymer matrix/structured and distillation reidentification more plausible targets than current polymer reidentification.",
@@ -2258,10 +2460,15 @@ def main() -> None:
         "structured": {"bundle": load_pickle(DISTILLATION_STRUCTURED_DISTURB_PATH)},
     }
     distillation_reid_bundle = load_pickle(DISTILLATION_REID_DISTURB_PATH)
+    latest_cap_specs = [
+        RunSpec("matrix_new_cap", "matrix", "latest_cap", "Matrix latest capped rerun", POLYMER_MATRIX_NEW_CAP_PATH),
+        RunSpec("structured_new_cap", "structured", "latest_cap", "Structured latest rerun", POLYMER_STRUCTURED_NEW_CAP_PATH),
+    ]
 
     baseline_bundle = runs["baseline"]["bundle"]
     rows = [compute_summary(spec=spec, bundle=runs[spec.run_id]["bundle"], baseline_bundle=baseline_bundle, nominal_A_radius=nominal_A_radius) for spec in RUN_SPECS]
     summary_map = {row["run_id"]: row for row in rows}
+    latest_cap_rows = [compute_summary(spec=spec, bundle=load_pickle(spec.path), baseline_bundle=baseline_bundle, nominal_A_radius=nominal_A_radius) for spec in latest_cap_specs]
     distillation_summary = {
         "baseline": compute_generic_run_summary("Distillation baseline fluctuation", distillation_runs["baseline"]["bundle"]),
         "matrix": compute_generic_run_summary("Distillation matrix SAC disturbance", distillation_runs["matrix"]["bundle"]),
@@ -2279,6 +2486,15 @@ def main() -> None:
         compute_reidentification_health("Polymer reidentification", runs["reid_refresh"]["bundle"]),
         compute_reidentification_health("Distillation reidentification", distillation_reid_bundle),
     ]
+    structured_asym_rows = structured_asymmetric_cap_frontier(
+        A_aug=A_aug,
+        B_aug=B_aug,
+        C=C_phys,
+        a_high_grid=np.array([1.00, 1.02, 1.03, 1.04, 1.05, polymer_nb.POLYMER_MATRIX_ALPHA_UPPER_CAP, 1.08, 1.10, 1.15, 1.25], float),
+        a_low=polymer_nb.POLYMER_DEFAULT_MULTIPLIER_LOW,
+        b_low=polymer_nb.POLYMER_DEFAULT_MULTIPLIER_LOW,
+        b_high=polymer_nb.POLYMER_DEFAULT_MULTIPLIER_HIGH,
+    )
 
     save_csv(
         DATA_ROOT / "wide_range_summary.csv",
@@ -2336,6 +2552,12 @@ def main() -> None:
             "residual_ratio_median",
             "residual_ratio_p95",
         ],
+    )
+    save_latest_cap_rows_csv(DATA_ROOT / "wide_range_latest_cap_reruns.csv", latest_cap_rows)
+    save_csv(
+        DATA_ROOT / "wide_range_structured_asymmetric_cap_frontier.csv",
+        structured_asym_rows,
+        ["a_high", "b_high", "unstable_frac", "near_unit_frac", "spectral_mean", "spectral_p95", "spectral_max"],
     )
     save_csv(
         DATA_ROOT / "wide_range_method_defaults.csv",
@@ -2417,12 +2639,16 @@ def main() -> None:
     plot_distillation_counterpart(distillation_runs)
     plot_warmstart_and_exploration(method_diag_rows, family_default_rows)
     plot_observer_refresh_support(observer_rows, reid_health_rows)
+    plot_latest_cap_comparison(latest_cap_rows)
+    plot_structured_asymmetric_cap_frontier(structured_asym_rows, alpha_cap=polymer_nb.POLYMER_MATRIX_ALPHA_UPPER_CAP)
     write_markdown(
         rows,
         nominal_A_radius=nominal_A_radius,
         reference_bundle=baseline_bundle,
         matrix_frontier_rows=matrix_frontier_rows,
         structured_frontier_rows=structured_frontier_rows,
+        structured_asym_rows=structured_asym_rows,
+        latest_cap_rows=latest_cap_rows,
         gate_map=gate_map,
         nominal_A_radius_dist=nominal_A_radius_dist,
         distillation_summary=distillation_summary,

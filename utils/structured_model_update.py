@@ -21,12 +21,12 @@ RANGE_PROFILES = {
         "b_high": 1.05,
     },
     "wide": {
-        "diag_low": 0.85,
-        "diag_high": 1.20,
-        "off_low": 0.85,
-        "off_high": 1.20,
-        "b_low": 0.85,
-        "b_high": 1.20,
+        "diag_low": 0.75,
+        "diag_high": 1.25,
+        "off_low": 0.75,
+        "off_high": 1.25,
+        "b_low": 0.75,
+        "b_high": 1.25,
     },
 }
 
@@ -55,6 +55,19 @@ def validate_positive_bounds(low, high):
     if np.any(high <= low):
         raise ValueError("All multiplier upper bounds must be greater than the lower bounds.")
     return low, high
+
+
+def _broadcast_positive_override(base, override, name):
+    if override is None:
+        return np.asarray(base, float)
+    arr = np.asarray(override, float)
+    if arr.ndim == 0:
+        out = np.full_like(np.asarray(base, float), float(arr))
+    elif arr.shape == np.asarray(base, float).shape:
+        out = arr.astype(float, copy=True)
+    else:
+        raise ValueError(f"{name} override must be a scalar or match shape {np.asarray(base, float).shape}.")
+    return out
 
 
 def split_augmented_model(A_aug, B_aug, n_outputs, atol=1e-10):
@@ -178,6 +191,10 @@ def build_structured_update_spec(
     block_group_count=3,
     block_groups=None,
     band_offsets=None,
+    a_low_override=None,
+    a_high_override=None,
+    b_low_override=None,
+    b_high_override=None,
 ):
     blocks = split_augmented_model(A_aug, B_aug, n_outputs)
     update_family = str(update_family).strip().lower()
@@ -215,6 +232,11 @@ def build_structured_update_spec(
     b_labels = [f"B_col_{idx + 1}" for idx in range(n_inputs)]
     low_b = np.full(n_inputs, profile["b_low"], float)
     high_b = np.full(n_inputs, profile["b_high"], float)
+
+    low_a = _broadcast_positive_override(low_a, a_low_override, "a_low")
+    high_a = _broadcast_positive_override(high_a, a_high_override, "a_high")
+    low_b = _broadcast_positive_override(low_b, b_low_override, "b_low")
+    high_b = _broadcast_positive_override(high_b, b_high_override, "b_high")
 
     low_bounds = np.concatenate([low_a, low_b])
     high_bounds = np.concatenate([high_a, high_b])

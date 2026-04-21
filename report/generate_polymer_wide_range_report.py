@@ -1464,12 +1464,48 @@ def write_markdown(
     ]
     lines += image_lines("wide_range_b_multiplier_design.png", "B-multiplier gain and move-ratio explanation")
     lines += [
+        "That means `B` selection should be done with actuator and trust considerations, not with pole placement logic. A practical lower-bound calculation is",
+        "",
+        "$$",
+        "\\delta_{j,\\min} \\ge \\frac{\\Delta u^{nom}_{j,\\;p}}{h^{avail}_{j,\\;min}},",
+        "$$",
+        "",
+        "where `Delta u^{nom}_{j,p}` is a representative nominal move level such as the 95th percentile under baseline MPC, and `h^{avail}_{j,min}` is the minimum available headroom for that input over the scenarios you care about. If the learned model is allowed to believe the input is too weak, the MPC will ask for moves that may not fit inside the real actuator margin.",
+        "",
+        "A practical upper-bound calculation is a gain-trust region in log space,",
+        "",
+        "$$",
+        "|\\log \\delta_j| \\le \\varepsilon_B",
+        "\\quad \\Longleftrightarrow \\quad",
+        "\\delta_j \\in [e^{-\\varepsilon_B}, e^{\\varepsilon_B}],",
+        "$$",
+        "",
+        "which is often a better way to think about input-gain uncertainty than a raw linear bound because equal multiplicative uncertainty is treated symmetrically above and below `1.0`.",
+        "",
         "That gives a practical design rule for `B` multipliers:",
         "",
         "- Lower bound: choose `delta_min` so the required move inflation `1 / delta_min` still fits inside actuator headroom on representative disturbances.",
         "- Upper bound: choose `delta_max` so the predicted input gain increase stays inside the uncertainty set you are willing to trust, or inside a symmetric trust region such as `|log(delta_j)| <= eps_B`.",
         "",
-        f"For the current defaults, polymer `delta \\in [0.85, 1.20]` means the controller is allowed to believe an input is only `85%` as effective or as much as `120%` as effective. In move terms, that means up to about `{fmt(1.0/0.85, digits=3)}x` required-move inflation on the low side. Distillation `delta \\in [0.95, 1.05]` is much tighter: only about `{fmt(1.0/0.95, digits=3)}x` inflation on the low side.",
+    ]
+    lines += markdown_table(
+        [
+            "delta",
+            "Predicted gain ratio",
+            "Required move ratio",
+            "Interpretation",
+        ],
+        [
+            ["0.75", "0.75x", fmt(1.0 / 0.75, digits=3) + "x", "aggressive low-gain assumption; large move inflation"],
+            ["0.85", "0.85x", fmt(1.0 / 0.85, digits=3) + "x", "moderate low-gain assumption"],
+            ["0.95", "0.95x", fmt(1.0 / 0.95, digits=3) + "x", "conservative low-gain assumption"],
+            ["1.05", "1.05x", fmt(1.0 / 1.05, digits=3) + "x", "conservative high-gain assumption"],
+            ["1.25", "1.25x", fmt(1.0 / 1.25, digits=3) + "x", "aggressive high-gain assumption"],
+        ],
+    )
+    lines += [
+        "",
+        f"With the widened defaults requested in this update, both polymer and distillation now use `delta \\in [0.75, 1.25]` on the `B` side. That means up to about `{fmt(1.0/0.75, digits=3)}x` required-move inflation on the low side and up to `1.25x` predicted input gain on the high side. The systems differ only on the `A` side, where polymer is capped at `alpha <= {fmt(alpha_max_stable)}` and distillation at `alpha <= {fmt(alpha_max_stable_dist)}`.",
         "",
         "That is why the safest widening order is still `B` before `A`: `B` does not move the open-loop poles, but it does change how hard the MPC will push the actuators. So `B` should be bounded by input-headroom and validation logic, not by spectral radius.",
         "",

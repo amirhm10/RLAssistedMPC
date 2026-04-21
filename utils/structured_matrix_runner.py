@@ -140,6 +140,10 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             block_group_count=structured_cfg.get("block_group_count", 3),
             block_groups=structured_cfg.get("block_groups"),
             band_offsets=structured_cfg.get("band_offsets"),
+            a_low_override=structured_cfg.get("a_low_override"),
+            a_high_override=structured_cfg.get("a_high_override"),
+            b_low_override=structured_cfg.get("b_low_override"),
+            b_high_override=structured_cfg.get("b_high_override"),
         )
 
     update_family = str(structured_spec["update_family"]).lower()

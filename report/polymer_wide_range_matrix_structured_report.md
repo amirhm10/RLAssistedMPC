@@ -239,6 +239,106 @@ The current saved disturbance matrix run does not beat baseline (`0.1569` vs `0.
 
 That is exactly why the cross-system figure matters. Polymer needs guards because the model family is fragile. Distillation does not need those guards for the same mathematical reason, but it still needs better policy learning and reward alignment before wider ranges will automatically help.
 
+## Will Shifted MPC Warm Start Help Across Methods?
+
+Here `shifted MPC warm start` means initializing the solver with the previous optimal move sequence shifted one step forward, not the notebook's episode-schedule warm-start segment. The optimizer-level idea is
+
+$$
+U_t^\star = \arg\min_U J_t(U),
+\qquad
+U_t^{(0)} = \mathcal{S}(U_{t-1}^\star),
+$$
+
+where `\mathcal{S}` drops the first move of the previous solution and appends a terminal guess. MPC warm-start literature uses this because consecutive subproblems are usually close in parameter space, so a shifted initialization reduces solver work and can reduce abnormal solves when the optimization problem size stays fixed [Diehl2005] [Jerez2014].
+
+The important distinction for this repo is that warm start is primarily a solver-conditioning tool, not a learning fix. It can help matrix, structured, weights, residual, reidentification, combined, and even baseline MPC solves converge more smoothly. It does not by itself fix the early wide-range deterioration if the underlying issue is that exploration is driving the policy through a much worse model family.
+
+| System | Family | Warm start implemented | Default on | Fixed-size MPC subproblem | Observer refresh hook | Exploration mode |
+| --- | --- | --- | --- | --- | --- | --- |
+| polymer | baseline | 1 | 0 | 1 | 0 | none |
+| polymer | horizon | 1 | 0 | 0 | 0 | epsilon |
+| polymer | dueling_horizon | 1 | 0 | 0 | 0 | noisy |
+| polymer | matrix | 1 | 0 | 1 | 0 | param_noise |
+| polymer | structured | 1 | 0 | 1 | 0 | param_noise |
+| polymer | weights | 1 | 0 | 1 | 0 | param_noise |
+| polymer | residual | 1 | 0 | 1 | 0 | param_noise |
+| polymer | reidentification | 1 | 0 | 1 | 1 | param_noise |
+| polymer | combined | 1 | 0 | 0 | 0 | mixed: horizon=epsilon, cont=param_noise |
+| distillation | baseline | 1 | 0 | 1 | 0 | none |
+| distillation | horizon | 1 | 0 | 0 | 0 | noisy |
+| distillation | dueling_horizon | 1 | 0 | 0 | 0 | noisy |
+| distillation | matrix | 1 | 0 | 1 | 0 | param_noise |
+| distillation | structured | 1 | 0 | 1 | 0 | param_noise |
+| distillation | weights | 1 | 0 | 1 | 0 | param_noise |
+| distillation | residual | 1 | 0 | 1 | 0 | param_noise |
+| distillation | reidentification | 1 | 0 | 1 | 1 | param_noise |
+| distillation | combined | 1 | 0 | 0 | 0 | mixed: horizon=noisy, cont=param_noise |
+![Warm-start and exploration diagnostics across methods](./polymer_wide_range_matrix_structured/figures/wide_range_warmstart_exploration.png)
+
+| Representative run | Saved bundle | Mean normalized step change | P95 normalized step change | Decision change fraction | Reward trough gap |
+| --- | --- | --- | --- | --- | --- |
+| Polymer horizon | `Polymer/Results/horizon_disturb_unified/20260421_133651/input_data.pkl` | 1.3004 | 2.3333 | 0.9786 | 1.7475 |
+| Polymer matrix wide | `Polymer/Results/td3_multipliers_disturb/20260421_132620/input_data.pkl` | 0.1158 | 0.5774 | 0.9159 | 26.9340 |
+| Polymer structured wide | `Polymer/Results/td3_structured_matrices_disturb/20260421_013208/input_data.pkl` | 0.1360 | 0.5834 | 0.9330 | 20.9626 |
+| Polymer weights | `Polymer/Results/td3_weights_disturb/20260421_004946/input_data.pkl` | 0.1014 | 0.5241 | 0.8375 | 2.2421 |
+| Polymer residual | `Polymer/Results/td3_residual_disturb/20260420_225631/input_data.pkl` | 0.0068 | 0.0248 | 1.0000 | 1.7507 |
+| Polymer reidentification | `Polymer/Results/td3_reidentification_disturb/20260420_234346/input_data.pkl` | 0.0236 | 0.0547 | 0.9500 | 0.1236 |
+| Distillation horizon | `Distillation/Results/distillation_horizon_disturb_fluctuation_standard_unified/20260420_175006/input_data.pkl` | 1.2508 | 3.3333 | 0.9135 | 6.5285 |
+| Distillation matrix SAC | `Distillation/Results/distillation_matrix_sac_disturb_fluctuation_standard_unified/20260415_104840/input_data.pkl` | 0.0692 | 0.2371 | 0.9750 | 4.9696 |
+| Distillation structured SAC | `Distillation/Results/distillation_structured_matrix_sac_disturb_fluctuation_standard_unified/20260415_120923/input_data.pkl` | 0.0645 | 0.1805 | 0.9750 | 6.5381 |
+
+Across the codebase, shifted warm start is already implemented in every MPC-solving runner, but the current defaults leave it off everywhere. The figure and representative-run table show why the likely payoff is method-dependent.
+
+- Horizon methods are the weakest warm-start candidates. Their normalized decision change is about `1.3004` in polymer and `1.2508` in distillation, and the decision changes on more than `0.9786` and `0.9135` of steps. Because the chosen horizon changes frequently, the underlying MPC dimension changes too, so shifted warm start has limited structural value here.
+- Matrix and structured methods are stronger warm-start candidates. Their normalized decision change is much lower: about `0.1158` for polymer matrix wide, `0.1360` for polymer structured wide, and even lower for the current distillation disturbance runs. Those methods keep a fixed-size subproblem and only change the prediction model or weights, which is the regime where warm-start logic is most defensible.
+- Residual is the cleanest candidate. The current polymer residual representative run has normalized residual-action step change only `0.0068`. That means a shifted move sequence is likely to help solver continuity, especially near setpoint, without asking the optimizer to absorb large structural changes.
+- Weights and reidentification sit between those extremes. Weights has moderate normalized step change `0.1014`, so warm start is likely worth trying. Reidentification has very smooth blend coefficients `0.0236`, but warm start alone will not solve its model-quality bottleneck.
+
+So the practical conclusion is: yes, warm start is worth testing beyond matrices, but mainly as a solve-quality and solve-time improvement. The most promising first targets are residual, matrix, structured, weights, and reidentification. Horizon should be lower priority because its problem size changes too often.
+
+## Would Periodic Observer Updating Help?
+
+Every mismatch-capable method already updates the observer state every step. The real question is whether the observer model or observer gain should be redesigned occasionally when the effective prediction model drifts. With a fixed observer gain `L`, the estimation error behaves qualitatively like
+
+$$
+e_{k+1} \approx (\hat A - L C)e_k + (\Delta A\,x_k + \Delta B\,u_k),
+$$
+
+so a fixed nominal observer becomes less appropriate when the controller keeps the prediction model far from nominal for long intervals. Adaptive/output-feedback MPC literature supports observer redesign when the model is time-varying or adaptively updated, but only when the redesigned observer is built from a sufficiently trustworthy model [Mayne2009] [Souza2021] [Heirung2017].
+
+| Case | Mean A drift | Mean B drift | Mean spectral radius |
+| --- | --- | --- | --- |
+| Polymer matrix wide | 0.0872 | 0.1257 | 0.9025 |
+| Polymer structured wide | 0.1573 | 0.1462 | 1.1054 |
+| Distillation matrix SAC | 0.0161 | 0.0189 | n/a |
+| Distillation structured SAC | 0.0120 | 0.0157 | 0.7721 |
+![Observer-refresh support diagnostics](./polymer_wide_range_matrix_structured/figures/wide_range_observer_refresh_support.png)
+
+| Reidentification run | Candidate valid frac | Update success frac | Update event frac | Condition median | Condition p95 |
+| --- | --- | --- | --- | --- | --- |
+| Polymer reidentification | 0.0011 | 0.0002 | 0.1999 | 185536.0 | 2199679.8 |
+| Distillation reidentification | 0.2177 | 0.0109 | 0.0475 | 20706.9 | 33159.2 |
+
+The observer-refresh question splits cleanly by system. In the polymer wide runs, mean model drift is substantial: around `0.0872` to `0.1573` on the `A` side and `0.1257` to `0.1462` on the `B` side. In the current distillation matrix/structured runs, the same drift is only about `0.0161` to `0.0120`. That means periodic observer redesign is far more plausible as a polymer-wide-multiplier stabilization tool than as a fix for the current distillation matrix/structured runs.
+
+But periodic observer refresh only helps if the refreshed model is trustworthy. That is exactly why it is not a good first fix for current polymer reidentification: candidate-valid fraction is only `0.0011` and update-success fraction is only `0.0002`. There is almost no accepted model stream to refresh from. Distillation reidentification is materially healthier on that axis: candidate-valid fraction `0.2177`, update-success fraction `0.0109`, and condition numbers an order of magnitude lower.
+
+So the practical recommendation is narrow, not blanket: periodic observer redesign is worth exploring if it is based on a smoothed accepted effective model and protected by the same admissibility checks as the controller. The best first candidates are polymer matrix/structured with slow refresh from interval-mean effective models, and distillation reidentification where candidate quality is already much better than polymer. Polymer reidentification should not use observer refresh as a primary rescue mechanism until its identification layer becomes trustworthy.
+
+## Is The Current Exploration Noise Making The Wide-Range Problem Worse?
+
+Yes, especially in the continuous multiplier families. The current defaults use the same continuous exploration schedule across matrix, structured, weights, residual, reidentification, and the continuous branches of combined supervision: parameter-noise scale starts at `0.2`, decays toward `0.02` with an exponential factor `0.99995`, and the perturbed actor is resampled every `4` environment steps. Horizon uses epsilon/noisy exploration instead. That means the continuous methods see the same exploration magnitude even when the feasible model family has been widened dramatically.
+
+The representative diagnostics make the distinction clear. Residual and reidentification are smooth under their current policy outputs, with normalized step change about `0.0068` and `0.0236`. Polymer matrix and structured wide are much more aggressive, around `0.1158` and `0.1360`, and weights is similar at `0.1014`. Those are exactly the families that show the deepest early reward troughs.
+
+This is why warm start and exploration should not be conflated. Warm start can reduce solver friction, but it does not remove the fact that the current actor-noise process is injecting the same nominal exploration scale into a much larger admissible model set. Literature on parameter-noise exploration and temporally coherent policies supports making exploration smoother or staged when the action-to-dynamics map is very sensitive [Plappert2018] [Korenkevych2019] [Seo2025].
+
+In practical repo terms, the most sensible order is:
+
+1. keep the current wide bounds, but enable shifted warm start first in residual, matrix, structured, weights, and reidentification,
+2. reduce early continuous exploration amplitude or slow the param-noise resample cadence when the range is widened,
+3. only then consider periodic observer redesign where sustained model drift justifies it.
+
 ## Why The Wide Runs First Degrade And Then Recover
 
 The early deterioration is consistent with a larger action/model-search space. Widening the multiplier ranges expands the set of prediction models the agent can induce. Early in training, the replay buffer is dominated by low-quality exploratory transitions from this larger space, so the policy gets worse before it learns which stronger corrections are actually useful. Once enough informative transitions accumulate, the policy recovers and starts exploiting the wider authority.
@@ -351,25 +451,37 @@ That said, the literature does not support calling reidentification useless in g
 - The actual polymer reward is bonus-balanced more than edge-balanced. If both outputs should matter more evenly in evaluation, the most direct reward fix is to reduce `Q1` toward about `212` or to separate inside-band bonus weights from outside-band penalty weights.
 - For the matrix family, observability and controllability do not bound positive `alpha`; the meaningful analytical upper bound is `alpha < 1.0566` if all candidate `A` matrices must stay open-loop stable. There is no comparable analytical lower bound, so the lower side should be chosen by a trust-region or time-scale rule. For `B`, the useful bounds are about gain-trust and actuator headroom, not spectral stability.
 - Distillation is mathematically much less fragile than polymer: `alpha_max_stable` is `1.1929` instead of `1.0566`, and the structured unstable fraction at `1.20` is only `0.013` instead of `0.556`. But the currently saved disturbance RL runs still do not beat the distillation baseline, so wider admissibility alone is not enough.
+- Shifted MPC warm start is worth testing beyond the matrix family, but primarily as a solver-quality improvement. The highest-payoff candidates in the current codebase are residual, matrix, structured, weights, and reidentification. Horizon is a weaker target because the subproblem dimension changes too often.
+- Periodic observer redesign should not be treated as a blanket fix. It is most defensible when sustained model drift is present and the refreshed model is trustworthy. That makes polymer matrix/structured and distillation reidentification more plausible targets than current polymer reidentification.
 - The degradation-then-recovery pattern is expected after abrupt widening. The most practical fix is staged widening, smoother exploration, mismatch-gated authority, and uncertainty-set shaping before wider training ranges are accepted.
 - Polymer reidentification is currently dominated by the widened direct-multiplier methods and should be deprioritized until the identification layer itself is redesigned around informative-window generation and candidate validation.
 
 ## Sources
 
+- [Diehl2005] A Real-Time Iteration Scheme for Nonlinear Optimization in Optimal Feedback Control.
+- [Jerez2014] Embedded online optimization for model predictive control at megahertz rates.
 - [Berberich2022] Forward-looking persistent excitation in model predictive control.
 - [Heirung2015] MPC-based dual control with online experiment design.
 - [Heirung2017] Dual adaptive model predictive control.
+- [Mayne2009] Robust output feedback model predictive control of constrained linear systems: Time varying case.
 - [Oshima2024] Targeted excitation and re-identification methods for multivariate process and model predictive control.
+- [Plappert2018] Parameter Space Noise for Exploration.
+- [Souza2021] Stochastic MPC with adaptive nonlinear Kalman filtering for output-feedback control of systems subject to multiplicative uncertainty.
 - [Korenkevych2019] Autoregressive Policies for Continuous Control Deep Reinforcement Learning.
 - [Seo2025] Continuous Control with Coarse-to-fine Reinforcement Learning.
 - [Chen2024] Robust model predictive control with polytopic model uncertainty through System Level Synthesis.
 - [Limon2013] Robust feedback model predictive control of constrained uncertain systems.
 - [Kothare1996] Robust constrained model predictive control using linear matrix inequalities.
 
+[Diehl2005]: https://doi.org/10.1137/S0363012902400713
+[Jerez2014]: https://doi.org/10.1109/TAC.2014.2351991
 [Berberich2022]: https://doi.org/10.1016/j.automatica.2021.110033
 [Heirung2015]: https://doi.org/10.1016/j.jprocont.2015.04.012
 [Heirung2017]: https://doi.org/10.1016/j.automatica.2017.01.030
+[Mayne2009]: https://doi.org/10.1016/j.automatica.2009.05.009
 [Oshima2024]: https://doi.org/10.1016/j.jprocont.2024.103190
+[Plappert2018]: https://openreview.net/forum?id=ByBAl2eAZ
+[Souza2021]: https://doi.org/10.1016/j.automatica.2021.109951
 [Korenkevych2019]: https://www.ijcai.org/proceedings/2019/0382.pdf
 [Seo2025]: https://proceedings.mlr.press/v270/seo25a.html
 [Chen2024]: https://doi.org/10.1016/j.automatica.2023.111431

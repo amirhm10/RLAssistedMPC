@@ -19,12 +19,12 @@ RANGE_PROFILES = {
         "b_high": 1.05,
     },
     "wide": {
-        "diag_low": 0.95,
-        "diag_high": 1.05,
-        "off_low": 0.90,
-        "off_high": 1.10,
-        "b_low": 0.90,
-        "b_high": 1.10,
+        "diag_low": 0.85,
+        "diag_high": 1.20,
+        "off_low": 0.85,
+        "off_high": 1.20,
+        "b_low": 0.85,
+        "b_high": 1.20,
     },
 }
 

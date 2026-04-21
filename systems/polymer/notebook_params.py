@@ -408,8 +408,8 @@ POLYMER_MATRIX_DEFAULTS = {
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
         "R2_penalty": 1.0,
-        "low_coef": np.array([0.95, 0.95, 0.95], float),
-        "high_coef": np.array([1.05, 1.05, 1.05], float),
+        "low_coef": np.array([0.85, 0.85, 0.85], float),
+        "high_coef": np.array([1.20, 1.20, 1.20], float),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
@@ -499,7 +499,7 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
-        "range_profile": "tight",  # Options: "tight" | "default" | "wide". Tight is the safe first default.
+        "range_profile": "wide",  # Options: "tight" | "default" | "wide". Wide is the active polymer default for analysis.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition, e.g. [[0, 1], [2, 3], [4, 5, 6]].
         "band_offsets": [0, 1, 2],  # Non-negative offsets used in band mode. Must include 0.

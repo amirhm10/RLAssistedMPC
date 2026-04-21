@@ -443,7 +443,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
-        "range_profile": "tight",  # Options: "tight" | "default" | "wide". Tight is the safe first default.
+        "range_profile": "wide",  # Options: "tight" | "default" | "wide". Wide is the active default for cross-system structured analysis.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition.
         "band_offsets": [0, 1, 2],  # Non-negative offsets used in band mode. Must include 0.
@@ -658,7 +658,7 @@ DISTILLATION_REIDENTIFICATION_DEFAULTS = {
         "observer_refresh_enabled": False,
         "observer_refresh_every_episodes": 10,
         "rho_obs": 0.25,
-        "force_eta_constant": [0.05, 0.05],
+        "force_eta_constant": None,
         "disable_identification": False,
     },
     "td3_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["td3_agent"]),

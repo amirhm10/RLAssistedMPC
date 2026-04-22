@@ -11,6 +11,8 @@ from .config import (
     DISTILLATION_COMBINED_SETPOINTS_PHYS,
     DISTILLATION_INPUT_BOUNDS,
     DISTILLATION_MATRIX_RUN_PROFILES,
+    DISTILLATION_MATRIX_ALPHA_DEFAULT_HIGH,
+    DISTILLATION_MATRIX_ALPHA_DEFAULT_LOW,
     DISTILLATION_MATRIX_ALPHA_UPPER_CAP,
     DISTILLATION_DEFAULT_MULTIPLIER_LOW,
     DISTILLATION_DEFAULT_MULTIPLIER_HIGH,
@@ -447,10 +449,11 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "use_shifted_mpc_warm_start": False,
         "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
         "range_profile": "wide",  # Options: "tight" | "default" | "wide". Wide is the active default for cross-system structured analysis.
-        "a_low_override": DISTILLATION_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for A-side structured bounds.
-        "a_high_override": min(DISTILLATION_DEFAULT_MULTIPLIER_HIGH, DISTILLATION_MATRIX_ALPHA_UPPER_CAP),  # Cap A-side widening at the analyzed alpha limit.
+        "a_low_override": DISTILLATION_MATRIX_ALPHA_DEFAULT_LOW,  # Keep the A-side tightly centered around nominal for the distillation structured default.
+        "a_high_override": min(DISTILLATION_MATRIX_ALPHA_DEFAULT_HIGH, DISTILLATION_MATRIX_ALPHA_UPPER_CAP),  # Keep the A-side tightly centered around nominal for the distillation structured default.
         "b_low_override": DISTILLATION_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for B-side structured bounds.
         "b_high_override": DISTILLATION_DEFAULT_MULTIPLIER_HIGH,  # Keep B-side wide for gain-authority studies.
+        "prediction_fallback_on_solve_failure": True,  # Use the shared structured-runner fallback instead of stopping on an assisted MPC solve failure.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition.
         "band_offsets": [0, 1, 2],  # Non-negative offsets used in band mode. Must include 0.

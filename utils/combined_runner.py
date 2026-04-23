@@ -17,6 +17,12 @@ from utils.helpers import (
 from utils.multiplier_mapping import map_centered_action_to_bounds, map_centered_bounds_to_action
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
+from utils.phase1_hidden_release import (
+    build_phase1_bundle_fields,
+    build_phase1_schedule,
+    init_phase1_train_traces,
+    record_phase1_train_step,
+)
 from utils.replay_snapshot import capture_named_agent_replay_snapshots
 from utils.residual_authority import compute_residual_rho, project_residual_action
 from utils.state_features import (
@@ -338,6 +344,63 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         else "legacy_previous_measurement"
     )
 
+    td3_phase1_action_freeze_subepisodes = int(combined_cfg.get("td3_post_warm_start_action_freeze_subepisodes", 0))
+    td3_phase1_actor_freeze_subepisodes = int(combined_cfg.get("td3_post_warm_start_actor_freeze_subepisodes", 0))
+
+    matrix_phase1 = None
+    if matrix_enabled and matrix_agent is not None and matrix_agent_kind == "td3":
+        matrix_phase1 = build_phase1_schedule(
+            agent_kind=matrix_agent_kind,
+            warm_start_step=warm_start_step,
+            time_in_sub_episodes=time_in_sub_episodes,
+            n_steps=nFE,
+            test_train_dict=test_train_dict,
+            action_freeze_subepisodes=td3_phase1_action_freeze_subepisodes,
+            actor_freeze_subepisodes=td3_phase1_actor_freeze_subepisodes,
+            batch_size=getattr(matrix_agent, "batch_size", 1),
+            initial_buffer_size=len(getattr(matrix_agent, "buffer", [])),
+            base_actor_freeze=getattr(matrix_agent, "actor_freeze", 0),
+            push_start_step=warm_start_step + 1,
+            train_start_step=warm_start_step + 1,
+        )
+        matrix_agent.actor_freeze = int(matrix_phase1["effective_actor_freeze"])
+
+    weight_phase1 = None
+    if weight_enabled and weight_agent is not None and weight_agent_kind == "td3":
+        weight_phase1 = build_phase1_schedule(
+            agent_kind=weight_agent_kind,
+            warm_start_step=warm_start_step,
+            time_in_sub_episodes=time_in_sub_episodes,
+            n_steps=nFE,
+            test_train_dict=test_train_dict,
+            action_freeze_subepisodes=td3_phase1_action_freeze_subepisodes,
+            actor_freeze_subepisodes=td3_phase1_actor_freeze_subepisodes,
+            batch_size=getattr(weight_agent, "batch_size", 1),
+            initial_buffer_size=len(getattr(weight_agent, "buffer", [])),
+            base_actor_freeze=getattr(weight_agent, "actor_freeze", 0),
+            push_start_step=warm_start_step + 1,
+            train_start_step=warm_start_step + 1,
+        )
+        weight_agent.actor_freeze = int(weight_phase1["effective_actor_freeze"])
+
+    residual_phase1 = None
+    if residual_enabled and residual_agent is not None and residual_agent_kind == "td3":
+        residual_phase1 = build_phase1_schedule(
+            agent_kind=residual_agent_kind,
+            warm_start_step=warm_start_step,
+            time_in_sub_episodes=time_in_sub_episodes,
+            n_steps=nFE,
+            test_train_dict=test_train_dict,
+            action_freeze_subepisodes=td3_phase1_action_freeze_subepisodes,
+            actor_freeze_subepisodes=td3_phase1_actor_freeze_subepisodes,
+            batch_size=getattr(residual_agent, "batch_size", 1),
+            initial_buffer_size=len(getattr(residual_agent, "buffer", [])),
+            base_actor_freeze=getattr(residual_agent, "actor_freeze", 0),
+            push_start_step=warm_start_step + 1,
+            train_start_step=warm_start_step + 1,
+        )
+        residual_agent.actor_freeze = int(residual_phase1["effective_actor_freeze"])
+
     y_system = np.zeros((nFE + 1, n_outputs))
     y_system[0, :] = np.asarray(system.current_output, float)
     u_applied_scaled = np.zeros((nFE, n_inputs))
@@ -356,15 +419,27 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     matrix_alpha_log = np.ones(nFE, dtype=float)
     matrix_delta_log = np.ones((nFE, n_inputs), dtype=float)
     matrix_decision_log = np.zeros(nFE, dtype=int)
+    matrix_phase1_action_source_log = np.zeros(nFE, dtype=int) if matrix_phase1 is not None else None
+    matrix_policy_action_raw_log = np.zeros((nFE, model_baseline_raw.size), dtype=float) if matrix_phase1 is not None else None
+    matrix_executed_action_raw_log = np.zeros((nFE, model_baseline_raw.size), dtype=float) if matrix_phase1 is not None else None
+    matrix_phase1_train_traces = init_phase1_train_traces() if matrix_phase1 is not None else None
 
     weight_log = np.ones((nFE, 4), dtype=float)
     weight_decision_log = np.zeros(nFE, dtype=int)
+    weight_phase1_action_source_log = np.zeros(nFE, dtype=int) if weight_phase1 is not None else None
+    weight_policy_action_raw_log = np.zeros((nFE, weight_baseline_raw.size), dtype=float) if weight_phase1 is not None else None
+    weight_executed_action_raw_log = np.zeros((nFE, weight_baseline_raw.size), dtype=float) if weight_phase1 is not None else None
+    weight_phase1_train_traces = init_phase1_train_traces() if weight_phase1 is not None else None
 
     a_res_raw_log = np.zeros((nFE, n_inputs), dtype=float)
     a_res_exec_log = np.zeros((nFE, n_inputs), dtype=float)
     delta_u_res_raw_log = np.zeros((nFE, n_inputs), dtype=float)
     delta_u_res_exec_log = np.zeros((nFE, n_inputs), dtype=float)
     residual_decision_log = np.zeros(nFE, dtype=int)
+    residual_phase1_action_source_log = np.zeros(nFE, dtype=int) if residual_phase1 is not None else None
+    residual_policy_action_raw_log = np.zeros((nFE, residual_baseline_raw.size), dtype=float) if residual_phase1 is not None else None
+    residual_executed_action_raw_log = np.zeros((nFE, residual_baseline_raw.size), dtype=float) if residual_phase1 is not None else None
+    residual_phase1_train_traces = init_phase1_train_traces() if residual_phase1 is not None else None
     rho_log = np.zeros(nFE, dtype=float) if residual_state_mode == "mismatch" else None
     rho_raw_log = np.zeros(nFE, dtype=float) if residual_state_mode == "mismatch" else None
     rho_eff_log = np.zeros(nFE, dtype=float) if residual_state_mode == "mismatch" else None
@@ -424,8 +499,11 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
 
     last_horizon_idx = None
     last_model_raw = None
+    last_model_source = None
     last_weight_raw = None
+    last_weight_source = None
     last_residual_raw = None
+    last_residual_source = None
     test = False
     nonfinite_matrix_action_count = 0
     matrix_A_model_delta_ratio_log = np.zeros(nFE, dtype=float)
@@ -523,20 +601,43 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             h_idx = horizon_baseline_idx
             Hp, Hc = current_Hp, current_Hc
 
+        matrix_phase1_hidden_active = bool(
+            matrix_phase1 is not None and matrix_phase1["enabled"] and matrix_phase1["hidden_window_active_log"][i]
+        )
+        matrix_policy_raw = None
         if matrix_enabled:
+            if i > warm_start_step and matrix_phase1 is not None:
+                matrix_policy_raw = np.asarray(matrix_agent.act_eval(current_states["matrix"]), float).reshape(-1)
+                if not np.all(np.isfinite(matrix_policy_raw)):
+                    matrix_policy_raw = model_baseline_raw.copy()
             if i <= warm_start_step:
                 model_raw = model_baseline_raw.copy()
+                current_model_source = 0
+                if matrix_phase1 is not None:
+                    matrix_policy_raw = model_baseline_raw.copy()
+            elif matrix_phase1_hidden_active:
+                model_raw = model_baseline_raw.copy()
+                current_model_source = 1
             elif ((i % decision_interval) == 0) or (last_model_raw is None):
                 matrix_decision_log[i] = 1
                 if not test:
                     model_raw = np.asarray(matrix_agent.take_action(current_states["matrix"], explore=True), float)
+                    last_model_source = 2
                 else:
-                    model_raw = np.asarray(matrix_agent.act_eval(current_states["matrix"]), float)
-                last_model_raw = model_raw.copy()
+                    model_raw = (
+                        matrix_policy_raw.copy()
+                        if matrix_policy_raw is not None
+                        else np.asarray(matrix_agent.act_eval(current_states["matrix"]), float).reshape(-1)
+                    )
+                    last_model_source = 3
+                last_model_raw = np.asarray(model_raw, float).reshape(-1).copy()
+                current_model_source = int(last_model_source)
             else:
                 model_raw = last_model_raw.copy()
+                current_model_source = int(last_model_source if last_model_source is not None else (3 if test else 2))
         else:
             model_raw = model_baseline_raw.copy()
+            current_model_source = 0
         model_raw = np.asarray(model_raw, float).reshape(-1)
         if not np.all(np.isfinite(model_raw)):
             warnings.warn(
@@ -547,6 +648,13 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             else:
                 model_raw = model_baseline_raw.copy()
             nonfinite_matrix_action_count += 1
+        if matrix_phase1 is not None:
+            matrix_policy_action_raw_log[i, :] = np.asarray(
+                matrix_policy_raw if matrix_policy_raw is not None else model_baseline_raw,
+                float,
+            ).reshape(-1)
+            matrix_executed_action_raw_log[i, :] = np.asarray(model_raw, float).reshape(-1)
+            matrix_phase1_action_source_log[i] = int(current_model_source)
         model_mapped = map_centered_action_to_bounds(
             model_raw,
             model_low,
@@ -571,23 +679,53 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             ord="fro",
         ) / max(np.linalg.norm(B_base[:n_phys, :], ord="fro"), 1e-12)
 
+        weight_phase1_hidden_active = bool(
+            weight_phase1 is not None and weight_phase1["enabled"] and weight_phase1["hidden_window_active_log"][i]
+        )
+        weight_policy_raw = None
         if weight_enabled:
+            if i > warm_start_step and weight_phase1 is not None:
+                weight_policy_raw = np.asarray(weight_agent.act_eval(current_states["weights"]), float).reshape(-1)
+                if not np.all(np.isfinite(weight_policy_raw)):
+                    weight_policy_raw = weight_baseline_raw.copy()
             if i <= warm_start_step:
                 weight_raw = weight_baseline_raw.copy()
+                current_weight_source = 0
+                if weight_phase1 is not None:
+                    weight_policy_raw = weight_baseline_raw.copy()
+            elif weight_phase1_hidden_active:
+                weight_raw = weight_baseline_raw.copy()
+                current_weight_source = 1
             elif ((i % decision_interval) == 0) or (last_weight_raw is None):
                 weight_decision_log[i] = 1
                 if not test:
                     weight_raw = np.asarray(weight_agent.take_action(current_states["weights"], explore=True), float)
+                    last_weight_source = 2
                 else:
-                    weight_raw = np.asarray(weight_agent.act_eval(current_states["weights"]), float)
-                last_weight_raw = weight_raw.copy()
+                    weight_raw = (
+                        weight_policy_raw.copy()
+                        if weight_policy_raw is not None
+                        else np.asarray(weight_agent.act_eval(current_states["weights"]), float).reshape(-1)
+                    )
+                    last_weight_source = 3
+                last_weight_raw = np.asarray(weight_raw, float).reshape(-1).copy()
+                current_weight_source = int(last_weight_source)
             else:
                 weight_raw = last_weight_raw.copy()
+                current_weight_source = int(last_weight_source if last_weight_source is not None else (3 if test else 2))
         else:
             weight_raw = weight_baseline_raw.copy()
+            current_weight_source = 0
         weight_raw = np.asarray(weight_raw, float).reshape(-1)
         if weight_raw.size != 4:
             raise ValueError("Weights action must contain 4 elements for [Q1, Q2, R1, R2].")
+        if weight_phase1 is not None:
+            weight_policy_action_raw_log[i, :] = np.asarray(
+                weight_policy_raw if weight_policy_raw is not None else weight_baseline_raw,
+                float,
+            ).reshape(-1)
+            weight_executed_action_raw_log[i, :] = np.asarray(weight_raw, float).reshape(-1)
+            weight_phase1_action_source_log[i] = int(current_weight_source)
         weight_mult = _map_to_bounds(weight_raw, weights_low, weights_high)
         weight_log[i, :] = weight_mult
         Q_now = np.array([q_base[0] * weight_mult[0], q_base[1] * weight_mult[1]], dtype=float)
@@ -648,9 +786,23 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         u_base = np.clip(u_base, u_min_scaled_abs, u_max_scaled_abs)
         u_base_scaled[i, :] = u_base
 
+        residual_phase1_hidden_active = bool(
+            residual_phase1 is not None and residual_phase1["enabled"] and residual_phase1["hidden_window_active_log"][i]
+        )
+        residual_policy_raw = None
         if residual_enabled:
+            if i > warm_start_step and residual_phase1 is not None:
+                residual_policy_raw = np.asarray(residual_agent.act_eval(current_states["residual"]), float).reshape(-1)
+                if not np.all(np.isfinite(residual_policy_raw)):
+                    residual_policy_raw = residual_baseline_raw.copy()
             if i <= warm_start_step:
                 residual_raw_action = residual_baseline_raw.copy()
+                current_residual_source = 0
+                if residual_phase1 is not None:
+                    residual_policy_raw = residual_baseline_raw.copy()
+            elif residual_phase1_hidden_active:
+                residual_raw_action = residual_baseline_raw.copy()
+                current_residual_source = 1
             elif ((i % decision_interval) == 0) or (last_residual_raw is None):
                 residual_decision_log[i] = 1
                 if not test:
@@ -658,13 +810,22 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                         residual_agent.take_action(current_states["residual"], explore=True),
                         float,
                     )
+                    last_residual_source = 2
                 else:
-                    residual_raw_action = np.asarray(residual_agent.act_eval(current_states["residual"]), float)
-                last_residual_raw = residual_raw_action.copy()
+                    residual_raw_action = (
+                        residual_policy_raw.copy()
+                        if residual_policy_raw is not None
+                        else np.asarray(residual_agent.act_eval(current_states["residual"]), float).reshape(-1)
+                    )
+                    last_residual_source = 3
+                last_residual_raw = np.asarray(residual_raw_action, float).reshape(-1).copy()
+                current_residual_source = int(last_residual_source)
             else:
                 residual_raw_action = last_residual_raw.copy()
+                current_residual_source = int(last_residual_source if last_residual_source is not None else (3 if test else 2))
         else:
             residual_raw_action = residual_baseline_raw.copy()
+            current_residual_source = 0
         residual_raw_action = np.asarray(residual_raw_action, float).reshape(-1)
         a_res_raw_log[i, :] = residual_raw_action
 
@@ -703,6 +864,13 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         delta_u_res_raw_log[i, :] = residual_projection["delta_u_res_raw"]
         delta_u_res_exec_log[i, :] = residual_projection["delta_u_res_exec"]
         a_res_exec_log[i, :] = residual_projection["a_exec"]
+        if residual_phase1 is not None:
+            residual_policy_action_raw_log[i, :] = np.asarray(
+                residual_policy_raw if residual_policy_raw is not None else residual_baseline_raw,
+                float,
+            ).reshape(-1)
+            residual_executed_action_raw_log[i, :] = np.asarray(residual_projection["a_exec"], float).reshape(-1)
+            residual_phase1_action_source_log[i] = int(current_residual_source)
         u_applied_scaled[i, :] = residual_projection["u_applied_scaled_abs"]
 
         delta_u = u_applied_scaled[i, :] - scaled_current_input
@@ -807,7 +975,9 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     0.0,
                 )
                 if i >= warm_start_step:
-                    matrix_agent.train_step()
+                    train_meta = matrix_agent.train_step()
+                    if matrix_phase1 is not None:
+                        record_phase1_train_step(matrix_phase1_train_traces, i, train_meta)
 
             if weight_enabled and i > warm_start_step:
                 next_state = build_next_state("weights", weight_state_mode)
@@ -819,7 +989,9 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     0.0,
                 )
                 if i >= warm_start_step:
-                    weight_agent.train_step()
+                    train_meta = weight_agent.train_step()
+                    if weight_phase1 is not None:
+                        record_phase1_train_step(weight_phase1_train_traces, i, train_meta)
 
             if residual_enabled and i > warm_start_step:
                 next_state = build_next_state("residual", residual_state_mode)
@@ -831,7 +1003,9 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     0.0,
                 )
                 if i >= warm_start_step:
-                    residual_agent.train_step()
+                    train_meta = residual_agent.train_step()
+                    if residual_phase1 is not None:
+                        record_phase1_train_step(residual_phase1_train_traces, i, train_meta)
 
         if i in sub_episodes_changes_dict:
             avg_rewards.append(float(np.mean(rewards[max(0, i - time_in_sub_episodes + 1) : i + 1])))
@@ -1003,6 +1177,39 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     result_bundle.update(_extract_losses(matrix_agent, "matrix"))
     result_bundle.update(_extract_losses(weight_agent, "weight"))
     result_bundle.update(_extract_losses(residual_agent, "residual"))
+    if matrix_phase1 is not None:
+        result_bundle.update(
+            build_phase1_bundle_fields(
+                matrix_phase1,
+                policy_action_raw_log=matrix_policy_action_raw_log,
+                executed_action_raw_log=matrix_executed_action_raw_log,
+                action_source_log=matrix_phase1_action_source_log,
+                traces=matrix_phase1_train_traces,
+                prefix="matrix_",
+            )
+        )
+    if weight_phase1 is not None:
+        result_bundle.update(
+            build_phase1_bundle_fields(
+                weight_phase1,
+                policy_action_raw_log=weight_policy_action_raw_log,
+                executed_action_raw_log=weight_executed_action_raw_log,
+                action_source_log=weight_phase1_action_source_log,
+                traces=weight_phase1_train_traces,
+                prefix="weight_",
+            )
+        )
+    if residual_phase1 is not None:
+        result_bundle.update(
+            build_phase1_bundle_fields(
+                residual_phase1,
+                policy_action_raw_log=residual_policy_action_raw_log,
+                executed_action_raw_log=residual_executed_action_raw_log,
+                action_source_log=residual_phase1_action_source_log,
+                traces=residual_phase1_train_traces,
+                prefix="residual_",
+            )
+        )
     replay_snapshots = capture_named_agent_replay_snapshots(
         {
             "horizon": horizon_agent,

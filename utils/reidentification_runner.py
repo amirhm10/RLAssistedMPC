@@ -18,6 +18,13 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.observation_conditioning import update_observer_state as shared_update_observer_state
+from utils.phase1_hidden_release import (
+    build_phase1_bundle_fields,
+    build_phase1_schedule,
+    init_phase1_train_traces,
+    record_phase1_train_step,
+    resolve_phase1_action_source,
+)
 from utils.reidentification import (
     REIDENTIFICATION_BASIS_FAMILY,
     REIDENTIFICATION_BLEND_EXTRA_CLIP,
@@ -335,6 +342,32 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
             else:
                 raise ValueError("Distillation reidentification requires runtime_ctx['disturbance_schedule'].")
 
+    phase1 = None
+    phase1_action_source_log = None
+    policy_action_raw_log = None
+    executed_action_raw_log = None
+    phase1_train_traces = None
+    if agent_kind == "td3":
+        phase1 = build_phase1_schedule(
+            agent_kind=agent_kind,
+            warm_start_step=warm_start_step,
+            time_in_sub_episodes=time_in_sub_episodes,
+            n_steps=nFE,
+            test_train_dict=test_train_dict,
+            action_freeze_subepisodes=reid_cfg.get("post_warm_start_action_freeze_subepisodes", 0),
+            actor_freeze_subepisodes=reid_cfg.get("post_warm_start_actor_freeze_subepisodes", 0),
+            batch_size=getattr(agent, "batch_size", 1),
+            initial_buffer_size=len(getattr(agent, "buffer", [])),
+            base_actor_freeze=getattr(agent, "actor_freeze", 0),
+            push_start_step=0,
+            train_start_step=warm_start_step,
+        )
+        agent.actor_freeze = int(phase1["effective_actor_freeze"])
+        phase1_action_source_log = np.zeros(nFE, dtype=int)
+        policy_action_raw_log = np.zeros((nFE, 2), dtype=float)
+        executed_action_raw_log = np.zeros((nFE, 2), dtype=float)
+        phase1_train_traces = init_phase1_train_traces()
+
     ss_scaled_inputs = apply_min_max(steady_states["ss_inputs"], data_min[:n_inputs], data_max[:n_inputs])
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
 
@@ -505,7 +538,22 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
             tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
+        phase1_hidden_active = bool(phase1 is not None and phase1["enabled"] and phase1["hidden_window_active_log"][i])
+        policy_raw_action = None
+        if i > warm_start_step and phase1 is not None:
+            policy_eval_action = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
+            if not np.all(np.isfinite(policy_eval_action)):
+                policy_raw_action = np.array([-1.0, -1.0], dtype=float)
+            else:
+                policy_raw_action, _ = map_action_to_dual_eta(policy_eval_action[:2])
+
         if i <= warm_start_step:
+            raw_action = np.array([-1.0, -1.0], dtype=float)
+            eta_raw = np.zeros(2, dtype=float)
+            eta_requested = np.zeros(2, dtype=float)
+            if phase1 is not None:
+                policy_raw_action = raw_action.copy()
+        elif phase1_hidden_active:
             raw_action = np.array([-1.0, -1.0], dtype=float)
             eta_raw = np.zeros(2, dtype=float)
             eta_requested = np.zeros(2, dtype=float)
@@ -550,6 +598,20 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
         blend_validity_scale_B_log[i] = float(blend_validity_scale[1])
         eta_A_log[i] = float(eta[0])
         eta_B_log[i] = float(eta[1])
+        if phase1 is not None:
+            policy_action_raw_log[i, :] = np.asarray(
+                policy_raw_action if policy_raw_action is not None else raw_action,
+                float,
+            ).reshape(-1)
+            executed_action_raw_log[i, :] = np.asarray(raw_action, float).reshape(-1)
+            phase1_action_source_log[i] = int(
+                resolve_phase1_action_source(
+                    i,
+                    warm_start_step,
+                    phase1_hidden_active,
+                    test,
+                )
+            )
 
         A_pred_phys, B_pred_phys = blend_prediction_model(
             A0_phys=A0_phys,
@@ -848,7 +910,9 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
                 0.0,
             )
             if i >= warm_start_step:
-                agent.train_step()
+                train_meta = agent.train_step()
+                if phase1 is not None:
+                    record_phase1_train_step(phase1_train_traces, i, train_meta)
 
         eta_prev = eta
         last_candidate_valid_flag = candidate_valid_flag
@@ -1068,6 +1132,16 @@ def run_reidentification_supervisor(reid_cfg, runtime_ctx):
     ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
+    if phase1 is not None:
+        result_bundle.update(
+            build_phase1_bundle_fields(
+                phase1,
+                policy_action_raw_log=policy_action_raw_log,
+                executed_action_raw_log=executed_action_raw_log,
+                action_source_log=phase1_action_source_log,
+                traces=phase1_train_traces,
+            )
+        )
     attach_single_agent_replay_snapshot(result_bundle, agent)
     return result_bundle
 

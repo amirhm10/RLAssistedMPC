@@ -583,6 +583,35 @@ def normalize_result_bundle(result_bundle):
     bundle["residual_high_coef"] = (
         None if bundle.get("residual_high_coef") is None else np.asarray(bundle["residual_high_coef"], float).reshape(-1)
     )
+    for prefix in ("", "matrix_", "weight_", "residual_"):
+        enabled_key = f"{prefix}phase1_enabled"
+        if enabled_key in bundle:
+            bundle[enabled_key] = bool(bundle.get(enabled_key, False))
+        for key in (
+            "phase1_action_freeze_subepisodes",
+            "phase1_actor_freeze_subepisodes",
+            "phase1_action_freeze_start_step",
+            "phase1_action_freeze_end_step",
+            "phase1_first_live_action_step",
+            "phase1_actor_freeze_train_steps",
+            "phase1_effective_actor_freeze",
+        ):
+            full_key = f"{prefix}{key}"
+            if full_key in bundle:
+                bundle[full_key] = int(bundle.get(full_key, 0) or 0)
+        for key in (
+            "phase1_hidden_window_active_log",
+            "phase1_action_source_log",
+            "critic_update_env_step_trace",
+            "actor_update_slot_env_step_trace",
+            "actor_update_applied_env_step_trace",
+            "actor_update_blocked_env_step_trace",
+        ):
+            full_key = f"{prefix}{key}"
+            bundle[full_key] = None if bundle.get(full_key) is None else np.asarray(bundle[full_key], int).reshape(-1)
+        for key in ("policy_action_raw_log", "executed_action_raw_log"):
+            full_key = f"{prefix}{key}"
+            bundle[full_key] = None if bundle.get(full_key) is None else np.asarray(bundle[full_key], float)
     bundle["n_step"] = int(bundle.get("n_step", 1) or 1)
     bundle["multistep_mode"] = str(bundle.get("multistep_mode", "one_step"))
     bundle["lambda_value"] = bundle.get("lambda_value", None)
@@ -658,6 +687,19 @@ def normalize_result_bundle(result_bundle):
                 bundle[key] = bundle[key][:, None]
             if bundle[key].shape[0] > bundle["nFE"]:
                 bundle[key] = bundle[key][: bundle["nFE"], :]
+
+    for prefix in ("", "matrix_", "weight_", "residual_"):
+        for key in ("phase1_hidden_window_active_log", "phase1_action_source_log"):
+            full_key = f"{prefix}{key}"
+            if bundle.get(full_key) is not None and bundle[full_key].shape[0] > bundle["nFE"]:
+                bundle[full_key] = bundle[full_key][: bundle["nFE"]]
+        for key in ("policy_action_raw_log", "executed_action_raw_log"):
+            full_key = f"{prefix}{key}"
+            if bundle.get(full_key) is not None:
+                if bundle[full_key].ndim == 1:
+                    bundle[full_key] = bundle[full_key][:, None]
+                if bundle[full_key].shape[0] > bundle["nFE"]:
+                    bundle[full_key] = bundle[full_key][: bundle["nFE"], :]
 
     if bundle["u_base"] is not None:
         if bundle["u_base"].shape[0] > bundle["nFE"]:
@@ -877,6 +919,193 @@ def _plot_nstep_diagnostics(out_dir, fname_base, bundle, save_pdf):
     _save_fig(fig, out_dir, fname_base, save_pdf=save_pdf)
 
 
+def _phase1_window_info(bundle, prefix=""):
+    if not bool(bundle.get(f"{prefix}phase1_enabled", False)):
+        return None
+    warm_start_step = int(bundle.get("warm_start_step", 0))
+    hidden_start = int(bundle.get(f"{prefix}phase1_action_freeze_start_step", warm_start_step + 1))
+    hidden_end = int(bundle.get(f"{prefix}phase1_action_freeze_end_step", warm_start_step))
+    time_in_sub_episodes = int(max(1, bundle.get("time_in_sub_episodes", 1)))
+    nFE = int(bundle["nFE"])
+    window_start = max(0, warm_start_step - time_in_sub_episodes)
+    window_end = min(nFE - 1, hidden_end + time_in_sub_episodes)
+    return {
+        "warm_start_step": warm_start_step,
+        "hidden_start": hidden_start,
+        "hidden_end": hidden_end,
+        "window_start": window_start,
+        "window_end": window_end,
+    }
+
+
+def _shade_phase1_regions(ax, info, delta_t):
+    ax.axvspan(
+        info["window_start"] * delta_t,
+        (info["warm_start_step"] + 1) * delta_t,
+        color="0.75",
+        alpha=0.12,
+        linewidth=0,
+    )
+    if info["hidden_end"] >= info["hidden_start"]:
+        ax.axvspan(
+            info["hidden_start"] * delta_t,
+            (info["hidden_end"] + 1) * delta_t,
+            color="#C81D25",
+            alpha=0.10,
+            linewidth=0,
+        )
+    ax.axvline((info["warm_start_step"] + 1) * delta_t, color="0.35", linestyle="--", linewidth=1.2)
+
+
+def _plot_phase1_release_window_single_agent(bundle, out_dir, time_label, save_pdf):
+    info = _phase1_window_info(bundle)
+    if info is None:
+        return
+    policy = bundle.get("policy_action_raw_log")
+    executed = bundle.get("executed_action_raw_log")
+    if policy is None or executed is None:
+        return
+
+    window_start = info["window_start"]
+    window_end = info["window_end"]
+    delta_t = float(bundle["delta_t"])
+    spans = episode_spans(bundle.get("test_train_dict"), bundle["nFE"])
+    t_window = np.arange(window_start, window_end + 1) * delta_t
+    policy_seg = policy[window_start : window_end + 1, :]
+    executed_seg = executed[window_start : window_end + 1, :]
+    n_dims = int(policy_seg.shape[1])
+
+    fig, axs = plt.subplots(n_dims, 1, figsize=(8.8, 2.8 + 2.0 * max(1, n_dims - 1)), sharex=True)
+    if n_dims == 1:
+        axs = [axs]
+    for dim_idx, ax in enumerate(axs):
+        ax.step(t_window, policy_seg[:, dim_idx], where="post", label="Policy Raw")
+        ax.step(t_window, executed_seg[:, dim_idx], where="post", linestyle="--", label="Executed Raw")
+        shade_test_regions(ax, spans, delta_t)
+        _shade_phase1_regions(ax, info, delta_t)
+        ax.set_ylabel(f"a[{dim_idx + 1}]")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel(time_label)
+    axs[0].legend(loc="best")
+    _save_fig(fig, out_dir, "fig_phase1_release_window_actions", save_pdf=save_pdf)
+
+    critic_steps = np.asarray(bundle.get("critic_update_env_step_trace"), int).reshape(-1)
+    actor_slot_steps = np.asarray(bundle.get("actor_update_slot_env_step_trace"), int).reshape(-1)
+    actor_applied_steps = np.asarray(bundle.get("actor_update_applied_env_step_trace"), int).reshape(-1)
+    actor_blocked_steps = np.asarray(bundle.get("actor_update_blocked_env_step_trace"), int).reshape(-1)
+
+    def _window_trace(trace):
+        return trace[(trace >= window_start) & (trace <= window_end)]
+
+    fig, axs = plt.subplots(2, 1, figsize=(8.8, 6.0), sharex=True)
+    critic_window = _window_trace(critic_steps)
+    if critic_window.size > 0:
+        axs[0].scatter(critic_window * delta_t, np.ones_like(critic_window, dtype=float), marker="|", s=200, label="Critic")
+    shade_test_regions(axs[0], spans, delta_t)
+    _shade_phase1_regions(axs[0], info, delta_t)
+    axs[0].set_ylabel("Critic")
+    axs[0].set_yticks([1.0])
+    axs[0].spines["top"].set_visible(False)
+    axs[0].spines["right"].set_visible(False)
+    _make_axes_bold(axs[0])
+
+    actor_slot_window = _window_trace(actor_slot_steps)
+    actor_applied_window = _window_trace(actor_applied_steps)
+    actor_blocked_window = _window_trace(actor_blocked_steps)
+    if actor_slot_window.size > 0:
+        axs[1].scatter(actor_slot_window * delta_t, np.full(actor_slot_window.size, 1.0), marker="|", s=180, label="Slot")
+    if actor_blocked_window.size > 0:
+        axs[1].scatter(actor_blocked_window * delta_t, np.full(actor_blocked_window.size, 0.7), marker="x", s=60, label="Blocked")
+    if actor_applied_window.size > 0:
+        axs[1].scatter(actor_applied_window * delta_t, np.full(actor_applied_window.size, 0.4), marker="o", s=35, label="Applied")
+    shade_test_regions(axs[1], spans, delta_t)
+    _shade_phase1_regions(axs[1], info, delta_t)
+    axs[1].set_ylabel("Actor")
+    axs[1].set_yticks([1.0, 0.7, 0.4])
+    axs[1].set_yticklabels(["slot", "blocked", "applied"])
+    axs[1].set_xlabel(time_label)
+    axs[1].spines["top"].set_visible(False)
+    axs[1].spines["right"].set_visible(False)
+    axs[1].legend(loc="best")
+    _make_axes_bold(axs[1])
+    _save_fig(fig, out_dir, "fig_phase1_release_window_updates", save_pdf=save_pdf)
+
+
+def _plot_phase1_release_window_combined(bundle, out_dir, time_label, save_pdf):
+    families = [
+        ("matrix_", "Matrix"),
+        ("weight_", "Weights"),
+        ("residual_", "Residual"),
+    ]
+    active = [(prefix, label, _phase1_window_info(bundle, prefix)) for prefix, label in families]
+    active = [(prefix, label, info) for prefix, label, info in active if info is not None]
+    if not active:
+        return
+
+    delta_t = float(bundle["delta_t"])
+    spans = episode_spans(bundle.get("test_train_dict"), bundle["nFE"])
+    window_start = min(info["window_start"] for _, _, info in active)
+    window_end = max(info["window_end"] for _, _, info in active)
+    t_window = np.arange(window_start, window_end + 1) * delta_t
+
+    fig, axs = plt.subplots(len(active), 1, figsize=(9.4, 3.0 + 2.4 * max(1, len(active) - 1)), sharex=True)
+    if len(active) == 1:
+        axs = [axs]
+    for ax, (prefix, label, info) in zip(axs, active):
+        policy = bundle.get(f"{prefix}policy_action_raw_log")
+        executed = bundle.get(f"{prefix}executed_action_raw_log")
+        if policy is None or executed is None:
+            continue
+        policy_seg = policy[window_start : window_end + 1, :]
+        executed_seg = executed[window_start : window_end + 1, :]
+        for dim_idx in range(policy_seg.shape[1]):
+            ax.step(t_window, policy_seg[:, dim_idx], where="post", linewidth=1.8, alpha=0.9, label=f"p{dim_idx + 1}")
+            ax.step(t_window, executed_seg[:, dim_idx], where="post", linestyle="--", linewidth=1.4, alpha=0.9, label=f"e{dim_idx + 1}")
+        shade_test_regions(ax, spans, delta_t)
+        _shade_phase1_regions(ax, info, delta_t)
+        ax.set_ylabel(label)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel(time_label)
+    axs[0].legend(loc="best", ncol=2)
+    _save_fig(fig, out_dir, "fig_combined_phase1_release_window_td3_actions", save_pdf=save_pdf)
+
+    fig, axs = plt.subplots(len(active), 1, figsize=(9.4, 3.0 + 2.2 * max(1, len(active) - 1)), sharex=True)
+    if len(active) == 1:
+        axs = [axs]
+    for ax, (prefix, label, info) in zip(axs, active):
+        def _window_trace(key):
+            trace = np.asarray(bundle.get(f"{prefix}{key}"), int).reshape(-1)
+            return trace[(trace >= window_start) & (trace <= window_end)]
+
+        critic_steps = _window_trace("critic_update_env_step_trace")
+        slot_steps = _window_trace("actor_update_slot_env_step_trace")
+        blocked_steps = _window_trace("actor_update_blocked_env_step_trace")
+        applied_steps = _window_trace("actor_update_applied_env_step_trace")
+        if critic_steps.size > 0:
+            ax.scatter(critic_steps * delta_t, np.full(critic_steps.size, 1.0), marker="|", s=180, label="critic")
+        if slot_steps.size > 0:
+            ax.scatter(slot_steps * delta_t, np.full(slot_steps.size, 0.75), marker="|", s=160, label="slot")
+        if blocked_steps.size > 0:
+            ax.scatter(blocked_steps * delta_t, np.full(blocked_steps.size, 0.5), marker="x", s=55, label="blocked")
+        if applied_steps.size > 0:
+            ax.scatter(applied_steps * delta_t, np.full(applied_steps.size, 0.25), marker="o", s=32, label="applied")
+        shade_test_regions(ax, spans, delta_t)
+        _shade_phase1_regions(ax, info, delta_t)
+        ax.set_ylabel(label)
+        ax.set_yticks([1.0, 0.75, 0.5, 0.25])
+        ax.set_yticklabels(["c", "s", "b", "a"])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel(time_label)
+    axs[0].legend(loc="best", ncol=2)
+    _save_fig(fig, out_dir, "fig_combined_phase1_release_window_td3_updates", save_pdf=save_pdf)
+
+
 def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
     style_profile = str(plot_cfg.get("style_profile", "hybrid")).lower()
     _set_plot_style(style_profile=style_profile)
@@ -1094,7 +1323,6 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
                 _make_axes_bold(ax)
             axs[-1].set_xlabel(time_label)
             _save_fig(fig, out_dir, "fig_mpc_disturbance_profile", save_pdf=save_pdf)
-
     stored_bundle = build_storage_bundle(bundle, start_episode)
     save_bundle_pickle(out_dir, stored_bundle)
     return out_dir
@@ -1827,6 +2055,7 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
         _save_fig(fig, out_dir, "fig_matrix_training_diagnostics", save_pdf=save_pdf)
 
     _plot_nstep_diagnostics(out_dir, "fig_matrix_nstep_decomposition", bundle, save_pdf)
+    _plot_phase1_release_window_single_agent(bundle, out_dir, time_label, save_pdf)
 
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(
@@ -2453,6 +2682,7 @@ def plot_reidentification_results_core(result_bundle, plot_cfg):
         if key in bundle:
             stored_bundle[key] = bundle[key]
     stored_bundle["debug_id_plots"] = debug_id_plots
+    _plot_phase1_release_window_single_agent(bundle, out_dir, time_label, save_pdf)
     save_bundle_pickle(out_dir, stored_bundle)
     return out_dir
 
@@ -2776,6 +3006,7 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
         _save_fig(fig, out_dir, "fig_weights_training_diagnostics", save_pdf=save_pdf)
 
     _plot_nstep_diagnostics(out_dir, "fig_weights_nstep_decomposition", bundle, save_pdf)
+    _plot_phase1_release_window_single_agent(bundle, out_dir, time_label, save_pdf)
 
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(
@@ -3226,6 +3457,7 @@ def plot_residual_results_core(result_bundle, plot_cfg):
         _save_fig(fig, out_dir, "fig_residual_training_diagnostics", save_pdf=save_pdf)
 
     _plot_nstep_diagnostics(out_dir, "fig_residual_nstep_decomposition", bundle, save_pdf)
+    _plot_phase1_release_window_single_agent(bundle, out_dir, time_label, save_pdf)
 
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(
@@ -3727,6 +3959,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
 
         plot_losses("horizon", "Horizon")
 
+    _plot_phase1_release_window_combined(bundle, out_dir, time_label, save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     save_bundle_pickle(out_dir, stored_bundle)
 

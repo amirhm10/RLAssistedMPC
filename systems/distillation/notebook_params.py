@@ -350,6 +350,8 @@ DISTILLATION_MATRIX_DEFAULTS = {
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": deepcopy(DISTILLATION_MATRIX_RUN_PROFILES),
+    "post_warm_start_action_freeze_subepisodes": 5,
+    "post_warm_start_actor_freeze_subepisodes": 5,
     "controller": {
         "predict_h": 6,
         "cont_h": 3,
@@ -383,13 +385,15 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "actor_lr": 1e-4,
         "critic_lr": 1e-4,
         "batch_size": 128,
-        "policy_delay": 4,
-        "target_policy_smoothing_noise_std": 0.1,
+        "policy_delay": 2,
+        "target_policy_smoothing_noise_std": 0.01,
         "noise_clip": 0.2,
         "max_action": 1.0,
         "tau": 0.005,
-        "std_start": 0.2,
-        "std_end": 0.02,
+        "std_start": 0.01,
+        "std_end": 0.01,
+        "param_noise_std_start": 0.01,
+        "param_noise_std_end": 0.01,
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
         "actor_freeze": 0,
@@ -438,6 +442,8 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": deepcopy(DISTILLATION_MATRIX_RUN_PROFILES),
+    "post_warm_start_action_freeze_subepisodes": 5,
+    "post_warm_start_actor_freeze_subepisodes": 5,
     "controller": {
         "predict_h": 6,
         "cont_h": 3,
@@ -481,6 +487,8 @@ DISTILLATION_WEIGHT_DEFAULTS = {
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": deepcopy(DISTILLATION_WEIGHT_RUN_PROFILES),
+    "post_warm_start_action_freeze_subepisodes": 5,
+    "post_warm_start_actor_freeze_subepisodes": 5,
     "controller": {
         "predict_h": 6,
         "cont_h": 3,
@@ -567,6 +575,8 @@ DISTILLATION_RESIDUAL_DEFAULTS = {
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": deepcopy(DISTILLATION_RESIDUAL_RUN_PROFILES),
+    "post_warm_start_action_freeze_subepisodes": 5,
+    "post_warm_start_actor_freeze_subepisodes": 5,
     "controller": {
         "predict_h": 6,
         "cont_h": 3,
@@ -601,6 +611,8 @@ DISTILLATION_REIDENTIFICATION_DEFAULTS = {
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": deepcopy(DISTILLATION_REIDENTIFICATION_RUN_PROFILES),
+    "post_warm_start_action_freeze_subepisodes": 5,
+    "post_warm_start_actor_freeze_subepisodes": 5,
     "controller": {
         "predict_h": 6,
         "cont_h": 3,
@@ -698,6 +710,8 @@ DISTILLATION_COMBINED_DEFAULTS = {
     **_copy_residual_authority_defaults(action_dim=2),
     "use_rho_authority": True,
     "run_profiles": deepcopy(DISTILLATION_COMBINED_RUN_PROFILES),
+    "td3_post_warm_start_action_freeze_subepisodes": 5,
+    "td3_post_warm_start_actor_freeze_subepisodes": 5,
     "controller": {
         # The archived distillation combined notebook switched every 5 steps.
         "decision_interval": 5,

@@ -12,6 +12,13 @@ from utils.helpers import (
 )
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
+from utils.phase1_hidden_release import (
+    build_phase1_bundle_fields,
+    build_phase1_schedule,
+    init_phase1_train_traces,
+    record_phase1_train_step,
+    resolve_phase1_action_source,
+)
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.state_features import (
     build_rl_state,
@@ -235,6 +242,32 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         if disturbance_schedule is None:
             disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
 
+    phase1 = None
+    phase1_action_source_log = None
+    policy_action_raw_log = None
+    executed_action_raw_log = None
+    phase1_train_traces = None
+    if agent_kind == "td3":
+        phase1 = build_phase1_schedule(
+            agent_kind=agent_kind,
+            warm_start_step=warm_start_step,
+            time_in_sub_episodes=time_in_sub_episodes,
+            n_steps=nFE,
+            test_train_dict=test_train_dict,
+            action_freeze_subepisodes=structured_cfg.get("post_warm_start_action_freeze_subepisodes", 0),
+            actor_freeze_subepisodes=structured_cfg.get("post_warm_start_actor_freeze_subepisodes", 0),
+            batch_size=getattr(agent, "batch_size", 1),
+            initial_buffer_size=len(getattr(agent, "buffer", [])),
+            base_actor_freeze=getattr(agent, "actor_freeze", 0),
+            push_start_step=0,
+            train_start_step=warm_start_step,
+        )
+        agent.actor_freeze = int(phase1["effective_actor_freeze"])
+        phase1_action_source_log = np.zeros(nFE, dtype=int)
+        policy_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+        executed_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+        phase1_train_traces = init_phase1_train_traces()
+
     n_inputs = int(B_aug.shape[1])
     n_outputs = int(C_aug.shape[0])
     n_states = int(A_aug.shape[0])
@@ -361,13 +394,23 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
+        phase1_hidden_active = bool(phase1 is not None and phase1["enabled"] and phase1["hidden_window_active_log"][i])
+        policy_action = None
         if i > warm_start_step:
-            if not test:
-                action = np.asarray(agent.take_action(current_rl_state, explore=True), float)
+            if phase1 is not None:
+                policy_action = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
+                if not np.all(np.isfinite(policy_action)):
+                    policy_action = structured_baseline_raw.copy()
+            if phase1_hidden_active:
+                action = structured_baseline_raw.copy()
+            elif not test:
+                action = np.asarray(agent.take_action(current_rl_state, explore=True), float).reshape(-1)
             else:
-                action = np.asarray(agent.act_eval(current_rl_state), float)
+                action = policy_action.copy() if policy_action is not None else np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
         else:
-            action = np.zeros(action_dim, dtype=float)
+            action = structured_baseline_raw.copy()
+            if phase1 is not None:
+                policy_action = structured_baseline_raw.copy()
 
         if not np.all(np.isfinite(action)):
             action = structured_baseline_raw.copy()
@@ -467,6 +510,20 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
                 ) from fallback_exc
 
         effective_action_log[i, :] = effective_action
+        if phase1 is not None:
+            policy_action_raw_log[i, :] = np.asarray(
+                policy_action if policy_action is not None else structured_baseline_raw,
+                float,
+            ).reshape(-1)
+            executed_action_raw_log[i, :] = np.asarray(effective_action, float).reshape(-1)
+            phase1_action_source_log[i] = int(
+                resolve_phase1_action_source(
+                    i,
+                    warm_start_step,
+                    phase1_hidden_active,
+                    test,
+                )
+            )
         effective_multiplier_log[i, :] = effective_mapped
         effective_theta_a_log[i, :] = effective_mapped[:a_dim]
         effective_theta_b_log[i, :] = effective_mapped[a_dim:]
@@ -554,7 +611,9 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
                 0.0,
             )
             if i >= warm_start_step:
-                agent.train_step()
+                train_meta = agent.train_step()
+                if phase1 is not None:
+                    record_phase1_train_step(phase1_train_traces, i, train_meta)
 
         if i in sub_episodes_changes_dict:
             lo = max(0, i - time_in_sub_episodes + 1)
@@ -727,6 +786,16 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
+    if phase1 is not None:
+        result_bundle.update(
+            build_phase1_bundle_fields(
+                phase1,
+                policy_action_raw_log=policy_action_raw_log,
+                executed_action_raw_log=executed_action_raw_log,
+                action_source_log=phase1_action_source_log,
+                traces=phase1_train_traces,
+            )
+        )
 
     attach_single_agent_replay_snapshot(result_bundle, agent)
     return result_bundle

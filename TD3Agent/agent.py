@@ -1,12 +1,13 @@
 import copy
+import math
+import pickle
+from dataclasses import dataclass
+from typing import List, Literal, Optional
+
+import numpy as np
 import torch
 import torch.nn as nn
-from typing import List, Literal, Optional
-from dataclasses import dataclass
 import torch.optim as optim
-import numpy as np
-import pickle
-import math
 
 # importing nets and buffer
 from TD3Agent.critic import Critic
@@ -362,10 +363,11 @@ class TD3Agent(nn.Module):
 
 
     # ------ training ------
-    def train_step(self) -> Optional[float]:
+    def train_step(self) -> Optional[dict]:
         # check if the buffer has enough info
         if len(self.buffer) < self.batch_size:
             return None
+        train_index_before = int(self.train_steps)
 
         if self.multistep_mode == "lambda":
             seq = self.buffer.sample_sequence(self.batch_size, self.sequence_len, device=self.device)
@@ -478,11 +480,16 @@ class TD3Agent(nn.Module):
         if lambda_return_mean is not None:
             self.lambda_return_mean_trace.append(lambda_return_mean)
 
+        actor_slot = bool(self.total_it % self.policy_delay == 0)
+        actor_updated = False
+        actor_loss_value = None
+
         # ------ Delayed actor + target update -------
-        if self.total_it % self.policy_delay == 0:
+        if actor_slot:
             curr = self.actor(s)
             q_for_actor = self.critic.q1_forward(s, curr)
             actor_loss = -torch.mean(q_for_actor)
+            actor_loss_value = float(actor_loss.item())
 
             if self.total_it >= self.actor_freeze:
                 self.actor_optimizer.zero_grad(set_to_none=True)
@@ -490,7 +497,8 @@ class TD3Agent(nn.Module):
                 if self.grad_clip_norm is not None:
                     nn.utils.clip_grad_norm_(self.actor.parameters(), self.grad_clip_norm)
                 self.actor_optimizer.step()
-            self.actor_losses.append(float(actor_loss.item()))
+                actor_updated = True
+            self.actor_losses.append(actor_loss_value)
 
             if self.target_update == "soft":
                 soft_update(self.actor_target, self.actor, self.tau)
@@ -507,7 +515,15 @@ class TD3Agent(nn.Module):
         if hasattr(self.buffer, "update_priorities"):
             self.buffer.update_priorities(priority_index, td)
 
-        return float(critic_loss.item())
+        return {
+            "critic_updated": True,
+            "actor_slot": actor_slot,
+            "actor_updated": actor_updated,
+            "critic_loss": float(critic_loss.item()),
+            "actor_loss": actor_loss_value,
+            "train_index_before": train_index_before,
+            "train_index_after": int(self.train_steps),
+        }
 
     def load(self, path: str):
         with open(path, 'rb') as f:

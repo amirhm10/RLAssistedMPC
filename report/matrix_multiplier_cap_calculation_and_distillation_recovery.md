@@ -476,7 +476,123 @@ This is the missing piece in distillation. The current structured runner has a s
 
 ## Structured Cap Calculation
 
-For structured matrix, do not derive the cap only from the scalar matrix `alpha`. Sample the structured family.
+For structured matrix, do not derive the cap only from the scalar matrix `alpha`, and do not assume every structured multiplier should share the same cap. Structured mode has several coordinates with different meanings, so it should eventually use **per-coordinate caps**.
+
+In the current block mode, the action is:
+
+$$
+\theta = [\theta_{A,\mathrm{block1}},\theta_{A,\mathrm{block2}},\theta_{A,\mathrm{block3}},\theta_{A,\mathrm{off}},\theta_{B,1},\theta_{B,2}].
+$$
+
+The first three values scale within-block physical-state dynamics. `theta_A_off` scales cross-block coupling. The two `B` values scale the two manipulated-input columns. These are not equally risky:
+
+- `A_block_j` changes time-scale and local state-memory behavior for one state group.
+- `A_off` changes coupling between state groups; it can be more delicate than a diagonal block because it changes interaction paths.
+- `B_col_j` changes the predicted authority of one manipulated input; it directly changes MPC input allocation.
+
+In band mode, the same logic applies, but the coordinates are band offsets:
+
+$$
+\theta = [\theta_{A,\mathrm{band0}},\theta_{A,\mathrm{band1}},\theta_{A,\mathrm{band2}},\ldots,\theta_{B,1},\theta_{B,2}].
+$$
+
+`A_band0` is the main diagonal band, while higher bands are coupling bands. The higher bands should normally receive stricter caps until sensitivity scans show they are harmless.
+
+The current code can already represent this. In `utils/structured_model_update.py`, `a_low_override`, `a_high_override`, `b_low_override`, and `b_high_override` can be scalars or arrays. A scalar means "same cap for every coordinate in that group"; an array means "different cap per multiplier." The report recommendation is to move from scalar overrides to array overrides after the first sensitivity scan.
+
+### Per-Multiplier Sensitivity Scan
+
+Use log-multiplier coordinates because they make upward and downward moves comparable:
+
+$$
+\theta_j = \exp(z_j).
+$$
+
+The nominal model is:
+
+$$
+z_0 = 0.
+$$
+
+For each structured coordinate `j`, perturb only that coordinate:
+
+$$
+z^{+,j} = z_0 + \varepsilon e_j.
+$$
+
+$$
+z^{-,j} = z_0 - \varepsilon e_j.
+$$
+
+Then build the two candidate models:
+
+$$
+(A^{+,j},B^{+,j}) = \mathcal{M}(\exp(z^{+,j})).
+$$
+
+$$
+(A^{-,j},B^{-,j}) = \mathcal{M}(\exp(z^{-,j})).
+$$
+
+The spectral sensitivity of coordinate `j` is:
+
+$$
+S_{\rho,j} = \frac{|\rho(A^{+,j}_{\mathrm{phys}})-\rho(A^{-,j}_{\mathrm{phys}})|}{2\varepsilon}.
+$$
+
+The finite-horizon gain sensitivity is:
+
+$$
+S_{G,j} = \frac{\left\|G_N(A^{+,j},B^{+,j})-G_N(A^{-,j},B^{-,j})\right\|_F}{2\varepsilon\left(\left\|G_N(A_0,B_0)\right\|_F+\epsilon\right)}.
+$$
+
+If candidate rollouts are available, also compute a closed-loop cost sensitivity:
+
+$$
+S_{J,j} = \frac{|J^{+,j}-J^{-,j}|}{2\varepsilon(|J^{0}|+\epsilon)}.
+$$
+
+These three numbers answer different questions:
+
+- `S_rho,j`: does this multiplier move the prediction poles?
+- `S_G,j`: does this multiplier change the MPC input-output map?
+- `S_J,j`: does this multiplier change the actual closed-loop objective?
+
+The per-coordinate log authority should then shrink when a coordinate is sensitive:
+
+$$
+d_{\rho,j} = \frac{\gamma_{\rho}(\rho_{\mathrm{target}}-\rho_0)}{S_{\rho,j}+\epsilon}.
+$$
+
+$$
+d_{G,j} = \frac{\gamma_G \epsilon_G}{S_{G,j}+\epsilon}.
+$$
+
+$$
+d_{J,j} = \frac{\gamma_J \epsilon_J}{S_{J,j}+\epsilon}.
+$$
+
+Then:
+
+$$
+d_j = \min(d_{\mathrm{user},j},d_{\rho,j},d_{G,j},d_{J,j}).
+$$
+
+For `B` coordinates, `d_rho,j` is usually ignored because `B` does not set open-loop stability. Use `d_G,j`, `d_J,j`, actuator headroom, and input-move diagnostics instead.
+
+Convert the log authority back to multiplier bounds:
+
+$$
+\theta_{\mathrm{low},j}^{\mathrm{sens}} = \exp(-d_j).
+$$
+
+$$
+\theta_{\mathrm{high},j}^{\mathrm{sens}} = \exp(d_j).
+$$
+
+This gives different caps for every structured multiplier. A sensitive off-block or input column naturally receives a narrower interval than a harmless block.
+
+### Accepted-Set Quantile Caps
 
 Let:
 
@@ -519,7 +635,37 @@ $$
 \end{aligned}
 $$
 
-Finally, test the worst corners. If the joint high corner fails, shrink the high quantile from `0.95` to `0.90`, or shrink only the coordinate with the largest contribution to `r_G`.
+Combine the sensitivity and accepted-set caps:
+
+$$
+\theta_{\mathrm{low},j}^{\mathrm{final}} = \max(\theta_{\mathrm{user,low},j},\theta_{\mathrm{low},j}^{\mathrm{sens}},Q_{0.05}(\Theta_{\mathrm{acc},j})).
+$$
+
+$$
+\theta_{\mathrm{high},j}^{\mathrm{final}} = \min(\theta_{\mathrm{user,high},j},\theta_{\mathrm{high},j}^{\mathrm{sens}},Q_{0.95}(\Theta_{\mathrm{acc},j})).
+$$
+
+Finally, test the worst corners and random joint combinations. Per-coordinate bounds are necessary but not sufficient, because two individually safe multipliers can still combine into an unsafe model. If the joint high corner fails, shrink the high quantile from `0.95` to `0.90`, or shrink only the coordinate with the largest contribution to `r_G`.
+
+### Practical Starting Policy
+
+For polymer, the successful wide matrix result means the plain scalar matrix family can tolerate wide `A,B` search. Structured is different because it perturbs several model substructures at the same time. A practical polymer structured starting point is:
+
+| Coordinate type | Initial cap logic |
+| --- | --- |
+| `A_block_j` | use the scalar `A` cap as the first ceiling, then shrink blocks with high `S_rho,j` or `S_G,j` |
+| `A_off` | start tighter than the block caps because it changes inter-block coupling |
+| `B_col_j` | keep wider than `A`, but split by input-column sensitivity and headroom |
+
+For distillation, the evidence says the cap should be even more coordinate-specific:
+
+| Coordinate type | Initial distillation policy |
+| --- | --- |
+| `A_block_j` | keep near nominal unless sensitivity scan shows a specific block is harmless |
+| `A_off` | keep very close to nominal at first because coupling changes can distort interaction dynamics |
+| `B_col_1`, `B_col_2` | do not force the same wide cap on both columns; cap each column by `S_G,j`, cost acceptance, and actuator headroom |
+
+This matters because the latest distillation observation already tested tight `A` with wide `B` and still degraded. Therefore the next structured experiment should not ask "what is one cap for structured?" It should ask "which structured coordinate is causing the bad finite-horizon gain change?"
 
 The existing polymer structured frontier supports this approach:
 
@@ -802,11 +948,11 @@ Declare success only if:
 
 ## Final Recommendations
 
-1. For polymer, keep the current tight-`A`, wide-`B` matrix cap. The latest capped matrix and structured runs show that this design is now working.
-2. For polymer structured matrix, keep `A_high` around `1.0566` for now, but test `1.04-1.05` as a lower-risk consistency ablation.
+1. For polymer, preserve the lesson from the successful wide `A,B` matrix run: the direct matrix family can exploit broad authority. Use the capped-`A` reruns as the safer repeatable variant, not as proof that wide `A` can never work.
+2. For polymer structured matrix, keep `A_high` around `1.0566` as the first block ceiling, but move toward per-coordinate caps. `A_off` should be tested tighter than the diagonal blocks, and each `B` column should be capped by its own gain/headroom sensitivity.
 3. For distillation, do not spend the next run only tightening `A`. The latest observation already used `[0.99, 1.01]` and still degraded.
 4. Add nominal-cost backtracking/fallback to matrix and structured matrix. This is the highest-priority distillation fix.
-5. Add mismatch-gated effective authority for both `A` and `B`, with a stricter gate for `A` and a headroom-aware gate for `B`.
+5. Add mismatch-gated effective authority for both `A` and `B`, with per-coordinate gates for structured mode. Do not force `A_block`, `A_off`, `B_col_1`, and `B_col_2` to share one authority schedule.
 6. Add TD3+BC actor anchoring during the post-warm-start handoff. The current hidden release helps, but the first live actor can still leave safe support.
 7. Run a distillation reward-balance ablation. The current reward can recover while still not beating MPC in physical MAE, especially if output 2 is underprotected.
 8. Only after D1-D5 work should `A` be widened toward the larger distillation analytical stability cap. The current bottleneck is policy/performance safety, not spectral admissibility.

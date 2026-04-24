@@ -60,6 +60,20 @@ def _copy_replay_defaults():
     }
 
 
+def _copy_offline_multiplier_diagnostic_defaults(enabled=False):
+    return {
+        "enabled": bool(enabled),
+        "epsilon_log": 0.02,
+        "n_random_samples": 2_000,
+        "seed": 42,
+        "rho_target": 0.995,
+        "gain_threshold": 0.25,
+        "save_outputs": True,
+        "make_plots": True,
+        "apply_suggested_caps": False,
+    }
+
+
 def _copy_mismatch_defaults():
     return {
         "mismatch_clip": 3.0,
@@ -365,6 +379,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "high_coef_by_agent": {
             key: np.asarray(value["high"], float).copy() for key, value in MATRIX_MULTIPLIER_BOUNDS.items()
         },
+        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 0.0,
@@ -459,6 +474,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "a_high_override": min(DISTILLATION_MATRIX_ALPHA_DEFAULT_HIGH, DISTILLATION_MATRIX_ALPHA_UPPER_CAP),  # Keep the A-side tightly centered around nominal for the distillation structured default.
         "b_low_override": DISTILLATION_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for B-side structured bounds.
         "b_high_override": DISTILLATION_DEFAULT_MULTIPLIER_HIGH,  # Keep B-side wide for gain-authority studies.
+        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
         "prediction_fallback_on_solve_failure": True,  # Use the shared structured-runner fallback instead of stopping on an assisted MPC solve failure.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition.

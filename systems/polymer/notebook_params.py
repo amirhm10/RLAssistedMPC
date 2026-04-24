@@ -33,7 +33,7 @@ def _copy_replay_defaults():
         #   the effective recent window as min(buffer_size, mult * set_points_len)
         # - replay_recent_window: explicit override; None keeps the derived value
         # - replay_alpha / replay_beta_*: standard PER priority and IS-weight controls
-        "buffer_size": 40_000,
+        "buffer_size": 150_000,
         "replay_frac_per": 0.5,
         "replay_frac_recent": 0.2,
         "replay_recent_window_mult": 5,
@@ -957,7 +957,7 @@ POLYMER_POLES_EXPERIMENT_DEFAULTS = {
     # replay-buffer or path defaults from drifting.
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
-    "buffer_capacity": 40_000,
+    "buffer_capacity": 150_000,
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
     "reward": _copy_reward_defaults(),
 }

@@ -13,6 +13,11 @@ from utils.helpers import (
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
 from utils.multiplier_mapping import map_centered_action_to_bounds, map_centered_bounds_to_action
+from utils.multiplier_release_schedule import (
+    build_release_authority_schedule,
+    clip_multipliers_to_release_bounds,
+    map_effective_multipliers_to_raw_action,
+)
 from utils.phase1_hidden_release import (
     build_phase1_bundle_fields,
     build_phase1_schedule,
@@ -129,6 +134,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     low_coef = np.asarray(matrix_cfg["low_coef"], float)
     high_coef = np.asarray(matrix_cfg["high_coef"], float)
     action_dim = int(low_coef.size)
+    n_inputs = int(B_aug.shape[1])
     matrix_baseline_raw = _map_from_bounds(np.ones(action_dim, dtype=float), low_coef, high_coef)
 
     (
@@ -187,10 +193,24 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         executed_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
         phase1_train_traces = init_phase1_train_traces()
 
-    n_inputs = int(B_aug.shape[1])
     n_outputs = int(C_aug.shape[0])
     n_states = int(A_aug.shape[0])
     n_phys = n_states - n_outputs
+
+    release_cfg = dict(matrix_cfg.get("release_protected_advisory_caps", {}))
+    release_labels = ["alpha"] + [f"B_col_{idx + 1}" for idx in range(n_inputs)]
+    release_action_freeze_end_step = phase1["action_freeze_end_step"] if phase1 is not None else warm_start_step
+    release_schedule = build_release_authority_schedule(
+        config=release_cfg,
+        labels=release_labels,
+        wide_low=low_coef,
+        wide_high=high_coef,
+        warm_start_step=warm_start_step,
+        action_freeze_end_step=release_action_freeze_end_step,
+        time_in_sub_episodes=time_in_sub_episodes,
+        n_steps=nFE,
+    )
+    release_store_executed_action = bool(release_schedule.get("store_executed_action_in_replay", True))
 
     ss_scaled_inputs = apply_min_max(steady_states["ss_inputs"], data_min[:n_inputs], data_max[:n_inputs])
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
@@ -206,6 +226,16 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     delta_u_storage = np.zeros((nFE, n_inputs))
     alpha_log = np.zeros(nFE)
     delta_log = np.zeros((nFE, n_inputs))
+    policy_multiplier_log = np.zeros((nFE, action_dim))
+    executed_multiplier_log = np.zeros((nFE, action_dim))
+    release_effective_low_log = np.zeros((nFE, action_dim))
+    release_effective_high_log = np.zeros((nFE, action_dim))
+    release_phase_log = np.zeros(nFE, dtype=int)
+    release_guard_active_log = np.zeros(nFE, dtype=int)
+    release_clip_fraction_log = np.zeros(nFE)
+    release_ramp_fraction_log = np.zeros(nFE)
+    release_policy_action_raw_log = np.zeros((nFE, action_dim))
+    release_executed_action_raw_log = np.zeros((nFE, action_dim))
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     innovation_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
@@ -305,7 +335,6 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
                 policy_action if policy_action is not None else matrix_baseline_raw,
                 float,
             ).reshape(-1)
-            executed_action_raw_log[i, :] = np.asarray(action, float).reshape(-1)
             phase1_action_source_log[i] = int(
                 resolve_phase1_action_source(
                     i,
@@ -315,9 +344,25 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
                 )
             )
 
-        action_mapped = _map_to_bounds(action, low_coef, high_coef)
-        alpha = float(np.ravel(action_mapped[:1])[0])
-        delta = np.asarray(action_mapped[-n_inputs:], float)
+        policy_mapped = _map_to_bounds(action, low_coef, high_coef)
+        release_trace = clip_multipliers_to_release_bounds(policy_mapped, release_schedule, i)
+        executed_mapped = np.asarray(release_trace["multipliers"], float)
+        executed_action = map_effective_multipliers_to_raw_action(executed_mapped, low_coef, high_coef)
+        policy_multiplier_log[i, :] = policy_mapped
+        executed_multiplier_log[i, :] = executed_mapped
+        release_effective_low_log[i, :] = release_trace["low"]
+        release_effective_high_log[i, :] = release_trace["high"]
+        release_phase_log[i] = int(release_trace["phase_code"])
+        release_guard_active_log[i] = int(bool(release_trace["guard_active"]))
+        release_clip_fraction_log[i] = float(release_trace["clip_fraction"])
+        release_ramp_fraction_log[i] = float(release_trace["ramp_fraction"])
+        release_policy_action_raw_log[i, :] = np.asarray(action, float).reshape(-1)
+        release_executed_action_raw_log[i, :] = executed_action
+        if phase1 is not None:
+            executed_action_raw_log[i, :] = executed_action
+
+        alpha = float(np.ravel(executed_mapped[:1])[0])
+        delta = np.asarray(executed_mapped[-n_inputs:], float)
         alpha_log[i] = alpha
         delta_log[i, :] = delta
 
@@ -423,9 +468,10 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         )
 
         if not test:
+            replay_action = executed_action if release_store_executed_action else action
             agent.push(
                 current_rl_state,
-                np.asarray(action, np.float32),
+                np.asarray(replay_action, np.float32),
                 reward,
                 next_rl_state,
                 0.0,
@@ -486,6 +532,19 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "xhatdhat": xhatdhat,
         "alpha_log": alpha_log,
         "delta_log": delta_log,
+        "policy_multiplier_log": policy_multiplier_log,
+        "executed_multiplier_log": executed_multiplier_log,
+        "release_schedule": release_schedule,
+        "release_guard_enabled": bool(release_schedule.get("enabled", False)),
+        "release_phase_log": release_phase_log,
+        "release_guard_active_log": release_guard_active_log,
+        "release_clip_fraction_log": release_clip_fraction_log,
+        "release_ramp_fraction_log": release_ramp_fraction_log,
+        "release_effective_low_log": release_effective_low_log,
+        "release_effective_high_log": release_effective_high_log,
+        "release_policy_action_raw_log": release_policy_action_raw_log,
+        "release_executed_action_raw_log": release_executed_action_raw_log,
+        "release_store_executed_action_in_replay": release_store_executed_action,
         "A_model_delta_ratio_log": A_model_delta_ratio_log,
         "B_model_delta_ratio_log": B_model_delta_ratio_log,
         "low_coef": low_coef,

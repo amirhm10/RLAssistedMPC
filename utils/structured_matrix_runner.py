@@ -12,6 +12,11 @@ from utils.helpers import (
 )
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
+from utils.multiplier_release_schedule import (
+    build_release_authority_schedule,
+    clip_multipliers_to_release_bounds,
+    map_effective_multipliers_to_raw_action,
+)
 from utils.phase1_hidden_release import (
     build_phase1_bundle_fields,
     build_phase1_schedule,
@@ -205,6 +210,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     b_dim = int(structured_spec["b_dim"])
     low_bounds = np.asarray(structured_spec["low_bounds"], float)
     high_bounds = np.asarray(structured_spec["high_bounds"], float)
+    action_labels = tuple(str(label) for label in structured_spec["action_labels"])
     prediction_fallback_on_solve_failure = bool(structured_cfg.get("prediction_fallback_on_solve_failure", True))
     structured_baseline_raw = map_multipliers_to_normalized_action(
         np.ones(action_dim, dtype=float),
@@ -272,6 +278,20 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     n_outputs = int(C_aug.shape[0])
     n_states = int(A_aug.shape[0])
 
+    release_cfg = dict(structured_cfg.get("release_protected_advisory_caps", {}))
+    release_action_freeze_end_step = phase1["action_freeze_end_step"] if phase1 is not None else warm_start_step
+    release_schedule = build_release_authority_schedule(
+        config=release_cfg,
+        labels=action_labels,
+        wide_low=low_bounds,
+        wide_high=high_bounds,
+        warm_start_step=warm_start_step,
+        action_freeze_end_step=release_action_freeze_end_step,
+        time_in_sub_episodes=time_in_sub_episodes,
+        n_steps=nFE,
+    )
+    release_store_executed_action = bool(release_schedule.get("store_executed_action_in_replay", True))
+
     ss_scaled_inputs = apply_min_max(steady_states["ss_inputs"], data_min[:n_inputs], data_max[:n_inputs])
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
 
@@ -288,6 +308,12 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     effective_action_log = np.zeros((nFE, action_dim))
     mapped_multiplier_log = np.zeros((nFE, action_dim))
     effective_multiplier_log = np.zeros((nFE, action_dim))
+    release_effective_low_log = np.zeros((nFE, action_dim))
+    release_effective_high_log = np.zeros((nFE, action_dim))
+    release_phase_log = np.zeros(nFE, dtype=int)
+    release_guard_active_log = np.zeros(nFE, dtype=int)
+    release_clip_fraction_log = np.zeros(nFE)
+    release_ramp_fraction_log = np.zeros(nFE)
     theta_a_log = np.zeros((nFE, a_dim))
     theta_b_log = np.zeros((nFE, b_dim))
     effective_theta_a_log = np.zeros((nFE, a_dim))
@@ -418,6 +444,13 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
 
         try:
             mapped = map_normalized_action_to_multipliers(action, low_bounds, high_bounds)
+            release_trace = clip_multipliers_to_release_bounds(mapped, release_schedule, i)
+            effective_mapped_for_update = np.asarray(release_trace["multipliers"], float)
+            effective_action_for_update = map_effective_multipliers_to_raw_action(
+                effective_mapped_for_update,
+                low_bounds,
+                high_bounds,
+            )
             update_payload = _build_structured_update_payload(
                 update_builder=update_builder,
                 update_family=update_family,
@@ -425,12 +458,15 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
                 B_base=B_base,
                 n_outputs=n_outputs,
                 update_cfg=update_cfg,
-                theta_A=mapped[:a_dim],
-                theta_B=mapped[a_dim:],
+                theta_A=effective_mapped_for_update[:a_dim],
+                theta_B=effective_mapped_for_update[a_dim:],
             )
         except Exception:
             action = structured_baseline_raw.copy()
             mapped = np.ones(action_dim, dtype=float)
+            release_trace = clip_multipliers_to_release_bounds(mapped, release_schedule, i)
+            effective_mapped_for_update = np.ones(action_dim, dtype=float)
+            effective_action_for_update = structured_baseline_raw.copy()
             update_payload = nominal_update_payload
             structured_update_fallback_count += 1
 
@@ -446,12 +482,18 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         near_low = (mapped - low_bounds) <= near_bound_tolerance * bound_span
         near_high = (high_bounds - mapped) <= near_bound_tolerance * bound_span
         near_bound_fraction_log[i] = float(np.mean(near_low | near_high))
+        release_effective_low_log[i, :] = release_trace["low"]
+        release_effective_high_log[i, :] = release_trace["high"]
+        release_phase_log[i] = int(release_trace["phase_code"])
+        release_guard_active_log[i] = int(bool(release_trace["guard_active"]))
+        release_clip_fraction_log[i] = float(release_trace["clip_fraction"])
+        release_ramp_fraction_log[i] = float(release_trace["ramp_fraction"])
 
         A_candidate = np.asarray(update_payload["A_aug"], float)
         B_candidate = np.asarray(update_payload["B_aug"], float)
         prediction_payload = update_payload
-        effective_action = action.copy()
-        effective_mapped = mapped.copy()
+        effective_action = effective_action_for_update.copy()
+        effective_mapped = effective_mapped_for_update.copy()
         prediction_fallback_reason = 0
 
         if not (np.all(np.isfinite(A_candidate)) and np.all(np.isfinite(B_candidate))):
@@ -603,9 +645,10 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         )
 
         if not test:
+            replay_action = effective_action if release_store_executed_action else action
             agent.push(
                 current_rl_state,
-                np.asarray(effective_action, np.float32),
+                np.asarray(replay_action, np.float32),
                 reward,
                 next_rl_state,
                 0.0,
@@ -730,6 +773,15 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "effective_action_log": effective_action_log,
         "mapped_multiplier_log": mapped_multiplier_log,
         "effective_multiplier_log": effective_multiplier_log,
+        "release_schedule": release_schedule,
+        "release_guard_enabled": bool(release_schedule.get("enabled", False)),
+        "release_phase_log": release_phase_log,
+        "release_guard_active_log": release_guard_active_log,
+        "release_clip_fraction_log": release_clip_fraction_log,
+        "release_ramp_fraction_log": release_ramp_fraction_log,
+        "release_effective_low_log": release_effective_low_log,
+        "release_effective_high_log": release_effective_high_log,
+        "release_store_executed_action_in_replay": release_store_executed_action,
         "theta_a_log": theta_a_log,
         "theta_b_log": theta_b_log,
         "effective_theta_a_log": effective_theta_a_log,

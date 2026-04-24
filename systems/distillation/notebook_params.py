@@ -74,6 +74,18 @@ def _copy_offline_multiplier_diagnostic_defaults(enabled=False):
     }
 
 
+def _copy_release_protected_advisory_cap_defaults(enabled=False):
+    return {
+        "enabled": bool(enabled),
+        "use_offline_diagnostic_bounds": True,
+        "protected_live_subepisodes": 15,
+        "authority_ramp_subepisodes": 30,
+        "store_executed_action_in_replay": True,
+        "log_policy_and_executed_multipliers": True,
+        "fail_if_diagnostic_missing": True,
+    }
+
+
 def _copy_mismatch_defaults():
     return {
         "mismatch_clip": 3.0,
@@ -380,6 +392,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
             key: np.asarray(value["high"], float).copy() for key, value in MATRIX_MULTIPLIER_BOUNDS.items()
         },
         "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
+        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 0.0,
@@ -475,6 +488,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "b_low_override": DISTILLATION_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for B-side structured bounds.
         "b_high_override": DISTILLATION_DEFAULT_MULTIPLIER_HIGH,  # Keep B-side wide for gain-authority studies.
         "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
+        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=False),
         "prediction_fallback_on_solve_failure": True,  # Use the shared structured-runner fallback instead of stopping on an assisted MPC solve failure.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition.

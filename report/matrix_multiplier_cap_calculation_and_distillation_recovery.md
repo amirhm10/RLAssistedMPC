@@ -16,20 +16,23 @@ That conclusion is consistent with the current notebook and runner code. The dis
 
 ## Ongoing Progress Scheme
 
-This report is now an ongoing working document. The current implementation step is **Option 1: Offline Multiplier Sensitivity Scan**. It is diagnostic only: it calculates `rho`, finite-horizon gain drift, local coordinate sensitivities, random candidate statistics, and advisory bounds. It does **not** apply caps, mutate notebook training settings, change TD3/SAC behavior, or decide that any suggested bound is safe for training.
+This report is now an ongoing working document. The current implementation sequence uses **steps**. Step 1 was the offline sensitivity diagnostic; Step 2 is the release-protected advisory-cap trial. Step 2 is still an execution guard only: it does not change TD3/SAC architecture, reward, exploration settings, or the wide training action space.
 
-| Option | Scope | Status on 2026-04-24 | Expected artifact | Next action |
+| Step | Scope | Status on 2026-04-24 | Expected artifact | Next action |
 |---|---|---|---|---|
-| Option 1: offline `rho` + gain sensitivity | Scalar matrix and structured matrix, unified for polymer and distillation | Implemented; scalar and structured polymer diagnostics completed | `sensitivity_by_coordinate.csv`, `candidate_scan_summary.csv`, `suggested_bounds.csv`, optional plots | Use the diagnostics to design release protection |
-| Option 1 result update | Latest polymer scalar matrix run and latest structured matrix run | Updated here from 2026-04-24 result bundles | Result tables and report figures added | Use release-protected bounds before trying static caps |
-| Option 2: release-protected advisory-cap trial | Polymer scalar matrix first, then structured | Recommended next | Phase-aware cap/ramp, not a permanent static cap | Implement only after reviewing this section |
-| Option 3: acceptance or fallback layer | Polymer first, then distillation | Not started | Nominal-cost or rollout-based safety gate | Use if sensitivity-only caps are insufficient |
-| Option 4: release stabilization | Distillation priority | Not started | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
-| Option 5: closed-loop robustness scan | Distillation priority | Not started | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
+| Step 1: offline `rho` + gain sensitivity | Scalar matrix and structured matrix, unified for polymer and distillation | Implemented; scalar and structured polymer diagnostics completed | `sensitivity_by_coordinate.csv`, `candidate_scan_summary.csv`, `suggested_bounds.csv`, optional plots | Use the diagnostics as advisory release bounds |
+| Step 1 result update | Latest polymer scalar matrix run and latest structured matrix run | Updated here from 2026-04-24 result bundles | Result tables and report figures added | Protect the release window before trying static caps |
+| Step 2 implementation | Release-protected advisory caps for scalar and structured supervisors | Implemented; polymer defaults on, distillation defaults off | Shared release schedule, clipped executed multipliers, policy-versus-executed logs | Run polymer matrix and structured trials |
+| Step 2 scalar polymer result | Polymer scalar matrix TD3 disturbance | Polymer run pending | Reward windows, policy-versus-executed multiplier table, release clip statistics | Update after the next scalar run |
+| Step 2 structured polymer result | Polymer structured matrix TD3 disturbance | Polymer run pending | Same result summary, with per-coordinate structured multipliers | Update after the next structured run |
+| Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Code present, disabled by default | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Decide only after polymer Step 2 results |
+| Step 3: acceptance or fallback layer | Polymer first, then distillation | Reserved | Nominal-cost or rollout-based safety gate | Use if Step 2 reduces release crash but not final degradation |
+| Step 4: release stabilization | Distillation priority | Reserved | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
+| Step 5: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
 
-For Option 1, the important interpretation rule is: a suggested bound is a **diagnostic recommendation**, not an active constraint. The notebooks keep `apply_suggested_caps = False`, so the existing multiplier ranges remain the ranges used by training until we deliberately implement a later option.
+For Step 1, the important interpretation rule is: a suggested bound is a **diagnostic recommendation**, not a permanent training constraint. The notebooks keep `apply_suggested_caps = False`, so the existing multiplier ranges remain the actor's wide training ranges. Step 2 can temporarily clip the executed multiplier during first live release, but it keeps the actor output space wide.
 
-## Option 1 Polymer Result Update
+## Step 1 Polymer Result Update
 
 This update uses the latest polymer scalar matrix TD3 disturbance result:
 
@@ -88,7 +91,7 @@ The scalar diagnostic sampled 2000 log-uniform candidates inside the current sca
 | Worst `rho` coordinate | `alpha` |
 | Worst gain coordinate | `alpha` |
 
-<img src="./figures/matrix_multiplier_option1/polymer_option1_sensitivity_and_bounds.png" alt="Polymer option 1 sensitivity and advisory bounds" width="1200" style="max-width: 100%; height: auto;" />
+<img src="./figures/matrix_multiplier_option1/polymer_option1_sensitivity_and_bounds.png" alt="Polymer Step 1 sensitivity and advisory bounds" width="1200" style="max-width: 100%; height: auto;" />
 
 The advisory bounds from the diagnostic were:
 
@@ -112,7 +115,7 @@ The structured diagnostic now gives the missing per-coordinate picture. It also 
 | Worst `rho` coordinate | `A_block_1` |
 | Worst gain coordinate | `A_block_2` |
 
-<img src="./figures/matrix_multiplier_option1/polymer_structured_option1_sensitivity_and_bounds.png" alt="Polymer structured option 1 sensitivity and advisory bounds" width="1200" style="max-width: 100%; height: auto;" />
+<img src="./figures/matrix_multiplier_option1/polymer_structured_option1_sensitivity_and_bounds.png" alt="Polymer structured Step 1 sensitivity and advisory bounds" width="1200" style="max-width: 100%; height: auto;" />
 
 The structured advisory bounds were:
 
@@ -211,9 +214,9 @@ The latest structured run shows the same pattern with more action dimensions:
 
 Structured release saturation is slightly worse than scalar release saturation (`85.7%` versus `84.4%`), and it acts over six coordinates instead of three. This is why the structured first-live loss remains larger even though its final tail behavior is excellent.
 
-## Next Step From Polymer
+## Step 2 Plan From Polymer
 
-The next implementation should be **Option 2A: release-protected advisory caps**, not a permanent static cap.
+The next implementation is **Step 2: release-protected advisory caps**, not a permanent static cap.
 
 Recommended polymer-only trial:
 
@@ -245,7 +248,7 @@ That raw action is mapped to the normal wide multiplier range exactly as before:
 
 $$ \theta_{j,t}^{\mathrm{policy}} = f_{\mathrm{wide},j}(a_{j,t}). $$
 
-Option 2A adds a second step at execution time only:
+Step 2 adds a second step at execution time only:
 
 $$ \theta_{j,t}^{\mathrm{exec}} = \operatorname{clip}(\theta_{j,t}^{\mathrm{policy}},\ell_{j,t}^{\mathrm{eff}},u_{j,t}^{\mathrm{eff}}). $$
 
@@ -283,6 +286,14 @@ $$ \mathcal{D} \leftarrow (s_t,a_t^{\mathrm{exec}},r_t,s_{t+1},d_t), \qquad \tex
 
 This matters because if the critic trains on the unclipped action while the plant experienced the clipped action, the critic learns the wrong action-value relationship during the release window.
 
+### Step 2 Result Placeholders
+
+| Result item | Status | What to add after the next run |
+|---|---|---|
+| Scalar polymer Step 2 trial | Run pending | Closed-loop reward windows, policy-versus-executed `alpha/B` plots, release clip fraction by phase, and final comparison to the Step 1 scalar run |
+| Structured polymer Step 2 trial | Run pending | Per-coordinate requested/executed multipliers, release clip fraction by coordinate, and whether the larger structured release dip is removed |
+| Distillation transfer decision | Waiting on polymer Step 2 | Decide whether to enable Step 2 directly in distillation or implement Step 3 acceptance/fallback first |
+
 ### Why This Helps Distillation
 
 The user-reported distillation behavior has the same shape as the polymer release problem, but worse: tight `A`, wide `B`, exploration noise `0.01`, and smoothing noise `0.01` still caused a heavy degradation, then recovery after about 100 episodes, and the final result still did not beat MPC.
@@ -299,7 +310,7 @@ For distillation, this means the first transfer should not be "copy polymer's wi
 2. Use release-protected caps for the first live episodes.
 3. Add a performance acceptance layer before trusting wide `B` authority.
 
-Distillation likely needs Option 3 after Option 2A: an MPC acceptance or fallback gate. The reason is that the distillation run recovered but did not beat MPC, so protecting the first release dip may not be sufficient. The gate should accept the RL-assisted model only when a short nominal-cost or one-step prediction-health test is better than the nominal model; otherwise, execute nominal MPC for that decision.
+Distillation likely needs Step 3 after Step 2: an MPC acceptance or fallback gate. The reason is that the distillation run recovered but did not beat MPC, so protecting the first release dip may not be sufficient. The gate should accept the RL-assisted model only when a short nominal-cost or one-step prediction-health test is better than the nominal model; otherwise, execute nominal MPC for that decision.
 
 ## Executive Summary
 

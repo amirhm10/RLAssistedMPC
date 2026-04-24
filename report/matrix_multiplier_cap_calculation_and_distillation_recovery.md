@@ -96,6 +96,65 @@ The advisory bounds from the diagnostic were:
 
 This should **not** be applied as a permanent cap yet. The latest successful tail behavior uses `alpha` well below `0.9499`, so a permanent diagnostic `alpha` low cap may remove the useful learned behavior. The diagnostic cap is most useful as a **release protection**.
 
+### How The Diagnostic Caps Were Calculated
+
+The offline diagnostic starts from the current wide bounds and asks two questions for each multiplier coordinate:
+
+1. Does this coordinate push the physical prediction matrix too close to unstable dynamics?
+2. Does this coordinate change the finite-horizon input-output gain too much?
+
+For the scalar matrix method the candidate model is:
+
+$$ A_{\theta}^{\mathrm{phys}} = \alpha A_0^{\mathrm{phys}}, \qquad B_{\theta}^{\mathrm{phys}} = B_0^{\mathrm{phys}}\operatorname{diag}(\delta_1,\delta_2). $$
+
+The stability diagnostic is the physical spectral radius:
+
+$$ \rho_{\theta} = \rho(A_{\theta}^{\mathrm{phys}}). $$
+
+The finite-horizon gain diagnostic uses the stacked Markov matrix:
+
+$$ G_{\theta,H} = \begin{bmatrix} C B_{\theta} \\ C A_{\theta} B_{\theta} \\ \cdots \\ C A_{\theta}^{H-1}B_{\theta} \end{bmatrix}. $$
+
+The normalized gain drift is:
+
+$$ g_{\theta} = \frac{\|G_{\theta,H} - G_{0,H}\|_F}{\|G_{0,H}\|_F}. $$
+
+For each coordinate `j`, the diagnostic perturbs only that coordinate in log space around nominal:
+
+$$ \theta_j^- = \max(\ell_j,\exp(-\epsilon_{\log})), \qquad \theta_j^+ = \min(u_j,\exp(\epsilon_{\log})). $$
+
+Here `epsilon_log = 0.02`, so the local test is approximately a `+/-2%` multiplicative perturbation unless the current user bounds are tighter.
+
+The local sensitivities are:
+
+$$ S_{\rho,j} = \frac{|\rho(\theta_j^+) - \rho(\theta_j^-)|}{|\log \theta_j^+ - \log \theta_j^-|}. $$
+
+$$ S_{G,j} = \frac{\|G(\theta_j^+) - G(\theta_j^-)\|_F}{|\log \theta_j^+ - \log \theta_j^-|\|G_{0,H}\|_F}. $$
+
+Then the diagnostic converts sensitivities into allowed log-distance from nominal. For `A`-side coordinates:
+
+$$ d_{\rho,j} = \frac{\rho_{\mathrm{target}} - \rho_0}{S_{\rho,j}}. $$
+
+For all coordinates:
+
+$$ d_{G,j} = \frac{g_{\mathrm{threshold}}}{S_{G,j}}. $$
+
+The current diagnostic uses:
+
+$$ \rho_{\mathrm{target}} = 0.995, \qquad g_{\mathrm{threshold}} = 0.25. $$
+
+The final advisory log-distance is the tightest of the user bound, rho limit, and gain limit:
+
+$$ d_j^{\mathrm{low}} = \min(|\log \ell_j^{\mathrm{wide}}|, d_{\rho,j}, d_{G,j}). $$
+
+$$ d_j^{\mathrm{high}} = \min(|\log u_j^{\mathrm{wide}}|, d_{\rho,j}, d_{G,j}). $$
+
+The advisory bounds are then:
+
+$$ \ell_j^{\mathrm{diag}} = \exp(-d_j^{\mathrm{low}}), \qquad u_j^{\mathrm{diag}} = \exp(d_j^{\mathrm{high}}). $$
+
+For `B` columns, the rho limit is ignored because `B` does not set open-loop eigenvalues. That is why `B_col_1` stayed at the user bounds while `B_col_2` received a gain-limited lower advisory bound.
+
 ### Policy-Use Summary
 
 <img src="./figures/matrix_multiplier_option1/polymer_latest_multiplier_policy.png" alt="Latest polymer matrix multiplier policy and action saturation" width="1200" style="max-width: 100%; height: auto;" />
@@ -131,6 +190,54 @@ The release bounds should interpolate from diagnostic-safe bounds to the current
 $$ \log \theta_{j,\mathrm{low}}^{\mathrm{release}}(e) = (1-r_e)\log \theta_{j,\mathrm{low}}^{\mathrm{diag}} + r_e\log \theta_{j,\mathrm{low}}^{\mathrm{wide}}. $$
 
 Here `r_e = 0` at the start of protected live release and `r_e = 1` after the ramp ends. Use log interpolation because the multipliers are multiplicative.
+
+### How Protected Release, Ramp, And Full Authority Would Work
+
+The actor should still output its normal raw action:
+
+$$ a_t \in [-1,1]^m. $$
+
+That raw action is mapped to the normal wide multiplier range exactly as before:
+
+$$ \theta_{j,t}^{\mathrm{policy}} = f_{\mathrm{wide},j}(a_{j,t}). $$
+
+Option 2A adds a second step at execution time only:
+
+$$ \theta_{j,t}^{\mathrm{exec}} = \operatorname{clip}(\theta_{j,t}^{\mathrm{policy}},\ell_{j,t}^{\mathrm{eff}},u_{j,t}^{\mathrm{eff}}). $$
+
+The MPC model uses `theta_exec`, not `theta_policy`. The logs should store both values so we can see whether the policy is still trying to hit unsafe authority while the guard is active.
+
+The effective bounds are phase-dependent:
+
+| Phase | Episodes | Effective lower bound | Effective upper bound | What happens |
+|---|---:|---|---|---|
+| Warm start | 1-10 | `1.0` | `1.0` | The executed multiplier is nominal. This preserves pure MPC behavior while the replay buffer fills. |
+| Action freeze | 11-15 | `1.0` | `1.0` | The actor can be present internally, but the executed multiplier is still nominal. This avoids an abrupt first action after warm start. |
+| Protected live release | 16-30 | `diagnostic_low` | `diagnostic_high` | The actor finally controls the model, but only inside the diagnostic-safe release box. |
+| Authority ramp | 31-60 | log interpolation from diagnostic low to wide low | log interpolation from diagnostic high to wide high | The guard relaxes gradually, so the critic sees a smoother transition instead of one sudden jump to full authority. |
+| Full authority | 61-200 | `wide_low` | `wide_high` | The original experiment authority returns. This preserves the successful tail behavior. |
+
+For the scalar polymer matrix case, the resulting example schedule is:
+
+| Episode | Phase | `alpha` bounds | `B_col_1` bounds | `B_col_2` bounds |
+|---:|---|---|---|---|
+| 1 | warm start | `[1.0000, 1.0000]` | `[1.0000, 1.0000]` | `[1.0000, 1.0000]` |
+| 15 | action freeze | `[1.0000, 1.0000]` | `[1.0000, 1.0000]` | `[1.0000, 1.0000]` |
+| 16 | protected live release | `[0.9499, 1.0527]` | `[0.6000, 1.3000]` | `[0.7559, 1.3000]` |
+| 30 | protected live release | `[0.9499, 1.0527]` | `[0.6000, 1.3000]` | `[0.7559, 1.3000]` |
+| 45 | authority ramp | `[0.7550, 1.0546]` | `[0.6000, 1.3000]` | `[0.6735, 1.3000]` |
+| 60 | authority ramp end | `[0.6000, 1.0566]` | `[0.6000, 1.3000]` | `[0.6000, 1.3000]` |
+| 61 | full authority | `[0.6000, 1.0566]` | `[0.6000, 1.3000]` | `[0.6000, 1.3000]` |
+
+<img src="./figures/matrix_multiplier_option1/release_authority_schedule_scalar_example.png" alt="Release-protected scalar matrix authority schedule" width="1200" style="max-width: 100%; height: auto;" />
+
+The important detail is that this is **not behavior cloning** and not a new reward. It is an execution authority schedule. The actor can still learn, but the first live policy window cannot immediately jump to the most damaging model multipliers.
+
+For replay and critic consistency, the transition should store the executed action or executed multiplier as the action that affected the plant. The unclipped policy action should still be logged for diagnostics:
+
+$$ \mathcal{D} \leftarrow (s_t,a_t^{\mathrm{exec}},r_t,s_{t+1},d_t), \qquad \text{log } a_t^{\mathrm{policy}} \text{ separately}. $$
+
+This matters because if the critic trains on the unclipped action while the plant experienced the clipped action, the critic learns the wrong action-value relationship during the release window.
 
 ### Why This Helps Distillation
 

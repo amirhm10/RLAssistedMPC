@@ -20,8 +20,8 @@ This report is now an ongoing working document. The current implementation step 
 
 | Option | Scope | Status on 2026-04-24 | Expected artifact | Next action |
 |---|---|---|---|---|
-| Option 1: offline `rho` + gain sensitivity | Scalar matrix and structured matrix, unified for polymer and distillation | Implemented; scalar polymer diagnostic run completed; structured diagnostic still pending | `sensitivity_by_coordinate.csv`, `candidate_scan_summary.csv`, `suggested_bounds.csv`, optional plots | Run structured polymer diagnostic cell next |
-| Option 1 result update | Latest polymer scalar matrix run and latest structured comparison | Updated here from 2026-04-24 and 2026-04-23 result bundles | Result tables and report figures added | Use release-protected bounds before trying static caps |
+| Option 1: offline `rho` + gain sensitivity | Scalar matrix and structured matrix, unified for polymer and distillation | Implemented; scalar and structured polymer diagnostics completed | `sensitivity_by_coordinate.csv`, `candidate_scan_summary.csv`, `suggested_bounds.csv`, optional plots | Use the diagnostics to design release protection |
+| Option 1 result update | Latest polymer scalar matrix run and latest structured matrix run | Updated here from 2026-04-24 result bundles | Result tables and report figures added | Use release-protected bounds before trying static caps |
 | Option 2: release-protected advisory-cap trial | Polymer scalar matrix first, then structured | Recommended next | Phase-aware cap/ramp, not a permanent static cap | Implement only after reviewing this section |
 | Option 3: acceptance or fallback layer | Polymer first, then distillation | Not started | Nominal-cost or rollout-based safety gate | Use if sensitivity-only caps are insufficient |
 | Option 4: release stabilization | Distillation priority | Not started | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
@@ -39,8 +39,9 @@ This update uses the latest polymer scalar matrix TD3 disturbance result:
 
 For context, it also compares against the latest structured matrix disturbance result:
 
-- Structured RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260423_002321/input_data.pkl`
-- Structured comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260423_002338/input_data.pkl`
+- Structured RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260424_171709/input_data.pkl`
+- Structured comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260424_171727/input_data.pkl`
+- Offline structured diagnostic: `Polymer/Results/offline_multiplier_sensitivity/polymer_structured_matrix_td3_disturb_20260424_161223/`
 
 The diagnostic result and the closed-loop result agree on the main issue: the polymer matrix method is not mainly failing because random candidates are unstable. It is failing during **policy release**, when the actor suddenly uses the full wide multiplier authority.
 
@@ -58,16 +59,19 @@ In the table below, positive `mean_reward_delta` means RL beats the MPC baseline
 | Scalar matrix, 2026-04-24 | 31-100 | -4.0549 | -4.4174 | +0.3625 | 78.6% |
 | Scalar matrix, 2026-04-24 | 101-200 | -3.6923 | -4.4174 | +0.7251 | 100.0% |
 | Scalar matrix, 2026-04-24 | 1-200 | -3.9784 | -4.4121 | +0.4337 | 81.5% |
-| Structured matrix, 2026-04-23 | 11-15 | -6.1159 | -4.4173 | -1.6985 | 0.0% |
-| Structured matrix, 2026-04-23 | 16-30 | -6.2810 | -4.4174 | -1.8636 | 0.0% |
-| Structured matrix, 2026-04-23 | 101-200 | -3.6852 | -4.4174 | +0.7321 | 100.0% |
-| Structured matrix, 2026-04-23 | 1-200 | -4.4278 | -4.4121 | -0.0156 | 57.5% |
+| Structured matrix, 2026-04-24 | 1-10 | -4.3123 | -4.3123 | -0.0000 | 40.0% |
+| Structured matrix, 2026-04-24 | 11-15 | -4.4174 | -4.4173 | -0.0001 | 40.0% |
+| Structured matrix, 2026-04-24 | 16-30 | -5.4548 | -4.4174 | -1.0374 | 0.0% |
+| Structured matrix, 2026-04-24 | 31-100 | -4.3921 | -4.4174 | +0.0253 | 61.4% |
+| Structured matrix, 2026-04-24 | 101-200 | -3.5780 | -4.4174 | +0.8394 | 100.0% |
+| Structured matrix, 2026-04-24 | 1-200 | -4.0614 | -4.4121 | +0.3507 | 74.5% |
 
 Interpretation:
 
 - The scalar matrix run is now a real success after release recovery: episodes 101-200 beat MPC in every episode.
 - The first live policy window is still bad: episodes 16-30 lose by `0.7429` reward on average.
-- The structured matrix result has the same long-run promise but a much worse release problem. It eventually beats MPC in the tail, but the early damage cancels the full-run benefit.
+- The latest structured matrix result is much better than the older structured result. It still has a larger first-live-window loss than scalar mode, but it now finishes positive over the full 200 episodes.
+- The structured tail is strongest: episodes 101-200 beat MPC by `0.8394` reward on average, larger than the scalar tail improvement of `0.7251`.
 - Therefore, the next change should not simply shrink all authority forever. It should protect the release window while preserving the later authority that produced the tail improvement.
 
 ### Offline Diagnostic Summary
@@ -95,6 +99,33 @@ The advisory bounds from the diagnostic were:
 | `B_col_2` | 0.6000 | 1.3000 | 0.7559 | 1.3000 | `gain-limited;user-bound-limited` |
 
 This should **not** be applied as a permanent cap yet. The latest successful tail behavior uses `alpha` well below `0.9499`, so a permanent diagnostic `alpha` low cap may remove the useful learned behavior. The diagnostic cap is most useful as a **release protection**.
+
+The structured diagnostic now gives the missing per-coordinate picture. It also sampled 2000 log-uniform candidates inside the current structured bounds.
+
+| Structured diagnostic quantity | Value |
+|---|---:|
+| Nominal physical spectral radius | 0.946394 |
+| Unstable candidate fraction | 0.000 |
+| Near-unit candidate fraction, `rho >= 0.995` | 0.008 |
+| Candidate gain-ratio p95 | 0.7135 |
+| Candidate gain-ratio max | 0.7716 |
+| Worst `rho` coordinate | `A_block_1` |
+| Worst gain coordinate | `A_block_2` |
+
+<img src="./figures/matrix_multiplier_option1/polymer_structured_option1_sensitivity_and_bounds.png" alt="Polymer structured option 1 sensitivity and advisory bounds" width="1200" style="max-width: 100%; height: auto;" />
+
+The structured advisory bounds were:
+
+| Coordinate | Current low | Current high | Suggested low | Suggested high | Reason |
+|---|---:|---:|---:|---:|---|
+| `A_block_1` | 0.6000 | 1.0566 | 0.9497 | 1.0530 | `rho-limited` |
+| `A_block_2` | 0.6000 | 1.0566 | 0.9304 | 1.0566 | `gain-limited;user-bound-limited` |
+| `A_block_3` | 0.6000 | 1.0566 | 0.6000 | 1.0566 | `user-bound-limited` |
+| `A_off` | 0.6000 | 1.0566 | 0.6000 | 1.0566 | `user-bound-limited` |
+| `B_col_1` | 0.6000 | 1.3000 | 0.6000 | 1.3000 | `user-bound-limited` |
+| `B_col_2` | 0.6000 | 1.3000 | 0.7559 | 1.3000 | `gain-limited;user-bound-limited` |
+
+This explains why structured mode should not use one shared cap for all A-side multipliers. `A_block_1` is the stability-sensitive A coordinate, `A_block_2` is the gain-sensitive A coordinate, and `A_block_3` plus `A_off` look comparatively safe under this finite-horizon diagnostic.
 
 ### How The Diagnostic Caps Were Calculated
 
@@ -167,6 +198,19 @@ For `B` columns, the rho limit is ignored because `B` does not set open-loop eig
 
 The early live window has extreme raw action saturation: about `84.4%` of scalar action coordinates are at the normalized action boundary. That is not a fine cap-selection signal. It means the actor is released while still behaving like a boundary-seeking policy. Later, saturation falls to about `9.1%`, and the same broad authority becomes useful.
 
+The latest structured run shows the same pattern with more action dimensions:
+
+<img src="./figures/matrix_multiplier_option1/polymer_latest_structured_policy.png" alt="Latest polymer structured matrix multiplier policy and action saturation" width="1200" style="max-width: 100%; height: auto;" />
+
+| Episodes | Mean raw saturation | `A_block_1` mean | `A_block_2` mean | `A_block_3` mean | `A_off` mean | `B_col_1` mean | `B_col_2` mean |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 16-30 | 85.7% | 0.8673 | 0.8398 | 0.8080 | 0.8272 | 0.9585 | 0.9039 |
+| 31-100 | 33.8% | 0.8951 | 0.9080 | 0.8181 | 0.8656 | 0.9880 | 0.8374 |
+| 101-200 | 17.5% | 0.8798 | 0.8870 | 0.9283 | 0.8655 | 0.9119 | 0.9628 |
+| 16-200 | 29.2% | 0.8846 | 0.8911 | 0.8768 | 0.8624 | 0.9445 | 0.9106 |
+
+Structured release saturation is slightly worse than scalar release saturation (`85.7%` versus `84.4%`), and it acts over six coordinates instead of three. This is why the structured first-live loss remains larger even though its final tail behavior is excellent.
+
 ## Next Step From Polymer
 
 The next implementation should be **Option 2A: release-protected advisory caps**, not a permanent static cap.
@@ -177,7 +221,7 @@ Recommended polymer-only trial:
 |---|---:|---|---|---|
 | Warm start | 1-10 | Nominal action only | Nominal action only | Preserve MPC behavior |
 | Action freeze | 11-15 | Nominal executed action | Nominal executed action | Keep current protected release setup |
-| Protected live release | 16-30 | Use diagnostic release cap, approximately `[0.95, 1.0527]` | Keep `B_col_1` wide; set `B_col_2` low to about `0.756` | Stop boundary-action release crash |
+| Protected live release | 16-30 | Scalar: use `[0.95, 1.0527]`; structured: cap `A_block_1` to `[0.9497, 1.0530]` and `A_block_2` low to `0.9304` | Keep `B_col_1` wide; set `B_col_2` low to about `0.756` | Stop boundary-action release crash |
 | Authority ramp | 31-60 | Gradually relax toward current wide lower bound | Gradually relax toward current wide bounds | Allow learning to recover useful wide behavior |
 | Full authority | 61-200 | Current bounds | Current bounds | Preserve the tail improvement seen in polymer |
 

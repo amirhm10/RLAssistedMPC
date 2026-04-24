@@ -20,14 +20,135 @@ This report is now an ongoing working document. The current implementation step 
 
 | Option | Scope | Status on 2026-04-24 | Expected artifact | Next action |
 |---|---|---|---|---|
-| Option 1: offline `rho` + gain sensitivity | Scalar matrix and structured matrix, unified for polymer and distillation | Implementing; polymer run pending; distillation code present but disabled | `sensitivity_by_coordinate.csv`, `candidate_scan_summary.csv`, `suggested_bounds.csv`, optional plots | Run polymer matrix and structured diagnostic cells before training |
-| Option 1 result update | Polymer matrix and structured diagnostics | Pending | Result tables and plot references in this report | Decide which coordinates are actually bottlenecks |
-| Option 2: advisory-cap trial | Polymer first | Not started | A/B cap proposal based on Option 1 outputs | Only implement after reviewing polymer Option 1 |
+| Option 1: offline `rho` + gain sensitivity | Scalar matrix and structured matrix, unified for polymer and distillation | Implemented; scalar polymer diagnostic run completed; structured diagnostic still pending | `sensitivity_by_coordinate.csv`, `candidate_scan_summary.csv`, `suggested_bounds.csv`, optional plots | Run structured polymer diagnostic cell next |
+| Option 1 result update | Latest polymer scalar matrix run and latest structured comparison | Updated here from 2026-04-24 and 2026-04-23 result bundles | Result tables and report figures added | Use release-protected bounds before trying static caps |
+| Option 2: release-protected advisory-cap trial | Polymer scalar matrix first, then structured | Recommended next | Phase-aware cap/ramp, not a permanent static cap | Implement only after reviewing this section |
 | Option 3: acceptance or fallback layer | Polymer first, then distillation | Not started | Nominal-cost or rollout-based safety gate | Use if sensitivity-only caps are insufficient |
 | Option 4: release stabilization | Distillation priority | Not started | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
 | Option 5: closed-loop robustness scan | Distillation priority | Not started | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
 
 For Option 1, the important interpretation rule is: a suggested bound is a **diagnostic recommendation**, not an active constraint. The notebooks keep `apply_suggested_caps = False`, so the existing multiplier ranges remain the ranges used by training until we deliberately implement a later option.
+
+## Option 1 Polymer Result Update
+
+This update uses the latest polymer scalar matrix TD3 disturbance result:
+
+- RL bundle: `Polymer/Results/td3_multipliers_disturb/20260424_151050/input_data.pkl`
+- Comparison bundle: `Polymer/Results/disturb_compare_td3_multipliers/20260424_151105/input_data.pkl`
+- Offline scalar diagnostic: `Polymer/Results/offline_multiplier_sensitivity/polymer_matrix_td3_disturb_20260424_140732/`
+
+For context, it also compares against the latest structured matrix disturbance result:
+
+- Structured RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260423_002321/input_data.pkl`
+- Structured comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260423_002338/input_data.pkl`
+
+The diagnostic result and the closed-loop result agree on the main issue: the polymer matrix method is not mainly failing because random candidates are unstable. It is failing during **policy release**, when the actor suddenly uses the full wide multiplier authority.
+
+<img src="./figures/matrix_multiplier_option1/polymer_latest_reward_delta.png" alt="Latest polymer matrix reward delta versus MPC" width="1200" style="max-width: 100%; height: auto;" />
+
+### Closed-Loop Reward Window Summary
+
+In the table below, positive `mean_reward_delta` means RL beats the MPC baseline.
+
+| Method | Episodes | RL mean reward | MPC mean reward | Mean reward delta | Win rate |
+|---|---:|---:|---:|---:|---:|
+| Scalar matrix, 2026-04-24 | 1-10 | -4.3123 | -4.3123 | -0.0000 | 40.0% |
+| Scalar matrix, 2026-04-24 | 11-15 | -4.4174 | -4.4173 | -0.0001 | 40.0% |
+| Scalar matrix, 2026-04-24 | 16-30 | -5.1603 | -4.4174 | -0.7429 | 13.3% |
+| Scalar matrix, 2026-04-24 | 31-100 | -4.0549 | -4.4174 | +0.3625 | 78.6% |
+| Scalar matrix, 2026-04-24 | 101-200 | -3.6923 | -4.4174 | +0.7251 | 100.0% |
+| Scalar matrix, 2026-04-24 | 1-200 | -3.9784 | -4.4121 | +0.4337 | 81.5% |
+| Structured matrix, 2026-04-23 | 11-15 | -6.1159 | -4.4173 | -1.6985 | 0.0% |
+| Structured matrix, 2026-04-23 | 16-30 | -6.2810 | -4.4174 | -1.8636 | 0.0% |
+| Structured matrix, 2026-04-23 | 101-200 | -3.6852 | -4.4174 | +0.7321 | 100.0% |
+| Structured matrix, 2026-04-23 | 1-200 | -4.4278 | -4.4121 | -0.0156 | 57.5% |
+
+Interpretation:
+
+- The scalar matrix run is now a real success after release recovery: episodes 101-200 beat MPC in every episode.
+- The first live policy window is still bad: episodes 16-30 lose by `0.7429` reward on average.
+- The structured matrix result has the same long-run promise but a much worse release problem. It eventually beats MPC in the tail, but the early damage cancels the full-run benefit.
+- Therefore, the next change should not simply shrink all authority forever. It should protect the release window while preserving the later authority that produced the tail improvement.
+
+### Offline Diagnostic Summary
+
+The scalar diagnostic sampled 2000 log-uniform candidates inside the current scalar bounds.
+
+| Diagnostic quantity | Value |
+|---|---:|
+| Nominal physical spectral radius | 0.946394 |
+| Unstable candidate fraction | 0.000 |
+| Near-unit candidate fraction, `rho >= 0.995` | 0.006 |
+| Candidate gain-ratio p95 | 0.7344 |
+| Candidate gain-ratio max | 0.7855 |
+| Worst `rho` coordinate | `alpha` |
+| Worst gain coordinate | `alpha` |
+
+<img src="./figures/matrix_multiplier_option1/polymer_option1_sensitivity_and_bounds.png" alt="Polymer option 1 sensitivity and advisory bounds" width="1200" style="max-width: 100%; height: auto;" />
+
+The advisory bounds from the diagnostic were:
+
+| Coordinate | Current low | Current high | Suggested low | Suggested high | Reason |
+|---|---:|---:|---:|---:|---|
+| `alpha` | 0.6000 | 1.0566 | 0.9499 | 1.0527 | `rho-limited` |
+| `B_col_1` | 0.6000 | 1.3000 | 0.6000 | 1.3000 | `user-bound-limited` |
+| `B_col_2` | 0.6000 | 1.3000 | 0.7559 | 1.3000 | `gain-limited;user-bound-limited` |
+
+This should **not** be applied as a permanent cap yet. The latest successful tail behavior uses `alpha` well below `0.9499`, so a permanent diagnostic `alpha` low cap may remove the useful learned behavior. The diagnostic cap is most useful as a **release protection**.
+
+### Policy-Use Summary
+
+<img src="./figures/matrix_multiplier_option1/polymer_latest_multiplier_policy.png" alt="Latest polymer matrix multiplier policy and action saturation" width="1200" style="max-width: 100%; height: auto;" />
+
+| Episodes | Mean `alpha` | `alpha` low-hit frac | `alpha` high-hit frac | Mean `B_col_1` | Mean `B_col_2` | Mean raw saturation |
+|---|---:|---:|---:|---:|---:|---:|
+| 16-30 | 0.8986 | 23.8% | 51.2% | 0.9434 | 0.9869 | 84.4% |
+| 101-200 | 0.7961 | 6.2% | 3.5% | 1.0118 | 0.9631 | 9.1% |
+| 16-200 | 0.8151 | 7.5% | 12.4% | 0.9954 | 0.9581 | 21.9% |
+
+The early live window has extreme raw action saturation: about `84.4%` of scalar action coordinates are at the normalized action boundary. That is not a fine cap-selection signal. It means the actor is released while still behaving like a boundary-seeking policy. Later, saturation falls to about `9.1%`, and the same broad authority becomes useful.
+
+## Next Step From Polymer
+
+The next implementation should be **Option 2A: release-protected advisory caps**, not a permanent static cap.
+
+Recommended polymer-only trial:
+
+| Phase | Episodes | `alpha` authority | `B` authority | Purpose |
+|---|---:|---|---|---|
+| Warm start | 1-10 | Nominal action only | Nominal action only | Preserve MPC behavior |
+| Action freeze | 11-15 | Nominal executed action | Nominal executed action | Keep current protected release setup |
+| Protected live release | 16-30 | Use diagnostic release cap, approximately `[0.95, 1.0527]` | Keep `B_col_1` wide; set `B_col_2` low to about `0.756` | Stop boundary-action release crash |
+| Authority ramp | 31-60 | Gradually relax toward current wide lower bound | Gradually relax toward current wide bounds | Allow learning to recover useful wide behavior |
+| Full authority | 61-200 | Current bounds | Current bounds | Preserve the tail improvement seen in polymer |
+
+This uses the diagnostic as a temporary guardrail:
+
+$$ \theta_j^{\mathrm{exec}}(e) = \operatorname{clip}\left(\theta_j^{\mathrm{policy}}(e),\theta_{j,\mathrm{low}}^{\mathrm{release}}(e),\theta_{j,\mathrm{high}}^{\mathrm{release}}(e)\right). $$
+
+The release bounds should interpolate from diagnostic-safe bounds to the current training bounds:
+
+$$ \log \theta_{j,\mathrm{low}}^{\mathrm{release}}(e) = (1-r_e)\log \theta_{j,\mathrm{low}}^{\mathrm{diag}} + r_e\log \theta_{j,\mathrm{low}}^{\mathrm{wide}}. $$
+
+Here `r_e = 0` at the start of protected live release and `r_e = 1` after the ramp ends. Use log interpolation because the multipliers are multiplicative.
+
+### Why This Helps Distillation
+
+The user-reported distillation behavior has the same shape as the polymer release problem, but worse: tight `A`, wide `B`, exploration noise `0.01`, and smoothing noise `0.01` still caused a heavy degradation, then recovery after about 100 episodes, and the final result still did not beat MPC.
+
+The polymer result says the important split is:
+
+- **Open-loop admissibility**: polymer diagnostic candidates are mostly stable, and distillation also has spectral margin.
+- **Closed-loop release safety**: both systems can suffer when the actor first receives authority.
+- **Gain-direction sensitivity**: `B` directions can remain dangerous even when `A` is tight.
+
+For distillation, this means the first transfer should not be "copy polymer's wide bounds." The safer transfer is:
+
+1. Run the same offline diagnostic with distillation still disabled by default until explicitly enabled.
+2. Use release-protected caps for the first live episodes.
+3. Add a performance acceptance layer before trusting wide `B` authority.
+
+Distillation likely needs Option 3 after Option 2A: an MPC acceptance or fallback gate. The reason is that the distillation run recovered but did not beat MPC, so protecting the first release dip may not be sufficient. The gate should accept the RL-assisted model only when a short nominal-cost or one-step prediction-health test is better than the nominal model; otherwise, execute nominal MPC for that decision.
 
 ## Executive Summary
 

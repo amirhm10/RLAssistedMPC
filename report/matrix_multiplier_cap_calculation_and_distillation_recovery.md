@@ -42,16 +42,100 @@ $$
 \alpha_{\max,\mathrm{stable}} = \frac{\rho_{\mathrm{target}}}{\rho(A_0^{\mathrm{phys}})}.
 $$
 
+### What `rho` Means
+
+In this report, `rho(A)` means the **spectral radius** of the matrix `A`. It is not the residual-authority `rho` used in some residual notebooks. Here it is only a matrix-stability quantity.
+
+For a discrete-time linear prediction model,
+
+$$
+x_{k+1} = A x_k + B u_k.
+$$
+
+The eigenvalues of `A` are the natural modes of the model. They are computed from:
+
+$$
+\det(\lambda I - A) = 0.
+$$
+
+If the eigenvalues are:
+
+$$
+\lambda(A) = \{\lambda_1,\lambda_2,\ldots,\lambda_n\},
+$$
+
+then the spectral radius is:
+
+$$
+\rho(A) = \max_{1 \le i \le n} |\lambda_i|.
+$$
+
+For a complex eigenvalue, the magnitude is:
+
+$$
+|\lambda_i| = \sqrt{\operatorname{Re}(\lambda_i)^2 + \operatorname{Im}(\lambda_i)^2}.
+$$
+
+For a discrete-time physical model, `rho(A) < 1` means the unforced physical-state prediction decays instead of growing. We calculate this on the physical `A` block, `A0_phys`, not on the full offset-free augmented matrix, because the augmented disturbance/integrator states intentionally include unit eigenvalues.
+
+For the scalar matrix multiplier,
+
+$$
+A_{\theta}^{\mathrm{phys}} = \alpha A_0^{\mathrm{phys}}.
+$$
+
+Scaling a matrix by `alpha` scales every eigenvalue by `alpha`:
+
+$$
+\lambda_i(\alpha A_0^{\mathrm{phys}}) = \alpha \lambda_i(A_0^{\mathrm{phys}}).
+$$
+
+Therefore:
+
+$$
+\rho(\alpha A_0^{\mathrm{phys}}) = |\alpha| \rho(A_0^{\mathrm{phys}}).
+$$
+
+If we require the candidate model to stay below a target spectral radius,
+
+$$
+\rho(\alpha A_0^{\mathrm{phys}}) \le \rho_{\mathrm{target}},
+$$
+
+then for positive `alpha`:
+
+$$
+\alpha \le \frac{\rho_{\mathrm{target}}}{\rho(A_0^{\mathrm{phys}})}.
+$$
+
+That is the origin of the cap formula. With `rho_target = 1`:
+
+$$
+\alpha_{\max,\mathrm{polymer}} = \frac{1}{0.9464} \approx 1.0566.
+$$
+
+$$
+\alpha_{\max,\mathrm{distillation}} = \frac{1}{0.8383} \approx 1.1929.
+$$
+
+For structured matrix updates, there is no scalar shortcut unless every physical `A` entry is scaled by the same `alpha`. The calculation becomes direct:
+
+$$
+\rho(A_{\theta}^{\mathrm{phys}}) = \max_i |\lambda_i(A_{\theta}^{\mathrm{phys}})|.
+$$
+
+So for structured candidates we build `A_theta_phys`, compute its eigenvalues, take their magnitudes, and keep the largest magnitude.
+
 Using `rho_target = 1` gives the currently documented values:
 
 | System | `rho(A0_phys)` | `1 / rho(A0_phys)` | Interpretation |
 | --- | ---: | ---: | --- |
-| Polymer | 0.9464 | 1.0566 | Tight `A` cap is necessary. |
-| Distillation | 0.8383 | 1.1929 | Stability permits much wider `A`, but performance does not. |
+| Polymer | 0.9464 | 1.0566 | Less open-loop spectral margin, but the matrix policy still found useful corrections in the wide `A,B` search. |
+| Distillation | 0.8383 | 1.1929 | More open-loop spectral margin, but much less tolerance to wrong closed-loop gain corrections. |
 
 For `B`, there is no equivalent spectral-stability cap. `B` caps must come from finite-horizon gain trust, actuator headroom, prediction-error checks, and closed-loop baseline non-regression.
 
-The polymer result now makes sense: tight `A` plus wide `B` gave useful gain correction without letting the prediction poles become too aggressive. The latest capped polymer matrix and structured reruns both work:
+The polymer result should be read carefully. The first important polymer lesson is that the direct matrix method could benefit from a wide `A,B` search: the successful matrix policy learned a useful low-dimensional model correction instead of being harmed permanently by the larger authority. The later capped reruns then showed that adding an `A` safety cap can keep the same family in a cleaner admissible region. So polymer is not proof that "tight `A` is the only working design"; it is proof that polymer can tolerate and exploit wider model authority when the learned correction points in a useful direction.
 
 | Polymer run | Final test phys MAE | Final test reward | `A` drift | `B` drift | Spectral p95 |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -62,7 +146,32 @@ The polymer result now makes sense: tight `A` plus wide `B` gave useful gain cor
 
 <img src="./polymer_wide_range_matrix_structured/figures/wide_range_latest_cap_reruns.png" alt="Latest polymer capped matrix and structured reruns" width="1200" style="max-width: 100%; height: auto;" />
 
-The distillation result changes the lesson. Because distillation is already using tight `A`, wide `B`, and smaller noise, the remaining degradation is not solved by another static `A` cap. The next fix should be:
+The distillation result changes the bottleneck diagnosis. Wide `A` and wide `B` was bad. Tight `A` with wide `B` was also bad. That comparison says the immediate failure is not mainly "the `A` multiplier made the model unstable." It says that distillation is sensitive to the finite-horizon input-output gain and input-allocation changes that remain after `A` has been tightened, especially the `B` direction.
+
+The mathematical reason is that MPC does not optimize directly on `rho(A)`. MPC optimizes on the finite-horizon input-output map:
+
+$$
+\Delta Y_N = G_N(A,B)\Delta U_N + d_N.
+$$
+
+Even if `A` is almost nominal, changing `B` changes every Markov block that the optimizer sees:
+
+$$
+G_N(A_0,B_{\theta}) - G_N(A_0,B_0) = \begin{bmatrix}
+C(B_{\theta}-B_0) \\
+C A_0(B_{\theta}-B_0) \\
+\cdots \\
+C A_0^{N-1}(B_{\theta}-B_0)
+\end{bmatrix}.
+$$
+
+The first block, `C(B_theta - B0)`, affects the predicted one-step output response immediately. In distillation, reflux and reboiler duty are strongly coupled, constrained, and reward-asymmetric. So a wrong `B` multiplier can make MPC believe the wrong input is more effective, or that an input has more headroom/effect than the Aspen plant actually gives. That can degrade the closed-loop decision even when:
+
+$$
+\rho(A_{\theta}^{\mathrm{phys}}) < 1.
+$$
+
+This is why tight `A` plus wide `B` is still a bad distillation result: it removes the obvious `A`-stability explanation and leaves finite-horizon gain trust, input allocation, and reward alignment as the bottleneck. The next fix should be:
 
 - nominal-cost backtracking/fallback for both matrix and structured matrix,
 - mismatch-gated effective model authority,

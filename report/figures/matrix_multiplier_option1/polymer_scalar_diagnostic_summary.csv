@@ -1,0 +1,2 @@
+sampled_count,nominal_rho,nominal_gain_ratio,unstable_frac,near_unit_frac,rho_p50,rho_p90,rho_p95,rho_max,gain_ratio_p50,gain_ratio_p90,gain_ratio_p95,gain_ratio_max,worst_rho_coordinate,worst_gain_coordinate,method
+2000,0.9463938934543132,0.0,0.0,0.006,0.745300344258749,0.9390789182707084,0.9680063065997356,0.999625378820336,0.5607164912401132,0.7146710781228887,0.7343612607787912,0.7854607852267689,alpha,alpha,scalar_matrix

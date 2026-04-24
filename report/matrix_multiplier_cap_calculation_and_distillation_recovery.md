@@ -14,6 +14,21 @@ The latest distillation result described by the user is not available as a saved
 
 That conclusion is consistent with the current notebook and runner code. The distillation cap issue is now less about open-loop `A` stability and more about policy release, `B` authority, reward alignment, and lack of a safe-improvement acceptance layer.
 
+## Ongoing Progress Scheme
+
+This report is now an ongoing working document. The current implementation step is **Option 1: Offline Multiplier Sensitivity Scan**. It is diagnostic only: it calculates `rho`, finite-horizon gain drift, local coordinate sensitivities, random candidate statistics, and advisory bounds. It does **not** apply caps, mutate notebook training settings, change TD3/SAC behavior, or decide that any suggested bound is safe for training.
+
+| Option | Scope | Status on 2026-04-24 | Expected artifact | Next action |
+|---|---|---|---|---|
+| Option 1: offline `rho` + gain sensitivity | Scalar matrix and structured matrix, unified for polymer and distillation | Implementing; polymer run pending; distillation code present but disabled | `sensitivity_by_coordinate.csv`, `candidate_scan_summary.csv`, `suggested_bounds.csv`, optional plots | Run polymer matrix and structured diagnostic cells before training |
+| Option 1 result update | Polymer matrix and structured diagnostics | Pending | Result tables and plot references in this report | Decide which coordinates are actually bottlenecks |
+| Option 2: advisory-cap trial | Polymer first | Not started | A/B cap proposal based on Option 1 outputs | Only implement after reviewing polymer Option 1 |
+| Option 3: acceptance or fallback layer | Polymer first, then distillation | Not started | Nominal-cost or rollout-based safety gate | Use if sensitivity-only caps are insufficient |
+| Option 4: release stabilization | Distillation priority | Not started | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
+| Option 5: closed-loop robustness scan | Distillation priority | Not started | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
+
+For Option 1, the important interpretation rule is: a suggested bound is a **diagnostic recommendation**, not an active constraint. The notebooks keep `apply_suggested_caps = False`, so the existing multiplier ranges remain the ranges used by training until we deliberately implement a later option.
+
 ## Executive Summary
 
 The cap should not be calculated from one scalar rule. Use a two-layer rule:

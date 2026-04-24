@@ -195,18 +195,11 @@ $$
 For structured updates, `utils/structured_model_update.py` builds either a block or band multiplier family. The active distillation default is block mode:
 
 $$
-\begin{aligned}
-\theta_A &= \left[
-\theta_{A,\mathrm{block1}},
-\theta_{A,\mathrm{block2}},
-\theta_{A,\mathrm{block3}},
-\theta_{A,\mathrm{off}}
-\right], \\
-\theta_B &= \left[
-\theta_{B,1},
-\theta_{B,2}
-\right].
-\end{aligned}
+\theta_A = [\theta_{A,\mathrm{block1}},\theta_{A,\mathrm{block2}},\theta_{A,\mathrm{block3}},\theta_{A,\mathrm{off}}].
+$$
+
+$$
+\theta_B = [\theta_{B,1},\theta_{B,2}].
 $$
 
 In block mode, diagonal state groups are scaled by their own `theta_A` values, off-block couplings are scaled by `theta_A_off`, and each input column of `B` is scaled by its corresponding `theta_B`.
@@ -246,6 +239,236 @@ That means the newest degradation is happening even after the first round of con
 | 7 | -915.3582 | 1.0695 | `[0.9968, 0.9943]` |
 
 The active structured notebook output shows a similar pattern in a less extreme form: `theta_A` stays very close to `1.0`, while `theta_B` moves more, and late visible rewards remain far below the nominal warm-start reward. This supports the diagnosis that the problem is not only `A` high instability. The learned policy is still finding model changes that are admissible but bad for closed-loop performance.
+
+## Method Algorithms
+
+Both multiplier methods follow the same high-level idea:
+
+> The RL agent does not directly choose the plant input. The RL agent chooses a modified prediction model. MPC then solves its normal constrained optimization problem using that modified prediction model.
+
+This is why the method is different from a residual controller. A residual controller adds a correction to the MPC input. A multiplier controller changes the model that MPC believes, then lets MPC choose the input under constraints.
+
+At time `t`, the RL state contains the observer state, setpoint, current input, and optionally mismatch features:
+
+$$
+s_t = \phi(\hat{x}_t,\hat{d}_t,y_t^{\mathrm{sp}},u_{t-1},e_t,\nu_t).
+$$
+
+The actor returns a normalized action:
+
+$$
+a_t = \pi_{\psi}(s_t).
+$$
+
+Each action coordinate is clipped to `[-1,1]` and mapped around nominal multiplier `1.0`. For lower bound `ell_j` and upper bound `h_j`:
+
+$$
+\theta_j(a_{t,j}) = \begin{cases}
+1 + a_{t,j}(1-\ell_j), & a_{t,j} \le 0, \\
+1 + a_{t,j}(h_j-1), & a_{t,j} > 0.
+\end{cases}
+$$
+
+So `a_j = 0` means "use nominal model", `a_j = -1` means "use lower cap", and `a_j = 1` means "use upper cap." This centered mapping is important because the nominal action is always meaningful even when the low and high bounds are asymmetric.
+
+After mapping, the runner builds a candidate prediction model:
+
+$$
+(A_t^{\mathrm{pred}},B_t^{\mathrm{pred}}) = \mathcal{M}_{\theta_t}(A_0,B_0).
+$$
+
+MPC then solves:
+
+$$
+U_t^\star = \arg\min_{U \in \mathcal{U}} J_N(U;A_t^{\mathrm{pred}},B_t^{\mathrm{pred}},\hat{x}_t,\hat{d}_t,y_t^{\mathrm{sp}},u_{t-1}).
+$$
+
+Only the first input move is applied:
+
+$$
+u_t = u_{t,0}^\star.
+$$
+
+The nonlinear plant evolves, the reward is computed from scaled tracking error and input movement, and the transition is pushed to the replay buffer:
+
+$$
+(s_t,a_t,r_t,s_{t+1}) \rightarrow \mathcal{D}.
+$$
+
+During test steps, the actor is evaluated without exploration. During training steps, TD3 or SAC updates from the replay buffer. In the TD3 path, the current Phase 1 hidden-release logic can execute the nominal action for several post-warm-start subepisodes while still evaluating/training the actor in the background.
+
+### Algorithm A: Scalar Matrix Multiplier
+
+The scalar matrix method uses one `A` multiplier and one `B` multiplier per manipulated input:
+
+$$
+\theta_t = [\alpha_t,\delta_{t,1},\ldots,\delta_{t,m}].
+$$
+
+For the two-input polymer and distillation cases:
+
+$$
+\theta_t = [\alpha_t,\delta_{t,1},\delta_{t,2}].
+$$
+
+The candidate physical model is:
+
+$$
+A_{t,\mathrm{phys}}^{\mathrm{pred}} = \alpha_t A_{0,\mathrm{phys}}.
+$$
+
+$$
+B_{t,\mathrm{phys}}^{\mathrm{pred}} = B_{0,\mathrm{phys}}\operatorname{diag}(\delta_{t,1},\delta_{t,2}).
+$$
+
+The augmented offset-free structure is preserved:
+
+$$
+A_t^{\mathrm{pred}} = \begin{bmatrix}
+A_{t,\mathrm{phys}}^{\mathrm{pred}} & 0 \\
+0 & I
+\end{bmatrix}.
+$$
+
+$$
+B_t^{\mathrm{pred}} = \begin{bmatrix}
+B_{t,\mathrm{phys}}^{\mathrm{pred}} \\
+0
+\end{bmatrix}.
+$$
+
+The current code uses the modified model for MPC prediction, but keeps the observer update on the nominal model. That means:
+
+$$
+(A_{\mathrm{observer}},B_{\mathrm{observer}}) = (A_0,B_0).
+$$
+
+This is conservative: the learned model affects the optimizer's prediction, but the state estimator is not redesigned every time the actor changes a multiplier.
+
+The scalar algorithm is:
+
+```text
+Input:
+  nominal augmented model A0, B0, C
+  physical-state dimension n_phys
+  actor bounds low_coef, high_coef
+  observer state xhatdhat_t
+  previous input u_{t-1}
+  setpoint y_sp_t
+
+At each step t:
+  1. Build RL state s_t.
+  2. If still in warm start or hidden release, use nominal raw action.
+  3. Otherwise get actor action a_t from TD3/SAC.
+  4. Map a_t to multipliers theta_t = [alpha_t, delta_t].
+  5. Build A_pred by multiplying the physical A block by alpha_t.
+  6. Build B_pred by multiplying each physical B input column by delta_{t,j}.
+  7. Put A_pred, B_pred into the MPC object.
+  8. Solve the constrained MPC optimization.
+  9. Apply the first input move to the nonlinear plant.
+  10. Update the nominal observer.
+  11. Compute reward and push the transition if this is a training step.
+  12. Train the agent after warm start.
+```
+
+The scalar method is low-dimensional and easy to interpret. Its main limitation is that it assumes all physical-state dynamics should be scaled by the same `alpha`. That is why it can work well when the useful correction is global, but it can be too blunt if only a subset of model couplings is wrong.
+
+### Algorithm B: Structured Matrix Multiplier
+
+The structured method keeps the same RL-MPC loop but replaces the scalar model update with a structured model family. In block mode:
+
+$$
+\theta_t = [\theta_{A,1},\theta_{A,2},\theta_{A,3},\theta_{A,\mathrm{off}},\theta_{B,1},\theta_{B,2}].
+$$
+
+The physical states are partitioned into block groups:
+
+$$
+\mathcal{G} = \{\mathcal{G}_1,\mathcal{G}_2,\mathcal{G}_3\}.
+$$
+
+For a physical `A` entry with row `i` and column `j`:
+
+$$
+[A_{t,\mathrm{phys}}^{\mathrm{pred}}]_{ij} = \begin{cases}
+\theta_{A,g}[A_{0,\mathrm{phys}}]_{ij}, & i \in \mathcal{G}_g,\ j \in \mathcal{G}_g, \\
+\theta_{A,\mathrm{off}}[A_{0,\mathrm{phys}}]_{ij}, & i \in \mathcal{G}_g,\ j \in \mathcal{G}_h,\ g \ne h.
+\end{cases}
+$$
+
+For the `B` matrix:
+
+$$
+[B_{t,\mathrm{phys}}^{\mathrm{pred}}]_{ij} = \theta_{B,j}[B_{0,\mathrm{phys}}]_{ij}.
+$$
+
+In band mode, the `A` multiplier depends on matrix distance from the diagonal:
+
+$$
+[A_{t,\mathrm{phys}}^{\mathrm{pred}}]_{ij} = \theta_{A,|i-j|}[A_{0,\mathrm{phys}}]_{ij}.
+$$
+
+Only configured offsets are scaled; unconfigured entries remain nominal. The augmented offset-free structure is still preserved exactly, so the disturbance identity block and zero coupling blocks are not changed.
+
+The structured runner also has a stronger fallback path than the scalar runner. If the structured action is non-finite, invalid, violates preserved augmented structure, or causes an assisted MPC solve failure, the runner can replace the candidate prediction model with the nominal model:
+
+$$
+\theta_t^{\mathrm{eff}} = \mathbf{1}.
+$$
+
+The transition stored in replay uses the effective action, not the failed raw action, when fallback occurs. This matters because the critic should learn from the action that was actually executed through MPC.
+
+The structured algorithm is:
+
+```text
+Input:
+  nominal augmented model A0, B0, C
+  structured spec: block or band
+  per-coordinate low/high bounds
+  observer state xhatdhat_t
+  previous input u_{t-1}
+  setpoint y_sp_t
+
+Before rollout:
+  1. Split A0, B0 into physical and offset-free disturbance blocks.
+  2. Resolve block groups or band offsets.
+  3. Build action labels and low/high bounds.
+  4. Build the nominal structured payload with all multipliers equal to one.
+
+At each step t:
+  1. Build RL state s_t.
+  2. Use nominal raw action during warm start or hidden release.
+  3. Otherwise get actor action a_t from TD3/SAC.
+  4. Map a_t to structured multipliers theta_A,t and theta_B,t.
+  5. Build candidate A_pred, B_pred using block or band rules.
+  6. Validate finite values and preserved augmented structure.
+  7. Log candidate spectral radius, A Frobenius drift, B Frobenius drift, saturation, and near-bound fraction.
+  8. If candidate is invalid, fallback to nominal prediction model.
+  9. Solve MPC with candidate prediction model.
+  10. If the solve fails and fallback is enabled, solve again with nominal prediction model.
+  11. Apply the first input move to the nonlinear plant.
+  12. Update the nominal observer.
+  13. Compute reward and push the effective transition if this is a training step.
+  14. Train the agent after warm start.
+```
+
+Structured mode is more expressive than scalar matrix mode, but that expressiveness is exactly why it needs per-coordinate caps. `A_block_j`, `A_off`, `B_col_1`, and `B_col_2` can have very different effects on the MPC prediction. A shared cap treats them as equally risky, which is usually false.
+
+### What The Two Algorithms Have In Common
+
+Both methods optimize the same outer RL objective:
+
+$$
+\max_{\psi} \mathbb{E}[\sum_{t=0}^{T-1}\gamma^t r_t].
+$$
+
+But the action affects the reward indirectly:
+
+$$
+a_t \rightarrow \theta_t \rightarrow (A_t^{\mathrm{pred}},B_t^{\mathrm{pred}}) \rightarrow U_t^\star \rightarrow u_t \rightarrow y_{t+1} \rightarrow r_t.
+$$
+
+This indirect path is the reason the method can be powerful and also fragile. A small multiplier can change the optimizer's predicted gain, which changes the selected input sequence. The plant never sees the multiplier directly; it only sees the input chosen by MPC after the multiplier has changed the prediction model.
 
 ## Why Stability Caps Are Not Enough
 
@@ -304,14 +527,7 @@ $$
 For structured block mode:
 
 $$
-\theta = \left[
-\theta_{A,\mathrm{block1}},
-\theta_{A,\mathrm{block2}},
-\theta_{A,\mathrm{block3}},
-\theta_{A,\mathrm{off}},
-\theta_{B,1},
-\theta_{B,2}
-\right].
+\theta = [\theta_{A,\mathrm{block1}},\theta_{A,\mathrm{block2}},\theta_{A,\mathrm{block3}},\theta_{A,\mathrm{off}},\theta_{B,1},\theta_{B,2}].
 $$
 
 The raw actor space can remain wide, but the effective model space should be filtered or gated before MPC receives it.
@@ -693,11 +909,7 @@ Warm start fills replay with nominal MPC actions. The current Phase 1 hidden rel
 But after release, the actor objective is still the usual TD3 deterministic policy improvement:
 
 $$
-\max_{\theta_{\pi}}
-\mathbb{E}_{s \sim \mathcal{D}}
-\left[
-Q_{\phi}(s,\pi_{\theta_{\pi}}(s))
-\right].
+\max_{\theta_{\pi}} \mathbb{E}_{s \sim \mathcal{D}}[Q_{\phi}(s,\pi_{\theta_{\pi}}(s))].
 $$
 
 There is no term that says:
@@ -783,27 +995,24 @@ This makes the multiplier method behave like residual authority:
 The next actor-side fix is a TD3+BC-style handoff regularizer. During the first `K` post-release subepisodes, change the actor loss from pure deterministic policy improvement to:
 
 $$
-\begin{aligned}
-\mathcal{L}_{\mathrm{actor}} &= -\mathbb{E}_{s \sim \mathcal{D}}
-\left[
-Q_{\phi}(s,\pi_{\theta}(s))
-\right] \\
-&\quad
-+ \lambda_{\mathrm{BC}}(e)
-\mathbb{E}_{(s,a_0)\sim\mathcal{D}_{\mathrm{ws}}}
-\left[
-\|\pi_{\theta}(s)-a_0\|_2^2
-\right].
-\end{aligned}
+\mathcal{L}_{Q} = -\mathbb{E}_{s \sim \mathcal{D}}[Q_{\phi}(s,\pi_{\theta}(s))].
+$$
+
+$$
+\mathcal{L}_{\mathrm{BC}} = \mathbb{E}_{(s,a_0)\sim\mathcal{D}_{\mathrm{ws}}}[\|\pi_{\theta}(s)-a_0\|_2^2].
+$$
+
+$$
+\mathcal{L}_{\mathrm{actor}} = \mathcal{L}_{Q} + \lambda_{\mathrm{BC}}(e)\mathcal{L}_{\mathrm{BC}}.
 $$
 
 For matrix and structured matrix:
 
 $$
-a_0 = a_{\mathrm{nom}},
+a_0 = a_{\mathrm{nom}}.
 $$
 
-the normalized action that maps to all multipliers equal to `1.0`.
+This is the normalized action that maps to all multipliers equal to `1.0`.
 
 Use a decaying weight:
 

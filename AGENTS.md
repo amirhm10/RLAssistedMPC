@@ -165,7 +165,7 @@ Legacy split notebooks were removed after the unified migration. Historical mism
 - When tracing an experiment, read the notebook cells that define the supervisor function before assuming the reusable module layer is complete.
 - When comparing outputs, use the run-folder naming convention plus `input_data.pkl` to identify provenance instead of guessing from image names alone.
 - If a task asks for "the training loop" or "current experiment logic," verify whether the notebook-local supervisor is the active implementation before editing module-level helpers.
-- For major repo changes, add a short markdown note under `change-reports/`, include it in the commit, and push the resulting commit to GitHub via `origin`.
+- For major repo changes, add a short markdown note under `change-reports/` and include it in a local git commit. For normal completed changes, make a local git commit without asking after verification. Stage only files relevant to the current task; never include unrelated dirty notebooks, generated artifacts, cache files, or timestamped experiment output unless the user explicitly asks. Do not push to `origin`/GitHub remote until the user asks for the end-of-day remote push.
 
 ## Environment Caveats
 
@@ -175,6 +175,14 @@ Legacy split notebooks were removed after the unified migration. Historical mism
 - The Jupyter kernel name for this repo should be `rl-env` with display name `Python (rl-env)`.
 - When running Python-based checks from the terminal, prefer `C:\Users\HAMEDI\miniconda3\envs\rl-env\python.exe` instead of the shell `python`, because the shell interpreter may not have the scientific stack installed.
 - Because the environment is not declared in-repo, prefer documenting observed behavior over inventing setup commands.
+
+## VS Code Workflow Preferences
+
+- Assume the user is working in VS Code with the Python, Pylance, Jupyter, Ruff, Markdown Preview Enhanced, Markdown All in One, markdownlint, GitLens, GitHub Pull Requests and Issues, Rainbow CSV, Data Wrangler, LaTeX Workshop, Catppuccin, and Material Icon Theme extensions available.
+- When giving IDE workflow guidance, prefer actions that use those extensions: Jupyter kernel selection and notebook outline for `.ipynb`, Markdown Preview Enhanced for reports, Ruff for Python linting/formatting, GitLens for change history, Data Wrangler or Rainbow CSV for tabular data, and LaTeX Workshop for `.tex` report builds.
+- For Markdown reports with equations, write display math in renderer-friendly LaTeX. Prefer one-line `$$ ... $$` blocks for single equations, for example `$$ \Delta R_{\mathrm{release}} = \bar{R}_{\mathrm{live},1{:}10} - \bar{R}_{\mathrm{warm},\mathrm{tail}}. $$`. Use `\begin{aligned}...\end{aligned}` only when there are multiple aligned equations, keep each relation's operator and right-hand side on the same visual line, use `\\` for line breaks, and use `\mathrm{...}` for text-like subscripts or superscripts such as `cand`, `nom`, `phys`, `raw`, and `eff`. Avoid loose multi-line `$$` blocks with separate operator-only lines such as `=`, `&=`, `-`, or equations joined only by `\qquad`.
+- Codex chat drag-and-drop and raw Windows paths may be unreliable. Prefer repo-relative paths in backticks, such as `report/distillation_warm_start_training_analysis.md` or `distillation_RL_assisted_MPC_structured_matrices_unified.ipynb`, when referring to files in chat.
+- During longer interactive work, occasionally include one short practical explanation of a relevant VS Code, notebook, Markdown, GitLens, or data-inspection feature so the user can learn the workflow while the repo work progresses.
 
 ## Known Codebase Caveats
 

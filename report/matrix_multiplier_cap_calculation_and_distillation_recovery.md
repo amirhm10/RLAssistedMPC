@@ -23,9 +23,9 @@ This report is now an ongoing working document. The current implementation seque
 | Step 1: offline `rho` + gain sensitivity | Scalar matrix and structured matrix, unified for polymer and distillation | Implemented; scalar and structured polymer diagnostics completed | `sensitivity_by_coordinate.csv`, `candidate_scan_summary.csv`, `suggested_bounds.csv`, optional plots | Use the diagnostics as advisory release bounds |
 | Step 1 result update | Latest polymer scalar matrix run and latest structured matrix run | Updated here from 2026-04-24 result bundles | Result tables and report figures added | Protect the release window before trying static caps |
 | Step 2 implementation | Release-protected advisory caps for scalar and structured supervisors | Implemented; polymer defaults on, distillation defaults off | Shared release schedule, clipped executed multipliers, policy-versus-executed logs | Run polymer matrix and structured trials |
-| Step 2 scalar polymer result | Polymer scalar matrix TD3 disturbance | Updated from latest run | Reward windows, policy-versus-executed multiplier table, release clip statistics | Keep Step 2; evaluate smaller networks and then consider distillation |
-| Step 2 structured polymer result | Polymer structured matrix TD3 disturbance | Updated from latest run | Same result summary, with per-coordinate structured multipliers | Keep Step 2; focus on reducing policy saturation |
-| Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until the smaller-network polymer rerun is reviewed |
+| Step 2 scalar polymer result | Polymer scalar matrix TD3 disturbance | Updated from first Step 2 run and `[256, 256]` follow-up | Reward windows, policy-versus-executed multiplier table, release clip statistics | Keep Step 2; Step 3 run is now the next evidence source |
+| Step 2 structured polymer result | Polymer structured matrix TD3 disturbance | Updated from first Step 2 run and `[256, 256]` follow-up | Same result summary, with per-coordinate structured multipliers | Keep Step 2; Step 3 should test whether bad candidates can be rejected |
+| Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until Step 3 polymer results are reviewed |
 | Step 3: acceptance or fallback layer | Polymer first, then distillation | Implemented; polymer run pending | Strict nominal-MPC cost gate, acceptance/fallback logs | Run polymer matrix and structured trials, then decide distillation transfer |
 | Step 4: release stabilization | Distillation priority | Reserved | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
 | Step 5: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
@@ -401,7 +401,7 @@ For structured mode, Step 2 confirms the Step 1 diagnosis: `A_block_1`, `A_block
 
 Step 2 should stay in the polymer matrix and structured-matrix notebooks. The remaining problem is no longer "how do we calculate release caps?" The remaining problem is "why does the actor still request saturated actions during release?"
 
-The saved runner bundle does not record the actor/critic hidden-layer sizes, so the analysis above is based on the release-guard logs, not on a confirmed network-size comparison. If this latest run was not started from a fresh kernel after changing the defaults, the next polymer trial should keep Step 2 on and use the reduced network defaults of two hidden layers with 256 units. The success criterion is:
+The saved runner bundle does not record the actor/critic hidden-layer sizes, so the analysis above is based on the release-guard logs, not on a confirmed network-size comparison. The next polymer trial should keep Step 2 on and use the reduced network defaults of two hidden layers with 256 units. The success criterion is:
 
 - protected-window reward delta should stay near zero or positive,
 - full-run and tail reward should remain positive,
@@ -409,6 +409,116 @@ The saved runner bundle does not record the actor/critic hidden-layer sizes, so 
 - Step 2 clip fraction should decrease because the policy itself becomes less boundary-seeking.
 
 For distillation, this result supports Step 2 conceptually, but I would still keep distillation disabled until the smaller-network polymer rerun is reviewed. Distillation has a stronger history of recovering without beating MPC, so it likely needs Step 2 plus Step 3 acceptance/fallback rather than Step 2 alone.
+
+### Step 2 Smaller-Network Follow-Up
+
+This update compares the first Step 2 runs above against the latest Step 2-only polymer reruns after the default TD3 network size was reduced to `[256, 256]`. The latest bundles are:
+
+- Scalar matrix RL bundle: `Polymer/Results/td3_multipliers_disturb/20260424_212859/input_data.pkl`
+- Scalar matrix comparison bundle: `Polymer/Results/disturb_compare_td3_multipliers/20260424_212913/input_data.pkl`
+- Structured matrix RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260424_212944/input_data.pkl`
+- Structured matrix comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260424_213002/input_data.pkl`
+
+Important provenance note: the result bundles still do not store an explicit actor/critic architecture snapshot. This section treats the latest runs as the `[256, 256]` runs based on the run timing, the changed defaults, and the user's run note. A future runner improvement should save the hidden-layer list into `input_data.pkl` so this comparison is directly auditable.
+
+These latest runs are **not Step 3** runs. They have `release_guard_enabled = True`, but they do not contain the Step 3 `mpc_acceptance_*` logs. So the comparison below isolates the network-size change under Step 2.
+
+<img src="./figures/matrix_multiplier_step2_network_size/step2_network_size_reward_delta.png" alt="Step 2 network-size reward delta comparison" width="1200" style="max-width: 100%; height: auto;" />
+
+#### Reward Effect
+
+Positive reward delta means RL beats the MPC baseline.
+
+| Method | Window | Mean reward delta | Win rate | Raw saturation | Release clip |
+|---|---|---:|---:|---:|---:|
+| Scalar prior Step 2 | 16-30 protected | -0.1075 | 33.3% | 87.5% | 46.4% |
+| Scalar prior Step 2 | 31-60 ramp | +0.1608 | 73.3% | 48.3% | 28.4% |
+| Scalar prior Step 2 | 61-100 full | +0.5675 | 100.0% | 20.1% | 0.0% |
+| Scalar prior Step 2 | 101-200 tail | +0.7758 | 100.0% | 18.6% | 0.0% |
+| Scalar prior Step 2 | 1-200 full run | +0.5175 | 86.5% | 27.1% | 7.7% |
+| Scalar `[256, 256]` Step 2 | 16-30 protected | +0.0204 | 53.3% | 57.6% | 36.9% |
+| Scalar `[256, 256]` Step 2 | 31-60 ramp | -0.0209 | 56.7% | 44.9% | 29.4% |
+| Scalar `[256, 256]` Step 2 | 61-100 full | +0.3021 | 95.0% | 29.7% | 0.0% |
+| Scalar `[256, 256]` Step 2 | 101-200 tail | +0.6366 | 100.0% | 26.2% | 0.0% |
+| Scalar `[256, 256]` Step 2 | 1-200 full run | +0.3771 | 84.5% | 30.1% | 7.2% |
+| Structured prior Step 2 | 16-30 protected | -0.2052 | 20.0% | 89.6% | 29.5% |
+| Structured prior Step 2 | 31-60 ramp | -0.0789 | 43.3% | 62.2% | 23.2% |
+| Structured prior Step 2 | 61-100 full | +0.4582 | 92.5% | 38.0% | 0.0% |
+| Structured prior Step 2 | 101-200 tail | +0.7575 | 100.0% | 34.1% | 0.0% |
+| Structured prior Step 2 | 1-200 full run | +0.4431 | 79.5% | 40.7% | 5.7% |
+| Structured `[256, 256]` Step 2 | 16-30 protected | -0.4180 | 20.0% | 63.7% | 27.1% |
+| Structured `[256, 256]` Step 2 | 31-60 ramp | +0.0794 | 70.0% | 45.2% | 18.6% |
+| Structured `[256, 256]` Step 2 | 61-100 full | +0.4880 | 92.5% | 41.7% | 0.0% |
+| Structured `[256, 256]` Step 2 | 101-200 tail | +0.7414 | 100.0% | 53.9% | 0.0% |
+| Structured `[256, 256]` Step 2 | 1-200 full run | +0.4489 | 83.5% | 46.8% | 4.8% |
+
+The scalar result says the smaller network made the release behavior safer but gave up some final performance. The protected-window reward delta improved from `-0.1075` to `+0.0204`, and raw saturation dropped from `87.5%` to `57.6%`. That is exactly the direction we wanted for first live release. But the tail reward delta fell from `+0.7758` to `+0.6366`, and full-run reward delta fell from `+0.5175` to `+0.3771`. So the scalar `[256, 256]` policy is calmer at release, but less aggressive or less effective after full authority returns.
+
+The structured result is more mixed. The protected-window reward got worse, from `-0.2052` to `-0.4180`, even though raw saturation dropped from `89.6%` to `63.7%`. The ramp improved from `-0.0789` to `+0.0794`, and the full-run result improved slightly from `+0.4431` to `+0.4489`. The tail result is essentially similar, falling only from `+0.7575` to `+0.7414`. This means network size alone did not solve structured release quality. It changed the action distribution, but the early structured candidates can still be bad even when they are less saturated.
+
+#### Difference From Prior Step 2
+
+This table reports `[256, 256]` minus the prior Step 2 run.
+
+| Family | Window | Reward-delta change | Win-rate change | Raw-saturation change | Release-clip change |
+|---|---|---:|---:|---:|---:|
+| Scalar | 16-30 protected | +0.1280 | +20.0 pp | -29.9 pp | -9.5 pp |
+| Scalar | 31-60 ramp | -0.1817 | -16.7 pp | -3.4 pp | +1.1 pp |
+| Scalar | 101-200 tail | -0.1392 | +0.0 pp | +7.5 pp | +0.0 pp |
+| Scalar | 1-200 full run | -0.1404 | -2.0 pp | +3.0 pp | -0.6 pp |
+| Structured | 16-30 protected | -0.2127 | +0.0 pp | -25.9 pp | -2.4 pp |
+| Structured | 31-60 ramp | +0.1584 | +26.7 pp | -17.0 pp | -4.6 pp |
+| Structured | 101-200 tail | -0.0160 | +0.0 pp | +19.8 pp | +0.0 pp |
+| Structured | 1-200 full run | +0.0057 | +4.0 pp | +6.1 pp | -0.9 pp |
+
+The key point is that smaller networks reduced early saturation in both families, but this did not translate uniformly into better reward. In scalar mode, reduced saturation helped the protected window. In structured mode, reduced saturation helped the ramp but not the protected window. That tells us the structured problem is not only "the policy hits the raw action boundary." It is also "some in-bound structured candidate models still lead to locally bad MPC decisions."
+
+#### Multiplier Behavior
+
+<img src="./figures/matrix_multiplier_step2_network_size/scalar_step2_network_size_saturation_clip.png" alt="Scalar Step 2 network-size saturation and clipping" width="1200" style="max-width: 100%; height: auto;" />
+
+<img src="./figures/matrix_multiplier_step2_network_size/structured_step2_network_size_saturation_clip.png" alt="Structured Step 2 network-size saturation and clipping" width="1200" style="max-width: 100%; height: auto;" />
+
+For the latest scalar `[256, 256]` run, the main release coordinate is still `alpha`:
+
+| Window | Coordinate | Policy mean | Executed mean | Clip fraction |
+|---|---|---:|---:|---:|
+| 16-30 protected | `alpha` | 0.9354 | 1.0180 | 81.5% |
+| 16-30 protected | `B_col_2` | 1.0504 | 1.0891 | 29.2% |
+| 101-200 tail | `alpha` | 0.9550 | 0.9550 | 0.0% |
+| 101-200 tail | `B_col_2` | 0.9290 | 0.9290 | 0.0% |
+
+Compared with the prior scalar run, `alpha` is much closer to nominal during protected release: policy mean moved from `0.8710` to `0.9354`. The guard still clips it heavily, but it has less work to do. That is why the protected-window reward became slightly positive.
+
+For the latest structured `[256, 256]` run, the sensitive coordinates remain the same:
+
+| Window | Coordinate | Policy mean | Executed mean | Clip fraction |
+|---|---|---:|---:|---:|
+| 16-30 protected | `A_block_1` | 0.8887 | 1.0081 | 84.6% |
+| 16-30 protected | `A_block_2` | 0.8858 | 1.0014 | 40.0% |
+| 16-30 protected | `B_col_2` | 0.9966 | 1.0488 | 37.8% |
+| 101-200 tail | `A_block_1` | 0.8579 | 0.8579 | 0.0% |
+| 101-200 tail | `A_block_2` | 0.8063 | 0.8063 | 0.0% |
+| 101-200 tail | `B_col_2` | 0.9602 | 0.9602 | 0.0% |
+
+The structured policy still pushes `A_block_1` and `A_block_2` low, and the protected guard still moves them back toward nominal. However, the reward got worse during protected release. The likely reason is that structured mode has more coupled degrees of freedom: even if each coordinate is inside its Step 1 diagnostic box, the joint candidate can still create a poor finite-horizon MPC move for the current state. This is exactly the type of failure Step 3 is designed to catch.
+
+#### Network-Size Conclusion
+
+The network-size change **did matter**, but it is not a universal improvement.
+
+| Family | Did `[256, 256]` help release? | Did `[256, 256]` help full-run reward? | Interpretation |
+|---|---|---|---|
+| Scalar matrix | Yes | No | Smaller network reduced first-live aggression and made protected release slightly better than MPC, but it reduced later improvement. |
+| Structured matrix | Partly | Slightly | Smaller network reduced early saturation and improved the ramp/full-run result, but protected release got worse. |
+
+For polymer, I would keep `[256, 256]` for now while Step 3 is running, because it is less extreme and the full-run results remain positive. I would not shrink below `[256, 256]` yet. The next useful evidence is the Step 3 acceptance fraction and fallback fraction:
+
+- If scalar Step 3 rejects many early candidates but keeps the positive tail, then Step 3 is helping without removing useful authority.
+- If structured Step 3 rejects the protected-window candidates that caused the `-0.4180` delta, then the problem was local candidate quality, not network size.
+- If Step 3 rejects almost everything, then the gate is too strict or the learned model multipliers are not adding enough value under the nominal-cost judge.
+
+For distillation, this comparison strengthens the argument for keeping Step 2 and Step 3 disabled until polymer Step 3 is reviewed. Distillation is more sensitive than polymer, and the structured polymer result shows that "less saturated" is not the same as "safe to execute." Distillation should receive the combined release guard plus acceptance/fallback gate, not just a smaller actor network.
 
 ### Step 3 Preview: Acceptance Or Fallback Gate
 

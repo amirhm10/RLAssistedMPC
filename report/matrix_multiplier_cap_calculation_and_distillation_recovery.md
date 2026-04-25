@@ -801,6 +801,90 @@ The matrix run is more alarming because it crashes even though `A` was already t
 
 The latest matrix run has almost no raw action saturation (`action_saturation_trace` mean about `0.0003`). Therefore the failure is not simply "the policy hits the raw action boundary." Distillation is sensitive enough that moderate `B` movement inside the allowed range can still produce a very poor MPC decision. This matches the earlier user observation: tight `A`, wide `B`, and low exploration noise still degraded heavily.
 
+#### Why The Distillation Residual Run Degrades Late
+
+The latest residual run has a different failure mode from the matrix run. It does not collapse catastrophically. Instead, it improves briefly in episodes 61-100, then loses performance again in episodes 101-200.
+
+<img src="./figures/distillation_residual_tail_20260425/distillation_residual_tail_episode_diagnostics.png" alt="Distillation residual tail episode diagnostics" width="1200" style="max-width: 100%; height: auto;" />
+
+The important window comparison is:
+
+| Window | RL reward | MPC reward | Reward delta | x24 MAE | T85 MAE | Reward bonus | Inside-band weight | Move penalty |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| 16-30 release | 13.8154 | 18.1450 | -4.3296 | 0.001544 | 0.1838 | 16.7354 | 0.7028 | 0.4958 |
+| 31-60 early | 16.7218 | 17.6329 | -0.9111 | 0.001406 | 0.1731 | 19.8411 | 0.7101 | 0.6421 |
+| 61-100 mid | 17.9100 | 17.7431 | +0.1669 | 0.001412 | 0.1541 | 20.8187 | 0.7157 | 0.6055 |
+| 101-200 tail | 14.9184 | 17.7585 | -2.8401 | 0.001939 | 0.1637 | 18.5200 | 0.6915 | 0.6644 |
+
+The late degradation is mostly a **tracking-quality and reward-bonus problem**, not only an input-move problem. From the good mid window to the bad tail window:
+
+- x24 composition MAE increases from `0.001412` to `0.001939`.
+- T85 MAE also worsens from `0.1541` to `0.1637`, but it remains better than the release window.
+- the reward bonus drops from `20.8187` to `18.5200`;
+- the inside-band weight drops from `0.7157` to `0.6915`;
+- the move penalty rises only moderately, from `0.6055` to `0.6644`.
+
+So the tail loss is driven by the controller moving farther from the reward's high-bonus tracking region. The x24 composition output matters a lot here because the distillation reward weights composition strongly (`Q1 = 3.7e4` in the current reward defaults).
+
+<img src="./figures/distillation_residual_tail_20260425/distillation_residual_tail_window_summary.png" alt="Distillation residual tail window summary" width="1200" style="max-width: 100%; height: auto;" />
+
+The residual authority logs show why the policy does not turn this into a useful correction:
+
+| Window | Authority projection | Deadband projection | `rho_eff` | Raw residual L1 | Executed residual L1 | Raw input-2 action | Executed input-2 action |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 16-30 release | 77.5% | 22.0% | 0.5288 | 0.03314 | 0.00259 | -0.2021 | -0.0046 |
+| 31-60 early | 70.9% | 28.7% | 0.4965 | 0.04503 | 0.00256 | +0.4677 | +0.0126 |
+| 61-100 mid | 68.4% | 31.1% | 0.4904 | 0.04805 | 0.00236 | +0.5280 | +0.0097 |
+| 101-200 tail | 74.9% | 24.7% | 0.5533 | 0.06540 | 0.00277 | +0.7933 | +0.0123 |
+
+The raw policy request gets more aggressive in the tail. The raw residual magnitude rises from `0.04805` in the mid window to `0.06540` in the tail, and the raw second-input action rises from `+0.5280` to `+0.7933`. But the executed residual remains tiny because the authority layer clips it. In the tail, the raw residual correction is approximately:
+
+| Tail residual signal | Input 1 | Input 2 |
+|---|---:|---:|
+| Raw residual correction | -0.02035 | +0.03969 |
+| Executed residual correction | -0.00089 | +0.00062 |
+
+This means the actor is increasingly asking for a correction that the authority system refuses to execute. The plant sees a very small correction, while the policy continues to move toward a larger raw correction. This is a projection mismatch in the learning problem.
+
+<img src="./figures/distillation_residual_tail_20260425/distillation_residual_tail_last_episode.png" alt="Distillation residual tail last episode outputs and residual corrections" width="1200" style="max-width: 100%; height: auto;" />
+
+The episode-level correlations support the same diagnosis:
+
+| Episode metric, episodes 16-200 | Correlation with reward delta |
+|---|---:|
+| Reward bonus term | +0.970 |
+| Inside-band weight | +0.738 |
+| x24 MAE | -0.693 |
+| T85 MAE | -0.641 |
+| Executed residual L1 | -0.779 |
+| `rho_eff` | -0.786 |
+| Authority projection fraction | -0.888 |
+| Raw residual L1 | -0.599 |
+
+<img src="./figures/distillation_residual_tail_20260425/distillation_residual_tail_correlations.png" alt="Distillation residual tail correlations" width="1200" style="max-width: 100%; height: auto;" />
+
+The strongest negative correlation is authority projection. This does not mean projection itself is bad; projection is preventing unsafe residual moves. It means episodes where the actor fights the projection layer are also episodes where the residual method loses to MPC. The residual policy is not learning a stable correction inside the executable authority envelope.
+
+This connects directly to the matrix findings:
+
+| Family | Safety layer behavior | Failure after safety layer |
+|---|---|---|
+| Matrix Step 3B | Nominal-cost tolerance allowed many candidates | Accepted candidates were not reliably plant-useful. |
+| Residual with `rho` authority | Projection prevented large residual moves | Raw policy kept asking for mostly clipped corrections, and tail reward degraded. |
+
+The shared lesson is: **a safety filter is not enough unless the learning problem is aligned with the filtered action that the plant actually experiences**.
+
+For residual, the next fix should be projection-aware rather than simply widening authority. Widening `rho` or `authority_beta_res` could make the late tail worse because the raw policy is already pushing toward larger residuals. Better next candidates are:
+
+| Candidate fix | Purpose |
+|---|---|
+| Add a projection penalty to the residual reward, such as `-lambda_proj ||delta_u_raw - delta_u_exec||_2^2`. | Discourage the policy from repeatedly asking for corrections that will be clipped. |
+| Add a raw-action magnitude penalty when `projection_due_to_authority = 1`. | Keep the actor inside the executable authority envelope. |
+| Train the actor through a projection-aware action, or add behavior-cloning pressure toward `executed_action_raw_log` when projection is active. | Reduce the off-manifold gap between actor output and replayed executed action. |
+| Add a tail monitor: if authority projection stays above `70%` for a window, freeze residual authority or fall back to MPC residual zero for that window. | Prevent late drift from damaging the run after a good mid-window recovery. |
+
+The immediate conclusion for distillation residual is: keep `rho` authority, but do not treat high projection as harmless. Persistent projection is now a diagnostic signal that the residual policy is outside the useful action envelope.
+
 #### What To Do Next
 
 The next improvement should not be "increase Step 3B tolerance." The scalar polymer run already shows that allowing more candidates can make performance worse. The next improvement should separate three concepts:

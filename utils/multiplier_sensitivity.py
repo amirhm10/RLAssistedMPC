@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
+from utils.multiplier_release_schedule import extract_suggested_bounds_from_diagnostic
 from utils.structured_model_update import build_band_scaled_model, build_block_scaled_model, validate_positive_bounds
 
 

@@ -26,7 +26,7 @@ This report is now an ongoing working document. The current implementation seque
 | Step 2 scalar polymer result | Polymer scalar matrix TD3 disturbance | Updated from first Step 2 run and `[256, 256]` follow-up | Reward windows, policy-versus-executed multiplier table, release clip statistics | Keep Step 2; Step 3 run is now the next evidence source |
 | Step 2 structured polymer result | Polymer structured matrix TD3 disturbance | Updated from first Step 2 run and `[256, 256]` follow-up | Same result summary, with per-coordinate structured multipliers | Keep Step 2; Step 3 should test whether bad candidates can be rejected |
 | Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until Step 3 polymer results are reviewed |
-| Step 3: acceptance or fallback layer | Polymer first, then distillation | Implemented; polymer run pending | Strict nominal-MPC cost gate, acceptance/fallback logs | Run polymer matrix and structured trials, then decide distillation transfer |
+| Step 3: acceptance or fallback layer | Polymer first, then distillation | Strict-gate polymer result reviewed | Acceptance/fallback logs, cost-margin distributions, tolerance replay curve | Replace strict no-worse gate with a small nominal-cost trust-region tolerance |
 | Step 4: release stabilization | Distillation priority | Reserved | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
 | Step 5: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
 
@@ -596,13 +596,109 @@ The result bundle now separates:
 | `mpc_acceptance_fallback_active_log` | `1` when nominal MPC is executed instead. |
 | `mpc_acceptance_cost_margin_log` | Candidate nominal-evaluated cost minus nominal MPC cost. |
 
-Placeholders for the next update:
+#### Step 3 Strict-Gate Polymer Result
 
-| Result item | Status | Metrics to add after run |
-|---|---|---|
-| Scalar matrix Step 3 polymer result | Run pending | reward windows, acceptance fraction, fallback fraction, cost-margin quantiles, tail reward |
-| Structured matrix Step 3 polymer result | Run pending | same metrics plus per-coordinate candidate-vs-executed multiplier analysis |
-| Distillation transfer decision | Waiting on polymer Step 3 | decide whether to enable Step 2+3 together or add more release stabilization first |
+This update uses the latest Step 3 polymer runs:
+
+- Scalar matrix RL bundle: `Polymer/Results/td3_multipliers_disturb/20260424_231144/input_data.pkl`
+- Scalar matrix comparison bundle: `Polymer/Results/disturb_compare_td3_multipliers/20260424_231155/input_data.pkl`
+- Structured matrix RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260424_231221/input_data.pkl`
+- Structured matrix comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260424_231233/input_data.pkl`
+
+The user observation is correct: the Step 3 result is essentially MPC. That happened because the strict acceptance gate fell back to nominal MPC for almost every live control decision.
+
+<img src="./figures/matrix_multiplier_step3_strict_gate/step3_strict_reward_delta_vs_step2.png" alt="Step 3 strict reward delta versus Step 2" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Window | Step 2 `[256, 256]` reward delta | Step 3 strict reward delta | Step 3 accepted | Step 3 fallback |
+|---|---|---:|---:|---:|---:|
+| Scalar matrix | 16-30 protected | +0.0204 | -0.000015 | 0.40% | 99.60% |
+| Scalar matrix | 31-60 ramp | -0.0209 | +0.000045 | 0.59% | 99.41% |
+| Scalar matrix | 61-100 full | +0.3021 | +0.000004 | 0.97% | 99.03% |
+| Scalar matrix | 101-200 tail | +0.6366 | +0.000021 | 0.70% | 99.30% |
+| Scalar matrix | 1-200 full run | +0.3771 | +0.000015 | 8.16% | 91.84% |
+| Structured matrix | 16-30 protected | -0.4180 | +0.000039 | 0.36% | 99.64% |
+| Structured matrix | 31-60 ramp | +0.0794 | +0.000056 | 0.22% | 99.78% |
+| Structured matrix | 61-100 full | +0.4880 | -0.000015 | 0.00% | 100.00% |
+| Structured matrix | 101-200 tail | +0.7414 | -0.000008 | 0.00% | 100.00% |
+| Structured matrix | 1-200 full run | +0.4489 | +0.000002 | 7.56% | 92.44% |
+
+The full-run acceptance fractions of `8.16%` and `7.56%` are misleadingly high because warm start and action freeze are nominal phases. In episodes 1-15, the candidate is already nominal, so the gate accepts `100%` of the decisions. After the first live release begins, acceptance collapses:
+
+| Method | Live episodes 16-200 acceptance | Live episodes 16-200 fallback |
+|---|---:|---:|
+| Scalar matrix | 0.72% | 99.28% |
+| Structured matrix | 0.064% | 99.936% |
+
+<img src="./figures/matrix_multiplier_step3_strict_gate/step3_strict_acceptance_by_phase.png" alt="Step 3 strict acceptance by phase" width="1200" style="max-width: 100%; height: auto;" />
+
+The reason-code logs show that this was **not** caused by MPC candidate solve failures. The dominant reason code is `2`, which means `REJECTED_COST`. The candidate solver produced candidate plans, but the strict nominal-cost judge rejected them.
+
+| Method | Reason `1`: accepted | Reason `2`: rejected by cost | Reason `3`: candidate solve failed |
+|---|---:|---:|---:|
+| Scalar matrix | 13,061 decisions | 146,939 decisions | 0 decisions |
+| Structured matrix | 12,095 decisions | 147,905 decisions | 0 decisions |
+
+This explains why the plant behavior became almost exactly MPC. On fallback, the final executed multiplier is nominal. The runner still logs the candidate multiplier separately, but the plant receives the nominal MPC move. Therefore the reward delta collapses to numerical noise around zero.
+
+#### Why The Strict Objective Was Too Strict
+
+The strict Step 3 rule was:
+
+$$ J_t^{\mathrm{cand|nom}} \leq J_t^{\mathrm{nom}} + \epsilon_{\mathrm{abs}}. $$
+
+with `absolute_tolerance = 1e-8` and `relative_tolerance = 0.0`.
+
+This is conservative, but it is also almost guaranteed to reject useful RL candidates. The reason is simple: `J_t^{nom}` is already the optimized nominal MPC objective for the nominal model. If the candidate sequence is evaluated under the same nominal model and the same nominal objective, it usually cannot beat the nominal optimizer. At best, it can match it up to numerical tolerance. So the strict test does not ask "is this candidate safe enough to try?" It asks "does this candidate reproduce nominal MPC?"
+
+That is why the result became MPC.
+
+The cost margins confirm this. Most margins are small, but they are still positive, and a positive margin larger than `1e-8` is rejected:
+
+| Method | Mean cost margin | Median cost margin | 90th percentile margin | 90th percentile relative margin |
+|---|---:|---:|---:|---:|
+| Scalar matrix | 0.005056 | 0.00000810 | 0.003038 | 3.1820% |
+| Structured matrix | 0.005530 | 0.00000419 | 0.002856 | 3.6719% |
+
+The median margins are tiny. That suggests the gate is rejecting many candidates that are almost nominal under the nominal objective. The high-percentile margins are larger, so the gate is still useful as a shield; it just needs a tolerance band.
+
+#### Offline Tolerance Replay
+
+Using the saved cost logs, we can replay the acceptance rule without rerunning training. The table below asks: if the same Step 3 run had used a small relative tolerance, how many live decisions would have passed?
+
+<img src="./figures/matrix_multiplier_step3_strict_gate/step3_tolerance_acceptance_curve.png" alt="Step 3 tolerance acceptance curve" width="900" style="max-width: 100%; height: auto;" />
+
+| Relative tolerance | Scalar live acceptance | Structured live acceptance |
+|---:|---:|---:|
+| 0.001% | 5.24% | 4.77% |
+| 0.005% | 27.73% | 39.59% |
+| 0.010% | 39.87% | 51.28% |
+| 0.020% | 53.35% | 56.65% |
+| 0.050% | 63.51% | 64.96% |
+| 0.100% | 69.24% | 70.92% |
+| 0.500% | 79.36% | 79.19% |
+| 1.000% | 83.20% | 82.66% |
+
+The practical conclusion is that the next Step 3 version should not use strict no-worse acceptance. It should use the nominal MPC objective as a **trust-region budget**:
+
+$$ J_t^{\mathrm{cand|nom}} \leq (1+\epsilon_{\mathrm{rel}})J_t^{\mathrm{nom}} + \epsilon_{\mathrm{abs}}. $$
+
+The first polymer rerun should use:
+
+| Parameter | Recommended next value | Why |
+|---|---:|---|
+| `relative_tolerance` | `1e-4` | This is only `0.010%` nominal-cost slack, but would have accepted about `40%` of scalar live decisions and `51%` of structured live decisions in the saved run. |
+| `absolute_tolerance` | `1e-8` initially | Keeps the next run directly comparable to the strict run; increase later only if low-cost decisions remain over-rejected. |
+| Step 2 release guard | keep enabled | Still protects first live release from extreme multiplier authority. |
+| Distillation Step 3 | keep disabled | Do not transfer until polymer proves that the tolerant gate beats strict fallback. |
+
+If the tolerant run still behaves like MPC, increase `relative_tolerance` to `2e-4`. If it degrades badly, return to `5e-5` or make the tolerance phase-dependent: smaller during protected release, wider after full authority.
+
+The target behavior for Step 3B is not `100%` acceptance. A good first target is:
+
+- live acceptance around `30%` to `60%`,
+- fallback still active on high-margin bad candidates,
+- reward better than strict Step 3 and not worse than Step 2 during protected release,
+- tail reward positive, ideally recovering part of the Step 2 `[256, 256]` tail gain.
 
 ### Why This Helps Distillation
 

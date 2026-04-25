@@ -12,6 +12,7 @@ from utils.helpers import (
 )
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
+from utils.mpc_acceptance_gate import run_mpc_acceptance_gate
 from utils.multiplier_mapping import map_centered_action_to_bounds, map_centered_bounds_to_action
 from utils.multiplier_release_schedule import (
     build_release_authority_schedule,
@@ -211,6 +212,11 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         n_steps=nFE,
     )
     release_store_executed_action = bool(release_schedule.get("store_executed_action_in_replay", True))
+    acceptance_cfg = dict(matrix_cfg.get("mpc_acceptance_fallback", {}))
+    acceptance_enabled = bool(acceptance_cfg.get("enabled", False))
+    acceptance_store_executed_action = bool(
+        acceptance_cfg.get("store_executed_action_in_replay", release_store_executed_action)
+    )
 
     ss_scaled_inputs = apply_min_max(steady_states["ss_inputs"], data_min[:n_inputs], data_max[:n_inputs])
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
@@ -227,7 +233,10 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     alpha_log = np.zeros(nFE)
     delta_log = np.zeros((nFE, n_inputs))
     policy_multiplier_log = np.zeros((nFE, action_dim))
+    candidate_multiplier_log = np.zeros((nFE, action_dim))
     executed_multiplier_log = np.zeros((nFE, action_dim))
+    candidate_action_raw_log = np.zeros((nFE, action_dim))
+    final_executed_action_raw_log = np.zeros((nFE, action_dim))
     release_effective_low_log = np.zeros((nFE, action_dim))
     release_effective_high_log = np.zeros((nFE, action_dim))
     release_phase_log = np.zeros(nFE, dtype=int)
@@ -236,6 +245,15 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     release_ramp_fraction_log = np.zeros(nFE)
     release_policy_action_raw_log = np.zeros((nFE, action_dim))
     release_executed_action_raw_log = np.zeros((nFE, action_dim))
+    acceptance_active_log = np.zeros(nFE, dtype=int)
+    acceptance_accepted_log = np.ones(nFE, dtype=int)
+    acceptance_fallback_active_log = np.zeros(nFE, dtype=int)
+    acceptance_reason_code_log = np.zeros(nFE, dtype=int)
+    acceptance_candidate_cost_on_nominal_log = np.full(nFE, np.nan)
+    acceptance_candidate_cost_native_log = np.full(nFE, np.nan)
+    acceptance_nominal_cost_log = np.full(nFE, np.nan)
+    acceptance_cost_margin_log = np.full(nFE, np.nan)
+    acceptance_threshold_log = np.full(nFE, np.nan)
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     innovation_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
@@ -244,6 +262,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
     A_model_delta_ratio_log = np.zeros(nFE)
     B_model_delta_ratio_log = np.zeros(nFE)
+    candidate_A_model_delta_ratio_log = np.zeros(nFE)
+    candidate_B_model_delta_ratio_log = np.zeros(nFE)
 
     A_base = np.asarray(mpc_obj.A, float).copy()
     B_base = np.asarray(mpc_obj.B, float).copy()
@@ -346,10 +366,11 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
         policy_mapped = _map_to_bounds(action, low_coef, high_coef)
         release_trace = clip_multipliers_to_release_bounds(policy_mapped, release_schedule, i)
-        executed_mapped = np.asarray(release_trace["multipliers"], float)
-        executed_action = map_effective_multipliers_to_raw_action(executed_mapped, low_coef, high_coef)
+        candidate_mapped = np.asarray(release_trace["multipliers"], float)
+        candidate_action = map_effective_multipliers_to_raw_action(candidate_mapped, low_coef, high_coef)
         policy_multiplier_log[i, :] = policy_mapped
-        executed_multiplier_log[i, :] = executed_mapped
+        candidate_multiplier_log[i, :] = candidate_mapped
+        candidate_action_raw_log[i, :] = candidate_action
         release_effective_low_log[i, :] = release_trace["low"]
         release_effective_high_log[i, :] = release_trace["high"]
         release_phase_log[i] = int(release_trace["phase_code"])
@@ -357,37 +378,34 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         release_clip_fraction_log[i] = float(release_trace["clip_fraction"])
         release_ramp_fraction_log[i] = float(release_trace["ramp_fraction"])
         release_policy_action_raw_log[i, :] = np.asarray(action, float).reshape(-1)
-        release_executed_action_raw_log[i, :] = executed_action
-        if phase1 is not None:
-            executed_action_raw_log[i, :] = executed_action
+        release_executed_action_raw_log[i, :] = candidate_action
 
-        alpha = float(np.ravel(executed_mapped[:1])[0])
-        delta = np.asarray(executed_mapped[-n_inputs:], float)
-        alpha_log[i] = alpha
-        delta_log[i, :] = delta
+        candidate_alpha = float(np.ravel(candidate_mapped[:1])[0])
+        candidate_delta = np.asarray(candidate_mapped[-n_inputs:], float)
 
         A_candidate = A_base.copy()
         B_candidate = B_base.copy()
-        A_candidate[:n_phys, :n_phys] *= alpha
-        B_candidate[:n_phys, :] *= delta.reshape(1, -1)
+        A_candidate[:n_phys, :n_phys] *= candidate_alpha
+        B_candidate[:n_phys, :] *= candidate_delta.reshape(1, -1)
 
-        A_model_delta_ratio_log[i] = _relative_fro(
+        candidate_A_model_delta_ratio_log[i] = _relative_fro(
             A_candidate[:n_phys, :n_phys],
             A_base[:n_phys, :n_phys],
         )
-        B_model_delta_ratio_log[i] = _relative_fro(
+        candidate_B_model_delta_ratio_log[i] = _relative_fro(
             B_candidate[:n_phys, :],
             B_base[:n_phys, :],
         )
 
-        if not (np.all(np.isfinite(A_candidate)) and np.all(np.isfinite(B_candidate))):
-            raise RuntimeError(f"Assisted matrix prediction model became non-finite at step {i}.")
-
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
-        mpc_obj.A = A_candidate
-        mpc_obj.B = B_candidate
-        sol = _solve_assisted_prediction_step(
+        acceptance_trace = run_mpc_acceptance_gate(
             mpc_obj=mpc_obj,
+            solve_fn=_solve_assisted_prediction_step,
+            acceptance_cfg=acceptance_cfg,
+            A_candidate=A_candidate,
+            B_candidate=B_candidate,
+            A_nominal=A_base,
+            B_nominal=B_base,
             y_sp=y_sp[i, :],
             u_prev_dev=scaled_current_input_dev,
             x0_model=xhatdhat[:, i],
@@ -395,6 +413,37 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
             bounds=original_bounds,
             step_idx=i,
         )
+        sol = acceptance_trace["sol"]
+        accepted_candidate = bool(acceptance_trace["accepted"])
+        if accepted_candidate:
+            executed_mapped = candidate_mapped.copy()
+            executed_action = candidate_action.copy()
+            A_executed = A_candidate
+            B_executed = B_candidate
+        else:
+            executed_mapped = np.ones(action_dim, dtype=float)
+            executed_action = matrix_baseline_raw.copy()
+            A_executed = A_base
+            B_executed = B_base
+        executed_multiplier_log[i, :] = executed_mapped
+        final_executed_action_raw_log[i, :] = executed_action
+        alpha = float(np.ravel(executed_mapped[:1])[0])
+        delta = np.asarray(executed_mapped[-n_inputs:], float)
+        alpha_log[i] = alpha
+        delta_log[i, :] = delta
+        A_model_delta_ratio_log[i] = _relative_fro(A_executed[:n_phys, :n_phys], A_base[:n_phys, :n_phys])
+        B_model_delta_ratio_log[i] = _relative_fro(B_executed[:n_phys, :], B_base[:n_phys, :])
+        acceptance_active_log[i] = int(acceptance_enabled)
+        acceptance_accepted_log[i] = int(accepted_candidate)
+        acceptance_fallback_active_log[i] = int(bool(acceptance_trace["fallback_active"]))
+        acceptance_reason_code_log[i] = int(acceptance_trace["reason_code"])
+        acceptance_candidate_cost_on_nominal_log[i] = float(acceptance_trace["candidate_cost_on_nominal"])
+        acceptance_candidate_cost_native_log[i] = float(acceptance_trace["candidate_cost_native"])
+        acceptance_nominal_cost_log[i] = float(acceptance_trace["nominal_cost"])
+        acceptance_cost_margin_log[i] = float(acceptance_trace["cost_margin"])
+        acceptance_threshold_log[i] = float(acceptance_trace["threshold"])
+        if phase1 is not None:
+            executed_action_raw_log[i, :] = executed_action
 
         if use_shifted_mpc_warm_start:
             ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
@@ -468,7 +517,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         )
 
         if not test:
-            replay_action = executed_action if release_store_executed_action else action
+            replay_action = executed_action if acceptance_store_executed_action else action
             agent.push(
                 current_rl_state,
                 np.asarray(replay_action, np.float32),
@@ -533,7 +582,10 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "alpha_log": alpha_log,
         "delta_log": delta_log,
         "policy_multiplier_log": policy_multiplier_log,
+        "candidate_multiplier_log": candidate_multiplier_log,
         "executed_multiplier_log": executed_multiplier_log,
+        "candidate_action_raw_log": candidate_action_raw_log,
+        "final_executed_action_raw_log": final_executed_action_raw_log,
         "release_schedule": release_schedule,
         "release_guard_enabled": bool(release_schedule.get("enabled", False)),
         "release_phase_log": release_phase_log,
@@ -545,8 +597,24 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "release_policy_action_raw_log": release_policy_action_raw_log,
         "release_executed_action_raw_log": release_executed_action_raw_log,
         "release_store_executed_action_in_replay": release_store_executed_action,
+        "mpc_acceptance_fallback": acceptance_cfg,
+        "mpc_acceptance_enabled": acceptance_enabled,
+        "mpc_acceptance_store_executed_action_in_replay": acceptance_store_executed_action,
+        "mpc_acceptance_active_log": acceptance_active_log,
+        "mpc_acceptance_accepted_log": acceptance_accepted_log,
+        "mpc_acceptance_fallback_active_log": acceptance_fallback_active_log,
+        "mpc_acceptance_reason_code_log": acceptance_reason_code_log,
+        "mpc_acceptance_candidate_cost_on_nominal_log": acceptance_candidate_cost_on_nominal_log,
+        "mpc_acceptance_candidate_cost_native_log": acceptance_candidate_cost_native_log,
+        "mpc_acceptance_nominal_cost_log": acceptance_nominal_cost_log,
+        "mpc_acceptance_cost_margin_log": acceptance_cost_margin_log,
+        "mpc_acceptance_threshold_log": acceptance_threshold_log,
         "A_model_delta_ratio_log": A_model_delta_ratio_log,
         "B_model_delta_ratio_log": B_model_delta_ratio_log,
+        "active_A_model_delta_ratio_log": A_model_delta_ratio_log,
+        "active_B_model_delta_ratio_log": B_model_delta_ratio_log,
+        "candidate_A_model_delta_ratio_log": candidate_A_model_delta_ratio_log,
+        "candidate_B_model_delta_ratio_log": candidate_B_model_delta_ratio_log,
         "low_coef": low_coef,
         "high_coef": high_coef,
         "test_train_dict": test_train_dict,

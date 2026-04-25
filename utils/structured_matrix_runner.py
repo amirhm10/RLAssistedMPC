@@ -12,6 +12,7 @@ from utils.helpers import (
 )
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
+from utils.mpc_acceptance_gate import run_mpc_acceptance_gate
 from utils.multiplier_release_schedule import (
     build_release_authority_schedule,
     clip_multipliers_to_release_bounds,
@@ -291,6 +292,11 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         n_steps=nFE,
     )
     release_store_executed_action = bool(release_schedule.get("store_executed_action_in_replay", True))
+    acceptance_cfg = dict(structured_cfg.get("mpc_acceptance_fallback", {}))
+    acceptance_enabled = bool(acceptance_cfg.get("enabled", False))
+    acceptance_store_executed_action = bool(
+        acceptance_cfg.get("store_executed_action_in_replay", release_store_executed_action)
+    )
 
     ss_scaled_inputs = apply_min_max(steady_states["ss_inputs"], data_min[:n_inputs], data_max[:n_inputs])
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
@@ -305,8 +311,10 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     delta_y_storage = np.zeros((nFE, n_outputs))
     delta_u_storage = np.zeros((nFE, n_inputs))
     raw_action_log = np.zeros((nFE, action_dim))
+    candidate_action_log = np.zeros((nFE, action_dim))
     effective_action_log = np.zeros((nFE, action_dim))
     mapped_multiplier_log = np.zeros((nFE, action_dim))
+    candidate_multiplier_log = np.zeros((nFE, action_dim))
     effective_multiplier_log = np.zeros((nFE, action_dim))
     release_effective_low_log = np.zeros((nFE, action_dim))
     release_effective_high_log = np.zeros((nFE, action_dim))
@@ -328,6 +336,15 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     near_bound_fraction_log = np.zeros(nFE)
     prediction_fallback_active_log = np.zeros(nFE, dtype=int)
     prediction_fallback_reason_log = np.zeros(nFE, dtype=int)
+    acceptance_active_log = np.zeros(nFE, dtype=int)
+    acceptance_accepted_log = np.ones(nFE, dtype=int)
+    acceptance_fallback_active_log = np.zeros(nFE, dtype=int)
+    acceptance_reason_code_log = np.zeros(nFE, dtype=int)
+    acceptance_candidate_cost_on_nominal_log = np.full(nFE, np.nan)
+    acceptance_candidate_cost_native_log = np.full(nFE, np.nan)
+    acceptance_nominal_cost_log = np.full(nFE, np.nan)
+    acceptance_cost_margin_log = np.full(nFE, np.nan)
+    acceptance_threshold_log = np.full(nFE, np.nan)
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     innovation_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
@@ -471,7 +488,9 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             structured_update_fallback_count += 1
 
         raw_action_log[i, :] = action
+        candidate_action_log[i, :] = effective_action_for_update
         mapped_multiplier_log[i, :] = mapped
+        candidate_multiplier_log[i, :] = effective_mapped_for_update
         theta_a_log[i, :] = mapped[:a_dim]
         theta_b_log[i, :] = mapped[a_dim:]
         candidate_A_fro_ratio_log[i] = float(update_payload["A_fro_ratio"])
@@ -496,7 +515,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         effective_mapped = effective_mapped_for_update.copy()
         prediction_fallback_reason = 0
 
-        if not (np.all(np.isfinite(A_candidate)) and np.all(np.isfinite(B_candidate))):
+        if (not acceptance_enabled) and not (np.all(np.isfinite(A_candidate)) and np.all(np.isfinite(B_candidate))):
             if not prediction_fallback_on_solve_failure:
                 raise RuntimeError(f"Assisted structured matrix prediction model became non-finite at step {i}.")
             prediction_payload = nominal_update_payload
@@ -507,11 +526,15 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             structured_prediction_fallback_count += 1
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
-        mpc_obj.A = np.asarray(prediction_payload["A_aug"], float)
-        mpc_obj.B = np.asarray(prediction_payload["B_aug"], float)
-        try:
-            sol = _solve_assisted_prediction_step(
+        if acceptance_enabled:
+            acceptance_trace = run_mpc_acceptance_gate(
                 mpc_obj=mpc_obj,
+                solve_fn=_solve_assisted_prediction_step,
+                acceptance_cfg=acceptance_cfg,
+                A_candidate=A_candidate,
+                B_candidate=B_candidate,
+                A_nominal=A_base,
+                B_nominal=B_base,
                 y_sp=y_sp[i, :],
                 u_prev_dev=scaled_current_input_dev,
                 x0_model=xhatdhat[:, i],
@@ -519,21 +542,28 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
                 bounds=original_bounds,
                 step_idx=i,
             )
-        except RuntimeError as exc:
-            if not prediction_fallback_on_solve_failure:
-                raise
-            if prediction_fallback_reason != 0:
-                raise RuntimeError(
-                    f"Assisted structured-matrix MPC solve failed at step {i} while already on nominal fallback: {exc}"
-                ) from exc
-            prediction_payload = nominal_update_payload
-            effective_action = structured_baseline_raw.copy()
-            effective_mapped = np.ones(action_dim, dtype=float)
+            sol = acceptance_trace["sol"]
+            if bool(acceptance_trace["accepted"]):
+                prediction_payload = update_payload
+                effective_action = effective_action_for_update.copy()
+                effective_mapped = effective_mapped_for_update.copy()
+            else:
+                prediction_payload = nominal_update_payload
+                effective_action = structured_baseline_raw.copy()
+                effective_mapped = np.ones(action_dim, dtype=float)
+        else:
+            acceptance_trace = {
+                "accepted": True,
+                "fallback_active": False,
+                "reason_code": 0,
+                "candidate_cost_on_nominal": np.nan,
+                "candidate_cost_native": np.nan,
+                "nominal_cost": np.nan,
+                "cost_margin": np.nan,
+                "threshold": np.nan,
+            }
             mpc_obj.A = np.asarray(prediction_payload["A_aug"], float)
             mpc_obj.B = np.asarray(prediction_payload["B_aug"], float)
-            prediction_fallback_active_log[i] = 1
-            prediction_fallback_reason = 2
-            structured_prediction_fallback_count += 1
             try:
                 sol = _solve_assisted_prediction_step(
                     mpc_obj=mpc_obj,
@@ -544,12 +574,37 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
                     bounds=original_bounds,
                     step_idx=i,
                 )
-            except RuntimeError as fallback_exc:
-                raise RuntimeError(
-                    f"Assisted structured-matrix MPC solve failed at step {i}; "
-                    f"nominal fallback also failed. Candidate error: {exc}. "
-                    f"Fallback error: {fallback_exc}"
-                ) from fallback_exc
+            except RuntimeError as exc:
+                if not prediction_fallback_on_solve_failure:
+                    raise
+                if prediction_fallback_reason != 0:
+                    raise RuntimeError(
+                        f"Assisted structured-matrix MPC solve failed at step {i} while already on nominal fallback: {exc}"
+                    ) from exc
+                prediction_payload = nominal_update_payload
+                effective_action = structured_baseline_raw.copy()
+                effective_mapped = np.ones(action_dim, dtype=float)
+                mpc_obj.A = np.asarray(prediction_payload["A_aug"], float)
+                mpc_obj.B = np.asarray(prediction_payload["B_aug"], float)
+                prediction_fallback_active_log[i] = 1
+                prediction_fallback_reason = 2
+                structured_prediction_fallback_count += 1
+                try:
+                    sol = _solve_assisted_prediction_step(
+                        mpc_obj=mpc_obj,
+                        y_sp=y_sp[i, :],
+                        u_prev_dev=scaled_current_input_dev,
+                        x0_model=xhatdhat[:, i],
+                        initial_guess=ic_opt_step,
+                        bounds=original_bounds,
+                        step_idx=i,
+                    )
+                except RuntimeError as fallback_exc:
+                    raise RuntimeError(
+                        f"Assisted structured-matrix MPC solve failed at step {i}; "
+                        f"nominal fallback also failed. Candidate error: {exc}. "
+                        f"Fallback error: {fallback_exc}"
+                    ) from fallback_exc
 
         effective_action_log[i, :] = effective_action
         if phase1 is not None:
@@ -573,6 +628,15 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         B_fro_ratio_log[i] = float(prediction_payload["B_fro_ratio"])
         spectral_radius_log[i] = float(prediction_payload["spectral_radius"]) if log_spectral_radius else np.nan
         prediction_fallback_reason_log[i] = int(prediction_fallback_reason)
+        acceptance_active_log[i] = int(acceptance_enabled)
+        acceptance_accepted_log[i] = int(bool(acceptance_trace["accepted"]))
+        acceptance_fallback_active_log[i] = int(bool(acceptance_trace["fallback_active"]))
+        acceptance_reason_code_log[i] = int(acceptance_trace["reason_code"])
+        acceptance_candidate_cost_on_nominal_log[i] = float(acceptance_trace["candidate_cost_on_nominal"])
+        acceptance_candidate_cost_native_log[i] = float(acceptance_trace["candidate_cost_native"])
+        acceptance_nominal_cost_log[i] = float(acceptance_trace["nominal_cost"])
+        acceptance_cost_margin_log[i] = float(acceptance_trace["cost_margin"])
+        acceptance_threshold_log[i] = float(acceptance_trace["threshold"])
 
         if use_shifted_mpc_warm_start:
             ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
@@ -645,7 +709,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         )
 
         if not test:
-            replay_action = effective_action if release_store_executed_action else action
+            replay_action = effective_action if acceptance_store_executed_action else action
             agent.push(
                 current_rl_state,
                 np.asarray(replay_action, np.float32),
@@ -770,8 +834,10 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "block_cfg": structured_spec["block_cfg"],
         "band_cfg": structured_spec["band_cfg"],
         "raw_action_log": raw_action_log,
+        "candidate_action_log": candidate_action_log,
         "effective_action_log": effective_action_log,
         "mapped_multiplier_log": mapped_multiplier_log,
+        "candidate_multiplier_log": candidate_multiplier_log,
         "effective_multiplier_log": effective_multiplier_log,
         "release_schedule": release_schedule,
         "release_guard_enabled": bool(release_schedule.get("enabled", False)),
@@ -782,6 +848,18 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "release_effective_low_log": release_effective_low_log,
         "release_effective_high_log": release_effective_high_log,
         "release_store_executed_action_in_replay": release_store_executed_action,
+        "mpc_acceptance_fallback": acceptance_cfg,
+        "mpc_acceptance_enabled": acceptance_enabled,
+        "mpc_acceptance_store_executed_action_in_replay": acceptance_store_executed_action,
+        "mpc_acceptance_active_log": acceptance_active_log,
+        "mpc_acceptance_accepted_log": acceptance_accepted_log,
+        "mpc_acceptance_fallback_active_log": acceptance_fallback_active_log,
+        "mpc_acceptance_reason_code_log": acceptance_reason_code_log,
+        "mpc_acceptance_candidate_cost_on_nominal_log": acceptance_candidate_cost_on_nominal_log,
+        "mpc_acceptance_candidate_cost_native_log": acceptance_candidate_cost_native_log,
+        "mpc_acceptance_nominal_cost_log": acceptance_nominal_cost_log,
+        "mpc_acceptance_cost_margin_log": acceptance_cost_margin_log,
+        "mpc_acceptance_threshold_log": acceptance_threshold_log,
         "theta_a_log": theta_a_log,
         "theta_b_log": theta_b_log,
         "effective_theta_a_log": effective_theta_a_log,

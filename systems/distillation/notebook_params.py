@@ -86,6 +86,17 @@ def _copy_release_protected_advisory_cap_defaults(enabled=False):
     }
 
 
+def _copy_mpc_acceptance_fallback_defaults(enabled=False):
+    return {
+        "enabled": bool(enabled),
+        "relative_tolerance": 0.0,
+        "absolute_tolerance": 1e-8,
+        "fallback_on_candidate_solve_failure": True,
+        "store_executed_action_in_replay": True,
+        "log_policy_candidate_and_executed": True,
+    }
+
+
 def _copy_mismatch_defaults():
     return {
         "mismatch_clip": 3.0,
@@ -393,6 +404,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
         },
         "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
         "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=False),
+        "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 0.0,
@@ -489,6 +501,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "b_high_override": DISTILLATION_DEFAULT_MULTIPLIER_HIGH,  # Keep B-side wide for gain-authority studies.
         "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
         "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=False),
+        "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         "prediction_fallback_on_solve_failure": True,  # Use the shared structured-runner fallback instead of stopping on an assisted MPC solve failure.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition.

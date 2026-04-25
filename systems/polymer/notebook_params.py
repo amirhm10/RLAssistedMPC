@@ -71,6 +71,17 @@ def _copy_release_protected_advisory_cap_defaults(enabled=False):
     }
 
 
+def _copy_mpc_acceptance_fallback_defaults(enabled=False):
+    return {
+        "enabled": bool(enabled),
+        "relative_tolerance": 0.0,
+        "absolute_tolerance": 1e-8,
+        "fallback_on_candidate_solve_failure": True,
+        "store_executed_action_in_replay": True,
+        "log_policy_candidate_and_executed": True,
+    }
+
+
 def _copy_mismatch_defaults():
     return {
         "mismatch_clip": 3.0,
@@ -458,6 +469,7 @@ POLYMER_MATRIX_DEFAULTS = {
         "high_coef": _polymer_matrix_multiplier_bounds()[1],
         "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
         "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
+        "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=True),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
@@ -556,6 +568,7 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
         "b_high_override": POLYMER_DEFAULT_MULTIPLIER_HIGH,  # Allow wider B-side uncertainty than A-side.
         "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
         "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
+        "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=True),
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition, e.g. [[0, 1], [2, 3], [4, 5, 6]].
         "band_offsets": [0, 1, 2],  # Non-negative offsets used in band mode. Must include 0.

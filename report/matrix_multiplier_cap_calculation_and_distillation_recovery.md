@@ -719,6 +719,8 @@ It also uses the latest distillation runs from 2026-04-25:
 - Distillation matrix RL bundle: `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260425_082831/input_data.pkl`
 - Distillation matrix comparison bundle: `Distillation/Results/distillation_compare_matrix_td3_disturb_fluctuation_mismatch/20260425_082842/input_data.pkl`
 
+Correction/provenance note: the latest distillation matrix run is **not** a Step 2 or Step 3 run. The saved result has no `release_guard_enabled` or `mpc_acceptance_enabled` logs. It is the pre-protection distillation matrix run that used tight `A` bounds, wide `B` bounds, and the user-reported low TD3 exploration and target policy smoothing noise of `0.01`. Therefore the severe matrix degradation below should not be interpreted as a failure of Step 2 or Step 3 on distillation. It is the reason we should not transfer matrix authority to distillation without release protection and better diagnostics.
+
 The Step 3B tolerance did change the gate behavior, but it did **not** improve polymer performance. The result can look MPC-like in the plots because the tail is close to MPC and fallback is still frequent. However, unlike strict Step 3, Step 3B did allow many live candidates through. The issue is not "no authority" anymore. The issue is that many accepted candidates are not plant-useful.
 
 <img src="./figures/matrix_multiplier_latest_cross_system_20260425/polymer_step3b_reward_delta_comparison.png" alt="Polymer Step 3B reward delta comparison" width="1200" style="max-width: 100%; height: auto;" />
@@ -884,6 +886,86 @@ For residual, the next fix should be projection-aware rather than simply widenin
 | Add a tail monitor: if authority projection stays above `70%` for a window, freeze residual authority or fall back to MPC residual zero for that window. | Prevent late drift from damaging the run after a good mid-window recovery. |
 
 The immediate conclusion for distillation residual is: keep `rho` authority, but do not treat high projection as harmless. Persistent projection is now a diagnostic signal that the residual policy is outside the useful action envelope.
+
+#### Reward Sensitivity: Are The Distillation Runs Still Good Enough?
+
+The current reward is not the only possible judgment of "good enough." To test whether the latest residual and matrix runs are intrinsically bad or mainly bad under the current shaped reward, I re-scored the saved trajectories under 10 reward candidates. The trajectories are fixed; only the reward calculation changes. The MPC reference trajectory is the canonical distillation fluctuation baseline in `Distillation/Data/mpc_results_disturb_fluctuation.pickle`.
+
+The pure quadratic candidate is:
+
+$$ r_t^{\mathrm{quad}} = -e_t^\top Q e_t - \Delta u_t^\top R \Delta u_t. $$
+
+The 10 reward candidates are:
+
+| Candidate | Definition |
+|---|---|
+| Current bonus | Current distillation reward: relative tracking bands, linear inside/outside terms, and bonus `beta = 7`. |
+| Pure quad Q/R | Pure quadratic with current `Q = [3.7e4, 1.5e3]` and `R = [2.5e3, 2.5e3]`. |
+| Pure quad output only | Pure quadratic with current `Q`, but `R = 0`. |
+| No bonus | Current reward shape with `beta = 0`. |
+| Low bonus | Current reward shape with `beta = 3`. |
+| High bonus | Current reward shape with `beta = 12`. |
+| Half x24 Q | Current reward shape with x24 composition weight halved to `1.85e4`. |
+| Double x24 Q | Current reward shape with x24 composition weight doubled to `7.4e4`. |
+| Low move R | Current reward shape with input-move penalty reduced to `R = [250, 250]`. |
+| High move R | Current reward shape with input-move penalty increased to `R = [1.25e4, 1.25e4]`. |
+
+The normalized reward delta below is `RL - MPC`, divided by the mean absolute MPC reward under the same candidate. Positive means the RL run scores better than MPC under that reward definition.
+
+<img src="./figures/distillation_reward_sensitivity_20260425/distillation_reward_candidate_full_tail_delta.png" alt="Distillation reward sensitivity full and tail deltas" width="1200" style="max-width: 100%; height: auto;" />
+
+| Reward candidate | Residual full | Residual tail | Matrix full | Matrix tail |
+|---|---:|---:|---:|---:|
+| Current bonus | -0.104 | -0.160 | -0.647 | -0.170 |
+| Pure quad Q/R | +0.087 | +0.018 | -2.542 | -0.685 |
+| Pure quad output only | +0.140 | +0.069 | -1.399 | +0.121 |
+| No bonus | +0.061 | -0.014 | -2.026 | -0.490 |
+| Low bonus | -0.120 | -0.224 | -1.624 | -0.411 |
+| High bonus | -0.101 | -0.147 | -0.441 | -0.119 |
+| Half x24 Q | -0.100 | -0.164 | -0.990 | -0.353 |
+| Double x24 Q | -0.106 | -0.158 | -0.471 | -0.076 |
+| Low move R | -0.098 | -0.151 | -0.437 | -0.061 |
+| High move R | -0.136 | -0.209 | -1.747 | -0.743 |
+
+<img src="./figures/distillation_reward_sensitivity_20260425/residual_reward_window_heatmap.png" alt="Residual reward sensitivity heatmap" width="1200" style="max-width: 100%; height: auto;" />
+
+<img src="./figures/distillation_reward_sensitivity_20260425/matrix_pre_step_reward_window_heatmap.png" alt="Matrix reward sensitivity heatmap" width="1200" style="max-width: 100%; height: auto;" />
+
+This changes the interpretation:
+
+- The residual run is **not universally bad**. Under pure quadratic scoring and no-bonus scoring, it can be better than MPC over the full run. That means residual control is producing useful physical behavior in some dimensions, especially temperature and reduced movement.
+- The current shaped reward judges the residual run harshly because the tail loses x24 composition accuracy and loses reward bonus/inside-band score.
+- The matrix run is **not good enough over the full run** under any of the 10 reward candidates. The release and early windows are too poor.
+- The matrix tail is not useless: under pure output-only quadratic scoring, matrix tail becomes positive because tail x24 composition tracking is better than MPC. But that comes with worse T85 tracking and much larger input movement, so it is a tradeoff, not a successful controller.
+
+The physical metrics make this clearer:
+
+<img src="./figures/distillation_reward_sensitivity_20260425/distillation_physical_good_enough_metrics.png" alt="Distillation physical good-enough metrics" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Window | x24 MAE difference | T85 MAE difference | Reflux move difference | Reboiler move difference |
+|---|---|---:|---:|---:|---:|
+| Residual | Full | +0.000193 | -0.0201 | -2.13 | -0.00370 |
+| Residual | Tail | +0.000440 | -0.0227 | -6.28 | -0.00316 |
+| Matrix pre-step | Full | +0.000288 | +0.1772 | +184.63 | +0.23228 |
+| Matrix pre-step | Tail | -0.000445 | +0.0596 | +158.53 | +0.17005 |
+
+For residual, the tradeoff is plausible: it improves T85 and uses less input movement, but it worsens x24 composition enough that the current bonus-based reward rejects it. This suggests the residual method may be closer to useful than the current reward delta suggests.
+
+For matrix, the tradeoff is less acceptable: the tail composition improvement is real, but the full-run release damage, worse temperature tracking, and much larger input movement mean it is not ready. The matrix run is a useful diagnostic, not a deployable policy.
+
+The reward-sensitivity conclusion is:
+
+| Method | Is it "good enough" under some reasonable reward? | Practical decision |
+|---|---|---|
+| Residual | Maybe. Pure quadratic and no-bonus rewards show useful behavior, but current reward exposes tail composition loss. | Keep investigating; add projection-aware learning and reconsider reward bonus strength. |
+| Matrix pre-step low-noise | Not over the full run. Only the tail composition result is promising under output-only scoring. | Do not transfer as-is; use Step 2 release protection and Step 3C shadow diagnostics before any distillation matrix rerun. |
+
+This also means the current distillation reward may be too bonus-sensitive for residual analysis. It is doing something useful: it catches the late x24 loss. But it can hide useful temperature/input improvements. For the next residual analysis, report both:
+
+- current shaped reward, and
+- pure quadratic output/input reward.
+
+That will separate "the controller is physically worse" from "the controller violates the current bonus-shaped preference."
 
 #### What To Do Next
 

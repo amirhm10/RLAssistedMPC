@@ -74,7 +74,9 @@ def _copy_release_protected_advisory_cap_defaults(enabled=False):
 def _copy_mpc_acceptance_fallback_defaults(enabled=False):
     return {
         "enabled": bool(enabled),
-        "relative_tolerance": 0.0,
+        # Step 3B: use the nominal MPC objective as a small trust-region budget.
+        # Strict 0.0 tolerance rejected almost every live candidate and reproduced MPC.
+        "relative_tolerance": 1e-4 if enabled else 0.0,
         "absolute_tolerance": 1e-8,
         "fallback_on_candidate_solve_failure": True,
         "store_executed_action_in_replay": True,

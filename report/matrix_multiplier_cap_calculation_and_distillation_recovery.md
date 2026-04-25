@@ -26,7 +26,7 @@ This report is now an ongoing working document. The current implementation seque
 | Step 2 scalar polymer result | Polymer scalar matrix TD3 disturbance | Updated from first Step 2 run and `[256, 256]` follow-up | Reward windows, policy-versus-executed multiplier table, release clip statistics | Keep Step 2; Step 3 run is now the next evidence source |
 | Step 2 structured polymer result | Polymer structured matrix TD3 disturbance | Updated from first Step 2 run and `[256, 256]` follow-up | Same result summary, with per-coordinate structured multipliers | Keep Step 2; Step 3 should test whether bad candidates can be rejected |
 | Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until Step 3 polymer results are reviewed |
-| Step 3: acceptance or fallback layer | Polymer first, then distillation | Strict-gate polymer result reviewed | Acceptance/fallback logs, cost-margin distributions, tolerance replay curve | Replace strict no-worse gate with a small nominal-cost trust-region tolerance |
+| Step 3B: tolerant acceptance or fallback layer | Polymer first, then distillation | Implemented for polymer defaults; distillation still disabled | Acceptance/fallback logs, cost-margin distributions, tolerance replay curve | Run polymer matrix and structured trials with `relative_tolerance = 1e-4` |
 | Step 4: release stabilization | Distillation priority | Reserved | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
 | Step 5: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
 
@@ -699,6 +699,8 @@ The target behavior for Step 3B is not `100%` acceptance. A good first target is
 - fallback still active on high-margin bad candidates,
 - reward better than strict Step 3 and not worse than Step 2 during protected release,
 - tail reward positive, ideally recovering part of the Step 2 `[256, 256]` tail gain.
+
+Implementation update: polymer matrix and structured-matrix defaults now use `relative_tolerance = 1e-4` for `mpc_acceptance_fallback`. Distillation matrix and structured-matrix defaults remain disabled. To run Step 3B, restart or rerun the polymer notebook parameter/config cells so `CTRL["mpc_acceptance_fallback"]` is reloaded from `systems/polymer/notebook_params.py`.
 
 ### Why This Helps Distillation
 

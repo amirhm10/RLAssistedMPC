@@ -26,7 +26,8 @@ This report is now an ongoing working document. The current implementation seque
 | Step 2 scalar polymer result | Polymer scalar matrix TD3 disturbance | Updated from first Step 2 run and `[256, 256]` follow-up | Reward windows, policy-versus-executed multiplier table, release clip statistics | Keep Step 2; Step 3 run is now the next evidence source |
 | Step 2 structured polymer result | Polymer structured matrix TD3 disturbance | Updated from first Step 2 run and `[256, 256]` follow-up | Same result summary, with per-coordinate structured multipliers | Keep Step 2; Step 3 should test whether bad candidates can be rejected |
 | Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until Step 3 polymer results are reviewed |
-| Step 3B: tolerant acceptance or fallback layer | Polymer first, then distillation | Implemented for polymer defaults; distillation still disabled | Acceptance/fallback logs, cost-margin distributions, tolerance replay curve | Run polymer matrix and structured trials with `relative_tolerance = 1e-4` |
+| Step 3B: tolerant acceptance or fallback layer | Polymer first, then distillation | Polymer result reviewed; not sufficient | Acceptance/fallback logs, cost-margin distributions, tolerance replay curve | Do not increase tolerance blindly; move to Step 3C shadow/benefit diagnostics |
+| Step 3C: dual-cost benefit diagnostics | Polymer first, then distillation | Proposed from latest results | Nominal safety penalty plus candidate-model advantage logs | Implement as shadow-only before using it for fallback |
 | Step 4: release stabilization | Distillation priority | Reserved | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
 | Step 5: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
 
@@ -701,6 +702,147 @@ The target behavior for Step 3B is not `100%` acceptance. A good first target is
 - tail reward positive, ideally recovering part of the Step 2 `[256, 256]` tail gain.
 
 Implementation update: polymer matrix and structured-matrix defaults now use `relative_tolerance = 1e-4` for `mpc_acceptance_fallback`. Distillation matrix and structured-matrix defaults remain disabled. To run Step 3B, restart or rerun the polymer notebook parameter/config cells so `CTRL["mpc_acceptance_fallback"]` is reloaded from `systems/polymer/notebook_params.py`.
+
+#### Step 3B Polymer Result And Latest Distillation Context
+
+This update uses the latest polymer Step 3B runs from 2026-04-25:
+
+- Scalar matrix RL bundle: `Polymer/Results/td3_multipliers_disturb/20260425_005143/input_data.pkl`
+- Scalar matrix comparison bundle: `Polymer/Results/disturb_compare_td3_multipliers/20260425_005156/input_data.pkl`
+- Structured matrix RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260425_005309/input_data.pkl`
+- Structured matrix comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260425_005324/input_data.pkl`
+
+It also uses the latest distillation runs from 2026-04-25:
+
+- Distillation residual RL bundle: `Distillation/Results/distillation_residual_td3_disturb_fluctuation_mismatch_rho_unified/20260425_082259/input_data.pkl`
+- Distillation residual comparison bundle: `Distillation/Results/distillation_compare_residual_td3_disturb_fluctuation/20260425_082310/input_data.pkl`
+- Distillation matrix RL bundle: `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260425_082831/input_data.pkl`
+- Distillation matrix comparison bundle: `Distillation/Results/distillation_compare_matrix_td3_disturb_fluctuation_mismatch/20260425_082842/input_data.pkl`
+
+The Step 3B tolerance did change the gate behavior, but it did **not** improve polymer performance. The result can look MPC-like in the plots because the tail is close to MPC and fallback is still frequent. However, unlike strict Step 3, Step 3B did allow many live candidates through. The issue is not "no authority" anymore. The issue is that many accepted candidates are not plant-useful.
+
+<img src="./figures/matrix_multiplier_latest_cross_system_20260425/polymer_step3b_reward_delta_comparison.png" alt="Polymer Step 3B reward delta comparison" width="1200" style="max-width: 100%; height: auto;" />
+
+| Polymer method | Window | Step 2 `[256, 256]` delta | Step 3 strict delta | Step 3B tolerant delta |
+|---|---|---:|---:|---:|
+| Scalar matrix | 16-30 release | +0.0204 | -0.000015 | -0.1976 |
+| Scalar matrix | 31-60 ramp/early | -0.0209 | +0.000045 | -0.1202 |
+| Scalar matrix | 61-100 mid | +0.3021 | +0.000004 | -0.0919 |
+| Scalar matrix | 101-200 tail | +0.6366 | +0.000021 | +0.0088 |
+| Scalar matrix | 1-200 full | +0.3771 | +0.000015 | -0.0468 |
+| Structured matrix | 16-30 release | -0.4180 | +0.000039 | -0.0825 |
+| Structured matrix | 31-60 ramp/early | +0.0794 | +0.000056 | +0.0727 |
+| Structured matrix | 61-100 mid | +0.4880 | -0.000015 | +0.1565 |
+| Structured matrix | 101-200 tail | +0.7414 | -0.000008 | -0.0003 |
+| Structured matrix | 1-200 full | +0.4489 | +0.000002 | +0.0359 |
+
+Step 3B solved the strict-gate problem mechanically: it raised live acceptance into the range we expected. But the reward result shows that live acceptance alone is not the objective.
+
+<img src="./figures/matrix_multiplier_latest_cross_system_20260425/polymer_step3b_gate_acceptance.png" alt="Polymer Step 3B gate acceptance" width="1200" style="max-width: 100%; height: auto;" />
+
+| Polymer method | Window | Accepted | Fallback | Median cost margin | 90th percentile relative margin |
+|---|---|---:|---:|---:|---:|
+| Scalar matrix | 16-30 release | 48.54% | 51.46% | 0.00000618 | 4.224% |
+| Scalar matrix | 31-60 ramp/early | 51.42% | 48.58% | 0.00000761 | 0.899% |
+| Scalar matrix | 61-100 mid | 48.69% | 51.31% | 0.00000925 | 2.297% |
+| Scalar matrix | 101-200 tail | 44.27% | 55.73% | 0.00000784 | 1.864% |
+| Structured matrix | 16-30 release | 43.68% | 56.32% | 0.00000939 | 12.010% |
+| Structured matrix | 31-60 ramp/early | 29.48% | 70.52% | 0.00001506 | 56.552% |
+| Structured matrix | 61-100 mid | 26.33% | 73.67% | 0.00002460 | 5.725% |
+| Structured matrix | 101-200 tail | 31.35% | 68.65% | 0.00003351 | 13.001% |
+
+The lesson is important: **nominal-cost closeness is a safety filter, not a performance filter**. A candidate can stay close enough to nominal MPC under the nominal objective and still be worse on the nonlinear plant. That is exactly what happened in the scalar Step 3B run. The structured run improved relative to strict Step 3, but it still lost most of the Step 2-only tail benefit.
+
+The latest distillation runs make the same point more strongly.
+
+<img src="./figures/matrix_multiplier_latest_cross_system_20260425/distillation_latest_reward_delta.png" alt="Latest distillation reward delta comparison" width="900" style="max-width: 100%; height: auto;" />
+
+| Distillation method | Window | Mean reward delta | Win rate | Interpretation |
+|---|---|---:|---:|---|
+| Residual TD3 | 16-30 release | -4.3296 | 0.0% | Release is bad, but not catastrophic. |
+| Residual TD3 | 31-60 early | -0.9111 | 3.3% | Recovers partially. |
+| Residual TD3 | 61-100 mid | +0.1669 | 62.5% | Briefly beats MPC. |
+| Residual TD3 | 101-200 tail | -2.8401 | 23.0% | Degrades again late. |
+| Residual TD3 | 1-200 full | -1.8480 | 28.0% | Safer than matrix, but still not acceptable. |
+| Matrix TD3 before steps | 16-30 release | -79.0156 | 0.0% | Severe release crash. |
+| Matrix TD3 before steps | 31-60 early | -16.1642 | 0.0% | Recovery begins but remains far below MPC. |
+| Matrix TD3 before steps | 61-100 mid | -8.0946 | 0.0% | Still much worse than MPC. |
+| Matrix TD3 before steps | 101-200 tail | -3.0208 | 5.0% | Tail recovers but still loses. |
+| Matrix TD3 before steps | 1-200 full | -11.4801 | 5.5% | Not transferable without protection. |
+
+<img src="./figures/matrix_multiplier_latest_cross_system_20260425/distillation_latest_diagnostics.png" alt="Latest distillation authority diagnostics" width="1200" style="max-width: 100%; height: auto;" />
+
+The residual run is safer because the `rho` authority layer strongly reduces the executed residual move:
+
+| Residual diagnostic | Full-run mean | Live episodes 16-200 | Tail episodes 101-200 |
+|---|---:|---:|---:|
+| `projection_due_to_authority_log` | 67.56% | 73.03% | 74.86% |
+| `rho_eff_log` | 0.5239 | 0.5285 | 0.5533 |
+| `rho_log` | 0.4049 | 0.4106 | 0.4416 |
+
+The actor is often asking for larger residual authority than the safety layer allows. In the tail, the raw residual action tends toward negative residual on input 1 and positive residual on input 2, but the executed residual is much smaller:
+
+| Residual signal, tail 101-200 | Input 1 mean | Input 2 mean |
+|---|---:|---:|
+| Raw residual action | -0.4090 | +0.7933 |
+| Executed residual action | -0.0178 | +0.0123 |
+| Raw residual input correction | -0.0204 | +0.0397 |
+| Executed residual input correction | -0.00089 | +0.00062 |
+
+So residual authority is doing its safety job, but the method still does not learn a durable performance improvement. It briefly helps in episodes 61-100, then becomes worse again.
+
+The matrix run is more alarming because it crashes even though `A` was already tight:
+
+| Distillation matrix multiplier bounds | Low | High |
+|---|---:|---:|
+| `alpha` | 0.99 | 1.01 |
+| `B_col_1` | 0.75 | 1.25 |
+| `B_col_2` | 0.75 | 1.25 |
+
+The latest matrix run has almost no raw action saturation (`action_saturation_trace` mean about `0.0003`). Therefore the failure is not simply "the policy hits the raw action boundary." Distillation is sensitive enough that moderate `B` movement inside the allowed range can still produce a very poor MPC decision. This matches the earlier user observation: tight `A`, wide `B`, and low exploration noise still degraded heavily.
+
+#### What To Do Next
+
+The next improvement should not be "increase Step 3B tolerance." The scalar polymer run already shows that allowing more candidates can make performance worse. The next improvement should separate three concepts:
+
+| Layer | Current behavior | Problem | Next change |
+|---|---|---|---|
+| Step 2 release guard | Clips multiplier authority during release | Useful; should stay | Keep enabled for matrix and structured polymer. |
+| Step 3 nominal trust region | Accepts candidates close to nominal cost | Safety-only; not enough for performance | Convert to shadow logging or add a benefit test. |
+| Performance acceptance | Not implemented | Candidate may be safe-ish but not useful | Add a candidate-benefit test before fallback is allowed to shape training. |
+
+The most useful next version is Step 3C: a **dual-cost shadow gate**. It should log two quantities before we use it for fallback:
+
+| Quantity | Meaning |
+|---|---|
+| `nominal_penalty = J(U_t^{cand}; A_0,B_0) - J(U_t^{nom}; A_0,B_0)` | How much safety budget the candidate consumes under the nominal model. |
+| `candidate_advantage = J(U_t^{nom}; A_t^{cand},B_t^{cand}) - J(U_t^{cand}; A_t^{cand},B_t^{cand})` | Whether the candidate model predicts a meaningful benefit over the nominal input sequence. |
+
+The candidate should only execute when it is both safe enough and useful enough:
+
+$$ \mathrm{nominal\_penalty}_t \leq \epsilon_{\mathrm{safe}}. $$
+
+$$ \mathrm{candidate\_advantage}_t \geq \epsilon_{\mathrm{benefit}}. $$
+
+For the next polymer experiment, I would **not** keep Step 3B active as a hard fallback during training. The evidence says:
+
+- Step 2-only is still the best polymer result so far.
+- Strict Step 3 reproduced MPC.
+- Tolerant Step 3B allowed authority but damaged scalar learning and removed most structured tail benefit.
+
+Recommended next configuration for polymer:
+
+| Setting | Recommended value |
+|---|---|
+| Step 1 diagnostic | on |
+| Step 2 release guard | on |
+| Step 3 fallback | off or shadow-only |
+| Step 3C dual-cost logging | on |
+| Distillation Step 2/3 | keep disabled until Step 3C is understood |
+
+For distillation matrix, the latest pre-step run says Step 2-style release protection is necessary before any transfer. But the polymer Step 3B result says we should not transfer a simple nominal-cost fallback gate. Distillation should receive Step 2 release protection plus Step 3C shadow diagnostics first, not Step 3B hard fallback.
+
+For distillation residual, the next question is different. Residual is already authority-limited by `rho`, but its tail still loses. That suggests a residual-specific improvement: use the `rho`/projection logs to decide when the residual policy is being mostly clipped and should stop training on its raw requested correction. In other words, residual may need executed-action replay plus a penalty for persistent authority projection, not a matrix-style multiplier cap.
 
 ### Why This Helps Distillation
 

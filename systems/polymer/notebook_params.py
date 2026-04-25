@@ -323,7 +323,7 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
         "ha_change": 0.85,
     },
     "agent": {
-        "hidden_layers": [512, 512, 512, 512, 512],
+        "hidden_layers": [256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,  # Positive integer. Keep 1 for the baseline; common research values are 3 or decision_interval.
@@ -402,7 +402,7 @@ POLYMER_HORIZON_DUELING_DEFAULTS = {
     },
     "agent": {
         "seed": 7,
-        "hidden_layers": [512, 512, 512, 512, 512],
+        "hidden_layers": [256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,
@@ -468,8 +468,8 @@ POLYMER_MATRIX_DEFAULTS = {
         "ha_change": 0.85,
     },
     "td3_agent": {
-        "actor_hidden": [512, 512, 512],
-        "critic_hidden": [512, 512, 512],
+        "actor_hidden": [256, 256],
+        "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. Typical TD3 ablations use 1, 3, or 5.
@@ -493,8 +493,8 @@ POLYMER_MATRIX_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "sac_agent": {
-        "actor_hidden": [512, 512, 512],
-        "critic_hidden": [512, 512, 512],
+        "actor_hidden": [256, 256],
+        "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. SAC often benefits from 3-step returns in this repo.
@@ -706,8 +706,8 @@ POLYMER_WEIGHT_DEFAULTS = {
         "ha_change": 0.85,
     },
     "td3_agent": {
-        "actor_hidden": [512, 512, 512, 512, 512],
-        "critic_hidden": [512, 512, 512, 512, 512],
+        "actor_hidden": [256, 256],
+        "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
@@ -731,8 +731,8 @@ POLYMER_WEIGHT_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "sac_agent": {
-        "actor_hidden": [512, 512, 512, 512, 512],
-        "critic_hidden": [512, 512, 512, 512, 512],
+        "actor_hidden": [256, 256],
+        "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
@@ -798,8 +798,8 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "ha_change": 0.85,
     },
     "td3_agent": {
-        "actor_hidden": [512, 512, 512],
-        "critic_hidden": [512, 512, 512],
+        "actor_hidden": [256, 256],
+        "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
@@ -823,8 +823,8 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "sac_agent": {
-        "actor_hidden": [512, 512, 512],
-        "critic_hidden": [512, 512, 512],
+        "actor_hidden": [256, 256],
+        "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
@@ -907,7 +907,7 @@ POLYMER_COMBINED_DEFAULTS = {
         "ha_change": 0.85,
     },
     "horizon_agent": {
-        "hidden_layers": [512, 512, 512, 512, 512],
+        "hidden_layers": [256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,
@@ -930,8 +930,8 @@ POLYMER_COMBINED_DEFAULTS = {
         "eps_decay_mode": "exp",
     },
     "td3_agent": {
-        "actor_hidden": [512, 512, 512],
-        "critic_hidden": [512, 512, 512],
+        "actor_hidden": [256, 256],
+        "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
@@ -953,8 +953,8 @@ POLYMER_COMBINED_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "sac_agent": {
-        "actor_hidden": [512, 512, 512],
-        "critic_hidden": [512, 512, 512],
+        "actor_hidden": [256, 256],
+        "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,

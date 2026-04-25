@@ -410,6 +410,57 @@ The saved runner bundle does not record the actor/critic hidden-layer sizes, so 
 
 For distillation, this result supports Step 2 conceptually, but I would still keep distillation disabled until the smaller-network polymer rerun is reviewed. Distillation has a stronger history of recovering without beating MPC, so it likely needs Step 2 plus Step 3 acceptance/fallback rather than Step 2 alone.
 
+### Step 3 Preview: Acceptance Or Fallback Gate
+
+Step 2 answers: "Is the requested multiplier inside a release-safe authority box?" Step 3 would answer a different question: "Even if the multiplier is inside the allowed box, does this candidate prediction model look better than nominal MPC for the current decision?"
+
+That distinction matters. A candidate can be stable, inside the cap, and solvable by MPC, but still produce a worse control move than the nominal model. This is especially likely in distillation because the user-reported run recovered after release but still did not beat MPC. That means the problem is not only release shock; it may be that many accepted model multipliers are **not performance-improving** for the current state and setpoint.
+
+The Step 3 gate would compare the RL-assisted candidate against the nominal MPC model before executing the plant move:
+
+$$ J_t^{\mathrm{cand}} = J(U_t^{\mathrm{cand}}; A_t^{\mathrm{exec}}, B_t^{\mathrm{exec}}, x_t, y_t^{\mathrm{sp}}). $$
+
+$$ J_t^{\mathrm{nom}} = J(U_t^{\mathrm{nom}}; A_0, B_0, x_t, y_t^{\mathrm{sp}}). $$
+
+Then use a simple acceptance rule:
+
+$$ \mathrm{accept}_t = \mathbf{1}\{J_t^{\mathrm{cand}} \leq (1+\epsilon_J)J_t^{\mathrm{nom}} + \epsilon_{\mathrm{abs}}\}. $$
+
+If `accept_t = 1`, execute the RL-assisted MPC candidate. If `accept_t = 0`, execute nominal MPC for that step and log the rejected policy request.
+
+Algorithmically:
+
+| Step | Action |
+|---:|---|
+| 1 | Actor proposes raw action `a_policy`. |
+| 2 | Step 2 clips it to executable multipliers `theta_exec`. |
+| 3 | Build candidate model `(A_exec, B_exec)`. |
+| 4 | Solve candidate MPC and nominal MPC from the same state. |
+| 5 | Reject candidate if the solve fails, the model is invalid, or candidate cost is worse than nominal by more than tolerance. |
+| 6 | Execute candidate move if accepted; otherwise execute nominal MPC move. |
+| 7 | Store the actually executed raw action in replay and log the requested action separately. |
+
+The first Step 3 version should be conservative. I would start with:
+
+| Parameter | First value | Meaning |
+|---|---:|---|
+| `epsilon_J` | `0.00` to `0.02` | Candidate must be no worse than nominal, or only slightly worse if we want exploration. |
+| `epsilon_abs` | small positive value | Prevents numerical noise from causing unnecessary rejection. |
+| `fallback_action` | nominal raw action | Replay should match what the plant actually experienced. |
+| `log_rejected_policy` | `True` | Keep evidence of what the actor wanted, even when rejected. |
+
+The main diagnostic outputs would be:
+
+| Metric | Interpretation |
+|---|---|
+| `acceptance_fraction` | How often RL assistance is actually trusted. |
+| `fallback_fraction` | How much the method relies on nominal MPC. |
+| `accepted_reward_delta` | Whether accepted candidate moves are actually better than MPC. |
+| `rejected_policy_saturation` | Whether the actor is still asking for boundary actions when rejected. |
+| `cost_margin = J_cand - J_nom` | How far the candidate is from passing the gate. |
+
+For polymer, Step 3 is not urgent because Step 2 already gives positive full-run and tail performance. For distillation, Step 3 is more important. Distillation has shown that recovery alone is not enough: the policy can recover from release but still fail to beat MPC. A Step 3 gate would protect distillation from executing RL-assisted models that are stable and feasible but not locally better than the nominal MPC decision.
+
 ### Why This Helps Distillation
 
 The user-reported distillation behavior has the same shape as the polymer release problem, but worse: tight `A`, wide `B`, exploration noise `0.01`, and smoothing noise `0.01` still caused a heavy degradation, then recovery after about 100 episodes, and the final result still did not beat MPC.

@@ -23,9 +23,9 @@ This report is now an ongoing working document. The current implementation seque
 | Step 1: offline `rho` + gain sensitivity | Scalar matrix and structured matrix, unified for polymer and distillation | Implemented; scalar and structured polymer diagnostics completed | `sensitivity_by_coordinate.csv`, `candidate_scan_summary.csv`, `suggested_bounds.csv`, optional plots | Use the diagnostics as advisory release bounds |
 | Step 1 result update | Latest polymer scalar matrix run and latest structured matrix run | Updated here from 2026-04-24 result bundles | Result tables and report figures added | Protect the release window before trying static caps |
 | Step 2 implementation | Release-protected advisory caps for scalar and structured supervisors | Implemented; polymer defaults on, distillation defaults off | Shared release schedule, clipped executed multipliers, policy-versus-executed logs | Run polymer matrix and structured trials |
-| Step 2 scalar polymer result | Polymer scalar matrix TD3 disturbance | Polymer run pending | Reward windows, policy-versus-executed multiplier table, release clip statistics | Update after the next scalar run |
-| Step 2 structured polymer result | Polymer structured matrix TD3 disturbance | Polymer run pending | Same result summary, with per-coordinate structured multipliers | Update after the next structured run |
-| Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Code present, disabled by default | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Decide only after polymer Step 2 results |
+| Step 2 scalar polymer result | Polymer scalar matrix TD3 disturbance | Updated from latest run | Reward windows, policy-versus-executed multiplier table, release clip statistics | Keep Step 2; evaluate smaller networks and then consider distillation |
+| Step 2 structured polymer result | Polymer structured matrix TD3 disturbance | Updated from latest run | Same result summary, with per-coordinate structured multipliers | Keep Step 2; focus on reducing policy saturation |
+| Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until the smaller-network polymer rerun is reviewed |
 | Step 3: acceptance or fallback layer | Polymer first, then distillation | Reserved | Nominal-cost or rollout-based safety gate | Use if Step 2 reduces release crash but not final degradation |
 | Step 4: release stabilization | Distillation priority | Reserved | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
 | Step 5: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
@@ -214,11 +214,11 @@ The latest structured run shows the same pattern with more action dimensions:
 
 Structured release saturation is slightly worse than scalar release saturation (`85.7%` versus `84.4%`), and it acts over six coordinates instead of three. This is why the structured first-live loss remains larger even though its final tail behavior is excellent.
 
-## Step 2 Plan From Polymer
+## Step 2 Method And Result From Polymer
 
-The next implementation is **Step 2: release-protected advisory caps**, not a permanent static cap.
+The implemented Step 2 method is **release-protected advisory caps**, not a permanent static cap.
 
-Recommended polymer-only trial:
+The polymer trial schedule is:
 
 | Phase | Episodes | `alpha` authority | `B` authority | Purpose |
 |---|---:|---|---|---|
@@ -286,13 +286,129 @@ $$ \mathcal{D} \leftarrow (s_t,a_t^{\mathrm{exec}},r_t,s_{t+1},d_t), \qquad \tex
 
 This matters because if the critic trains on the unclipped action while the plant experienced the clipped action, the critic learns the wrong action-value relationship during the release window.
 
-### Step 2 Result Placeholders
+### Step 2 Polymer Result Update
 
-| Result item | Status | What to add after the next run |
-|---|---|---|
-| Scalar polymer Step 2 trial | Run pending | Closed-loop reward windows, policy-versus-executed `alpha/B` plots, release clip fraction by phase, and final comparison to the Step 1 scalar run |
-| Structured polymer Step 2 trial | Run pending | Per-coordinate requested/executed multipliers, release clip fraction by coordinate, and whether the larger structured release dip is removed |
-| Distillation transfer decision | Waiting on polymer Step 2 | Decide whether to enable Step 2 directly in distillation or implement Step 3 acceptance/fallback first |
+This update uses the latest Step 2 polymer runs:
+
+- Scalar matrix RL bundle: `Polymer/Results/td3_multipliers_disturb/20260424_204554/input_data.pkl`
+- Scalar matrix comparison bundle: `Polymer/Results/disturb_compare_td3_multipliers/20260424_204610/input_data.pkl`
+- Structured matrix RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260424_204732/input_data.pkl`
+- Structured matrix comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260424_204751/input_data.pkl`
+
+Both runs have `release_guard_enabled = True`. The release schedule is:
+
+| Phase | Episodes | Scalar executed bounds | Structured executed bounds |
+|---|---:|---|---|
+| Warm start | 1-10 | nominal only | nominal only |
+| Action freeze | 11-15 | nominal only | nominal only |
+| Protected live release | 16-30 | Step 1 diagnostic bounds | Step 1 per-coordinate diagnostic bounds |
+| Authority ramp | 31-60 | log-space ramp to wide bounds | log-space ramp to wide bounds |
+| Full authority | 61-200 | original wide bounds | original wide bounds |
+
+The headline result is positive: Step 2 strongly reduces the first-live release crash without removing the later full-authority improvement.
+
+<img src="./figures/matrix_multiplier_step2/polymer_step2_reward_delta_comparison.png" alt="Polymer Step 2 reward delta comparison" width="1200" style="max-width: 100%; height: auto;" />
+
+#### Step 2 Reward Windows
+
+Positive reward delta means RL beats the MPC baseline.
+
+| Method | Window | RL mean reward | MPC mean reward | Mean reward delta | Win rate |
+|---|---|---:|---:|---:|---:|
+| Scalar Step 2 | 1-10 | -4.3123 | -4.3123 | -0.0000 | 40.0% |
+| Scalar Step 2 | 11-15 | -4.4174 | -4.4173 | -0.0001 | 40.0% |
+| Scalar Step 2 | 16-30 protected | -4.5249 | -4.4174 | -0.1075 | 33.3% |
+| Scalar Step 2 | 31-60 ramp | -4.2566 | -4.4174 | +0.1608 | 73.3% |
+| Scalar Step 2 | 61-100 full | -3.8499 | -4.4173 | +0.5675 | 100.0% |
+| Scalar Step 2 | 101-200 tail | -3.6415 | -4.4174 | +0.7758 | 100.0% |
+| Scalar Step 2 | 1-200 full run | -3.8947 | -4.4121 | +0.5175 | 86.5% |
+| Structured Step 2 | 1-10 | -4.3123 | -4.3123 | -0.0000 | 40.0% |
+| Structured Step 2 | 11-15 | -4.4174 | -4.4173 | -0.0001 | 40.0% |
+| Structured Step 2 | 16-30 protected | -4.6226 | -4.4174 | -0.2052 | 20.0% |
+| Structured Step 2 | 31-60 ramp | -4.4964 | -4.4174 | -0.0789 | 43.3% |
+| Structured Step 2 | 61-100 full | -3.9591 | -4.4173 | +0.4582 | 92.5% |
+| Structured Step 2 | 101-200 tail | -3.6599 | -4.4174 | +0.7575 | 100.0% |
+| Structured Step 2 | 1-200 full run | -3.9690 | -4.4121 | +0.4431 | 79.5% |
+
+Compared with Step 1:
+
+| Method | Step 1 protected-window delta | Step 2 protected-window delta | Improvement | Step 1 full-run delta | Step 2 full-run delta |
+|---|---:|---:|---:|---:|---:|
+| Scalar matrix | -0.7429 | -0.1075 | +0.6354 | +0.4337 | +0.5175 |
+| Structured matrix | -1.0374 | -0.2052 | +0.8322 | +0.3507 | +0.4431 |
+
+This is the key evidence that the Step 1 diagnostic bounds were useful as **temporary release bounds**. They were not just theoretical stability numbers; they directly reduced the release-window performance loss.
+
+#### What The Guard Actually Did
+
+<img src="./figures/matrix_multiplier_step2/scalar_step2_policy_executed_and_clip.png" alt="Scalar Step 2 policy versus executed multipliers" width="1200" style="max-width: 100%; height: auto;" />
+
+<img src="./figures/matrix_multiplier_step2/structured_step2_policy_executed_and_clip.png" alt="Structured Step 2 policy versus executed multipliers" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Window | Mean release clip fraction | Mean raw saturation | Mean policy-executed gap |
+|---|---|---:|---:|---:|
+| Scalar Step 2 | 16-30 protected | 46.4% | 87.5% | 0.0694 |
+| Scalar Step 2 | 31-60 ramp | 28.4% | 48.3% | 0.0225 |
+| Scalar Step 2 | 61-100 full | 0.0% | 20.1% | 0.0000 |
+| Scalar Step 2 | 101-200 tail | 0.0% | 18.6% | 0.0000 |
+| Structured Step 2 | 16-30 protected | 29.5% | 89.6% | 0.0562 |
+| Structured Step 2 | 31-60 ramp | 23.2% | 62.2% | 0.0211 |
+| Structured Step 2 | 61-100 full | 0.0% | 38.0% | 0.0000 |
+| Structured Step 2 | 101-200 tail | 0.0% | 34.1% | 0.0000 |
+
+Interpretation:
+
+- Step 2 did **not** make the actor calm during the first live window. The scalar raw action saturation was `87.5%` in episodes 16-30, and structured raw action saturation was `89.6%`.
+- Step 2 worked because the executed multipliers were clipped while the policy was still boundary-seeking.
+- The guard naturally turns off after the ramp. From episode 61 onward, policy and executed multipliers match again.
+- The remaining structured saturation after episode 61 is still high (`34.1%` in the tail), so structured mode probably still needs smaller networks, stronger smoothness, or an acceptance gate.
+
+The most important scalar coordinates were:
+
+| Window | Coordinate | Policy mean | Executed mean | Clip fraction | Mean abs gap |
+|---|---|---:|---:|---:|---:|
+| 16-30 protected | `alpha` | 0.8710 | 1.0087 | 95.0% | 0.1418 |
+| 16-30 protected | `B_col_1` | 0.9494 | 0.9494 | 0.0% | 0.0000 |
+| 16-30 protected | `B_col_2` | 0.9794 | 1.0459 | 44.1% | 0.0665 |
+| 31-60 ramp | `alpha` | 0.8744 | 0.9234 | 63.3% | 0.0503 |
+| 31-60 ramp | `B_col_2` | 1.0452 | 1.0623 | 21.8% | 0.0170 |
+| 101-200 tail | `alpha` | 0.8435 | 0.8435 | 0.0% | 0.0000 |
+| 101-200 tail | `B_col_1` | 0.9697 | 0.9697 | 0.0% | 0.0000 |
+| 101-200 tail | `B_col_2` | 0.9902 | 0.9902 | 0.0% | 0.0000 |
+
+For scalar mode, `alpha` was the release bottleneck. The policy requested an average `alpha = 0.8710` in the protected window, but the guard executed `alpha = 1.0087`. This is exactly what we wanted: keep the release model close to nominal while the actor is still unstable, then allow low `alpha` again later. The tail still uses low `alpha = 0.8435`, and it beats MPC strongly.
+
+The most important structured coordinates were:
+
+| Window | Coordinate | Policy mean | Executed mean | Clip fraction | Mean abs gap |
+|---|---|---:|---:|---:|---:|
+| 16-30 protected | `A_block_1` | 0.8597 | 1.0066 | 96.1% | 0.1506 |
+| 16-30 protected | `A_block_2` | 0.8841 | 1.0069 | 38.6% | 0.1228 |
+| 16-30 protected | `A_block_3` | 0.8233 | 0.8233 | 0.0% | 0.0000 |
+| 16-30 protected | `A_off` | 0.8048 | 0.8048 | 0.0% | 0.0000 |
+| 16-30 protected | `B_col_2` | 0.9933 | 1.0571 | 42.3% | 0.0638 |
+| 31-60 ramp | `A_block_1` | 0.8571 | 0.9145 | 71.9% | 0.0588 |
+| 31-60 ramp | `A_block_2` | 0.9127 | 0.9523 | 27.5% | 0.0396 |
+| 31-60 ramp | `B_col_2` | 0.9427 | 0.9708 | 39.6% | 0.0281 |
+| 101-200 tail | `A_block_1` | 0.8938 | 0.8938 | 0.0% | 0.0000 |
+| 101-200 tail | `A_block_2` | 0.8415 | 0.8415 | 0.0% | 0.0000 |
+| 101-200 tail | `B_col_1` | 1.0158 | 1.0158 | 0.0% | 0.0000 |
+| 101-200 tail | `B_col_2` | 0.9911 | 0.9911 | 0.0% | 0.0000 |
+
+For structured mode, Step 2 confirms the Step 1 diagnosis: `A_block_1`, `A_block_2`, and `B_col_2` are the coordinates that need release protection. `A_block_3`, `A_off`, and `B_col_1` were largely allowed to execute as requested during protected release.
+
+#### Step 2 Conclusion
+
+Step 2 should stay in the polymer matrix and structured-matrix notebooks. The remaining problem is no longer "how do we calculate release caps?" The remaining problem is "why does the actor still request saturated actions during release?"
+
+The saved runner bundle does not record the actor/critic hidden-layer sizes, so the analysis above is based on the release-guard logs, not on a confirmed network-size comparison. If this latest run was not started from a fresh kernel after changing the defaults, the next polymer trial should keep Step 2 on and use the reduced network defaults of two hidden layers with 256 units. The success criterion is:
+
+- protected-window reward delta should stay near zero or positive,
+- full-run and tail reward should remain positive,
+- raw action saturation should fall below the Step 2 values above,
+- Step 2 clip fraction should decrease because the policy itself becomes less boundary-seeking.
+
+For distillation, this result supports Step 2 conceptually, but I would still keep distillation disabled until the smaller-network polymer rerun is reviewed. Distillation has a stronger history of recovering without beating MPC, so it likely needs Step 2 plus Step 3 acceptance/fallback rather than Step 2 alone.
 
 ### Why This Helps Distillation
 

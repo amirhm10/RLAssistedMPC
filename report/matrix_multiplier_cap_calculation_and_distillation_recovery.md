@@ -26,7 +26,7 @@ This report is now an ongoing working document. The current implementation seque
 | Step 2 scalar polymer result | Polymer scalar matrix TD3 disturbance | Updated from latest run | Reward windows, policy-versus-executed multiplier table, release clip statistics | Keep Step 2; evaluate smaller networks and then consider distillation |
 | Step 2 structured polymer result | Polymer structured matrix TD3 disturbance | Updated from latest run | Same result summary, with per-coordinate structured multipliers | Keep Step 2; focus on reducing policy saturation |
 | Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until the smaller-network polymer rerun is reviewed |
-| Step 3: acceptance or fallback layer | Polymer first, then distillation | Reserved | Nominal-cost or rollout-based safety gate | Use if Step 2 reduces release crash but not final degradation |
+| Step 3: acceptance or fallback layer | Polymer first, then distillation | Implemented; polymer run pending | Strict nominal-MPC cost gate, acceptance/fallback logs | Run polymer matrix and structured trials, then decide distillation transfer |
 | Step 4: release stabilization | Distillation priority | Reserved | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
 | Step 5: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
 
@@ -460,6 +460,39 @@ The main diagnostic outputs would be:
 | `cost_margin = J_cand - J_nom` | How far the candidate is from passing the gate. |
 
 For polymer, Step 3 is not urgent because Step 2 already gives positive full-run and tail performance. For distillation, Step 3 is more important. Distillation has shown that recovery alone is not enough: the policy can recover from release but still fail to beat MPC. A Step 3 gate would protect distillation from executing RL-assisted models that are stable and feasible but not locally better than the nominal MPC decision.
+
+#### Step 3 Implementation Status
+
+Step 3 is implemented as a strict nominal-MPC cost gate for the scalar and structured matrix supervisors. The polymer matrix and structured matrix defaults enable it; the distillation matrix and structured matrix defaults keep it disabled.
+
+The implemented gate sequence is:
+
+| Stage | Meaning |
+|---|---|
+| Policy request | Actor proposes the wide raw action. |
+| Step 2 candidate | Release guard clips the request to the candidate multiplier. |
+| Step 3 acceptance | Candidate MPC is solved, nominal MPC is solved, and the candidate plan is judged under the nominal model. |
+| Final execution | Execute candidate if accepted; otherwise execute nominal MPC. |
+| Replay | Store the raw action that produced the final executed behavior. |
+
+The result bundle now separates:
+
+| Log group | Meaning |
+|---|---|
+| `policy_multiplier_log` / `mapped_multiplier_log` | Actor-requested multiplier before release clipping. |
+| `candidate_multiplier_log` | Step 2 candidate multiplier after release clipping. |
+| `executed_multiplier_log` / `effective_multiplier_log` | Final multiplier after Step 3 acceptance or fallback. |
+| `mpc_acceptance_accepted_log` | `1` when candidate is trusted. |
+| `mpc_acceptance_fallback_active_log` | `1` when nominal MPC is executed instead. |
+| `mpc_acceptance_cost_margin_log` | Candidate nominal-evaluated cost minus nominal MPC cost. |
+
+Placeholders for the next update:
+
+| Result item | Status | Metrics to add after run |
+|---|---|---|
+| Scalar matrix Step 3 polymer result | Run pending | reward windows, acceptance fraction, fallback fraction, cost-margin quantiles, tail reward |
+| Structured matrix Step 3 polymer result | Run pending | same metrics plus per-coordinate candidate-vs-executed multiplier analysis |
+| Distillation transfer decision | Waiting on polymer Step 3 | decide whether to enable Step 2+3 together or add more release stabilization first |
 
 ### Why This Helps Distillation
 

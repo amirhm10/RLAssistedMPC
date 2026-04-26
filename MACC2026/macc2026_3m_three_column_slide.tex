@@ -6,6 +6,8 @@
 \usepackage{xcolor}
 \usepackage{tikz}
 
+\graphicspath{{./}{MACC2026/}{../Figures/}}
+
 \definecolor{maroon1}{rgb}{0.478, 0, 0.235}
 \definecolor{lightgray}{rgb}{0.94,0.94,0.97}
 \definecolor{dimgray}{rgb}{0.369, 0.416, 0.443}
@@ -84,7 +86,13 @@
 \FigurePanel{PretrainRL.png}{0.315\textheight}
 
 \vspace{0.06cm}
-\ResultPanel{maccblue}{softblue}{\input{project1_results_card.tex}}
+\ResultPanel{maccblue}{softblue}{%
+  \IfFileExists{project1_results_card.tex}{%
+    \input{project1_results_card.tex}%
+  }{%
+    \input{MACC2026/project1_results_card.tex}%
+  }%
+}
 
 \end{column}
 

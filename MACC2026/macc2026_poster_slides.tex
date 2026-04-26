@@ -1,0 +1,481 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{ragged2e}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{array}
+
+\graphicspath{{./}{../Figures/}}
+
+\definecolor{maroon1}{rgb}{0.478, 0, 0.235}
+\definecolor{lightgray}{rgb}{0.94,0.94,0.97}
+\definecolor{dimgray}{rgb}{0.369, 0.416, 0.443}
+\definecolor{maccblue}{RGB}{32,82,133}
+\definecolor{maccgreen}{RGB}{59,125,92}
+\definecolor{maccred}{RGB}{158,55,55}
+\definecolor{softblue}{RGB}{238,244,250}
+\definecolor{softgreen}{RGB}{238,247,242}
+\definecolor{softred}{RGB}{250,240,240}
+
+\usetheme{Copenhagen}
+\usecolortheme[named=maroon1]{structure}
+
+\setbeamerfont{caption}{size=\scriptsize}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{}
+\setbeamercolor{block body}{fg=black,bg=lightgray}
+\setbeamercolor{block title}{fg=white,bg=maroon1}
+
+\title[MACC 2026]{A Practical Reinforcement Learning Control Framework for Complex Process Systems}
+\author[A. H. Hamedi]{A. H. Hamedi}
+\date{}
+
+\newcommand{\PosterTitle}[1]{%
+  \frametitle{\centering \scriptsize \textbf{#1}}%
+  \vspace{-0.48cm}%
+}
+
+\newcommand{\ColumnHeader}[2]{%
+  {\setlength{\fboxsep}{2pt}\setlength{\fboxrule}{0pt}%
+  \noindent\colorbox{#1}{%
+    \begin{minipage}[c][0.047\textheight][c]{\dimexpr\linewidth-2\fboxsep\relax}
+      \centering\color{white}\bfseries\scriptsize #2
+    \end{minipage}}}%
+}
+
+\newcommand{\FigurePanel}[2]{%
+  {\setlength{\fboxsep}{1pt}\setlength{\fboxrule}{0.35pt}%
+  \noindent\fcolorbox{black!25}{white}{%
+    \begin{minipage}[c][#2][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+      \centering
+      \includegraphics[width=0.98\linewidth,height=#2,keepaspectratio]{#1}
+    \end{minipage}}}%
+}
+
+\newcommand{\TextPanel}[4]{%
+  {\setlength{\fboxsep}{2pt}\setlength{\fboxrule}{0.55pt}%
+  \noindent\fcolorbox{#1}{#2}{%
+    \begin{minipage}[t][#3][t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+      #4
+    \end{minipage}}}%
+}
+
+\newcommand{\ResultPanel}[3]{%
+  {\setlength{\fboxsep}{2pt}\setlength{\fboxrule}{0.55pt}%
+  \noindent\fcolorbox{#1}{#2}{%
+    \begin{minipage}[c][0.17\textheight][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+      \centering #3
+    \end{minipage}}}%
+}
+
+\newcommand{\WideResultPanel}[3]{%
+  {\setlength{\fboxsep}{2pt}\setlength{\fboxrule}{0.55pt}%
+  \noindent\fcolorbox{#1}{#2}{%
+    \begin{minipage}[c][0.17\textheight][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+      \centering #3
+    \end{minipage}}}%
+}
+
+\newcommand{\SmallBullet}[1]{%
+  \item \justifying #1
+}
+
+\begin{document}
+
+%=========================================================
+\begin{frame}
+\PosterTitle{Why RL for Industrial Process Control?}
+\scriptsize
+
+\vspace{0.26cm}
+
+\begin{block}{\textbf{Motivation}}
+\begin{itemize}\justifying
+  \item Industrial MPC is often built from linear identified models; performance can degrade when nonlinear dynamics, coupling, or operating conditions change.
+  \item RL can adapt online from closed-loop data, but unrestricted exploration is not acceptable for industrial plants.
+\end{itemize}
+\end{block}
+
+
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.32\textwidth}
+\ColumnHeader{maccblue}{Why MPC alone is not enough?}
+\vspace{0.06cm}
+\TextPanel{maccblue}{softblue}{0.53\textheight}{%
+\begin{itemize}
+  \SmallBullet{Linear MPC is practical, interpretable, and widely used.}
+  \SmallBullet{A fixed linear model can lose accuracy across nonlinear operating regions.}
+  \SmallBullet{Reidentification and retuning are expensive when plant behavior drifts.}
+  \SmallBullet{This motivates controllers that adapt without discarding MPC.}
+\end{itemize}
+}
+\end{column}
+
+\begin{column}{0.32\textwidth}
+\ColumnHeader{maccgreen}{RL learns from interaction}
+\vspace{0.06cm}
+\TextPanel{maccgreen}{softgreen}{0.53\textheight}{%
+\centering
+\includegraphics[width=0.98\linewidth,height=0.2\textheight,keepaspectratio]{RL Flowdiagram.png}
+
+\vspace{0.05cm}
+\begin{itemize}
+  \SmallBullet{RL improves through repeated plant interaction.}
+  \SmallBullet{Naive online training requires extensive exploration.}
+  \SmallBullet{This can cause unsafe moves and product-quality excursions.}
+
+\end{itemize}
+}
+\end{column}
+
+\begin{column}{0.32\textwidth}
+\ColumnHeader{maccred}{Practical RL control approaches}
+\vspace{0.06cm}
+\TextPanel{maccred}{softred}{0.53\textheight}{%
+\begin{itemize}
+  \SmallBullet{\textbf{Pretraining:} initialize RL from MPC behavior before deployment.}
+  \SmallBullet{\textbf{RL-assisted MPC:} let RL tune MPC variables instead of directly controlling the plant.}
+  \SmallBullet{\textbf{Safe RL:} filter or replace unsafe RL actions using model-based checks.}
+\end{itemize}
+
+\vspace{0.16cm}
+\centering
+{\color{maccred}\bfseries Keep MPC in the loop}\\[-0.03em]
+}
+\end{column}
+\end{columns}
+
+\end{frame}
+
+%=========================================================
+\begin{frame}
+\PosterTitle{Pretrained RL (Published in I\&EC Research)}
+\scriptsize
+
+\vspace{0.3cm}
+
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.57\textwidth}
+\ColumnHeader{maccblue}{MPC pretraining and online refinement}
+\vspace{0.06cm}
+\FigurePanel{PretrainRL.png}{0.62\textheight}
+\end{column}
+
+\begin{column}{0.40\textwidth}
+\ColumnHeader{maccgreen}{Previous approach limitation}
+\vspace{0.06cm}
+\TextPanel{maccgreen}{softgreen}{0.25\textheight}{%
+\begin{itemize}
+  \SmallBullet{Previous work used the MPC one-step quadratic reward during online training.}
+  \SmallBullet{That reward reduced unsafe exploration, but still left significant steady-state error.}
+\end{itemize}
+}
+
+\vspace{0.055cm}
+\ColumnHeader{maccblue}{Modifications}
+\vspace{0.06cm}
+\TextPanel{maccblue}{softblue}{0.25\textheight}{%
+\begin{itemize}
+  \SmallBullet{Offline TD3 initialization imitates offset-free MPC trajectories.}
+  \SmallBullet{Online reward adds offset-aware shaping near the setpoint.}
+  \SmallBullet{Mixed replay balances priority, recent data, and broad coverage.}
+\end{itemize}
+}
+\end{column}
+\end{columns}
+
+\vspace{-0.08cm}
+\WideResultPanel{maccblue}{softblue}{%
+{\color{maccblue}\bfseries Our approach = MPC imitation + offset-aware online TD3 + mixed replay}\\[-0.04em]
+{Same practical starting point as MPC-pretrained RL, but with stronger learning signal for near offset-free behavior.}
+}
+\end{frame}
+
+%=========================================================
+\begin{frame}
+\PosterTitle{Pretrained RL Results: Polymer Reactor and Aspen Dynamics C$_2$ Splitter}
+\scriptsize
+
+\vspace{0.25cm}
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.59\textwidth}
+\ColumnHeader{maccblue}{Industrial C$_2$ implementation}
+\vspace{0.04cm}
+\FigurePanel{c2_interface_td3.png}{0.35\textheight}
+
+% \vspace{0.025cm}
+% \TextPanel{maccblue}{softblue}{0.025\textheight}{%
+% \centering
+% {\color{maccblue}\bfseries \tiny Aspen Dynamics + Python TD3}\\[-0.08em]
+% }
+
+\end{column}
+
+\begin{column}{0.39\textwidth}
+\ColumnHeader{maccgreen}{Polymer reactor: final offset reduction}
+\vspace{0.06cm}
+\TextPanel{maccgreen}{softgreen}{0.12\textheight}{%
+\centering
+\tiny
+\setlength{\tabcolsep}{3.4pt}
+\renewcommand{\arraystretch}{0.96}
+\begin{tabular}{lcccc}
+\hline
+ & \multicolumn{2}{c}{Nominal} & \multicolumn{2}{c}{Oper. changes} \\
+Output & SP(a) & SP(b) & SP(a) & SP(b) \\
+\hline
+\(\eta\) & \textbf{98\%} & \textbf{90\%} & \textbf{92\%} & \textbf{76\%} \\
+\(T\) & \textbf{92\%} & \textbf{84\%} & \textbf{84\%} & \textbf{90\%} \\
+\hline
+\end{tabular}\\[0.2em]
+}
+
+% \vspace{0.05cm}
+\ColumnHeader{maccred}{C$_2$ splitter: final offset reduction}
+\vspace{0.06cm}
+\TextPanel{maccred}{softred}{0.12\textheight}{%
+\centering
+\tiny
+\setlength{\tabcolsep}{2.15pt}
+\renewcommand{\arraystretch}{0.92}
+\begin{tabular}{lcccccc}
+\hline
+ & \multicolumn{2}{c}{Nom.} & \multicolumn{2}{c}{Fluct.} & \multicolumn{2}{c}{Ramp} \\
+Output & SP1 & SP2 & SP1 & SP2 & SP1 & SP2 \\
+\hline
+\(x_{24}\) & \textbf{99.2} & \textbf{99.6} & \textbf{99.2} & \textbf{89.7} & \textbf{94.9} & \textbf{91.1} \\
+\(T_{85}\) & \textbf{81.3} & \textbf{90.9} & \textbf{91.6} & \textbf{60.9} & \textbf{35.8} & \textbf{97.8} \\
+\hline
+\end{tabular}\\[0.2em]
+}
+\end{column}
+\end{columns}
+
+\vspace{0.035cm}
+\ColumnHeader{maccblue}{Last evaluation episodes: C$_2$ splitter comparisons}
+\vspace{-0.25cm}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.32\textwidth}
+\centering
+\FigurePanel{C2_nom_outputs_compare_three.png}{0.35\textheight}\\[-0.1em]
+{\tiny Nominal}
+\end{column}
+\begin{column}{0.32\textwidth}
+\centering
+\FigurePanel{C2_rampnoise_outputs_compare_three.png}{0.35\textheight}\\[-0.1em]
+{\tiny Fluctuating operation}
+\end{column}
+\begin{column}{0.32\textwidth}
+\centering
+\FigurePanel{C2_ramp_outputs_compare_three.png}{0.35\textheight}\\[-0.1em]
+{\tiny Ramp operation}
+\end{column}
+\end{columns}
+\end{frame}
+
+%=========================================================
+\begin{frame}
+\PosterTitle{Project 2: RL-Assisted MPC Concept}
+\scriptsize
+
+\begin{block}{\textbf{Main idea}}
+\begin{itemize}\justifying
+  \item RL assists the existing controller instead of replacing it.
+  \item MPC still solves the constrained control problem; RL tunes selected MPC design variables.
+\end{itemize}
+\end{block}
+
+\vspace{-0.16cm}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.58\textwidth}
+\ColumnHeader{maccgreen}{RL-assisted MPC architecture}
+\vspace{0.06cm}
+\FigurePanel{RLAssistedDiagram.png}{0.55\textheight}
+\end{column}
+
+\begin{column}{0.39\textwidth}
+\ColumnHeader{maccgreen}{What RL is allowed to change}
+\vspace{0.06cm}
+\TextPanel{maccgreen}{softgreen}{0.55\textheight}{%
+\begin{itemize}
+  \SmallBullet{Prediction-model multipliers.}
+  \SmallBullet{Input residual corrections.}
+  \SmallBullet{Tracking and move-suppression weights.}
+  \SmallBullet{Prediction/control horizons.}
+  \SmallBullet{Combined supervision across several MPC knobs.}
+\end{itemize}
+
+\vspace{0.2cm}
+\centering
+{\color{maccgreen}\bfseries Polymer result}\\[-0.02em]
+{\tiny Combined supervisor beats MPC}\\[-0.02em]
+{\tiny full-run reward $\Delta=+1.6957$}\\[-0.02em]
+{\tiny tail reward $\Delta=+2.1701$, 100\% wins}\\[0.18em]
+{\color{maccgreen}\bfseries C$_2$ splitter}\\[-0.02em]
+{\tiny Closed-loop performance has also improved;}\\[-0.02em]
+{\tiny final comparison remains work in progress.}
+}
+\end{column}
+\end{columns}
+\end{frame}
+
+%=========================================================
+\begin{frame}
+\PosterTitle{Project 2: RL Assistance Variants Around the Same MPC Layer}
+\scriptsize
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.32\textwidth}
+\ColumnHeader{maccblue}{Model adaptation}
+\vspace{0.06cm}
+\TextPanel{maccblue}{softblue}{0.50\textheight}{%
+{\color{maccblue}\bfseries Scalar matrix multiplier}\\[-0.1em]
+\begin{itemize}
+  \SmallBullet{Global $A$ multiplier.}
+  \SmallBullet{Input-column $B$ multipliers.}
+\end{itemize}
+\vspace{0.12cm}
+{\color{maccblue}\bfseries Structured matrix multiplier}\\[-0.1em]
+\begin{itemize}
+  \SmallBullet{Block, band, or coordinate-wise model correction.}
+  \SmallBullet{Useful when mismatch is not uniform.}
+\end{itemize}
+}
+\vspace{0.06cm}
+\ResultPanel{maccblue}{softblue}{%
+{\color{maccblue}\bfseries Polymer reward gain vs MPC}\\[-0.08em]
+{\tiny
+\setlength{\tabcolsep}{2.7pt}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{lcc}
+\hline
+Method & Full & Tail \\
+\hline
+Scalar matrix & +0.5175 & +0.7758 \\
+Structured matrix & +0.4489 & +0.7414 \\
+\hline
+\end{tabular}}
+}
+\end{column}
+
+\begin{column}{0.32\textwidth}
+\ColumnHeader{maccgreen}{Controller tuning}
+\vspace{0.06cm}
+\TextPanel{maccgreen}{softgreen}{0.50\textheight}{%
+{\color{maccgreen}\bfseries Weight tuning}\\[-0.1em]
+\begin{itemize}
+  \SmallBullet{RL adjusts tracking and input-move penalties.}
+  \SmallBullet{Changes aggressiveness without changing the model.}
+\end{itemize}
+\vspace{0.12cm}
+{\color{maccgreen}\bfseries Horizon tuning}\\[-0.1em]
+\begin{itemize}
+  \SmallBullet{Discrete prediction/control horizon choices.}
+  \SmallBullet{DQN-style supervisor for finite action sets.}
+\end{itemize}
+}
+\vspace{0.06cm}
+\ResultPanel{maccgreen}{softgreen}{%
+{\color{maccgreen}\bfseries Polymer reward gain vs MPC}\\[-0.08em]
+{\tiny
+\setlength{\tabcolsep}{2.4pt}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{lcc}
+\hline
+Method & Full & Tail \\
+\hline
+Weights TD3 & +1.5725 & +1.7743 \\
+Horizon DQN & +1.5217 & +1.6782 \\
+Dueling DQN & +1.5129 & +1.6813 \\
+\hline
+\end{tabular}}
+}
+\end{column}
+
+\begin{column}{0.32\textwidth}
+\ColumnHeader{maccred}{Residual and combined assistance}
+\vspace{0.06cm}
+\TextPanel{maccred}{softred}{0.50\textheight}{%
+{\color{maccred}\bfseries Residual correction}\\[-0.1em]
+\begin{itemize}
+  \SmallBullet{MPC proposes the main move.}
+  \SmallBullet{RL adds a bounded correction.}
+\end{itemize}
+\vspace{0.12cm}
+{\color{maccred}\bfseries Combined supervisor}\\[-0.1em]
+\begin{itemize}
+  \SmallBullet{Several agents specialize in different MPC knobs.}
+  \SmallBullet{Long-term direction: adaptive but interpretable MPC.}
+\end{itemize}
+}
+\vspace{0.06cm}
+\ResultPanel{maccred}{softred}{%
+{\color{maccred}\bfseries Polymer reward gain vs MPC}\\[-0.08em]
+{\tiny
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{lcc}
+\hline
+Method & Full & Tail \\
+\hline
+Residual TD3 & +0.4400 & +0.6934 \\
+Combined & +1.6957 & +2.1701 \\
+\hline
+\end{tabular}}\\[-0.02em]
+{\tiny Combined tail win rate: 100\%.}
+}
+\end{column}
+\end{columns}
+\end{frame}
+
+%=========================================================
+\begin{frame}
+\PosterTitle{Project 3: Lyapunov-Filtered Safe RL}
+\scriptsize
+
+\begin{block}{\textbf{Safe deployment idea}}
+\begin{itemize}\justifying
+  \item TD3 can propose high-performance control moves, but a model-based safety layer decides what reaches the plant.
+  \item If the RL move violates bounds or a Lyapunov contraction check, the supervisor falls back to MPC.
+\end{itemize}
+\end{block}
+
+\vspace{-0.16cm}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+\ColumnHeader{maccred}{Safe RL architecture}
+\vspace{0.06cm}
+\FigurePanel{SafeRL.png}{0.54\textheight}
+\end{column}
+
+\begin{column}{0.47\textwidth}
+\ColumnHeader{maccred}{Safety stack}
+\vspace{0.06cm}
+\TextPanel{maccred}{softred}{0.28\textheight}{%
+\begin{itemize}
+  \SmallBullet{Target selector computes admissible local steady targets.}
+  \SmallBullet{TD3 proposes a candidate action in deviation coordinates.}
+  \SmallBullet{Lyapunov filter checks bounds, move limits, and contraction.}
+  \SmallBullet{MPC fallback supplies the applied input when RL is rejected.}
+\end{itemize}
+}
+
+\vspace{0.08cm}
+\ColumnHeader{maccgreen}{Result space}
+\vspace{0.06cm}
+\TextPanel{maccgreen}{softgreen}{0.18\textheight}{%
+\centering
+{\color{maccgreen}\bfseries Polymer completed}\\[-0.02em]
+{\tiny RL actions certified online with MPC fallback}\\[0.15em]
+{\color{maccgreen}\bfseries C$_2$ splitter extension in progress}
+}
+\end{column}
+\end{columns}
+\end{frame}
+
+\end{document}

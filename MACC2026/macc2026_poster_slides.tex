@@ -7,7 +7,7 @@
 \usepackage{tikz}
 \usepackage{array}
 
-\graphicspath{{./}{MACC2026/}{../Figures/}}
+\graphicspath{{./}{MACC2026/}{../Figures/}{../Polymer/Results/disturb_compare_combined_h_dqn_mismatch__m_td3_mismatch__w_td3_mismatch__r_td3_mismatch_rho/20260426_193431/}{Polymer/Results/disturb_compare_combined_h_dqn_mismatch__m_td3_mismatch__w_td3_mismatch__r_td3_mismatch_rho/20260426_193431/}}
 
 \definecolor{maroon1}{rgb}{0.478, 0, 0.235}
 \definecolor{lightgray}{rgb}{0.94,0.94,0.97}
@@ -280,7 +280,7 @@ Output & SP1 & SP2 & SP1 & SP2 & SP1 & SP2 \\
 
 %=========================================================
 \begin{frame}
-\PosterTitle{Project 2: RL-Assisted MPC Concept}
+\PosterTitle{RL-Assisted MPC}
 \scriptsize
 
 \begin{block}{\textbf{Main idea}}
@@ -299,26 +299,19 @@ Output & SP1 & SP2 & SP1 & SP2 & SP1 & SP2 \\
 \end{column}
 
 \begin{column}{0.39\textwidth}
-\ColumnHeader{maccgreen}{What RL is allowed to change}
+\ColumnHeader{maccgreen}{Case studies}
 \vspace{0.06cm}
 \TextPanel{maccgreen}{softgreen}{0.55\textheight}{%
 \begin{itemize}
-  \SmallBullet{Prediction-model multipliers.}
-  \SmallBullet{Input residual corrections.}
-  \SmallBullet{Tracking and move-suppression weights.}
-  \SmallBullet{Prediction/control horizons.}
-  \SmallBullet{Combined supervision across several MPC knobs.}
+  \SmallBullet{Polymer CSTR.}
+  \SmallBullet{Aspen Dynamics C$_2$ splitter.}
 \end{itemize}
 
-\vspace{0.2cm}
+\vspace{0.24cm}
 \centering
-{\color{maccgreen}\bfseries Polymer result}\\[-0.02em]
-{\tiny Combined supervisor beats MPC}\\[-0.02em]
-{\tiny full-run reward $\Delta=+1.6957$}\\[-0.02em]
-{\tiny tail reward $\Delta=+2.1701$, 100\% wins}\\[0.18em]
-{\color{maccgreen}\bfseries C$_2$ splitter}\\[-0.02em]
-{\tiny Closed-loop performance has also improved;}\\[-0.02em]
-{\tiny final comparison remains work in progress.}
+{\color{maccgreen}\bfseries Same controller idea}\\[-0.02em]
+{\tiny RL assists MPC rather than replacing it.}\\[-0.02em]
+{\tiny MPC remains the constrained optimizer.}
 }
 \end{column}
 \end{columns}
@@ -326,108 +319,62 @@ Output & SP1 & SP2 & SP1 & SP2 & SP1 & SP2 \\
 
 %=========================================================
 \begin{frame}
-\PosterTitle{Project 2: RL Assistance Variants Around the Same MPC Layer}
+\PosterTitle{Project 2: RL-Assisted MPC Results}
 \scriptsize
 
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.32\textwidth}
-\ColumnHeader{maccblue}{Model adaptation}
-\vspace{0.06cm}
-\TextPanel{maccblue}{softblue}{0.50\textheight}{%
-{\color{maccblue}\bfseries Scalar matrix multiplier}\\[-0.1em]
-\begin{itemize}
-  \SmallBullet{Global $A$ multiplier.}
-  \SmallBullet{Input-column $B$ multipliers.}
-\end{itemize}
-\vspace{0.12cm}
-{\color{maccblue}\bfseries Structured matrix multiplier}\\[-0.1em]
-\begin{itemize}
-  \SmallBullet{Block, band, or coordinate-wise model correction.}
-  \SmallBullet{Useful when mismatch is not uniform.}
-\end{itemize}
-}
-\vspace{0.06cm}
-\ResultPanel{maccblue}{softblue}{%
-{\color{maccblue}\bfseries Polymer reward gain vs MPC}\\[-0.08em]
-{\tiny
-\setlength{\tabcolsep}{2.7pt}
-\renewcommand{\arraystretch}{0.95}
-\begin{tabular}{lcc}
-\hline
-Method & Full & Tail \\
-\hline
-Scalar matrix & +0.5175 & +0.7758 \\
-Structured matrix & +0.4489 & +0.7414 \\
-\hline
-\end{tabular}}
-}
+\begin{column}{0.58\textwidth}
+\ColumnHeader{maccblue}{Polymer combined supervisor vs nominal MPC}
+\vspace{0.05cm}
+\FigurePanel{compare_rewards.png}{0.27\textheight}\\[-0.08em]
+{\tiny Reward comparison, combined run.}
+
+\vspace{0.05cm}
+\FigurePanel{compare_outputs_last_episode.png}{0.30\textheight}\\[-0.08em]
+{\tiny Latest evaluation episode output comparison.}
 \end{column}
 
-\begin{column}{0.32\textwidth}
-\ColumnHeader{maccgreen}{Controller tuning}
+\begin{column}{0.39\textwidth}
+\ColumnHeader{maccgreen}{Successful reward gains vs nominal MPC}
 \vspace{0.06cm}
-\TextPanel{maccgreen}{softgreen}{0.50\textheight}{%
-{\color{maccgreen}\bfseries Weight tuning}\\[-0.1em]
-\begin{itemize}
-  \SmallBullet{RL adjusts tracking and input-move penalties.}
-  \SmallBullet{Changes aggressiveness without changing the model.}
-\end{itemize}
-\vspace{0.12cm}
-{\color{maccgreen}\bfseries Horizon tuning}\\[-0.1em]
-\begin{itemize}
-  \SmallBullet{Discrete prediction/control horizon choices.}
-  \SmallBullet{DQN-style supervisor for finite action sets.}
-\end{itemize}
-}
-\vspace{0.06cm}
-\ResultPanel{maccgreen}{softgreen}{%
-{\color{maccgreen}\bfseries Polymer reward gain vs MPC}\\[-0.08em]
+\TextPanel{maccgreen}{softgreen}{0.34\textheight}{%
+\centering
+{\color{maccgreen}\bfseries Polymer}\\[-0.12em]
 {\tiny
-\setlength{\tabcolsep}{2.4pt}
-\renewcommand{\arraystretch}{0.95}
+\setlength{\tabcolsep}{2.0pt}
+\renewcommand{\arraystretch}{0.88}
 \begin{tabular}{lcc}
 \hline
-Method & Full & Tail \\
+Method & Full & Eval. ep. \\
 \hline
+Scalar matrix & +0.5175 & +0.8781 \\
+Structured matrix & +0.4489 & +0.8870 \\
+Residual TD3 & +0.4400 & +0.6912 \\
 Weights TD3 & +1.5725 & +1.7743 \\
-Horizon DQN & +1.5217 & +1.6782 \\
-Dueling DQN & +1.5129 & +1.6813 \\
+Horizon DQN & +1.5217 & +1.5827 \\
+Dueling DQN & +1.5129 & +1.8686 \\
+Combined & \textbf{+1.8891} & \textbf{+2.3761} \\
 \hline
-\end{tabular}}
+\end{tabular}}\\[-0.05em]
+{\tiny Combined win rate: 98.0\%.}
 }
-\end{column}
 
-\begin{column}{0.32\textwidth}
-\ColumnHeader{maccred}{Residual and combined assistance}
 \vspace{0.06cm}
-\TextPanel{maccred}{softred}{0.50\textheight}{%
-{\color{maccred}\bfseries Residual correction}\\[-0.1em]
-\begin{itemize}
-  \SmallBullet{MPC proposes the main move.}
-  \SmallBullet{RL adds a bounded correction.}
-\end{itemize}
-\vspace{0.12cm}
-{\color{maccred}\bfseries Combined supervisor}\\[-0.1em]
-\begin{itemize}
-  \SmallBullet{Several agents specialize in different MPC knobs.}
-  \SmallBullet{Long-term direction: adaptive but interpretable MPC.}
-\end{itemize}
-}
-\vspace{0.06cm}
-\ResultPanel{maccred}{softred}{%
-{\color{maccred}\bfseries Polymer reward gain vs MPC}\\[-0.08em]
+\TextPanel{maccred}{softred}{0.20\textheight}{%
+\centering
+{\color{maccred}\bfseries C$_2$ splitter}\\[-0.12em]
 {\tiny
-\setlength{\tabcolsep}{2.5pt}
-\renewcommand{\arraystretch}{0.95}
+\setlength{\tabcolsep}{2.0pt}
+\renewcommand{\arraystretch}{0.90}
 \begin{tabular}{lcc}
 \hline
-Method & Full & Tail \\
+Method & Full & Eval. ep. \\
 \hline
-Residual TD3 & +0.4400 & +0.6934 \\
-Combined & +1.6957 & +2.1701 \\
+Dueling DQN & +2.1918 & +2.8352 \\
+Weights SAC & +1.9945 & +0.3096 \\
 \hline
-\end{tabular}}\\[-0.02em]
-{\tiny Combined tail win rate: 100\%.}
+\end{tabular}}\\[-0.05em]
+{\tiny Only successful full-run distillation results shown.}
 }
 \end{column}
 \end{columns}

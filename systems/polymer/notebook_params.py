@@ -877,6 +877,7 @@ POLYMER_COMBINED_DEFAULTS = {
     #   True -> instantiate that agent block
     #   False -> leave it out of the combined supervisor
     "enable_horizon": True,
+    "horizon_agent_kind": "dqn",
     "horizon_state_mode": "mismatch",
     "enable_matrix": True,
     "matrix_agent_kind": "td3",
@@ -925,6 +926,7 @@ POLYMER_COMBINED_DEFAULTS = {
         "ha_change": 0.85,
     },
     "horizon_agent": deepcopy(POLYMER_HORIZON_STANDARD_DEFAULTS["agent"]),
+    "horizon_dueling_agent": deepcopy(POLYMER_HORIZON_DUELING_DEFAULTS["agent"]),
     "matrix_td3_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
     "matrix_sac_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["sac_agent"]),
     "weights_td3_agent": deepcopy(POLYMER_WEIGHT_DEFAULTS["td3_agent"]),

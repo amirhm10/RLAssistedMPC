@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.optimize as spo
 
+from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
 from utils.helpers import (
     apply_min_max,
     build_polymer_disturbance_schedule,
@@ -23,8 +24,6 @@ from utils.phase1_hidden_release import (
     build_phase1_bundle_fields,
     build_phase1_schedule,
     init_phase1_train_traces,
-    record_phase1_train_step,
-    resolve_phase1_action_source,
 )
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.state_features import (
@@ -328,26 +327,24 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
             tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
-        phase1_hidden_active = bool(phase1 is not None and phase1["enabled"] and phase1["hidden_window_active_log"][i])
-        policy_action = None
-        if i > warm_start_step:
-            if phase1 is not None:
-                policy_action = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
-                if not np.all(np.isfinite(policy_action)):
-                    policy_action = matrix_baseline_raw.copy()
-            if phase1_hidden_active:
-                action = matrix_baseline_raw.copy()
-            elif not test:
-                action = np.asarray(agent.take_action(current_rl_state, explore=True), float).reshape(-1)
-            else:
-                action = policy_action.copy() if policy_action is not None else np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
-        else:
-            action = matrix_baseline_raw.copy()
-            if phase1 is not None:
-                policy_action = matrix_baseline_raw.copy()
+        action_decision = select_continuous_action(
+            agent=agent,
+            state=current_rl_state,
+            step=i,
+            warm_start_step=warm_start_step,
+            test=test,
+            baseline_action=matrix_baseline_raw,
+            phase1=phase1,
+            action_dim=action_dim,
+            nonfinite_fallback=True,
+        )
+        action = action_decision.action
+        policy_action = action_decision.policy_action
 
         if not np.all(np.isfinite(action)):
             action = matrix_baseline_raw.copy()
+            nonfinite_matrix_action_count += 1
+        elif action_decision.nonfinite_fallback_used:
             nonfinite_matrix_action_count += 1
 
         if phase1 is not None:
@@ -355,14 +352,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
                 policy_action if policy_action is not None else matrix_baseline_raw,
                 float,
             ).reshape(-1)
-            phase1_action_source_log[i] = int(
-                resolve_phase1_action_source(
-                    i,
-                    warm_start_step,
-                    phase1_hidden_active,
-                    test,
-                )
-            )
+            phase1_action_source_log[i] = int(action_decision.source)
 
         policy_mapped = _map_to_bounds(action, low_coef, high_coef)
         release_trace = clip_multipliers_to_release_bounds(policy_mapped, release_schedule, i)
@@ -518,17 +508,18 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
         if not test:
             replay_action = executed_action if acceptance_store_executed_action else action
-            agent.push(
-                current_rl_state,
-                np.asarray(replay_action, np.float32),
-                reward,
-                next_rl_state,
-                0.0,
+            replay_train_continuous_agent(
+                agent=agent,
+                state=current_rl_state,
+                action=replay_action,
+                reward=reward,
+                next_state=next_rl_state,
+                done=0.0,
+                step=i,
+                test=False,
+                train_start_step=warm_start_step,
+                phase1_train_traces=phase1_train_traces if phase1 is not None else None,
             )
-            if i >= warm_start_step:
-                train_meta = agent.train_step()
-                if phase1 is not None:
-                    record_phase1_train_step(phase1_train_traces, i, train_meta)
 
         if i in sub_episodes_changes_dict:
             avg_rewards.append(float(np.mean(rewards[max(0, i - time_in_sub_episodes + 1) : i + 1])))

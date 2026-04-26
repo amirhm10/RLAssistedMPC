@@ -3527,7 +3527,6 @@ def plot_combined_results_core(result_bundle, plot_cfg):
     t_line_blk = np.linspace(0.0, last_steps * delta_t, last_steps + 1)
     t_step_blk = t_line_blk[:-1]
     spans = episode_spans(bundle.get("test_train_dict"), nFE)
-    debug_mode = style_profile == "debug"
     metadata = resolve_system_metadata(bundle=bundle, plot_cfg=plot_cfg, n_outputs=n_outputs, n_inputs=n_inputs)
     output_labels = metadata["output_labels"]
     input_labels = metadata["input_labels"]
@@ -3577,6 +3576,141 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
         axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, prefix, save_pdf=save_pdf)
+
+    def plot_line_or_step(prefix, y_values, ylabel, t_values, segment_start, segment_len, *, step=False, bounds=None):
+        y_values = np.asarray(y_values, float).reshape(-1)
+        if y_values.size == 0:
+            return
+        n_plot = min(len(t_values), y_values.size)
+        fig, ax = plt.subplots(figsize=(8.4, 4.6))
+        if bounds is not None:
+            low, high, color = bounds
+            ax.fill_between(t_values[:n_plot], float(low), float(high), color=color, alpha=0.12, step="post")
+            ax.axhline(float(low), color=color, linestyle="--", linewidth=1.2)
+            ax.axhline(float(high), color=color, linestyle="--", linewidth=1.2)
+        if step:
+            ax.step(t_values[:n_plot], y_values[:n_plot], where="post")
+        else:
+            ax.plot(t_values[:n_plot], y_values[:n_plot])
+        shade_segment(ax, segment_start, segment_len)
+        ax.set_ylabel(ylabel)
+        ax.set_xlabel(time_label)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, prefix, save_pdf=save_pdf)
+
+    def plot_stacked_series(prefix, values, labels, t_values, segment_start, segment_len, *, step=False, bounds=None):
+        values = np.asarray(values, float)
+        if values.ndim == 1:
+            values = values.reshape(-1, 1)
+        if values.size == 0:
+            return
+        n_series = values.shape[1]
+        n_plot = min(len(t_values), values.shape[0])
+        fig, axs = plt.subplots(n_series, 1, figsize=(8.6, 3.0 + 2.1 * max(1, n_series - 1)), sharex=True)
+        if n_series == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            if bounds is not None and len(bounds) > idx:
+                low, high, color = bounds[idx]
+                ax.fill_between(t_values[:n_plot], float(low), float(high), color=color, alpha=0.12, step="post")
+                ax.axhline(float(low), color=color, linestyle="--", linewidth=1.2)
+                ax.axhline(float(high), color=color, linestyle="--", linewidth=1.2)
+            if step:
+                ax.step(t_values[:n_plot], values[:n_plot, idx], where="post")
+            else:
+                ax.plot(t_values[:n_plot], values[:n_plot, idx])
+            shade_segment(ax, segment_start, segment_len)
+            ax.set_ylabel(labels[idx] if idx < len(labels) else f"x{idx + 1}")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel(time_label)
+        _save_fig(fig, out_dir, prefix, save_pdf=save_pdf)
+
+    def plot_training_diagnostics(prefix, label):
+        trace_specs = [
+            (bundle.get(f"{prefix}_actor_losses"), "Actor loss", f"fig_combined_{prefix}_actor_loss"),
+            (bundle.get(f"{prefix}_critic_losses"), "Critic loss", f"fig_combined_{prefix}_critic_loss"),
+            (bundle.get(f"{prefix}_alpha_losses"), "Alpha loss", f"fig_combined_{prefix}_alpha_loss"),
+            (bundle.get(f"{prefix}_alphas"), "SAC alpha", f"fig_combined_{prefix}_alpha_trace"),
+            (bundle.get(f"{prefix}_critic_q1_trace"), "Critic Q1", f"fig_combined_{prefix}_critic_q1"),
+            (bundle.get(f"{prefix}_critic_q2_trace"), "Critic Q2", f"fig_combined_{prefix}_critic_q2"),
+            (bundle.get(f"{prefix}_critic_q_gap_trace"), "Critic Q gap", f"fig_combined_{prefix}_critic_q_gap"),
+            (bundle.get(f"{prefix}_exploration_trace"), "Exploration", f"fig_combined_{prefix}_exploration_trace"),
+            (bundle.get(f"{prefix}_exploration_magnitude_trace"), "Exploration mag.", f"fig_combined_{prefix}_exploration"),
+            (bundle.get(f"{prefix}_param_noise_scale_trace"), "Param-noise scale", f"fig_combined_{prefix}_param_noise"),
+            (bundle.get(f"{prefix}_action_saturation_trace"), "Action saturation", f"fig_combined_{prefix}_action_saturation"),
+            (bundle.get(f"{prefix}_entropy_trace"), "Entropy", f"fig_combined_{prefix}_entropy"),
+            (bundle.get(f"{prefix}_mean_log_prob_trace"), "Mean log-prob", f"fig_combined_{prefix}_mean_log_prob"),
+            (bundle.get(f"{prefix}_dqn_loss_trace"), "DQN loss", f"fig_combined_{prefix}_dqn_loss"),
+            (bundle.get(f"{prefix}_epsilon_trace"), "Epsilon", f"fig_combined_{prefix}_epsilon_trace"),
+            (bundle.get(f"{prefix}_avg_td_error_trace"), "Avg TD error", f"fig_combined_{prefix}_avg_td_error"),
+            (bundle.get(f"{prefix}_avg_max_q_trace"), "Avg max Q", f"fig_combined_{prefix}_avg_max_q"),
+            (bundle.get(f"{prefix}_avg_chosen_q_trace"), "Avg chosen Q", f"fig_combined_{prefix}_avg_chosen_q"),
+            (bundle.get(f"{prefix}_avg_value_trace"), "Avg V(s)", f"fig_combined_{prefix}_avg_value"),
+            (bundle.get(f"{prefix}_avg_advantage_spread_trace"), "Avg adv. spread", f"fig_combined_{prefix}_avg_advantage_spread"),
+            (bundle.get(f"{prefix}_noisy_sigma_trace"), "Noisy sigma", f"fig_combined_{prefix}_noisy_sigma"),
+        ]
+        active = []
+        for values, ylabel, fname in trace_specs:
+            if values is None or len(values) == 0:
+                continue
+            series = np.asarray(values, float).reshape(-1)
+            if series.size == 0:
+                continue
+            active.append((series, ylabel, fname))
+        if not active:
+            return
+
+        fig, axs = plt.subplots(len(active), 1, figsize=(8.6, 3.0 + 2.0 * max(1, len(active) - 1)), sharex=True)
+        if len(active) == 1:
+            axs = [axs]
+        for ax, (series, ylabel, _) in zip(axs, active):
+            ax.plot(np.arange(1, len(series) + 1), series)
+            ax.set_ylabel(ylabel)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Update #")
+        _save_fig(fig, out_dir, f"fig_combined_{prefix}_training_diagnostics", save_pdf=save_pdf)
+
+        for series, ylabel, fname in active:
+            fig, ax = plt.subplots(figsize=(7.8, 4.6))
+            ax.plot(np.arange(1, len(series) + 1), series)
+            ax.set_ylabel(f"{label} {ylabel}")
+            ax.set_xlabel("Update #")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+            _save_fig(fig, out_dir, fname, save_pdf=save_pdf)
+
+    def plot_named_mismatch(agent_key, title_key):
+        innov = bundle.get(f"{agent_key}_innovation_log")
+        terr = bundle.get(f"{agent_key}_tracking_error_log")
+        if innov is None and terr is None:
+            return
+        series_items = []
+        if innov is not None:
+            series_items.append((np.asarray(innov, float)[start_step : start_step + W, :], f"{title_key} innovation", f"{agent_key}_innovation"))
+        if terr is not None:
+            series_items.append((np.asarray(terr, float)[start_step : start_step + W, :], f"{title_key} tracking", f"{agent_key}_tracking"))
+        for series, label_stem, fname in series_items:
+            if series.size == 0:
+                continue
+            fig, axs = plt.subplots(n_outputs, 1, figsize=(8.4, 3.0 + 2.2 * max(1, n_outputs - 1)), sharex=True)
+            if n_outputs == 1:
+                axs = [axs]
+            for idx, ax in enumerate(axs):
+                ax.plot(t_step, series[:, idx])
+                shade_segment(ax, start_step, W)
+                ax.set_ylabel(f"{label_stem} {idx + 1}")
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel(time_label)
+            _save_fig(fig, out_dir, f"fig_combined_{fname}", save_pdf=save_pdf)
 
     plot_outputs("fig_combined_outputs_full", y_line, y_sp_phys, t_line, t_step, start_step, W)
     plot_outputs(
@@ -3716,9 +3850,28 @@ def plot_combined_results_core(result_bundle, plot_cfg):
         axs[1].spines["right"].set_visible(False)
         _make_axes_bold(axs[1])
         _save_fig(fig, out_dir, "fig_combined_horizons", save_pdf=save_pdf)
+        plot_stacked_series(
+            "fig_combined_horizons_full",
+            ht_seg,
+            ["Hp", "Hc"],
+            t_step,
+            start_step,
+            W,
+            step=True,
+        )
+        plot_stacked_series(
+            "fig_combined_horizons_last_block",
+            ht_seg[s_last : s_last + last_steps, :],
+            ["Hp", "Hc"],
+            t_step_blk,
+            start_step + s_last,
+            last_steps,
+            step=True,
+        )
 
         if bundle.get("horizon_action_trace") is not None:
-            a_seg = bundle["horizon_action_trace"][start_step : start_step + W]
+            a_trace = np.asarray(bundle["horizon_action_trace"])
+            a_seg = a_trace[start_step : start_step + W]
             fig, ax = plt.subplots(figsize=(8.2, 4.7))
             ax.step(t_step, a_seg, where="post")
             shade_segment(ax, start_step, W)
@@ -3729,24 +3882,27 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
             _save_fig(fig, out_dir, "fig_combined_horizon_action_trace", save_pdf=save_pdf)
 
-        if debug_mode and bundle.get("horizon_action_trace") is not None:
-            counts = collections.Counter(bundle["horizon_action_trace"][start_step : start_step + W].tolist())
+        if bundle.get("horizon_action_trace") is not None:
+            counts = collections.Counter(np.asarray(bundle["horizon_action_trace"])[start_step : start_step + W].tolist())
             labels = [str(k) for k, _ in sorted(counts.items())]
             values = [v for _, v in sorted(counts.items())]
-            fig, ax = plt.subplots(figsize=(7.8, 4.5))
-            ax.bar(np.arange(len(values)), values)
-            ax.set_xticks(np.arange(len(values)))
-            ax.set_xticklabels(labels)
-            ax.set_ylabel("Count")
-            ax.set_xlabel("Horizon Action")
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            _make_axes_bold(ax)
-            _save_fig(fig, out_dir, "fig_combined_horizon_action_hist", save_pdf=save_pdf)
+            for fname in ("fig_combined_horizon_action_hist", "fig_combined_horizon_recipe_counts"):
+                fig, ax = plt.subplots(figsize=(7.8, 4.5))
+                ax.bar(np.arange(len(values)), values)
+                ax.set_xticks(np.arange(len(values)))
+                ax.set_xticklabels(labels)
+                ax.set_ylabel("Count")
+                ax.set_xlabel("Horizon Action")
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+                _save_fig(fig, out_dir, fname, save_pdf=save_pdf)
 
     if active_agents.get("matrix") and bundle.get("matrix_alpha_log") is not None:
-        alpha_seg = bundle["matrix_alpha_log"][start_step : start_step + W]
-        delta_seg = bundle["matrix_delta_log"][start_step : start_step + W, :]
+        alpha_full = np.asarray(bundle["matrix_alpha_log"], float)
+        delta_full = None if bundle.get("matrix_delta_log") is None else np.asarray(bundle["matrix_delta_log"], float)
+        alpha_seg = alpha_full[start_step : start_step + W]
+        delta_seg = np.zeros((W, n_inputs), dtype=float) if delta_full is None else delta_full[start_step : start_step + W, :]
         fig, axs = plt.subplots(n_inputs + 1, 1, figsize=(8.4, 4.0 + 2.0 * n_inputs), sharex=True)
         axs[0].plot(t_step, alpha_seg)
         if bundle.get("matrix_low_coef") is not None:
@@ -3769,9 +3925,108 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             _make_axes_bold(axs[idx + 1])
         axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_combined_matrix_multipliers", save_pdf=save_pdf)
+        low_coef = None if bundle.get("matrix_low_coef") is None else np.asarray(bundle["matrix_low_coef"], float)
+        high_coef = None if bundle.get("matrix_high_coef") is None else np.asarray(bundle["matrix_high_coef"], float)
+        alpha_bounds = None
+        if low_coef is not None and high_coef is not None and low_coef.size > 0 and high_coef.size > 0:
+            alpha_bounds = (low_coef[0], high_coef[0], "tab:blue")
+        plot_line_or_step(
+            "fig_combined_matrix_alpha_full",
+            alpha_seg,
+            "alpha",
+            t_step,
+            start_step,
+            W,
+            step=True,
+            bounds=alpha_bounds,
+        )
+        plot_line_or_step(
+            "fig_combined_matrix_alpha_last_block",
+            alpha_seg[s_last : s_last + last_steps],
+            "alpha",
+            t_step_blk,
+            start_step + s_last,
+            last_steps,
+            step=True,
+            bounds=alpha_bounds,
+        )
+        if delta_full is not None:
+            delta_bounds = None
+            if low_coef is not None and high_coef is not None:
+                delta_bounds = []
+                for idx in range(n_inputs):
+                    if low_coef.size > idx + 1 and high_coef.size > idx + 1:
+                        delta_bounds.append((low_coef[idx + 1], high_coef[idx + 1], "tab:green"))
+            delta_labels = [rf"$\delta_{{{idx + 1}}}$" for idx in range(n_inputs)]
+            plot_stacked_series(
+                "fig_combined_matrix_delta_full",
+                delta_seg,
+                delta_labels,
+                t_step,
+                start_step,
+                W,
+                step=True,
+                bounds=delta_bounds,
+            )
+            plot_stacked_series(
+                "fig_combined_matrix_delta_last_block",
+                delta_seg[s_last : s_last + last_steps, :],
+                delta_labels,
+                t_step_blk,
+                start_step + s_last,
+                last_steps,
+                step=True,
+                bounds=delta_bounds,
+            )
+
+        release_items = []
+        if bundle.get("matrix_release_phase_log") is not None:
+            release_items.append(("Phase", np.asarray(bundle["matrix_release_phase_log"], float)[start_step : start_step + W]))
+        if bundle.get("matrix_release_guard_active_log") is not None:
+            release_items.append(("Guard active", np.asarray(bundle["matrix_release_guard_active_log"], float)[start_step : start_step + W]))
+        if bundle.get("matrix_release_clip_fraction_log") is not None:
+            release_items.append(("Clip frac.", np.asarray(bundle["matrix_release_clip_fraction_log"], float)[start_step : start_step + W]))
+        if bundle.get("matrix_release_ramp_fraction_log") is not None:
+            release_items.append(("Ramp frac.", np.asarray(bundle["matrix_release_ramp_fraction_log"], float)[start_step : start_step + W]))
+        if release_items:
+            fig, axs = plt.subplots(len(release_items), 1, figsize=(8.6, 3.0 + 1.8 * max(1, len(release_items) - 1)), sharex=True)
+            if len(release_items) == 1:
+                axs = [axs]
+            for ax, (label, series) in zip(axs, release_items):
+                ax.step(t_step, series, where="post")
+                shade_segment(ax, start_step, W)
+                ax.set_ylabel(label)
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel(time_label)
+            _save_fig(fig, out_dir, "fig_combined_matrix_step2_release_diagnostics", save_pdf=save_pdf)
+
+        effective_low = bundle.get("matrix_release_effective_low_log")
+        effective_high = bundle.get("matrix_release_effective_high_log")
+        if effective_low is not None and effective_high is not None:
+            effective_low = np.asarray(effective_low, float)[start_step : start_step + W, :]
+            effective_high = np.asarray(effective_high, float)[start_step : start_step + W, :]
+            eff_labels = ["alpha"] + [rf"$\delta_{{{idx + 1}}}$" for idx in range(n_inputs)]
+            n_eff = min(effective_low.shape[1], effective_high.shape[1], len(eff_labels))
+            fig, axs = plt.subplots(n_eff, 1, figsize=(8.6, 3.0 + 1.9 * max(1, n_eff - 1)), sharex=True)
+            if n_eff == 1:
+                axs = [axs]
+            for idx, ax in enumerate(axs):
+                ax.step(t_step, effective_low[:, idx], where="post", label="Effective low")
+                ax.step(t_step, effective_high[:, idx], where="post", linestyle="--", label="Effective high")
+                shade_segment(ax, start_step, W)
+                ax.set_ylabel(eff_labels[idx])
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel(time_label)
+            axs[0].legend(loc="best")
+            _save_fig(fig, out_dir, "fig_combined_matrix_step2_effective_bounds", save_pdf=save_pdf)
 
     if active_agents.get("weights") and bundle.get("weight_log") is not None:
-        weight_seg = bundle["weight_log"][start_step : start_step + W, :]
+        weight_full = np.asarray(bundle["weight_log"], float)
+        weight_seg = weight_full[start_step : start_step + W, :]
         labels = ["Q1", "Q2", "R1", "R2"]
         fig, axs = plt.subplots(4, 1, figsize=(8.4, 9.0), sharex=True)
         for idx, ax in enumerate(axs):
@@ -3786,10 +4041,42 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
         axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_combined_weight_multipliers", save_pdf=save_pdf)
+        low_coef = None if bundle.get("weight_low_coef") is None else np.asarray(bundle["weight_low_coef"], float)
+        high_coef = None if bundle.get("weight_high_coef") is None else np.asarray(bundle["weight_high_coef"], float)
+        weight_bounds = None
+        if low_coef is not None and high_coef is not None:
+            weight_bounds = []
+            for idx in range(min(weight_seg.shape[1], len(labels))):
+                if low_coef.size > idx and high_coef.size > idx:
+                    weight_bounds.append((low_coef[idx], high_coef[idx], "tab:purple"))
+        plot_stacked_series(
+            "fig_combined_weights_multipliers_full",
+            weight_seg,
+            labels,
+            t_step,
+            start_step,
+            W,
+            step=True,
+            bounds=weight_bounds,
+        )
+        plot_stacked_series(
+            "fig_combined_weights_multipliers_last_block",
+            weight_seg[s_last : s_last + last_steps, :],
+            labels,
+            t_step_blk,
+            start_step + s_last,
+            last_steps,
+            step=True,
+            bounds=weight_bounds,
+        )
 
     if active_agents.get("residual") and bundle.get("residual_exec_log") is not None:
-        raw_seg = bundle["residual_raw_log"][start_step : start_step + W, :]
-        exec_seg = bundle["residual_exec_log"][start_step : start_step + W, :]
+        raw_full = np.zeros_like(np.asarray(bundle["residual_exec_log"], float))
+        if bundle.get("residual_raw_log") is not None:
+            raw_full = np.asarray(bundle["residual_raw_log"], float)
+        exec_full = np.asarray(bundle["residual_exec_log"], float)
+        raw_seg = raw_full[start_step : start_step + W, :]
+        exec_seg = exec_full[start_step : start_step + W, :]
         fig, axs = plt.subplots(n_inputs, 1, figsize=(8.4, 3.0 + 2.1 * max(1, n_inputs - 1)), sharex=True)
         if n_inputs == 1:
             axs = [axs]
@@ -3807,9 +4094,57 @@ def plot_combined_results_core(result_bundle, plot_cfg):
         axs[-1].set_xlabel(time_label)
         axs[0].legend(loc="best")
         _save_fig(fig, out_dir, "fig_combined_residual_traces", save_pdf=save_pdf)
+        residual_bounds = None
+        if bundle.get("residual_low_coef") is not None and bundle.get("residual_high_coef") is not None:
+            low_coef = np.asarray(bundle["residual_low_coef"], float)
+            high_coef = np.asarray(bundle["residual_high_coef"], float)
+            residual_bounds = []
+            for idx in range(n_inputs):
+                if low_coef.size > idx and high_coef.size > idx:
+                    residual_bounds.append((low_coef[idx], high_coef[idx], "tab:red"))
+
+        def plot_residual_correction(prefix, raw_values, exec_values, t_values, segment_start, segment_len):
+            n_plot = min(len(t_values), raw_values.shape[0], exec_values.shape[0])
+            fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.1 * max(1, n_inputs - 1)), sharex=True)
+            if n_inputs == 1:
+                axs = [axs]
+            for idx, ax in enumerate(axs):
+                if residual_bounds is not None and len(residual_bounds) > idx:
+                    low, high, color = residual_bounds[idx]
+                    ax.fill_between(t_values[:n_plot], float(low), float(high), color=color, alpha=0.10, step="post")
+                    ax.axhline(float(low), color=color, linestyle="--", linewidth=1.2)
+                    ax.axhline(float(high), color=color, linestyle="--", linewidth=1.2)
+                ax.plot(t_values[:n_plot], raw_values[:n_plot, idx], label="Raw")
+                ax.plot(t_values[:n_plot], exec_values[:n_plot, idx], linestyle="--", label="Executed")
+                shade_segment(ax, segment_start, segment_len)
+                ax.set_ylabel(rf"$u^r_{{{idx + 1}}}$")
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel(time_label)
+            axs[0].legend(loc="best")
+            _save_fig(fig, out_dir, prefix, save_pdf=save_pdf)
+
+        plot_residual_correction(
+            "fig_combined_residual_correction_full",
+            raw_seg,
+            exec_seg,
+            t_step,
+            start_step,
+            W,
+        )
+        plot_residual_correction(
+            "fig_combined_residual_correction_last_block",
+            raw_seg[s_last : s_last + last_steps, :],
+            exec_seg[s_last : s_last + last_steps, :],
+            t_step_blk,
+            start_step + s_last,
+            last_steps,
+        )
 
         if bundle.get("u_base") is not None:
-            u_base_seg = bundle["u_base"][start_step : start_step + W, :]
+            u_base_full = np.asarray(bundle["u_base"], float)
+            u_base_seg = u_base_full[start_step : start_step + W, :]
             fig, axs = plt.subplots(n_inputs, 1, figsize=(8.4, 3.0 + 2.1 * max(1, n_inputs - 1)), sharex=True)
             if n_inputs == 1:
                 axs = [axs]
@@ -3824,6 +4159,40 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             axs[-1].set_xlabel(time_label)
             axs[0].legend(loc="best")
             _save_fig(fig, out_dir, "fig_combined_residual_input_overlay", save_pdf=save_pdf)
+
+            def plot_residual_input_overlay(prefix, u_values, base_values, t_values, segment_start, segment_len):
+                n_plot = min(len(t_values), u_values.shape[0], base_values.shape[0])
+                fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.2 + 2.2 * max(1, n_inputs - 1)), sharex=True)
+                if n_inputs == 1:
+                    axs = [axs]
+                for idx, ax in enumerate(axs):
+                    ax.step(t_values[:n_plot], u_values[:n_plot, idx], where="post", label="Applied")
+                    ax.step(t_values[:n_plot], base_values[:n_plot, idx], where="post", linestyle="--", label="MPC baseline")
+                    shade_segment(ax, segment_start, segment_len)
+                    ax.set_ylabel(input_labels[idx])
+                    ax.spines["top"].set_visible(False)
+                    ax.spines["right"].set_visible(False)
+                    _make_axes_bold(ax)
+                axs[-1].set_xlabel(time_label)
+                axs[0].legend(loc="best")
+                _save_fig(fig, out_dir, prefix, save_pdf=save_pdf)
+
+            plot_residual_input_overlay(
+                "fig_combined_residual_inputs_overlay_full",
+                u_line,
+                u_base_seg,
+                t_step,
+                start_step,
+                W,
+            )
+            plot_residual_input_overlay(
+                "fig_combined_residual_inputs_overlay_last_block",
+                u_line[s_last : s_last + last_steps, :],
+                u_base_seg[s_last : s_last + last_steps, :],
+                t_step_blk,
+                start_step + s_last,
+                last_steps,
+            )
 
     decision_series = []
     decision_labels = []
@@ -3853,9 +4222,9 @@ def plot_combined_results_core(result_bundle, plot_cfg):
         axs[-1].set_xlabel(time_label)
         _save_fig(fig, out_dir, "fig_combined_decision_timeline", save_pdf=save_pdf)
 
-    if debug_mode and bundle.get("rho_log") is not None:
-        rho_seg = bundle["rho_log"][start_step : start_step + W]
-        rho_eff_seg = None if bundle.get("rho_eff_log") is None else bundle["rho_eff_log"][start_step : start_step + W]
+    if bundle.get("rho_log") is not None:
+        rho_seg = np.asarray(bundle["rho_log"], float)[start_step : start_step + W]
+        rho_eff_seg = None if bundle.get("rho_eff_log") is None else np.asarray(bundle["rho_eff_log"], float)[start_step : start_step + W]
         fig, ax = plt.subplots(figsize=(8.2, 4.6))
         ax.plot(t_step, rho_seg, label=r"$\rho$")
         if rho_eff_seg is not None:
@@ -3870,7 +4239,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             ax.legend(loc="best")
         _save_fig(fig, out_dir, "fig_combined_rho_trace", save_pdf=save_pdf)
 
-    if debug_mode and any(bundle.get(key) is not None for key in ("deadband_active_log", "projection_active_log", "projection_due_to_deadband_log", "projection_due_to_authority_log", "projection_due_to_headroom_log")):
+    if any(bundle.get(key) is not None for key in ("deadband_active_log", "projection_active_log", "projection_due_to_deadband_log", "projection_due_to_authority_log", "projection_due_to_headroom_log")):
         labels = []
         values = []
         colors = []
@@ -3899,65 +4268,11 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
             _save_fig(fig, out_dir, "fig_combined_residual_projection_fractions", save_pdf=save_pdf)
 
-    if debug_mode:
-        def plot_named_mismatch(agent_key, title_key):
-            innov = bundle.get(f"{agent_key}_innovation_log")
-            terr = bundle.get(f"{agent_key}_tracking_error_log")
-            if innov is None and terr is None:
-                return
-            series_items = []
-            if innov is not None:
-                series_items.append((innov[start_step : start_step + W, :], f"{title_key} innovation", f"{agent_key}_innovation"))
-            if terr is not None:
-                series_items.append((terr[start_step : start_step + W, :], f"{title_key} tracking", f"{agent_key}_tracking"))
-            for series, label_stem, fname in series_items:
-                fig, axs = plt.subplots(n_outputs, 1, figsize=(8.4, 3.0 + 2.2 * max(1, n_outputs - 1)), sharex=True)
-                if n_outputs == 1:
-                    axs = [axs]
-                for idx, ax in enumerate(axs):
-                    ax.plot(t_step, series[:, idx])
-                    shade_segment(ax, start_step, W)
-                    ax.set_ylabel(f"{label_stem} {idx + 1}")
-                    ax.spines["top"].set_visible(False)
-                    ax.spines["right"].set_visible(False)
-                    _make_axes_bold(ax)
-                axs[-1].set_xlabel(time_label)
-                _save_fig(fig, out_dir, f"fig_combined_{fname}", save_pdf=save_pdf)
+    for key in ("horizon", "matrix", "weight", "residual"):
+        plot_named_mismatch(key, key.capitalize())
 
-        for key in ("horizon", "matrix", "weight", "residual"):
-            plot_named_mismatch(key, key.capitalize())
-
-        def plot_losses(prefix, label):
-            plots = [
-                (bundle.get(f"{prefix}_actor_losses"), f"{label} actor loss", f"fig_combined_{prefix}_actor_loss"),
-                (bundle.get(f"{prefix}_critic_losses"), f"{label} critic loss", f"fig_combined_{prefix}_critic_loss"),
-                (bundle.get(f"{prefix}_alpha_losses"), f"{label} alpha loss", f"fig_combined_{prefix}_alpha_loss"),
-                (bundle.get(f"{prefix}_alphas"), f"{label} alpha", f"fig_combined_{prefix}_alpha_trace"),
-                (bundle.get(f"{prefix}_critic_q1_trace"), f"{label} critic q1", f"fig_combined_{prefix}_critic_q1"),
-                (bundle.get(f"{prefix}_critic_q2_trace"), f"{label} critic q2", f"fig_combined_{prefix}_critic_q2"),
-                (bundle.get(f"{prefix}_critic_q_gap_trace"), f"{label} critic q gap", f"fig_combined_{prefix}_critic_q_gap"),
-                (bundle.get(f"{prefix}_exploration_magnitude_trace"), f"{label} exploration", f"fig_combined_{prefix}_exploration"),
-                (bundle.get(f"{prefix}_param_noise_scale_trace"), f"{label} param-noise scale", f"fig_combined_{prefix}_param_noise"),
-                (bundle.get(f"{prefix}_action_saturation_trace"), f"{label} action saturation", f"fig_combined_{prefix}_action_saturation"),
-                (bundle.get(f"{prefix}_entropy_trace"), f"{label} entropy", f"fig_combined_{prefix}_entropy"),
-                (bundle.get(f"{prefix}_mean_log_prob_trace"), f"{label} mean log-prob", f"fig_combined_{prefix}_mean_log_prob"),
-            ]
-            for values, ylabel, fname in plots:
-                if values is None or len(values) == 0:
-                    continue
-                fig, ax = plt.subplots(figsize=(7.8, 4.6))
-                ax.plot(np.arange(1, len(values) + 1), values)
-                ax.set_ylabel(ylabel)
-                ax.set_xlabel("Training step")
-                ax.spines["top"].set_visible(False)
-                ax.spines["right"].set_visible(False)
-                _make_axes_bold(ax)
-                _save_fig(fig, out_dir, fname, save_pdf=save_pdf)
-
-        for prefix, label in (("matrix", "Matrix"), ("weight", "Weights"), ("residual", "Residual")):
-            plot_losses(prefix, label)
-
-        plot_losses("horizon", "Horizon")
+    for prefix, label in (("horizon", "Horizon"), ("matrix", "Matrix"), ("weight", "Weights"), ("residual", "Residual")):
+        plot_training_diagnostics(prefix, label)
 
     _plot_phase1_release_window_combined(bundle, out_dir, time_label, save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)

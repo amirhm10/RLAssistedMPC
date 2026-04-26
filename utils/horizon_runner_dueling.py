@@ -2,6 +2,7 @@ import numpy as np
 import scipy.optimize as spo
 
 from Simulation.mpc import MpcSolverGeneral
+from utils.agent_step_runtime import replay_train_horizon_agent, select_horizon_action
 from utils.helpers import (
     action_to_horizons,
     apply_min_max,
@@ -211,24 +212,23 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
             tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
-        if i > warm_start_step:
-            if (i % decision_interval == 0) or (last_action is None):
-                if not test:
-                    a_idx = int(agent.take_action(current_rl_state.astype(np.float32), eval_mode=False))
-                else:
-                    a_idx = int(agent.act_eval(current_rl_state.astype(np.float32)))
-                Hp, Hc = action_to_horizons(h_recipes, a_idx)
-                if (Hp, Hc) != (current_Hp, current_Hc):
-                    mpc_obj = rebuild_mpc(Hp, Hc)
-                    current_Hp, current_Hc = Hp, Hc
-                    current_ic_opt = np.zeros(n_inputs * int(current_Hc))
-                last_action = a_idx
-            else:
-                a_idx = int(last_action)
-                Hp, Hc = current_Hp, current_Hc
-        else:
-            a_idx = default_action
-            Hp, Hc = action_to_horizons(h_recipes, a_idx)
+        horizon_decision = select_horizon_action(
+            agent=agent,
+            state=current_rl_state,
+            step=i,
+            warm_start_step=warm_start_step,
+            decision_interval=decision_interval,
+            default_action=default_action,
+            last_action=last_action,
+            test=test,
+        )
+        a_idx = int(horizon_decision.action)
+        last_action = horizon_decision.last_action
+        Hp, Hc = action_to_horizons(h_recipes, a_idx)
+        if (Hp, Hc) != (current_Hp, current_Hc):
+            mpc_obj = rebuild_mpc(Hp, Hc)
+            current_Hp, current_Hc = Hp, Hc
+            current_ic_opt = np.zeros(n_inputs * int(current_Hc))
 
         action_trace[i] = a_idx
         horizon_trace[i] = (Hp, Hc)
@@ -312,17 +312,18 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
         )
         done = 0.0
 
-        if not test:
-            if i > time_in_sub_episodes:
-                agent.push(
-                    current_rl_state.astype(np.float32),
-                    int(a_idx),
-                    float(reward),
-                    next_rl_state.astype(np.float32),
-                    float(done),
-                )
-            if i >= warm_start_step:
-                agent.train_step()
+        replay_train_horizon_agent(
+            agent=agent,
+            state=current_rl_state,
+            action=a_idx,
+            reward=reward,
+            next_state=next_rl_state,
+            done=done,
+            step=i,
+            test=test,
+            replay_start_step=time_in_sub_episodes,
+            train_start_step=warm_start_step,
+        )
 
         if i in sub_episodes_changes_dict:
             avg_reward = float(np.mean(rewards[max(0, i - time_in_sub_episodes + 1) : i + 1]))

@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.optimize as spo
 
+from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
 from utils.helpers import (
     apply_min_max,
     build_polymer_disturbance_schedule,
@@ -16,8 +17,6 @@ from utils.phase1_hidden_release import (
     build_phase1_bundle_fields,
     build_phase1_schedule,
     init_phase1_train_traces,
-    record_phase1_train_step,
-    resolve_phase1_action_source,
 )
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.state_features import (
@@ -261,26 +260,18 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
-        phase1_hidden_active = bool(phase1 is not None and phase1["enabled"] and phase1["hidden_window_active_log"][i])
-        policy_action = None
-        if i > warm_start_step:
-            if phase1 is not None:
-                policy_action = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
-                if not np.all(np.isfinite(policy_action)):
-                    policy_action = identity_action.copy()
-            if phase1_hidden_active:
-                action = identity_action.copy()
-            elif not test:
-                action = np.asarray(agent.take_action(current_rl_state, explore=True), float).reshape(-1)
-            else:
-                action = policy_action.copy() if policy_action is not None else np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
-        else:
-            action = identity_action.copy()
-            if phase1 is not None:
-                policy_action = identity_action.copy()
-
-        if action.size != action_dim:
-            raise ValueError("weights runner expects action_dim == 4.")
+        action_decision = select_continuous_action(
+            agent=agent,
+            state=current_rl_state,
+            step=i,
+            warm_start_step=warm_start_step,
+            test=test,
+            baseline_action=identity_action,
+            phase1=phase1,
+            action_dim=action_dim,
+        )
+        action = action_decision.action
+        policy_action = action_decision.policy_action
 
         if phase1 is not None:
             policy_action_raw_log[i, :] = np.asarray(
@@ -288,14 +279,7 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
                 float,
             ).reshape(-1)
             executed_action_raw_log[i, :] = np.asarray(action, float).reshape(-1)
-            phase1_action_source_log[i] = int(
-                resolve_phase1_action_source(
-                    i,
-                    warm_start_step,
-                    phase1_hidden_active,
-                    test,
-                )
-            )
+            phase1_action_source_log[i] = int(action_decision.source)
 
         multipliers = _map_to_bounds(action, low_coef, high_coef).reshape(-1)
         weight_log[i, :] = multipliers
@@ -380,18 +364,18 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             mismatch_transform_post_clip=mismatch_cfg["mismatch_transform_post_clip"],
         )
 
-        if not test:
-            agent.push(
-                current_rl_state,
-                np.asarray(action, np.float32),
-                reward,
-                next_rl_state,
-                0.0,
-            )
-            if i >= warm_start_step:
-                train_meta = agent.train_step()
-                if phase1 is not None:
-                    record_phase1_train_step(phase1_train_traces, i, train_meta)
+        replay_train_continuous_agent(
+            agent=agent,
+            state=current_rl_state,
+            action=action,
+            reward=reward,
+            next_state=next_rl_state,
+            done=0.0,
+            step=i,
+            test=test,
+            train_start_step=warm_start_step,
+            phase1_train_traces=phase1_train_traces if phase1 is not None else None,
+        )
 
         if i in sub_episodes_changes_dict:
             avg_rewards.append(float(np.mean(rewards[max(0, i - time_in_sub_episodes + 1) : i + 1])))

@@ -495,8 +495,8 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "use_shifted_mpc_warm_start": False,
         "update_family": "block",  # Options: "block" | "band". Block-lite is the primary first experiment.
         "range_profile": "wide",  # Options: "tight" | "default" | "wide". Wide is the active default for cross-system structured analysis.
-        "a_low_override": DISTILLATION_MATRIX_ALPHA_DEFAULT_LOW,  # Keep the A-side tightly centered around nominal for the distillation structured default.
-        "a_high_override": min(DISTILLATION_MATRIX_ALPHA_DEFAULT_HIGH, DISTILLATION_MATRIX_ALPHA_UPPER_CAP),  # Keep the A-side tightly centered around nominal for the distillation structured default.
+        "a_low_override": DISTILLATION_DEFAULT_MULTIPLIER_LOW,  # Keep the A-side wide, with the high side capped by the analyzed distillation alpha limit.
+        "a_high_override": min(DISTILLATION_DEFAULT_MULTIPLIER_HIGH, DISTILLATION_MATRIX_ALPHA_UPPER_CAP),
         "b_low_override": DISTILLATION_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for B-side structured bounds.
         "b_high_override": DISTILLATION_DEFAULT_MULTIPLIER_HIGH,  # Keep B-side wide for gain-authority studies.
         "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),

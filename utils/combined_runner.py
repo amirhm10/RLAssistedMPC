@@ -15,6 +15,11 @@ from utils.helpers import (
     step_system_with_disturbance,
 )
 from utils.multiplier_mapping import map_centered_action_to_bounds, map_centered_bounds_to_action
+from utils.multiplier_release_schedule import (
+    build_release_authority_schedule,
+    clip_multipliers_to_release_bounds,
+    map_effective_multipliers_to_raw_action,
+)
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
 from utils.phase1_hidden_release import (
@@ -401,6 +406,23 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         )
         residual_agent.actor_freeze = int(residual_phase1["effective_actor_freeze"])
 
+    release_cfg = dict(matrix_cfg.get("release_protected_advisory_caps", {}))
+    release_labels = ["alpha"] + [f"B_col_{idx + 1}" for idx in range(n_inputs)]
+    release_action_freeze_end_step = matrix_phase1["action_freeze_end_step"] if matrix_phase1 is not None else warm_start_step
+    matrix_release_schedule = build_release_authority_schedule(
+        config=release_cfg,
+        labels=release_labels,
+        wide_low=model_low,
+        wide_high=model_high,
+        warm_start_step=warm_start_step,
+        action_freeze_end_step=release_action_freeze_end_step,
+        time_in_sub_episodes=time_in_sub_episodes,
+        n_steps=nFE,
+    )
+    matrix_release_store_executed_action = bool(
+        matrix_release_schedule.get("store_executed_action_in_replay", True)
+    )
+
     y_system = np.zeros((nFE + 1, n_outputs))
     y_system[0, :] = np.asarray(system.current_output, float)
     u_applied_scaled = np.zeros((nFE, n_inputs))
@@ -419,6 +441,19 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     matrix_alpha_log = np.ones(nFE, dtype=float)
     matrix_delta_log = np.ones((nFE, n_inputs), dtype=float)
     matrix_decision_log = np.zeros(nFE, dtype=int)
+    matrix_policy_multiplier_log = np.ones((nFE, model_baseline_raw.size), dtype=float)
+    matrix_candidate_multiplier_log = np.ones((nFE, model_baseline_raw.size), dtype=float)
+    matrix_executed_multiplier_log = np.ones((nFE, model_baseline_raw.size), dtype=float)
+    matrix_candidate_action_raw_log = np.zeros((nFE, model_baseline_raw.size), dtype=float)
+    matrix_final_executed_action_raw_log = np.zeros((nFE, model_baseline_raw.size), dtype=float)
+    matrix_release_effective_low_log = np.ones((nFE, model_baseline_raw.size), dtype=float)
+    matrix_release_effective_high_log = np.ones((nFE, model_baseline_raw.size), dtype=float)
+    matrix_release_phase_log = np.zeros(nFE, dtype=int)
+    matrix_release_guard_active_log = np.zeros(nFE, dtype=int)
+    matrix_release_clip_fraction_log = np.zeros(nFE, dtype=float)
+    matrix_release_ramp_fraction_log = np.zeros(nFE, dtype=float)
+    matrix_release_policy_action_raw_log = np.zeros((nFE, model_baseline_raw.size), dtype=float)
+    matrix_release_executed_action_raw_log = np.zeros((nFE, model_baseline_raw.size), dtype=float)
     matrix_phase1_action_source_log = np.zeros(nFE, dtype=int) if matrix_phase1 is not None else None
     matrix_policy_action_raw_log = np.zeros((nFE, model_baseline_raw.size), dtype=float) if matrix_phase1 is not None else None
     matrix_executed_action_raw_log = np.zeros((nFE, model_baseline_raw.size), dtype=float) if matrix_phase1 is not None else None
@@ -653,14 +688,32 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                 matrix_policy_raw if matrix_policy_raw is not None else model_baseline_raw,
                 float,
             ).reshape(-1)
-            matrix_executed_action_raw_log[i, :] = np.asarray(model_raw, float).reshape(-1)
             matrix_phase1_action_source_log[i] = int(current_model_source)
-        model_mapped = map_centered_action_to_bounds(
+        policy_mapped = map_centered_action_to_bounds(
             model_raw,
             model_low,
             model_high,
             nominal=1.0,
         )
+        release_trace = clip_multipliers_to_release_bounds(policy_mapped, matrix_release_schedule, i)
+        model_mapped = np.asarray(release_trace["multipliers"], float).reshape(-1)
+        matrix_executed_raw = map_effective_multipliers_to_raw_action(model_mapped, model_low, model_high)
+        if matrix_phase1 is not None:
+            matrix_executed_action_raw_log[i, :] = np.asarray(matrix_executed_raw, float).reshape(-1)
+        matrix_policy_multiplier_log[i, :] = np.asarray(policy_mapped, float).reshape(-1)
+        matrix_candidate_multiplier_log[i, :] = np.asarray(model_mapped, float).reshape(-1)
+        matrix_executed_multiplier_log[i, :] = np.asarray(model_mapped, float).reshape(-1)
+        matrix_candidate_action_raw_log[i, :] = np.asarray(matrix_executed_raw, float).reshape(-1)
+        matrix_final_executed_action_raw_log[i, :] = np.asarray(matrix_executed_raw, float).reshape(-1)
+        matrix_release_effective_low_log[i, :] = np.asarray(release_trace["low"], float).reshape(-1)
+        matrix_release_effective_high_log[i, :] = np.asarray(release_trace["high"], float).reshape(-1)
+        matrix_release_phase_log[i] = int(release_trace["phase_code"])
+        matrix_release_guard_active_log[i] = int(bool(release_trace["guard_active"]))
+        matrix_release_clip_fraction_log[i] = float(release_trace["clip_fraction"])
+        matrix_release_ramp_fraction_log[i] = float(release_trace["ramp_fraction"])
+        matrix_release_policy_action_raw_log[i, :] = np.asarray(model_raw, float).reshape(-1)
+        matrix_release_executed_action_raw_log[i, :] = np.asarray(matrix_executed_raw, float).reshape(-1)
+        matrix_replay_action = matrix_executed_raw if matrix_release_store_executed_action else model_raw
         alpha = float(model_mapped[0])
         delta = np.asarray(model_mapped[1 : 1 + n_inputs], float).reshape(-1)
         matrix_alpha_log[i] = alpha
@@ -969,7 +1022,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                 next_state = build_next_state("matrix", matrix_state_mode)
                 matrix_agent.push(
                     current_states["matrix"].astype(np.float32),
-                    np.asarray(model_raw, np.float32),
+                    np.asarray(matrix_replay_action, np.float32),
                     reward,
                     next_state.astype(np.float32),
                     0.0,
@@ -1080,6 +1133,22 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "matrix_state_mode": matrix_state_mode,
         "matrix_low_coef": model_low,
         "matrix_high_coef": model_high,
+        "matrix_policy_multiplier_log": matrix_policy_multiplier_log,
+        "matrix_candidate_multiplier_log": matrix_candidate_multiplier_log,
+        "matrix_executed_multiplier_log": matrix_executed_multiplier_log,
+        "matrix_candidate_action_raw_log": matrix_candidate_action_raw_log,
+        "matrix_final_executed_action_raw_log": matrix_final_executed_action_raw_log,
+        "matrix_release_schedule": matrix_release_schedule,
+        "matrix_release_guard_enabled": bool(matrix_release_schedule.get("enabled", False)),
+        "matrix_release_phase_log": matrix_release_phase_log,
+        "matrix_release_guard_active_log": matrix_release_guard_active_log,
+        "matrix_release_clip_fraction_log": matrix_release_clip_fraction_log,
+        "matrix_release_ramp_fraction_log": matrix_release_ramp_fraction_log,
+        "matrix_release_effective_low_log": matrix_release_effective_low_log,
+        "matrix_release_effective_high_log": matrix_release_effective_high_log,
+        "matrix_release_policy_action_raw_log": matrix_release_policy_action_raw_log,
+        "matrix_release_executed_action_raw_log": matrix_release_executed_action_raw_log,
+        "matrix_release_store_executed_action_in_replay": matrix_release_store_executed_action,
         "weight_log": weight_log,
         "weight_decision_log": weight_decision_log,
         "weight_agent_kind": weight_agent_kind,

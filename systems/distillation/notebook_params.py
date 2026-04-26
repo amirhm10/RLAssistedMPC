@@ -402,8 +402,8 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "high_coef_by_agent": {
             key: np.asarray(value["high"], float).copy() for key, value in MATRIX_MULTIPLIER_BOUNDS.items()
         },
-        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
-        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=False),
+        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
+        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
@@ -499,8 +499,8 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "a_high_override": min(DISTILLATION_MATRIX_ALPHA_DEFAULT_HIGH, DISTILLATION_MATRIX_ALPHA_UPPER_CAP),  # Keep the A-side tightly centered around nominal for the distillation structured default.
         "b_low_override": DISTILLATION_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for B-side structured bounds.
         "b_high_override": DISTILLATION_DEFAULT_MULTIPLIER_HIGH,  # Keep B-side wide for gain-authority studies.
-        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
-        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=False),
+        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
+        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         "prediction_fallback_on_solve_failure": True,  # Use the shared structured-runner fallback instead of stopping on an assisted MPC solve failure.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
@@ -756,8 +756,7 @@ DISTILLATION_COMBINED_DEFAULTS = {
     "td3_post_warm_start_action_freeze_subepisodes": 5,
     "td3_post_warm_start_actor_freeze_subepisodes": 5,
     "controller": {
-        # The archived distillation combined notebook switched every 5 steps.
-        "decision_interval": 5,
+        "decision_interval": DISTILLATION_HORIZON_STANDARD_DEFAULTS["controller"]["decision_interval"],
         "predict_grid": list(HORIZON_PREDICT_GRID),
         "control_grid": list(HORIZON_CONTROL_GRID),
         "predict_h": 6,
@@ -776,6 +775,9 @@ DISTILLATION_COMBINED_DEFAULTS = {
         "weights_high": np.asarray(WEIGHT_MULTIPLIER_BOUNDS["high"], float).copy(),
         "residual_low": np.asarray(RESIDUAL_BOUNDS["low"], float).copy(),
         "residual_high": np.asarray(RESIDUAL_BOUNDS["high"], float).copy(),
+        "offline_multiplier_diagnostics": deepcopy(DISTILLATION_MATRIX_DEFAULTS["controller"]["offline_multiplier_diagnostics"]),
+        "release_protected_advisory_caps": deepcopy(DISTILLATION_MATRIX_DEFAULTS["controller"]["release_protected_advisory_caps"]),
+        "mpc_acceptance_fallback": deepcopy(DISTILLATION_MATRIX_DEFAULTS["controller"]["mpc_acceptance_fallback"]),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 0.0,
@@ -786,6 +788,13 @@ DISTILLATION_COMBINED_DEFAULTS = {
         "ha_change": 1.0,
     },
     "horizon_agent": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent"]),
+    "matrix_td3_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["td3_agent"]),
+    "matrix_sac_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["sac_agent"]),
+    "weights_td3_agent": deepcopy(DISTILLATION_WEIGHT_DEFAULTS["td3_agent"]),
+    "weights_sac_agent": deepcopy(DISTILLATION_WEIGHT_DEFAULTS["sac_agent"]),
+    "residual_td3_agent": deepcopy(DISTILLATION_RESIDUAL_DEFAULTS["td3_agent"]),
+    "residual_sac_agent": deepcopy(DISTILLATION_RESIDUAL_DEFAULTS["sac_agent"]),
+    # Backward-compatible aliases for older notebook cells.
     "td3_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["td3_agent"]),
     "sac_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["sac_agent"]),
     "reward": _copy_reward_defaults(),

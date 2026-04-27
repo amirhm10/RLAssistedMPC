@@ -4,15 +4,14 @@ Date: 2026-04-24
 
 This report rewrites the cap-selection logic for the matrix and structured-matrix supervisors. It also explains why the polymer cap now works while the distillation cap still does not give better-than-MPC behavior, even after tightening the `A` multiplier to `[0.99, 1.01]`, keeping `B` wide, and reducing TD3 exploration and target policy smoothing noise to `0.01`.
 
-The latest distillation result described by the user is not available as a saved result bundle in this tree. I treat it as a user-provided observation from 2026-04-24:
+The earlier 2026-04-24 distillation result was initially treated as a user-provided observation. The 2026-04-25 saved result bundles are now available and are analyzed later in this report:
 
-- TD3 exploration noise and target policy smoothing noise were reduced to `0.01`.
-- `A` multiplier authority was capped tightly, approximately `[0.99, 1.01]`.
-- `B` multiplier authority was kept wide.
-- Performance still degraded heavily after release, then recovered after roughly 100 episodes.
-- The recovered policy still did not beat baseline MPC.
+- `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260425_082831/input_data.pkl`
+- `Distillation/Results/distillation_compare_matrix_td3_disturb_fluctuation_mismatch/20260425_082842/input_data.pkl`
+- `Distillation/Results/distillation_matrix_sac_disturb_fluctuation_standard_unified/20260415_104840/input_data.pkl`
+- `Distillation/Results/distillation_compare_matrix_sac_disturb_fluctuation_standard/20260415_104846/input_data.pkl`
 
-That conclusion is consistent with the current notebook and runner code. The distillation cap issue is now less about open-loop `A` stability and more about policy release, `B` authority, reward alignment, and lack of a safe-improvement acceptance layer.
+The updated conclusion is consistent with the current notebook and runner code. The distillation cap issue is now less about open-loop `A` stability and more about policy release, `B` authority, reward alignment, and lack of a safe-improvement acceptance layer.
 
 ## Ongoing Progress Scheme
 
@@ -1009,6 +1008,100 @@ Recommended next configuration for polymer:
 For distillation matrix, the latest pre-step run says Step 2-style release protection is necessary before any transfer. But the polymer Step 3B result says we should not transfer a simple nominal-cost fallback gate. Distillation should receive Step 2 release protection plus Step 3C shadow diagnostics first, not Step 3B hard fallback.
 
 For distillation residual, the next question is different. Residual is already authority-limited by `rho`, but its tail still loses. That suggests a residual-specific improvement: use the `rho`/projection logs to decide when the residual policy is being mostly clipped and should stop training on its raw requested correction. In other words, residual may need executed-action replay plus a penalty for persistent authority projection, not a matrix-style multiplier cap.
+
+#### 2026-04-27 Revisit: Step 2B Is Not Enough For Distillation
+
+This revisit separates two distillation matrix signals that should not be merged:
+
+- `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260425_082831/input_data.pkl` is the tight-`A` TD3 mismatch run with Phase 1 hidden release. This is the relevant Step 2B evidence.
+- `Distillation/Results/distillation_matrix_sac_disturb_fluctuation_standard_unified/20260415_104840/input_data.pkl` is the older SAC standard-state run with `set_points_len = 100`, `warm_start = 5`, and no Phase 1/Step 2B logs. It is useful context, but it is not a Step 2B test and should not be used as proof that Step 2B works or fails.
+
+The TD3 Step 2B result is clear: hidden release preserves the warm-start and freeze windows, but it does not protect the first live learned matrix policy.
+
+<img src="./figures/matrix_multiplier_distillation_step2b_revisit_20260427/distillation_step2b_reward_delta_context.png" alt="Distillation Step 2B reward delta context" width="1200" style="max-width: 100%; height: auto;" />
+
+| Run | Window | Mean reward delta | Win rate | Interpretation |
+|---|---|---:|---:|---|
+| TD3 tight-`A` Step 2B | 1-10 warm | -0.00002 | 30.0% | Hidden/nominal behavior matches MPC. |
+| TD3 tight-`A` Step 2B | 11-15 freeze | +0.00002 | 60.0% | Freeze still matches MPC. |
+| TD3 tight-`A` Step 2B | 16-30 first live | -79.0156 | 0.0% | First live matrix authority crashes badly. |
+| TD3 tight-`A` Step 2B | 31-60 early | -16.1642 | 0.0% | Recovery starts but remains far below MPC. |
+| TD3 tight-`A` Step 2B | 61-100 mid | -8.0946 | 0.0% | Still loses every episode. |
+| TD3 tight-`A` Step 2B | 101-200 tail | -3.0208 | 5.0% | Recovers but does not beat MPC. |
+| SAC old 100-step context | 1-200 full | +1.6770 | 98.5% | Promising but not comparable to Step 2B: standard state, shorter blocks, no Phase 1 logs. |
+
+The most important diagnostic is that the TD3 crash is not caused by extreme raw action saturation. During the first live window, the mean multipliers are still close to nominal:
+
+| TD3 Step 2B window | Mean `alpha` | Mean `B_col_1` | Mean `B_col_2` | Raw near-bound fraction | Mean `|raw action|` |
+|---|---:|---:|---:|---:|---:|
+| 1-10 warm | 1.0000 | 1.0000 | 1.0000 | 0.0% | 0.0000 |
+| 11-15 freeze | 1.0000 | 1.0000 | 1.0000 | 0.0% | 0.0058 |
+| 16-30 first live | 1.0017 | 0.9973 | 1.0153 | 9.5% | 0.4049 |
+| 31-60 early | 0.9987 | 1.0486 | 1.0368 | 4.4% | 0.3451 |
+| 101-200 tail | 1.0002 | 0.9990 | 1.0023 | 3.1% | 0.2119 |
+
+<img src="./figures/matrix_multiplier_distillation_step2b_revisit_20260427/distillation_step2b_multiplier_action_diagnostics.png" alt="Distillation Step 2B multiplier and action diagnostics" width="1200" style="max-width: 100%; height: auto;" />
+
+This changes the diagnosis. For polymer, early failure often looked like boundary-seeking authority. For distillation, even small or moderate `B` movement can be destructive because the MPC move allocation is highly sensitive. Step 2B only delays the handoff; it does not make the first learned policy stay close enough to the nominal behavior or prove that its `B` correction is useful.
+
+The SAC 100-step run should be kept as a clue, not a conclusion. It says the matrix family is not intrinsically impossible for distillation. But because it used `set_points_len = 100`, `state_mode = "standard"`, `warm_start = 5`, and no hidden-release/fallback instrumentation, it cannot answer the current Step 2B question. The fair next comparison is to rerun SAC after the default fix to `set_points_len = 200` and with the same mismatch-state and release instrumentation as TD3.
+
+#### 2026-04-27 Revisit: Step 3B And Online Behavioral Cloning
+
+The latest polymer Step 3B run confirms the user's concern about the method. The tolerant gate accepted many candidates, but performance did not recover the Step 2-only benefit:
+
+| Polymer Step 3B window | Reward delta | Accepted | Fallback | Mean policy/executed multiplier distance |
+|---|---:|---:|---:|---:|
+| 16-30 first live | -0.1976 | 48.5% | 51.5% | 0.3274 |
+| 31-60 early | -0.1202 | 51.4% | 48.6% | 0.2781 |
+| 61-100 mid | -0.0919 | 48.7% | 51.3% | 0.2545 |
+| 101-200 tail | +0.0088 | 44.3% | 55.7% | 0.2351 |
+| 1-200 full | -0.0468 | 50.7% | 49.3% | 0.2347 |
+
+<img src="./figures/matrix_multiplier_distillation_step2b_revisit_20260427/polymer_step3b_acceptance_bc_motivation.png" alt="Polymer Step 3B acceptance and behavioral cloning motivation" width="1200" style="max-width: 100%; height: auto;" />
+
+So Step 3B did not fail because it rejected everything. It failed because nominal-cost closeness is only a safety test. It can accept candidates that are close to nominal under the linear nominal objective but still not useful on the nonlinear plant.
+
+Online behavioral cloning is a better next direction than simply increasing Step 3B tolerance, but it should be **execution-aware**. The actor should not clone every action it ever requested; it should learn from the action that the safety layer actually executed.
+
+For matrix multipliers, define the normalized nominal action:
+
+$$ a_{\mathrm{nom}} = f_{\mathrm{wide}}^{-1}(\theta=\mathbf{1}). $$
+
+Let `a_exec` be the final normalized action after release clipping, fallback, or projection. During the handoff, use:
+
+$$ \mathcal{L}_{\mathrm{actor}} = -\mathbb{E}[Q(s,\pi(s))] + \lambda_{\mathrm{nom}}(e)\|\pi(s)-a_{\mathrm{nom}}\|_2^2 + \lambda_{\mathrm{exec}}(e)\|\pi(s)-a_{\mathrm{exec}}\|_2^2. $$
+
+The two BC terms serve different purposes:
+
+| Term | When active | Purpose |
+|---|---|---|
+| Nominal BC | Warm start, freeze, and early live release | Prevent the first live policy from leaving MPC support too quickly. |
+| Executed-action BC | When release clipping, fallback, or projection changes the action | Make the actor learn the same action envelope the plant actually experiences. |
+
+For online use, the BC target should be filtered:
+
+- include nominal/fallback transitions because those are safe baseline behavior,
+- include executed clipped actions because those are the real plant actions,
+- include successful non-fallback actions only when their realized episode or short-window advantage is nonnegative,
+- do not clone raw policy actions that were rejected, clipped, or associated with bad windows.
+
+A practical next test is therefore not "Step 3B with higher tolerance." It is:
+
+| Setting | Next value |
+|---|---|
+| Step 2 release guard | on |
+| Step 3B hard fallback | off or shadow-only |
+| Step 3C dual-cost logging | on |
+| Online BC nominal anchor | on for episodes 11-30, then decay |
+| Online BC executed-action anchor | on whenever `a_policy != a_exec` |
+| BC decay | start with 10-20 subepisodes |
+| Distillation `B` BC weight | higher than `A` BC weight for the first test |
+
+This directly targets both observed failures:
+
+- Polymer Step 3B: the actor and executed behavior remain different, and accepted candidates are not necessarily useful.
+- Distillation Step 2B: the first learned `B` movement is small enough to look harmless but large enough to damage the Aspen closed loop.
 
 ### Why This Helps Distillation
 

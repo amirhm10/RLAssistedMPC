@@ -2,6 +2,13 @@ import numpy as np
 import scipy.optimize as spo
 
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
+from utils.behavioral_cloning import (
+    build_behavioral_cloning_bundle_fields,
+    build_behavioral_cloning_schedule,
+    init_behavioral_cloning_logs,
+    record_behavioral_cloning_step,
+    resolve_behavioral_cloning_context,
+)
 from utils.helpers import (
     apply_min_max,
     build_polymer_disturbance_schedule,
@@ -216,6 +223,13 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     acceptance_store_executed_action = bool(
         acceptance_cfg.get("store_executed_action_in_replay", release_store_executed_action)
     )
+    bc_schedule = build_behavioral_cloning_schedule(
+        config=matrix_cfg.get("behavioral_cloning", {}),
+        warm_start_step=warm_start_step,
+        time_in_sub_episodes=time_in_sub_episodes,
+        n_steps=nFE,
+    )
+    bc_logs = init_behavioral_cloning_logs(nFE)
 
     ss_scaled_inputs = apply_min_max(steady_states["ss_inputs"], data_min[:n_inputs], data_max[:n_inputs])
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
@@ -340,6 +354,10 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         )
         action = action_decision.action
         policy_action = action_decision.policy_action
+        policy_action_for_log = np.asarray(
+            policy_action if policy_action is not None else action,
+            float,
+        ).reshape(-1)
 
         if not np.all(np.isfinite(action)):
             action = matrix_baseline_raw.copy()
@@ -508,7 +526,12 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
         if not test:
             replay_action = executed_action if acceptance_store_executed_action else action
-            replay_train_continuous_agent(
+            bc_context = resolve_behavioral_cloning_context(
+                bc_schedule,
+                step_idx=i,
+                nominal_target_action=matrix_baseline_raw,
+            )
+            train_result = replay_train_continuous_agent(
                 agent=agent,
                 state=current_rl_state,
                 action=replay_action,
@@ -519,6 +542,24 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
                 test=False,
                 train_start_step=warm_start_step,
                 phase1_train_traces=phase1_train_traces if phase1 is not None else None,
+                bc_context=bc_context,
+            )
+            record_behavioral_cloning_step(
+                bc_logs,
+                step_idx=i,
+                bc_context=bc_context,
+                policy_action=policy_action_for_log,
+                nominal_target_action=matrix_baseline_raw,
+                train_meta=train_result.get("train_meta"),
+            )
+        else:
+            record_behavioral_cloning_step(
+                bc_logs,
+                step_idx=i,
+                bc_context=None,
+                policy_action=policy_action_for_log,
+                nominal_target_action=matrix_baseline_raw,
+                train_meta=None,
             )
 
         if i in sub_episodes_changes_dict:
@@ -666,9 +707,14 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "truncated_fraction_trace",
         "lambda_return_mean_trace",
         "target_logprob_mean_trace",
+        "bc_active_trace",
+        "bc_weight_trace",
+        "bc_loss_trace",
+        "bc_actor_target_distance_trace",
     ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
+    result_bundle.update(build_behavioral_cloning_bundle_fields(bc_schedule, bc_logs))
     if phase1 is not None:
         result_bundle.update(
             build_phase1_bundle_fields(

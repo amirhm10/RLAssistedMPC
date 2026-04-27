@@ -250,6 +250,10 @@ class TD3Agent(nn.Module):
         self.n_actual_mean_trace = []
         self.truncated_fraction_trace = []
         self.lambda_return_mean_trace = []
+        self.bc_active_trace = []
+        self.bc_weight_trace = []
+        self.bc_loss_trace = []
+        self.bc_actor_target_distance_trace = []
 
         # decay scheduler
         self.expl_sched = exploration_schedule if exploration_schedule is not None else GaussianNoiseSchedule(
@@ -363,7 +367,7 @@ class TD3Agent(nn.Module):
 
 
     # ------ training ------
-    def train_step(self) -> Optional[dict]:
+    def train_step(self, bc_context: Optional[dict] = None) -> Optional[dict]:
         # check if the buffer has enough info
         if len(self.buffer) < self.batch_size:
             return None
@@ -483,12 +487,30 @@ class TD3Agent(nn.Module):
         actor_slot = bool(self.total_it % self.policy_delay == 0)
         actor_updated = False
         actor_loss_value = None
+        bc_active = False
+        bc_weight = 0.0
+        bc_loss_value = None
+        bc_actor_target_distance = None
 
         # ------ Delayed actor + target update -------
         if actor_slot:
             curr = self.actor(s)
             q_for_actor = self.critic.q1_forward(s, curr)
             actor_loss = -torch.mean(q_for_actor)
+            if bc_context is not None and bool(bc_context.get("active", False)):
+                bc_active = True
+                bc_weight = float(max(0.0, bc_context.get("weight", 0.0)))
+                target_action = torch.as_tensor(
+                    np.asarray(bc_context.get("target_action"), np.float32),
+                    dtype=torch.float32,
+                    device=self.device,
+                ).view(1, -1)
+                target_action = target_action.expand_as(curr)
+                bc_penalty = torch.mean((curr - target_action) ** 2, dim=1)
+                bc_loss = torch.mean(bc_penalty)
+                actor_loss = actor_loss + bc_weight * bc_loss
+                bc_loss_value = float(bc_loss.item())
+                bc_actor_target_distance = float(torch.norm(curr - target_action, dim=1).mean().item())
             actor_loss_value = float(actor_loss.item())
 
             if self.total_it >= self.actor_freeze:
@@ -508,6 +530,12 @@ class TD3Agent(nn.Module):
                     hard_update(self.actor_target, self.actor)
                     hard_update(self.critic_target, self.critic)
 
+        self.bc_active_trace.append(float(bc_active))
+        self.bc_weight_trace.append(float(bc_weight))
+        self.bc_loss_trace.append(np.nan if bc_loss_value is None else float(bc_loss_value))
+        self.bc_actor_target_distance_trace.append(
+            np.nan if bc_actor_target_distance is None else float(bc_actor_target_distance)
+        )
         self.total_it += 1
         self.train_steps += 1
 
@@ -521,6 +549,10 @@ class TD3Agent(nn.Module):
             "actor_updated": actor_updated,
             "critic_loss": float(critic_loss.item()),
             "actor_loss": actor_loss_value,
+            "bc_active": bool(bc_active),
+            "bc_weight": float(bc_weight),
+            "bc_loss": bc_loss_value,
+            "bc_actor_target_distance": bc_actor_target_distance,
             "train_index_before": train_index_before,
             "train_index_after": int(self.train_steps),
         }

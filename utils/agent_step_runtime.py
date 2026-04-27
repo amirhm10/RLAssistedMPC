@@ -168,6 +168,7 @@ def replay_train_continuous_agent(
     test: bool,
     train_start_step: int,
     phase1_train_traces=None,
+    bc_context=None,
 ) -> dict:
     """Push/train a TD3/SAC agent using the single-agent continuous gates."""
     pushed = False
@@ -183,7 +184,7 @@ def replay_train_continuous_agent(
         )
         pushed = True
         if step >= train_start_step:
-            train_meta = agent.train_step()
+            train_meta = agent.train_step(bc_context=bc_context)
             trained = True
             if phase1_train_traces is not None:
                 record_phase1_train_step(phase1_train_traces, step, train_meta)

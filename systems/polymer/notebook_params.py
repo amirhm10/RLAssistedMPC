@@ -84,6 +84,19 @@ def _copy_mpc_acceptance_fallback_defaults(enabled=False):
     }
 
 
+def _copy_behavioral_cloning_defaults(enabled=False):
+    return {
+        "enabled": bool(enabled),
+        "target_mode": "nominal_only",
+        "lambda_bc_start": 0.1,
+        "lambda_bc_end": 0.0,
+        "decay_mode": "exp",
+        "active_subepisodes": 10,
+        "start_after_warm_start": True,
+        "log_diagnostics": True,
+    }
+
+
 def _copy_mismatch_defaults():
     return {
         "mismatch_clip": 3.0,
@@ -313,7 +326,7 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
     "episode_defaults": {
         "n_tests": 200,
         "set_points_len": 400,
-        "warm_start": 5,
+        "warm_start": 10,
         "test_cycle": [False, False, False, False, False],
     },
     "controller": {
@@ -458,8 +471,9 @@ POLYMER_MATRIX_DEFAULTS = {
         ("sac", "disturb"): {"result_prefix": "sac_multipliers_disturb", "compare_prefix": "disturb_compare_sac_multipliers", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
     "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
-    "post_warm_start_action_freeze_subepisodes": 5,
-    "post_warm_start_actor_freeze_subepisodes": 5,
+    "post_warm_start_action_freeze_subepisodes": 0,
+    "post_warm_start_actor_freeze_subepisodes": 0,
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(enabled=True),
     "controller": {
         "predict_h": 9,
         "cont_h": 3,
@@ -469,8 +483,8 @@ POLYMER_MATRIX_DEFAULTS = {
         "R2_penalty": 1.0,
         "low_coef": _polymer_matrix_multiplier_bounds()[0],
         "high_coef": _polymer_matrix_multiplier_bounds()[1],
-        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
-        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
+        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
+        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=False),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
@@ -551,8 +565,9 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
         ("sac", "disturb"): {"result_prefix": "sac_structured_matrices_disturb", "compare_prefix": "disturb_compare_sac_structured_matrices", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
     "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
-    "post_warm_start_action_freeze_subepisodes": 5,
-    "post_warm_start_actor_freeze_subepisodes": 5,
+    "post_warm_start_action_freeze_subepisodes": 0,
+    "post_warm_start_actor_freeze_subepisodes": 0,
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(enabled=True),
     "controller": {
         "predict_h": 9,
         "cont_h": 3,
@@ -568,8 +583,8 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
         "a_high_override": min(POLYMER_DEFAULT_MULTIPLIER_HIGH, POLYMER_MATRIX_ALPHA_UPPER_CAP),  # Cap A-side widening at the analyzed alpha limit.
         "b_low_override": POLYMER_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for B-side structured bounds.
         "b_high_override": POLYMER_DEFAULT_MULTIPLIER_HIGH,  # Allow wider B-side uncertainty than A-side.
-        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
-        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
+        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
+        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=False),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition, e.g. [[0, 1], [2, 3], [4, 5, 6]].
@@ -699,7 +714,7 @@ POLYMER_WEIGHT_DEFAULTS = {
         ("sac", "nominal"): {"result_prefix": "sac_weights_nominal", "compare_prefix": "nominal_compare_sac_weights", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
         ("sac", "disturb"): {"result_prefix": "sac_weights_disturb", "compare_prefix": "disturb_compare_sac_weights", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
-    "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 0, "test_cycle": [False, False, False, False, False]},
+    "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
     "post_warm_start_action_freeze_subepisodes": 5,
     "post_warm_start_actor_freeze_subepisodes": 5,
     "controller": {

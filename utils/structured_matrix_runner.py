@@ -10,6 +10,13 @@ from utils.helpers import (
     shift_control_sequence,
     step_system_with_disturbance,
 )
+from utils.behavioral_cloning import (
+    build_behavioral_cloning_bundle_fields,
+    build_behavioral_cloning_schedule,
+    init_behavioral_cloning_logs,
+    record_behavioral_cloning_step,
+    resolve_behavioral_cloning_context,
+)
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
 from utils.mpc_acceptance_gate import run_mpc_acceptance_gate
@@ -297,6 +304,13 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     acceptance_store_executed_action = bool(
         acceptance_cfg.get("store_executed_action_in_replay", release_store_executed_action)
     )
+    bc_schedule = build_behavioral_cloning_schedule(
+        config=structured_cfg.get("behavioral_cloning", {}),
+        warm_start_step=warm_start_step,
+        time_in_sub_episodes=time_in_sub_episodes,
+        n_steps=nFE,
+    )
+    bc_logs = init_behavioral_cloning_logs(nFE)
 
     ss_scaled_inputs = apply_min_max(steady_states["ss_inputs"], data_min[:n_inputs], data_max[:n_inputs])
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
@@ -710,6 +724,11 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
 
         if not test:
             replay_action = effective_action if acceptance_store_executed_action else action
+            bc_context = resolve_behavioral_cloning_context(
+                bc_schedule,
+                step_idx=i,
+                nominal_target_action=structured_baseline_raw,
+            )
             agent.push(
                 current_rl_state,
                 np.asarray(replay_action, np.float32),
@@ -717,10 +736,28 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
                 next_rl_state,
                 0.0,
             )
+            train_meta = None
             if i >= warm_start_step:
-                train_meta = agent.train_step()
+                train_meta = agent.train_step(bc_context=bc_context)
                 if phase1 is not None:
                     record_phase1_train_step(phase1_train_traces, i, train_meta)
+            record_behavioral_cloning_step(
+                bc_logs,
+                step_idx=i,
+                bc_context=bc_context,
+                policy_action=np.asarray(policy_action if policy_action is not None else action, float).reshape(-1),
+                nominal_target_action=structured_baseline_raw,
+                train_meta=train_meta,
+            )
+        else:
+            record_behavioral_cloning_step(
+                bc_logs,
+                step_idx=i,
+                bc_context=None,
+                policy_action=np.asarray(policy_action if policy_action is not None else action, float).reshape(-1),
+                nominal_target_action=structured_baseline_raw,
+                train_meta=None,
+            )
 
         if i in sub_episodes_changes_dict:
             lo = max(0, i - time_in_sub_episodes + 1)
@@ -913,9 +950,14 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "offpolicy_c_mean_trace",
         "lambda_return_mean_trace",
         "target_logprob_mean_trace",
+        "bc_active_trace",
+        "bc_weight_trace",
+        "bc_loss_trace",
+        "bc_actor_target_distance_trace",
     ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
+    result_bundle.update(build_behavioral_cloning_bundle_fields(bc_schedule, bc_logs))
     if phase1 is not None:
         result_bundle.update(
             build_phase1_bundle_fields(

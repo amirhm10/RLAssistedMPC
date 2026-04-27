@@ -97,6 +97,19 @@ def _copy_mpc_acceptance_fallback_defaults(enabled=False):
     }
 
 
+def _copy_behavioral_cloning_defaults(enabled=False):
+    return {
+        "enabled": bool(enabled),
+        "target_mode": "nominal_only",
+        "lambda_bc_start": 0.1,
+        "lambda_bc_end": 0.0,
+        "decay_mode": "exp",
+        "active_subepisodes": 10,
+        "start_after_warm_start": True,
+        "log_diagnostics": True,
+    }
+
+
 def _copy_mismatch_defaults():
     return {
         "mismatch_clip": 3.0,
@@ -279,7 +292,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
-    "episode_defaults": {"n_tests": 200, "set_points_len": 200, "warm_start": 5, "test_cycle": [False, False, False, False, False]},
+    "episode_defaults": {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
     "controller": {
         "predict_grid": list(HORIZON_PREDICT_GRID),
         "control_grid": list(HORIZON_CONTROL_GRID),
@@ -329,9 +342,9 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
 }
 DISTILLATION_HORIZON_STANDARD_DEFAULTS["run_profiles"] = {
     key: dict(value) for key, value in {
-        ("nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 5, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
-        ("disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 5, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
-        ("disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 5, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+        ("nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+        ("disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+        ("disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     }.items()
 }
 
@@ -386,6 +399,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(enabled=False),
     "run_profiles": deepcopy(DISTILLATION_MATRIX_RUN_PROFILES),
     "post_warm_start_action_freeze_subepisodes": 5,
     "post_warm_start_actor_freeze_subepisodes": 5,
@@ -481,6 +495,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(enabled=False),
     "run_profiles": deepcopy(DISTILLATION_MATRIX_RUN_PROFILES),
     "post_warm_start_action_freeze_subepisodes": 5,
     "post_warm_start_actor_freeze_subepisodes": 5,

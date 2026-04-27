@@ -1103,6 +1103,72 @@ This directly targets both observed failures:
 - Polymer Step 3B: the actor and executed behavior remain different, and accepted candidates are not necessarily useful.
 - Distillation Step 2B: the first learned `B` movement is small enough to look harmless but large enough to damage the Aspen closed loop.
 
+#### 2026-04-27 Implementation Progress: Shared BC Next Step
+
+The next implemented step is a shared behavioral-cloning handoff surface for the `matrix` and `structured_matrix` supervisors. The design split is:
+
+| Layer | Responsibility |
+|---|---|
+| Runner | Build the BC schedule from warm start and subepisode length, expose the nominal target action, and log BC diagnostics at env-step resolution. |
+| Agent | Add the BC penalty to the actor loss during the active handoff window and report BC metadata from `train_step()`. |
+
+The first implementation is intentionally narrow:
+
+- shared only across scalar and structured matrix supervisors;
+- enabled by default only for polymer matrix and polymer structured matrix;
+- present but disabled by default for distillation matrix and structured matrix;
+- no replay-buffer schema change;
+- no executed-action BC yet.
+
+For polymer, this is a **BC-only isolation run**. The earlier matrix-step protections are disabled on purpose:
+
+| Polymer matrix-family setting | New default |
+|---|---|
+| `post_warm_start_action_freeze_subepisodes` | `0` |
+| `post_warm_start_actor_freeze_subepisodes` | `0` |
+| `offline_multiplier_diagnostics.enabled` | `False` |
+| `release_protected_advisory_caps.enabled` | `False` |
+| `mpc_acceptance_fallback.enabled` | `False` |
+| `behavioral_cloning.enabled` | `True` |
+
+This is the right isolation. Otherwise a polymer rerun could improve or degrade for three different reasons at once: hidden release, clipped authority, or actor regularization.
+
+The chosen first BC target is the normalized nominal raw action:
+
+$$ a_{\mathrm{nom}} = f_{\mathrm{wide}}^{-1}(\theta = \mathbf{1}). $$
+
+For TD3 matrix and structured matrix, the actor loss becomes:
+
+$$ \mathcal{L}_{\mathrm{actor}}^{\mathrm{TD3}} = -\mathbb{E}[Q_1(s,\pi(s))] + \lambda_{\mathrm{BC}}(t)\,\mathbb{E}[\|\pi(s)-a_{\mathrm{nom}}\|_2^2]. $$
+
+For SAC matrix and structured matrix, the BC penalty is applied to the deterministic policy mean:
+
+$$ \mathcal{L}_{\mathrm{actor}}^{\mathrm{SAC}} = \mathbb{E}[\alpha \log \pi(a|s) - Q_1(s,a)] + \lambda_{\mathrm{BC}}(t)\,\mathbb{E}[\|\mu_\pi(s)-a_{\mathrm{nom}}\|_2^2]. $$
+
+The first schedule uses an exponential-shaped decay over the first `10` post-warm-start subepisodes:
+
+$$ \lambda_{\mathrm{BC}}(t_{\mathrm{start}}) = 0.1, \qquad \lambda_{\mathrm{BC}}(t_{\mathrm{end}}) = 0.0. $$
+
+The target remains `nominal_only` for the first pass. That is why replay stays unchanged. The BC target is global for the active handoff window, so the actor can receive it directly from the runner during `train_step()` without storing per-transition clone targets.
+
+The expected diagnostics for the next polymer run are:
+
+| Diagnostic | Meaning |
+|---|---|
+| `bc_active_log` | Whether the env step is inside the BC handoff window. |
+| `bc_weight_log` | The scheduled BC weight at that step. |
+| `bc_loss_log` | The BC penalty reported by actor-update steps. |
+| `bc_actor_target_distance_log` | Mean actor-output distance to the nominal target during actor updates. |
+| `bc_policy_nominal_distance_log` | Raw action distance from the current policy request to the nominal raw action. |
+
+The next readout should compare three things on polymer:
+
+1. whether the first live reward trough shrinks relative to Step 3B,
+2. whether raw policy distance from nominal decays during the first 10 post-warm-start subepisodes,
+3. whether the tail keeps any positive matrix benefit once BC decays away.
+
+For distillation, the same BC surface should stay off by default until polymer shows whether actor anchoring helps without masking all useful matrix authority.
+
 ### Why This Helps Distillation
 
 The user-reported distillation behavior has the same shape as the polymer release problem, but worse: tight `A`, wide `B`, exploration noise `0.01`, and smoothing noise `0.01` still caused a heavy degradation, then recovery after about 100 episodes, and the final result still did not beat MPC.

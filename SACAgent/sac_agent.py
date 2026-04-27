@@ -240,6 +240,10 @@ class SACAgent(nn.Module):
         self.truncated_fraction_trace = []
         self.lambda_return_mean_trace = []
         self.target_logprob_mean_trace = []
+        self.bc_active_trace = []
+        self.bc_weight_trace = []
+        self.bc_loss_trace = []
+        self.bc_actor_target_distance_trace = []
 
     # ---- interactions ----
     @torch.no_grad()
@@ -308,7 +312,7 @@ class SACAgent(nn.Module):
 
 
     # ---- train step ----
-    def train_step(self):
+    def train_step(self, bc_context: dict | None = None):
         """
         One SAC update:
             1) sample batch
@@ -436,13 +440,33 @@ class SACAgent(nn.Module):
         alpha = self.log_alpha.exp().detach()
         # policy loss: E[alpha * log_pi(a|s) - Q(s,a)]
         actor_loss = (alpha * logp_new - q_new).mean()
+        bc_active = False
+        bc_weight = 0.0
+        bc_loss_value = None
+        bc_actor_target_distance = None
+        if bc_context is not None and bool(bc_context.get("active", False)):
+            bc_active = True
+            bc_weight = float(max(0.0, bc_context.get("weight", 0.0)))
+            target_action = torch.as_tensor(
+                np.asarray(bc_context.get("target_action"), np.float32),
+                dtype=torch.float32,
+                device=self.device,
+            ).view(1, -1)
+            target_action = target_action.expand_as(mean_new)
+            bc_penalty = torch.mean((mean_new - target_action) ** 2, dim=1)
+            bc_loss = torch.mean(bc_penalty)
+            actor_loss = actor_loss + bc_weight * bc_loss
+            bc_loss_value = float(bc_loss.item())
+            bc_actor_target_distance = float(torch.norm(mean_new - target_action, dim=1).mean().item())
 
+        actor_updated = False
         if self.train_steps >= getattr(self, "actor_freeze", 0):
             self.actor_optimizer.zero_grad(set_to_none=True)
             actor_loss.backward()
             if self.grad_clip_norm is not None:
                 nn.utils.clip_grad_norm_(self.actor.parameters(), self.grad_clip_norm)
             self.actor_optimizer.step()
+            actor_updated = True
 
         # ---- temperature (alpha) update ----
         if self.learn_alpha:
@@ -480,8 +504,27 @@ class SACAgent(nn.Module):
         self.target_logprob_mean_trace.append(target_logprob_mean)
         if lambda_return_mean is not None:
             self.lambda_return_mean_trace.append(lambda_return_mean)
+        self.bc_active_trace.append(float(bc_active))
+        self.bc_weight_trace.append(float(bc_weight))
+        self.bc_loss_trace.append(np.nan if bc_loss_value is None else float(bc_loss_value))
+        self.bc_actor_target_distance_trace.append(
+            np.nan if bc_actor_target_distance is None else float(bc_actor_target_distance)
+        )
 
-        return float(critic_loss.item()), float(actor_loss.item()), float(self.log_alpha.exp().item())
+        return {
+            "critic_updated": True,
+            "actor_slot": True,
+            "actor_updated": bool(actor_updated),
+            "critic_loss": float(critic_loss.item()),
+            "actor_loss": float(actor_loss.item()),
+            "alpha": float(self.log_alpha.exp().item()),
+            "bc_active": bool(bc_active),
+            "bc_weight": float(bc_weight),
+            "bc_loss": bc_loss_value,
+            "bc_actor_target_distance": bc_actor_target_distance,
+            "train_index_before": int(self.train_steps - 1),
+            "train_index_after": int(self.train_steps),
+        }
 
     def save(
             self,

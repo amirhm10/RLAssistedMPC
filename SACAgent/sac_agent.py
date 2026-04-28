@@ -453,7 +453,23 @@ class SACAgent(nn.Module):
                 device=self.device,
             ).view(1, -1)
             target_action = target_action.expand_as(mean_new)
-            bc_penalty = torch.mean((mean_new - target_action) ** 2, dim=1)
+            err_sq = (mean_new - target_action) ** 2
+            coord_weights = bc_context.get("coordinate_weights")
+            if coord_weights is None:
+                bc_penalty = torch.mean(err_sq, dim=1)
+            else:
+                coord_weights_t = torch.as_tensor(
+                    np.asarray(coord_weights, np.float32),
+                    dtype=torch.float32,
+                    device=self.device,
+                ).view(1, -1)
+                if coord_weights_t.shape[1] != mean_new.shape[1]:
+                    raise ValueError(
+                        f"behavioral-cloning coordinate_weights size {coord_weights_t.shape[1]} "
+                        f"does not match action dimension {mean_new.shape[1]}."
+                    )
+                denom = torch.clamp(coord_weights_t.sum(dim=1), min=1e-8)
+                bc_penalty = torch.sum(err_sq * coord_weights_t, dim=1) / denom
             bc_loss = torch.mean(bc_penalty)
             actor_loss = actor_loss + bc_weight * bc_loss
             bc_loss_value = float(bc_loss.item())

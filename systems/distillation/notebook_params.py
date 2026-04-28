@@ -107,6 +107,8 @@ def _copy_behavioral_cloning_defaults(enabled=False):
         "active_subepisodes": 10,
         "start_after_warm_start": True,
         "log_diagnostics": True,
+        "coordinate_weights": None,
+        "label_weight_overrides": {},
     }
 
 

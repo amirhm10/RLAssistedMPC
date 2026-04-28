@@ -728,6 +728,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
                 bc_schedule,
                 step_idx=i,
                 nominal_target_action=structured_baseline_raw,
+                action_labels=action_labels,
             )
             agent.push(
                 current_rl_state,

@@ -31,11 +31,31 @@ def build_behavioral_cloning_schedule(
     active_subepisodes = int(max(0, cfg.get("active_subepisodes", 0)))
     start_after_warm_start = bool(cfg.get("start_after_warm_start", True))
     log_diagnostics = bool(cfg.get("log_diagnostics", True))
+    coordinate_weights_cfg = cfg.get("coordinate_weights")
+    label_weight_overrides_cfg = cfg.get("label_weight_overrides")
 
     if target_mode != "nominal_only":
         raise ValueError("behavioral_cloning target_mode must be 'nominal_only' for this implementation.")
     if decay_mode not in {"constant", "linear", "exp"}:
         raise ValueError("behavioral_cloning decay_mode must be 'constant', 'linear', or 'exp'.")
+    if coordinate_weights_cfg is not None:
+        coordinate_weights_cfg = np.asarray(coordinate_weights_cfg, float).reshape(-1)
+        if coordinate_weights_cfg.size == 0:
+            raise ValueError("behavioral_cloning coordinate_weights must not be empty when provided.")
+        if not np.all(np.isfinite(coordinate_weights_cfg)) or np.any(coordinate_weights_cfg < 0.0):
+            raise ValueError("behavioral_cloning coordinate_weights must be finite and non-negative.")
+    if label_weight_overrides_cfg is None:
+        label_weight_overrides = {}
+    else:
+        if not isinstance(label_weight_overrides_cfg, dict):
+            raise ValueError("behavioral_cloning label_weight_overrides must be a dict when provided.")
+        label_weight_overrides = {}
+        for key, value in label_weight_overrides_cfg.items():
+            label = str(key)
+            weight = float(value)
+            if not math.isfinite(weight) or weight < 0.0:
+                raise ValueError("behavioral_cloning label_weight_overrides values must be finite and non-negative.")
+            label_weight_overrides[label] = weight
 
     n_steps = int(max(0, n_steps))
     time_in_sub_episodes = int(max(1, time_in_sub_episodes))
@@ -60,6 +80,8 @@ def build_behavioral_cloning_schedule(
         "active_subepisodes": int(active_subepisodes),
         "start_after_warm_start": bool(start_after_warm_start),
         "log_diagnostics": bool(log_diagnostics),
+        "coordinate_weights": None if coordinate_weights_cfg is None else np.asarray(coordinate_weights_cfg, float).copy(),
+        "label_weight_overrides": dict(label_weight_overrides),
         "active_steps": int(active_steps),
         "start_step": int(start_step),
         "end_step": int(end_step if active_enabled else start_step - 1),
@@ -67,11 +89,44 @@ def build_behavioral_cloning_schedule(
     }
 
 
+def _resolve_coordinate_weights(schedule: dict[str, Any], *, target_action, action_labels=None) -> np.ndarray:
+    target_action = np.asarray(target_action, float).reshape(-1)
+    weight_vec = np.ones_like(target_action, dtype=float)
+
+    coordinate_weights_cfg = schedule.get("coordinate_weights")
+    if coordinate_weights_cfg is not None:
+        coord = np.asarray(coordinate_weights_cfg, float).reshape(-1)
+        if coord.size != target_action.size:
+            raise ValueError(
+                f"behavioral_cloning coordinate_weights size {coord.size} does not match action size {target_action.size}."
+            )
+        weight_vec = coord.copy()
+
+    label_weight_overrides = dict(schedule.get("label_weight_overrides", {}) or {})
+    if label_weight_overrides:
+        if action_labels is None:
+            raise ValueError("behavioral_cloning label_weight_overrides require action_labels.")
+        labels = tuple(str(label) for label in action_labels)
+        if len(labels) != target_action.size:
+            raise ValueError(
+                f"behavioral_cloning action_labels length {len(labels)} does not match action size {target_action.size}."
+            )
+        for label, weight in label_weight_overrides.items():
+            if label not in labels:
+                raise KeyError(f"behavioral_cloning label_weight_overrides label not found: {label}")
+            weight_vec[labels.index(label)] = float(weight)
+
+    if not np.all(np.isfinite(weight_vec)) or np.any(weight_vec < 0.0):
+        raise ValueError("Resolved behavioral-cloning coordinate weights must be finite and non-negative.")
+    return weight_vec
+
+
 def resolve_behavioral_cloning_context(
     schedule: dict[str, Any],
     *,
     step_idx: int,
     nominal_target_action,
+    action_labels=None,
 ) -> dict[str, Any] | None:
     if not schedule.get("enabled", False):
         return None
@@ -103,6 +158,11 @@ def resolve_behavioral_cloning_context(
         "weight": float(max(0.0, weight)),
         "target_mode": str(schedule["target_mode"]),
         "target_action": np.asarray(nominal_target_action, float).reshape(-1),
+        "coordinate_weights": _resolve_coordinate_weights(
+            schedule,
+            target_action=nominal_target_action,
+            action_labels=action_labels,
+        ),
         "progress": float(progress),
     }
 

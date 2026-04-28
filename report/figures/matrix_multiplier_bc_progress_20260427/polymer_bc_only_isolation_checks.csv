@@ -1,0 +1,3 @@
+family,behavioral_cloning_enabled,release_caps_enabled,acceptance_fallback_enabled,action_freeze_subepisodes,actor_freeze_subepisodes,release_clip_nonzero_steps,fallback_active_steps,candidate_executed_max_diff
+Scalar matrix,True,False,False,0,0,0,0,0.0
+Structured matrix,True,False,False,0,0,0,0,0.0

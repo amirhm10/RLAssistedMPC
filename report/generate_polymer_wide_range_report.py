@@ -15,7 +15,14 @@ import numpy as np
 from Simulation.mpc import augment_state_space
 import systems.distillation.notebook_params as distillation_nb
 import systems.polymer.notebook_params as polymer_nb
-from systems.polymer.config import POLYMER_RL_SETPOINTS_PHYS, RL_REWARD_DEFAULTS
+from systems.distillation.config import (
+    DISTILLATION_RL_SETPOINTS_PHYS,
+    RL_REWARD_DEFAULTS as DISTILLATION_RL_REWARD_DEFAULTS,
+)
+from systems.polymer.config import (
+    POLYMER_RL_SETPOINTS_PHYS,
+    RL_REWARD_DEFAULTS as POLYMER_RL_REWARD_DEFAULTS,
+)
 from utils.structured_model_update import (
     build_block_scaled_model,
     build_structured_update_spec,
@@ -32,8 +39,10 @@ DISTILLATION_BASELINE_PATH = REPO_ROOT / "Distillation" / "Results" / "distillat
 DISTILLATION_MATRIX_DISTURB_PATH = REPO_ROOT / "Distillation" / "Results" / "distillation_matrix_sac_disturb_fluctuation_standard_unified" / "20260415_104840" / "input_data.pkl"
 DISTILLATION_STRUCTURED_DISTURB_PATH = REPO_ROOT / "Distillation" / "Results" / "distillation_structured_matrix_sac_disturb_fluctuation_standard_unified" / "20260415_120923" / "input_data.pkl"
 DISTILLATION_REID_DISTURB_PATH = REPO_ROOT / "Distillation" / "Results" / "distillation_reidentification_td3_disturb_fluctuation_mismatch_unified" / "20260420_171837" / "input_data.pkl"
-POLYMER_MATRIX_NEW_CAP_PATH = REPO_ROOT / "Polymer" / "Results" / "td3_multipliers_disturb" / "20260421_174016" / "input_data.pkl"
-POLYMER_STRUCTURED_NEW_CAP_PATH = REPO_ROOT / "Polymer" / "Results" / "td3_structured_matrices_disturb" / "20260421_174057" / "input_data.pkl"
+POLYMER_MATRIX_PREVIOUS_CAP_PATH = REPO_ROOT / "Polymer" / "Results" / "td3_multipliers_disturb" / "20260421_174016" / "input_data.pkl"
+POLYMER_MATRIX_LATEST_CAP_PATH = REPO_ROOT / "Polymer" / "Results" / "td3_multipliers_disturb" / "20260421_201555" / "input_data.pkl"
+POLYMER_STRUCTURED_PREVIOUS_CAP_PATH = REPO_ROOT / "Polymer" / "Results" / "td3_structured_matrices_disturb" / "20260421_174057" / "input_data.pkl"
+POLYMER_STRUCTURED_LATEST_CAP_PATH = REPO_ROOT / "Polymer" / "Results" / "td3_structured_matrices_disturb" / "20260421_201436" / "input_data.pkl"
 
 
 @dataclass(frozen=True)
@@ -184,7 +193,7 @@ def disturbance_consistent(bundle: dict, baseline_bundle: dict) -> bool:
 def reward_components_for_test(bundle: dict) -> dict:
     dy = np.asarray(bundle["delta_y_storage"], float)[test_slice(bundle)]
     du = np.asarray(bundle["delta_u_storage"], float)[test_slice(bundle)]
-    q = np.asarray(RL_REWARD_DEFAULTS["Q_diag"], float)
+    q = np.asarray(POLYMER_RL_REWARD_DEFAULTS["Q_diag"], float)
     scaled_mae_out = np.mean(np.abs(dy), axis=0)
     weighted_quad = np.mean((dy ** 2) * q.reshape(1, -1), axis=0)
     return {
@@ -197,8 +206,16 @@ def reward_components_for_test(bundle: dict) -> dict:
     }
 
 
+def default_reward_params_for_bundle(bundle: dict) -> dict:
+    system_metadata = bundle.get("system_metadata") or {}
+    system_name = str(system_metadata.get("system_name", "")).lower()
+    if "distillation" in system_name:
+        return DISTILLATION_RL_REWARD_DEFAULTS
+    return POLYMER_RL_REWARD_DEFAULTS
+
+
 def merged_reward_params(bundle: dict) -> dict:
-    params = dict(RL_REWARD_DEFAULTS)
+    params = dict(default_reward_params_for_bundle(bundle))
     params.update(bundle.get("reward_params") or {})
     return {
         key: (np.asarray(value, float) if isinstance(value, (list, tuple, np.ndarray)) else value)
@@ -297,7 +314,13 @@ def reward_decomposition_for_slice(bundle: dict, sl: slice) -> dict:
     }
 
 
-def reward_geometry_table(bundle: dict) -> list[dict]:
+def reward_geometry_table_generic(
+    bundle: dict,
+    setpoints_phys: np.ndarray,
+    *,
+    setpoint_prefix: str = "SP",
+    output_prefix: str = "out",
+) -> list[dict]:
     params = merged_reward_params(bundle)
     data_min = np.asarray(bundle["data_min"], float)
     data_max = np.asarray(bundle["data_max"], float)
@@ -311,7 +334,7 @@ def reward_geometry_table(bundle: dict) -> list[dict]:
     beta = float(params["beta"])
 
     rows = []
-    for sp_idx, y_sp_phys in enumerate(np.asarray(POLYMER_RL_SETPOINTS_PHYS, float), start=1):
+    for sp_idx, y_sp_phys in enumerate(np.asarray(setpoints_phys, float), start=1):
         band_phys = np.maximum(k_rel * np.abs(y_sp_phys), band_floor)
         band_scaled = band_phys / dy_range
         edge_slope = reward_scale * 2.0 * q_diag * band_scaled
@@ -319,8 +342,8 @@ def reward_geometry_table(bundle: dict) -> list[dict]:
         for out_idx in range(band_scaled.size):
             rows.append(
                 {
-                    "setpoint": f"SP{sp_idx}",
-                    "output": f"out{out_idx + 1}",
+                    "setpoint": f"{setpoint_prefix}{sp_idx}",
+                    "output": f"{output_prefix}{out_idx + 1}",
                     "y_sp_phys": float(y_sp_phys[out_idx]),
                     "band_phys": float(band_phys[out_idx]),
                     "band_scaled": float(band_scaled[out_idx]),
@@ -331,7 +354,11 @@ def reward_geometry_table(bundle: dict) -> list[dict]:
     return rows
 
 
-def reward_balance_targets(bundle: dict) -> dict:
+def reward_geometry_table(bundle: dict) -> list[dict]:
+    return reward_geometry_table_generic(bundle, POLYMER_RL_SETPOINTS_PHYS)
+
+
+def reward_balance_targets_generic(bundle: dict, setpoints_phys: np.ndarray) -> dict:
     params = merged_reward_params(bundle)
     data_min = np.asarray(bundle["data_min"], float)
     data_max = np.asarray(bundle["data_max"], float)
@@ -341,7 +368,7 @@ def reward_balance_targets(bundle: dict) -> dict:
     q_diag = np.asarray(params["Q_diag"], float)
     q2 = float(q_diag[1])
     bands = []
-    for y_sp_phys in np.asarray(POLYMER_RL_SETPOINTS_PHYS, float):
+    for y_sp_phys in np.asarray(setpoints_phys, float):
         band_phys = np.maximum(
             np.asarray(params["k_rel"], float) * np.abs(y_sp_phys),
             np.asarray(params["band_floor_phys"], float),
@@ -357,6 +384,10 @@ def reward_balance_targets(bundle: dict) -> dict:
         "q1_equal_edge_mean": float(np.mean(q1_equal_edge)),
         "q1_equal_bonus_mean": float(np.mean(q1_equal_bonus)),
     }
+
+
+def reward_balance_targets(bundle: dict) -> dict:
+    return reward_balance_targets_generic(bundle, POLYMER_RL_SETPOINTS_PHYS)
 
 
 def controllability_matrix(A: np.ndarray, B: np.ndarray) -> np.ndarray:
@@ -700,7 +731,7 @@ def compute_observer_support_rows(
 ) -> list[dict]:
     return [
         {
-            "label": "Polymer matrix wide",
+            "label": "Polymer matrix latest capped",
             "system": "polymer",
             "family": "matrix",
             "A_drift_mean": float(polymer_matrix_row["A_model_delta_ratio_mean_test"]),
@@ -708,7 +739,7 @@ def compute_observer_support_rows(
             "spectral_mean": float(polymer_matrix_row.get("derived_spectral_mean_test", np.nan)),
         },
         {
-            "label": "Polymer structured wide",
+            "label": "Polymer structured latest capped",
             "system": "polymer",
             "family": "structured",
             "A_drift_mean": float(polymer_structured_row["A_model_delta_ratio_mean_test"]),
@@ -1103,7 +1134,7 @@ def plot_latest_cap_comparison(latest_rows: list[dict]) -> None:
     axs[0].set_xticks(x)
     axs[0].set_xticklabels(order, rotation=20, ha="right")
     axs[0].set_ylabel("Final test physical MAE")
-    axs[0].set_title("Latest matrix/structured reruns versus previous wide")
+    axs[0].set_title("Recent capped polymer reruns")
     axs[0].legend(fontsize=8)
     axs[0].grid(alpha=0.25, axis="y")
 
@@ -1127,7 +1158,7 @@ def plot_latest_cap_comparison(latest_rows: list[dict]) -> None:
         )
         axs[1].axhline(1.0, color="black", lw=1.0, ls=":")
         axs[1].set_ylabel("Spectral radius")
-        axs[1].set_title("Structured spectral diagnostics")
+        axs[1].set_title("Structured capped-run spectral diagnostics")
         axs[1].legend(fontsize=8)
         axs[1].grid(alpha=0.25)
 
@@ -1509,6 +1540,83 @@ def plot_reward_balance(reference_bundle: dict) -> None:
     plt.close(fig)
 
 
+def plot_cross_system_reward_balance(polymer_bundle: dict, distillation_bundle: dict) -> None:
+    def _system_targets(bundle: dict, setpoints_phys: np.ndarray):
+        targets = reward_balance_targets_generic(bundle, setpoints_phys)
+        current_q1 = float(targets["current_q"][0])
+        q2 = float(targets["current_q"][1])
+        q1_max = max(current_q1 * 1.05, float(targets["q1_equal_bonus_mean"]) * 1.8)
+        q1_grid = np.linspace(max(1e-6, 0.1 * q2), q1_max, 300)
+        edge_ratio = q1_grid / max(float(targets["q1_equal_edge_mean"]), 1e-12)
+        bonus_ratio = q1_grid / max(float(targets["q1_equal_bonus_mean"]), 1e-12)
+        return targets, q1_grid, edge_ratio, bonus_ratio
+
+    poly_targets, poly_q1_grid, poly_edge_ratio, poly_bonus_ratio = _system_targets(polymer_bundle, POLYMER_RL_SETPOINTS_PHYS)
+    dist_targets, dist_q1_grid, dist_edge_ratio, dist_bonus_ratio = _system_targets(distillation_bundle, DISTILLATION_RL_SETPOINTS_PHYS)
+
+    fig, axs = plt.subplots(1, 2, figsize=(16, 6), constrained_layout=True)
+    configs = [
+        ("Polymer", poly_targets, poly_q1_grid, poly_edge_ratio, poly_bonus_ratio),
+        ("Distillation", dist_targets, dist_q1_grid, dist_edge_ratio, dist_bonus_ratio),
+    ]
+    for ax, (title, targets, q1_grid, edge_ratio, bonus_ratio) in zip(axs, configs):
+        current_q1 = float(targets["current_q"][0])
+        edge_target = float(targets["q1_equal_edge_mean"])
+        bonus_target = float(targets["q1_equal_bonus_mean"])
+        ax.plot(q1_grid, edge_ratio, color="#4E79A7", lw=2.2, label="edge balance ratio")
+        ax.plot(q1_grid, bonus_ratio, color="#F28E2B", lw=2.2, label="bonus balance ratio")
+        ax.axhline(1.0, color="black", lw=1.0, ls=":")
+        ax.axvline(current_q1, color="#59A14F", lw=1.0, ls="--", label=f"current Q1 {current_q1:.0f}")
+        ax.axvline(edge_target, color="#4E79A7", lw=1.0, ls="--", label=f"edge-even Q1 {edge_target:.0f}")
+        ax.axvline(bonus_target, color="#F28E2B", lw=1.0, ls="--", label=f"bonus-even Q1 {bonus_target:.0f}")
+        ax.set_title(f"{title} output-balance sweep")
+        ax.set_xlabel("Output-1 weight Q1 (Q2 fixed)")
+        ax.set_ylabel("Relative output-1 emphasis")
+        ax.grid(alpha=0.25)
+        ax.legend(fontsize=7)
+
+    fig.savefig(FIG_ROOT / "wide_range_cross_system_reward_balance.png", dpi=220)
+    plt.close(fig)
+
+
+def plot_distillation_safe_search_explainer() -> None:
+    tau = np.linspace(0.0, 8.0, 400)
+    gate = authority_gate(tau, deadband=1.0, k=0.35)
+    alpha_half_width = 0.01 + gate * (0.25 - 0.01)
+    alpha_low = 1.0 - alpha_half_width
+    alpha_high = 1.0 + alpha_half_width
+    lambda_grid = np.linspace(0.0, 1.0, 200)
+    candidate_cost_ratio = 1.0 + 2.3 * lambda_grid ** 2
+    nominal_accept = candidate_cost_ratio <= 1.15
+    safe_lambda = float(lambda_grid[np.where(nominal_accept)[0][-1]])
+
+    fig, axs = plt.subplots(1, 2, figsize=(16, 6), constrained_layout=True)
+
+    axs[0].plot(tau, gate, color="#4E79A7", lw=2.2, label="mismatch gate g(tau)")
+    axs[0].plot(tau, alpha_low, color="#59A14F", lw=2.0, label="effective alpha low")
+    axs[0].plot(tau, alpha_high, color="#E15759", lw=2.0, label="effective alpha high")
+    axs[0].axhline(0.99, color="#999999", lw=1.0, ls=":")
+    axs[0].axhline(1.01, color="#999999", lw=1.0, ls=":")
+    axs[0].axvline(1.0, color="black", lw=1.0, ls=":")
+    axs[0].set_title("State-dependent A trust region with wide raw search")
+    axs[0].set_xlabel(r"raw mismatch magnitude $\tau_t$")
+    axs[0].set_ylabel("gate or effective alpha bound")
+    axs[0].legend(fontsize=8)
+    axs[0].grid(alpha=0.25)
+
+    axs[1].plot(lambda_grid, candidate_cost_ratio, color="#F28E2B", lw=2.2, label="candidate / nominal predicted cost")
+    axs[1].axhline(1.15, color="#59A14F", lw=1.0, ls="--", label="acceptance threshold")
+    axs[1].axvline(safe_lambda, color="#4E79A7", lw=1.0, ls="--", label=f"max accepted blend {safe_lambda:.2f}")
+    axs[1].set_title("Backtracking acceptance filter for wide proposals")
+    axs[1].set_xlabel(r"blend factor $\lambda$ in $\theta^{eff}=1+\lambda(\theta^{rl}-1)$")
+    axs[1].set_ylabel("predicted cost ratio")
+    axs[1].legend(fontsize=8)
+    axs[1].grid(alpha=0.25)
+
+    fig.savefig(FIG_ROOT / "wide_range_distillation_safe_search.png", dpi=220)
+    plt.close(fig)
+
+
 def plot_admissibility_frontier(
     A: np.ndarray,
     B: np.ndarray,
@@ -1610,6 +1718,7 @@ def write_markdown(
     rows: list[dict],
     nominal_A_radius: float,
     reference_bundle: dict,
+    distillation_reference_bundle: dict,
     matrix_frontier_rows: list[dict],
     structured_frontier_rows: list[dict],
     structured_asym_rows: list[dict],
@@ -1635,6 +1744,8 @@ def write_markdown(
     baseline = summary["baseline"]
     reward_geom = reward_geometry_table(reference_bundle)
     reward_targets = reward_balance_targets(reference_bundle)
+    dist_reward_geom = reward_geometry_table_generic(distillation_reference_bundle, DISTILLATION_RL_SETPOINTS_PHYS)
+    dist_reward_targets = reward_balance_targets_generic(distillation_reference_bundle, DISTILLATION_RL_SETPOINTS_PHYS)
     alpha_max_stable = 1.0 / nominal_A_radius
     alpha_max_stable_dist = 1.0 / nominal_A_radius_dist
     matrix_frontier_selected = [min(matrix_frontier_rows, key=lambda row: abs(row["alpha"] - alpha)) for alpha in [0.85, 1.00, 1.20]]
@@ -1648,14 +1759,14 @@ def write_markdown(
     lines: list[str] = [
         "# Polymer Wide-Range Matrix and Structured Report With Distillation Counterpart",
         "",
-        "Date: 2026-04-21",
+        "Date: 2026-04-22",
         "",
         "This report focuses on the latest widened-range polymer matrix and structured-matrix runs, then extends the same admissibility and design logic to the distillation column as a cross-system counterpart.",
         "",
         "The goal is to answer five questions with data from the saved runs and the shared polymer model:",
         "",
         "1. Why did the widened matrix/structured methods improve, and why did reidentification still fail?",
-        "2. What reward is actually used in polymer, and how should it be changed if both outputs should matter more evenly?",
+        "2. What reward is actually used in polymer and distillation, and how should it be changed if both outputs should matter more evenly?",
         "3. Is there a mathematical way to set the multiplier range, instead of widening blindly?",
         "4. Why do the wide runs first degrade and then recover, and how can residual-style ideas help?",
         "5. Is polymer reidentification still worth pursuing, or is it currently dominated by direct multiplier methods?",
@@ -1781,16 +1892,16 @@ def write_markdown(
     )
     lines += image_lines("wide_range_latest_cap_reruns.png", "Latest matrix and structured reruns after the cap update")
     lines += [
-        f"The latest matrix rerun is a real improvement. Final test MAE moves from `{fmt(matrix_wide['test_phys_mae_mean'])}` in the previous wide run to `{fmt(latest_cap_map['matrix_new_cap']['test_phys_mae_mean'])}`, and output-2 MAE drops from `{fmt(matrix_wide['test_phys_mae_out2'])}` to `{fmt(latest_cap_map['matrix_new_cap']['test_phys_mae_out2'])}` while final test input movement also falls from `{fmt(matrix_wide['test_u_move'])}` to `{fmt(latest_cap_map['matrix_new_cap']['test_u_move'])}`.",
-        f"The latest structured rerun is worse, not better. Final test MAE rises from `{fmt(structured_wide['test_phys_mae_mean'])}` to `{fmt(latest_cap_map['structured_new_cap']['test_phys_mae_mean'])}`, output 2 degrades further to `{fmt(latest_cap_map['structured_new_cap']['test_phys_mae_out2'])}`, and tail MAE jumps to `{fmt(latest_cap_map['structured_new_cap']['tail_phys_mae_mean'])}`.",
+        f"The current matrix capped rerun remains strong, but it is now a tradeoff rather than a strict improvement. Relative to the first capped rerun, final test MAE moves from `{fmt(latest_cap_map['matrix_cap_prev']['test_phys_mae_mean'])}` to `{fmt(latest_cap_map['matrix_cap_latest']['test_phys_mae_mean'])}`, while reward improves slightly from `{fmt(latest_cap_map['matrix_cap_prev']['reward_test'])}` to `{fmt(latest_cap_map['matrix_cap_latest']['reward_test'])}`. The policy is still using the capped `A` side correctly and keeping `B` wide.",
+        f"The structured family changed much more. The first capped-structured attempt was still effectively uncapped on the `A` side and performed poorly, but the latest rerun with the actual `A` cap applied improves final test MAE from `{fmt(latest_cap_map['structured_cap_prev']['test_phys_mae_mean'])}` to `{fmt(latest_cap_map['structured_cap_latest']['test_phys_mae_mean'])}`, cuts output-2 MAE from `{fmt(latest_cap_map['structured_cap_prev']['test_phys_mae_out2'])}` to `{fmt(latest_cap_map['structured_cap_latest']['test_phys_mae_out2'])}`, and improves reward from `{fmt(latest_cap_map['structured_cap_prev']['reward_test'])}` to `{fmt(latest_cap_map['structured_cap_latest']['reward_test'])}`.",
         "",
-        "The reason is important: the latest matrix rerun actually used the capped `A` bound, but the latest structured rerun did not. The saved matrix bundle shows `high_coef = [1.0566, 1.25, 1.25]`, so the scalar `A` multiplier was capped as intended. The saved structured bundle, however, still shows `structured_high_bounds = [1.25, 1.25, 1.25, 1.25, 1.25, 1.25]`. So the structured notebook wiring did not pass the intended `A/B` overrides into the structured spec when that run was created.",
+        "The reason is now clear in the saved bundles. Both matrix reruns use `high_coef = [1.0566, 1.25, 1.25]`, so the scalar `A` multiplier was capped as intended in both cases. The first structured capped attempt still saved `structured_high_a = [1.25, 1.25, 1.25, 1.25]`, so the `A` cap was effectively missing there. The latest structured rerun saves `structured_high_a = [1.0566, 1.0566, 1.0566, 1.0566]` with `structured_high_b = [1.25, 1.25]`, which means the intended tight-`A`, wide-`B` design is finally the one being trained and evaluated.",
         "",
-        f"That means the latest structured failure is not evidence that the matrix-derived `A` cap failed for structured. It is evidence that the structured training run was still effectively uncapped on the `A` side. The saved spectral diagnostics confirm that: previous structured wide had mean/p95 spectral radius `{fmt(structured_wide['spectral_mean_test'])}` / `{fmt(structured_wide['spectral_p95_test'])}`, while the latest structured rerun still reaches `{fmt(latest_cap_map['structured_new_cap']['spectral_mean_test'])}` / `{fmt(latest_cap_map['structured_new_cap']['spectral_p95_test'])}` with `3` fallback events logged over the full rollout.",
+        f"The structural effect is visible in the spectral diagnostics. The failed first capped-structured attempt had mean/p95 spectral radius `{fmt(latest_cap_map['structured_cap_prev']['spectral_mean_test'])}` / `{fmt(latest_cap_map['structured_cap_prev']['spectral_p95_test'])}` and `3` fallback events. The latest capped-structured rerun brings that down to `{fmt(latest_cap_map['structured_cap_latest']['spectral_mean_test'])}` / `{fmt(latest_cap_map['structured_cap_latest']['spectral_p95_test'])}` with zero fallback events. So the main structured problem was not that the cap idea was wrong; it was that the cap had not actually been applied in the earlier rerun.",
         "",
         "## Does Structured Need A Different Cap Than Matrix?",
         "",
-        "Probably yes in the long run, but the current failed rerun does not prove that yet because it was not actually capped. There are two separate questions:",
+        "Probably yes in the long run, but the new reruns sharpen the conclusion. There are two separate questions:",
         "",
         "1. If the intended structured `A` cap is truly enforced, is it mathematically reasonable?",
         "2. Even if it is mathematically reasonable, should structured still use a stricter cap than matrix because it perturbs several coupled `A` groups at once?",
@@ -1817,15 +1928,15 @@ def write_markdown(
         "",
         "But structured is still more delicate than matrix because its action changes several `A`-side groups and the off-diagonal coupling together. A single scalar `alpha` cap from the plain matrix family does not fully capture that geometry. The frontier suggests a practical structured hierarchy:",
         "",
-        "- `A_high ~= 1.0566` is a reasonable first structured cap and should be tested with the notebook wiring fixed.",
+        "- `A_high ~= 1.0566` is a reasonable first structured cap and now has one encouraging rerun behind it.",
         "- If you want more margin, `A_high ~= 1.04-1.05` is cleaner: unstable fraction stays zero and the near-unit fraction drops sharply.",
-        "- Only after a properly capped structured rerun should we conclude that structured needs an even tighter cap or a separate off-diagonal cap.",
+        "- The latest structured success means the next structured question is not \"does the cap work at all?\" but \"should the structured `A` cap be slightly tighter than the matrix cap for better consistency?\"",
         "",
         "## Why Matrix Wide Worked And Reidentification Did Not",
         "",
         "The latest matrix result is successful because the controller is allowed to choose from a small, direct, always-realized model family. There is no identification gate between the action and the prediction model used by MPC. The action changes three smooth multipliers and the model correction is immediately available to the optimizer on every step.",
         "",
-        f"In the final test episode, matrix wide mainly uses a damped `A` correction and a stronger first-input `B` correction: `alpha` mean is `{fmt(matrix_wide['alpha_mean_test'])}`, while `delta1` mean is `{fmt(matrix_wide['delta1_mean_test'])}` and its p95 reaches `{fmt(matrix_wide['delta1_p95_test'])}`. That is a coherent low-dimensional correction, not a noisy online identification problem.",
+        f"In the current latest capped matrix test episode, the policy still mainly uses a damped `A` correction and a stronger first-input `B` correction: `alpha` mean is `{fmt(latest_cap_map['matrix_cap_latest']['alpha_mean_test'])}`, while `delta1` mean is `{fmt(latest_cap_map['matrix_cap_latest']['delta1_mean_test'])}` and its p95 reaches `{fmt(latest_cap_map['matrix_cap_latest']['delta1_p95_test'])}`. That is a coherent low-dimensional correction, not a noisy online identification problem.",
         "",
         f"Reidentification is fundamentally different. The policy may request strong blend authority, but the online identification engine almost never produces an admissible new model. In the latest polymer reidentification run, candidate-valid fraction is only `{fmt(reid_refresh['candidate_valid_frac'])}` and update-success fraction is only `{fmt(reid_refresh['update_success_frac'])}`. Median condition number is `{fmt(reid_refresh['condition_median'], digits=1)}` and p95 is `{fmt(reid_refresh['condition_p95'], digits=1)}`. So reidentification is bottlenecked by data informativity and numerical conditioning, not by the policy alone.",
         "",
@@ -1923,6 +2034,52 @@ def write_markdown(
     lines += image_lines("wide_range_reward_tradeoff.png", "Reward versus evaluation tradeoff for the wide matrix and structured runs")
     lines += [
         f"Structured wide improves output 1 sharply: final test scaled MAE drops from `{fmt(structured_refresh['test_scaled_mae_out1'])}` to `{fmt(structured_wide['test_scaled_mae_out1'])}`. But output 2 worsens from `{fmt(structured_refresh['test_scaled_mae_out2'])}` to `{fmt(structured_wide['test_scaled_mae_out2'])}`. Under the actual polymer reward, the output-1 quadratic and linear penalties both fall materially, while the output-2 penalties rise by less. The reward therefore improves even though the held-out mean physical error gets worse.",
+        "",
+        "## Distillation Reward Geometry",
+        "",
+        "The distillation reward uses the same relative-band structure as polymer, but the current parameter balance is much more asymmetric toward output 1. The same formulas apply,",
+        "",
+        "$$",
+        "\\text{edge slope}_i = 2 Q_i\\,\\text{band}_i,",
+        "\\qquad",
+        "\\text{bonus prefactor}_i = \\beta Q_i\\,\\text{band}_i^2,",
+        "$$",
+        "",
+        "so the relevant balance question is again how `Q_diag` interacts with the scaled reward band, not just the raw `Q_diag` entries themselves.",
+        "",
+    ]
+    lines += markdown_table(
+        [
+            "Setpoint",
+            "Output",
+            "Physical setpoint",
+            "Band (phys)",
+            "Band (scaled)",
+            "Edge slope",
+            "Bonus prefactor",
+        ],
+        [
+            [
+                row["setpoint"],
+                row["output"],
+                fmt(row["y_sp_phys"], digits=4),
+                fmt(row["band_phys"], digits=4),
+                fmt(row["band_scaled"], digits=5),
+                fmt(row["edge_slope"], digits=4),
+                fmt(row["bonus_prefactor"], digits=4),
+            ]
+            for row in dist_reward_geom
+        ],
+    )
+    lines += image_lines("wide_range_cross_system_reward_balance.png", "Cross-system reward balance sweep")
+    lines += [
+        f"For polymer, the current `Q1 = {fmt(reward_targets['current_q'][0], digits=1)}` is close to the bonus-equalized value `{fmt(reward_targets['q1_equal_bonus_mean'], digits=1)}` but well above the edge-equalized value `{fmt(reward_targets['q1_equal_edge_mean'], digits=1)}`. That is why polymer still favors output 1 outside the reward band even though the inside-band bonus is relatively balanced.",
+        f"For distillation, the asymmetry is much larger. The current `Q1 = {fmt(dist_reward_targets['current_q'][0], digits=0)}` is far above both the edge-equalized target `{fmt(dist_reward_targets['q1_equal_edge_mean'], digits=0)}` and the bonus-equalized target `{fmt(dist_reward_targets['q1_equal_bonus_mean'], digits=0)}` with `Q2` fixed at `{fmt(dist_reward_targets['current_q'][1], digits=0)}`. So the current distillation reward strongly prioritizes output 1 both near and outside the reward band.",
+        "",
+        "That suggests different reward moves for the two systems:",
+        "",
+        f"- Polymer: if the evaluation objective should become more even, reduce `Q1` from `{fmt(reward_targets['current_q'][0], digits=0)}` toward roughly `{fmt(reward_targets['q1_equal_edge_mean'], digits=0)}` or separate the inside-band bonus weights from the outside-band penalty weights.",
+        f"- Distillation: the current `Q1` is so dominant that a meaningful even-output ablation should test `Q1` in the rough range `{fmt(dist_reward_targets['q1_equal_edge_mean'], digits=0)}-{fmt(dist_reward_targets['q1_equal_bonus_mean'], digits=0)}` instead of `{fmt(dist_reward_targets['current_q'][0], digits=0)}`.",
         "",
         "## Mathematical Limits For The Multiplier Range",
         "",
@@ -2147,6 +2304,34 @@ def write_markdown(
         "",
         "That is exactly why the cross-system figure matters. Polymer needs guards because the model family is fragile. Distillation does not need those guards for the same mathematical reason, but it still needs better policy learning and reward alignment before wider ranges will automatically help.",
         "",
+        "## How To Prevent Catastrophic Distillation Episodes While Keeping Wide Search",
+        "",
+        "The current distillation failure mode is not a pure stability failure. It is a performance failure: the RL policy can move the prediction model into a region where the solve still succeeds, but the closed-loop reward and tracking collapse. That means a structured solve fallback alone is not enough for the plain matrix family.",
+        "",
+        "A practical wide-search design is to keep the raw policy search space wide, but gate the effective `A` deviation by mismatch magnitude and by a nominal-cost acceptance test. One useful formulation is",
+        "",
+        "$$",
+        "\\theta_t^{eff} = 1 + \\lambda_t\\big(\\theta_t^{rl} - 1\\big),",
+        "\\qquad",
+        "\\lambda_t = \\min\\big(g_{\\tau}(\\tau_t),\\; g_J(J_t^{cand}, J_t^{nom})\\big),",
+        "$$",
+        "",
+        "where `theta` is the multiplier vector, `tau_t` is a raw mismatch magnitude such as `max |tracking_error_raw|`, `g_tau` is a deadband-plus-exponential gate, and `g_J` is a backtracking acceptance filter that shrinks the proposal whenever the candidate one-step predicted cost is much worse than nominal.",
+        "",
+        "For distillation, the safest version is asymmetric:",
+        "",
+        "1. keep the raw search space wide for both `A` and `B`,",
+        "2. keep the effective `A` tube narrow near setpoint,",
+        "3. allow `B` to stay wider because it changes authority more than pole location,",
+        "4. add the same nominal fallback/backtracking logic to plain matrix that structured already uses on solve failure.",
+        "",
+    ]
+    lines += image_lines("wide_range_distillation_safe_search.png", "Distillation safe wide-search explainer")
+    lines += [
+        "The figure makes the idea concrete. Near setpoint, the effective `A` range can stay close to the current `[0.99, 1.01]` tube even though the raw action still searches over `[0.75, 1.25]`. As the mismatch grows, the gate opens and the same raw policy can use more of the wide space. The second panel shows the other half of the safeguard: if the candidate MPC objective is much worse than nominal, backtrack the blend factor before applying the model.",
+        "",
+        "This is the cleanest way to keep wide search without repeating the catastrophic early distillation episodes. It uses the same residual-style authority idea already present elsewhere in the repo, but applies it to model deviation instead of residual control. The design direction is consistent with adaptive/robust MPC approaches that keep uncertainty updates inside recursively feasible sets and with output-feedback MPC schemes that refresh estimator dynamics only under protected model changes [AdaptiveMPC2020] [RAMPC2023] [OutputFeedbackRMPC2019].",
+        "",
         "## Will Shifted MPC Warm Start Help Across Methods?",
         "",
         "Here `shifted MPC warm start` means initializing the solver with the previous optimal move sequence shifted one step forward, not the notebook's episode-schedule warm-start segment. The optimizer-level idea is",
@@ -2205,7 +2390,7 @@ def write_markdown(
         "",
         "## Would Periodic Observer Updating Help?",
         "",
-        "Every mismatch-capable method already updates the observer state every step. The real question is whether the observer model or observer gain should be redesigned occasionally when the effective prediction model drifts. With a fixed observer gain `L`, the estimation error behaves qualitatively like",
+        "Every mismatch-capable method already updates the observer state every step. The real question is whether the observer model or observer gain should be redesigned occasionally when the effective prediction model drifts. The short answer is: redesigning observer poles every episode is probably too aggressive, especially for distillation. A thresholded or slower refresh is more plausible than an unconditional episode-by-episode redesign. With a fixed observer gain `L`, the estimation error behaves qualitatively like",
         "",
         "$$",
         "e_{k+1} \\approx (\\hat A - L C)e_k + (\\Delta A\\,x_k + \\Delta B\\,u_k),",
@@ -2247,7 +2432,7 @@ def write_markdown(
         "",
         f"But periodic observer refresh only helps if the refreshed model is trustworthy. That is exactly why it is not a good first fix for current polymer reidentification: candidate-valid fraction is only `{fmt(reid_health_rows[0]['candidate_valid_frac'])}` and update-success fraction is only `{fmt(reid_health_rows[0]['update_success_frac'])}`. There is almost no accepted model stream to refresh from. Distillation reidentification is materially healthier on that axis: candidate-valid fraction `{fmt(reid_health_rows[1]['candidate_valid_frac'])}`, update-success fraction `{fmt(reid_health_rows[1]['update_success_frac'])}`, and condition numbers an order of magnitude lower.",
         "",
-        "So the practical recommendation is narrow, not blanket: periodic observer redesign is worth exploring if it is based on a smoothed accepted effective model and protected by the same admissibility checks as the controller. The best first candidates are polymer matrix/structured with slow refresh from interval-mean effective models, and distillation reidentification where candidate quality is already much better than polymer. Polymer reidentification should not use observer refresh as a primary rescue mechanism until its identification layer becomes trustworthy.",
+        "So the practical recommendation is narrow, not blanket: periodic observer redesign is worth exploring only if it is based on a smoothed accepted effective model and protected by the same admissibility checks as the controller. The best first candidates are polymer matrix/structured with slow refresh from interval-mean effective models, and distillation reidentification where candidate quality is already much better than polymer. For current distillation matrix/structured, per-episode pole redesign is unlikely to be the main fix because the model drift is too small; gating and acceptance filters are more relevant there. Polymer reidentification should not use observer refresh as a primary rescue mechanism until its identification layer becomes trustworthy.",
         "",
         "## Is The Current Exploration Noise Making The Wide-Range Problem Worse?",
         "",
@@ -2384,15 +2569,16 @@ def write_markdown(
         "## Conclusions",
         "",
         f"- The latest matrix wide run is genuinely more successful than the previous matrix runs. Its final test MAE `{fmt(matrix_wide['test_phys_mae_mean'])}` beats the previous narrow refresh `{fmt(matrix_refresh['test_phys_mae_mean'])}`, the legacy matrix run `{fmt(matrix_legacy['test_phys_mae_mean'])}`, and baseline MPC `{fmt(baseline['test_phys_mae_mean'])}`.",
-        f"- The newest capped matrix rerun is better again: final test MAE improves further to `{fmt(latest_cap_map['matrix_new_cap']['test_phys_mae_mean'])}`. The policy uses the capped `A` side correctly and shifts more of the correction burden onto the `B` side.",
-        f"- The newest structured rerun is worse, but that run still used uniform structured bounds up to `1.25` on all grouped multipliers. So it does not show that the structured `A` cap failed; it shows that the structured notebook did not yet apply the intended cap during that run.",
-        f"- Structured wide is therefore still not a clean success. The current uncapped/over-wide structured reruns over-optimize output 1, degrade output 2, and keep the prediction model much more aggressive than the matrix family.",
+        f"- The latest capped matrix rerun stays in that successful regime. Relative to the first capped rerun, it trades a small MAE regression (`{fmt(latest_cap_map['matrix_cap_prev']['test_phys_mae_mean'])}` to `{fmt(latest_cap_map['matrix_cap_latest']['test_phys_mae_mean'])}`) for slightly better reward, while still using the capped `A` side and wide `B` side as intended.",
+        f"- The latest structured rerun is the real correction in this update. Once the `A` cap was actually applied, final test MAE improved from `{fmt(latest_cap_map['structured_cap_prev']['test_phys_mae_mean'])}` to `{fmt(latest_cap_map['structured_cap_latest']['test_phys_mae_mean'])}`, spectral p95 dropped below `1`, and fallback events disappeared.",
+        f"- Structured is therefore no longer a simple failure story. The right conclusion is narrower: structured can work with tight `A` / wide `B`, but it is more cap-sensitive than plain matrix and still likely needs a slightly tighter `A` limit or stronger acceptance logic for consistency.",
         f"- The actual polymer reward is bonus-balanced more than edge-balanced. If both outputs should matter more evenly in evaluation, the most direct reward fix is to reduce `Q1` toward about `{fmt(reward_targets['q1_equal_edge_mean'], digits=0)}` or to separate inside-band bonus weights from outside-band penalty weights.",
+        f"- Distillation reward balance is currently much more asymmetric than polymer. With `Q2 = {fmt(dist_reward_targets['current_q'][1], digits=0)}`, an even-output ablation should test `Q1` in the rough range `{fmt(dist_reward_targets['q1_equal_edge_mean'], digits=0)}-{fmt(dist_reward_targets['q1_equal_bonus_mean'], digits=0)}`, not the current `{fmt(dist_reward_targets['current_q'][0], digits=0)}`.",
         f"- For the matrix family, observability and controllability do not bound positive `alpha`; the meaningful analytical upper bound is `alpha < {fmt(alpha_max_stable)}` if all candidate `A` matrices must stay open-loop stable. There is no comparable analytical lower bound, so the lower side should be chosen by a trust-region or time-scale rule. For `B`, the useful bounds are about gain-trust and actuator headroom, not spectral stability.",
         f"- For structured updates, the matrix-derived cap `{fmt(alpha_max_stable)}` is still a sensible first `A`-side bound. Monte Carlo sampling with `B_high = 1.25` gives zero unstable fraction at that cap. If more margin is wanted, the report's asymmetric frontier suggests `A_high` around `1.04-1.05` before tightening `B`.",
-        f"- Distillation is mathematically much less fragile than polymer: `alpha_max_stable` is `{fmt(alpha_max_stable_dist)}` instead of `{fmt(alpha_max_stable)}`, and the structured unstable fraction at `1.20` is only `{fmt(distillation_structured_frontier_rows[-1]['unstable_frac'], digits=3)}` instead of `{fmt(structured_frontier_rows[-1]['unstable_frac'], digits=3)}`. But the currently saved disturbance RL runs still do not beat the distillation baseline, so wider admissibility alone is not enough.",
+        f"- Distillation is mathematically much less fragile than polymer: `alpha_max_stable` is `{fmt(alpha_max_stable_dist)}` instead of `{fmt(alpha_max_stable)}`, and the structured unstable fraction at `1.20` is only `{fmt(distillation_structured_frontier_rows[-1]['unstable_frac'], digits=3)}` instead of `{fmt(structured_frontier_rows[-1]['unstable_frac'], digits=3)}`. But the currently saved disturbance RL runs still do not beat the distillation baseline, so wider admissibility alone is not enough. A safer next design is wide raw search with mismatch-gated effective `A` authority plus nominal-cost backtracking/fallback.",
         "- Shifted MPC warm start is worth testing beyond the matrix family, but primarily as a solver-quality improvement. The highest-payoff candidates in the current codebase are residual, matrix, structured, weights, and reidentification. Horizon is a weaker target because the subproblem dimension changes too often.",
-        "- Periodic observer redesign should not be treated as a blanket fix. It is most defensible when sustained model drift is present and the refreshed model is trustworthy. That makes polymer matrix/structured and distillation reidentification more plausible targets than current polymer reidentification.",
+        "- Periodic observer redesign should not be treated as a blanket fix, and every-episode pole redesign is probably too aggressive. It is most defensible when sustained model drift is present and the refreshed model is trustworthy. That makes polymer matrix/structured and distillation reidentification more plausible targets than current distillation matrix/structured or polymer reidentification.",
         "- The degradation-then-recovery pattern is expected after abrupt widening. The most practical fix is staged widening, smoother exploration, mismatch-gated authority, and uncertainty-set shaping before wider training ranges are accepted.",
         "- Polymer reidentification is currently dominated by the widened direct-multiplier methods and should be deprioritized until the identification layer itself is redesigned around informative-window generation and candidate validation.",
         "",
@@ -2410,8 +2596,11 @@ def write_markdown(
         "- [Korenkevych2019] Autoregressive Policies for Continuous Control Deep Reinforcement Learning.",
         "- [Seo2025] Continuous Control with Coarse-to-fine Reinforcement Learning.",
         "- [Chen2024] Robust model predictive control with polytopic model uncertainty through System Level Synthesis.",
+        "- [AdaptiveMPC2020] Adaptive model predictive control for a class of constrained linear systems with parametric uncertainties.",
+        "- [RAMPC2023] Robust adaptive model predictive control with persistent excitation conditions.",
         "- [Limon2013] Robust feedback model predictive control of constrained uncertain systems.",
         "- [Kothare1996] Robust constrained model predictive control using linear matrix inequalities.",
+        "- [OutputFeedbackRMPC2019] Output feedback robust MPC for linear systems with norm-bounded model uncertainty and disturbance.",
         "",
         "[Diehl2005]: https://doi.org/10.1137/S0363012902400713",
         "[Jerez2014]: https://doi.org/10.1109/TAC.2014.2351991",
@@ -2425,8 +2614,11 @@ def write_markdown(
         "[Korenkevych2019]: https://www.ijcai.org/proceedings/2019/0382.pdf",
         "[Seo2025]: https://proceedings.mlr.press/v270/seo25a.html",
         "[Chen2024]: https://doi.org/10.1016/j.automatica.2023.111431",
+        "[AdaptiveMPC2020]: https://doi.org/10.1016/j.automatica.2020.108974",
+        "[RAMPC2023]: https://doi.org/10.1016/j.automatica.2023.110959",
         "[Limon2013]: https://doi.org/10.1016/j.jprocont.2012.08.003",
         "[Kothare1996]: https://doi.org/10.1016/0005-1098(96)00063-5",
+        "[OutputFeedbackRMPC2019]: https://doi.org/10.1016/j.automatica.2019.07.002",
     ]
 
     (REPO_ROOT / "report" / "polymer_wide_range_matrix_structured_report.md").write_text("\n".join(lines), encoding="utf-8")
@@ -2461,14 +2653,17 @@ def main() -> None:
     }
     distillation_reid_bundle = load_pickle(DISTILLATION_REID_DISTURB_PATH)
     latest_cap_specs = [
-        RunSpec("matrix_new_cap", "matrix", "latest_cap", "Matrix latest capped rerun", POLYMER_MATRIX_NEW_CAP_PATH),
-        RunSpec("structured_new_cap", "structured", "latest_cap", "Structured latest rerun", POLYMER_STRUCTURED_NEW_CAP_PATH),
+        RunSpec("matrix_cap_prev", "matrix", "capped_history", "Matrix first capped rerun", POLYMER_MATRIX_PREVIOUS_CAP_PATH),
+        RunSpec("matrix_cap_latest", "matrix", "capped_latest", "Matrix latest capped rerun", POLYMER_MATRIX_LATEST_CAP_PATH),
+        RunSpec("structured_cap_prev", "structured", "capped_history", "Structured first capped rerun", POLYMER_STRUCTURED_PREVIOUS_CAP_PATH),
+        RunSpec("structured_cap_latest", "structured", "capped_latest", "Structured latest capped rerun", POLYMER_STRUCTURED_LATEST_CAP_PATH),
     ]
 
     baseline_bundle = runs["baseline"]["bundle"]
     rows = [compute_summary(spec=spec, bundle=runs[spec.run_id]["bundle"], baseline_bundle=baseline_bundle, nominal_A_radius=nominal_A_radius) for spec in RUN_SPECS]
     summary_map = {row["run_id"]: row for row in rows}
     latest_cap_rows = [compute_summary(spec=spec, bundle=load_pickle(spec.path), baseline_bundle=baseline_bundle, nominal_A_radius=nominal_A_radius) for spec in latest_cap_specs]
+    latest_cap_map = {row["run_id"]: row for row in latest_cap_rows}
     distillation_summary = {
         "baseline": compute_generic_run_summary("Distillation baseline fluctuation", distillation_runs["baseline"]["bundle"]),
         "matrix": compute_generic_run_summary("Distillation matrix SAC disturbance", distillation_runs["matrix"]["bundle"]),
@@ -2477,8 +2672,8 @@ def main() -> None:
     family_default_rows = build_family_default_rows()
     method_diag_rows = [compute_method_diag_row(spec, load_pickle(spec.path)) for spec in METHOD_DIAG_SPECS]
     observer_rows = compute_observer_support_rows(
-        polymer_matrix_row=summary_map["matrix_wide"],
-        polymer_structured_row=summary_map["structured_wide"],
+        polymer_matrix_row=latest_cap_map["matrix_cap_latest"],
+        polymer_structured_row=latest_cap_map["structured_cap_latest"],
         distillation_matrix_row=distillation_summary["matrix"],
         distillation_structured_row=distillation_summary["structured"],
     )
@@ -2609,6 +2804,7 @@ def main() -> None:
     plot_model_usage(runs, nominal_A_radius=nominal_A_radius)
     plot_tradeoff(summary_map)
     plot_reward_balance(baseline_bundle)
+    plot_cross_system_reward_balance(baseline_bundle, distillation_runs["baseline"]["bundle"])
     matrix_frontier_rows, structured_frontier_rows = plot_admissibility_frontier(
         A=A_phys,
         B=B_phys,
@@ -2637,6 +2833,7 @@ def main() -> None:
     plot_b_multiplier_design()
     plot_practical_fixes_explainer(structured_frontier_rows, distillation_structured_frontier_rows)
     plot_distillation_counterpart(distillation_runs)
+    plot_distillation_safe_search_explainer()
     plot_warmstart_and_exploration(method_diag_rows, family_default_rows)
     plot_observer_refresh_support(observer_rows, reid_health_rows)
     plot_latest_cap_comparison(latest_cap_rows)
@@ -2645,6 +2842,7 @@ def main() -> None:
         rows,
         nominal_A_radius=nominal_A_radius,
         reference_bundle=baseline_bundle,
+        distillation_reference_bundle=distillation_runs["baseline"]["bundle"],
         matrix_frontier_rows=matrix_frontier_rows,
         structured_frontier_rows=structured_frontier_rows,
         structured_asym_rows=structured_asym_rows,

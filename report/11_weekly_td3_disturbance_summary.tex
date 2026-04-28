@@ -1,0 +1,354 @@
+\documentclass[11pt]{article}
+\input{_common_preamble}
+\input{_common_notation}
+\usepackage{graphicx}
+\usepackage{float}
+\graphicspath{{figures/weekly_meeting_2026_04_17_v2/}}
+
+\title{Weekly Meeting Summary: Disturbance-Mode RL-MPC Results}
+\author{Prepared for supervisor meeting}
+\date{2026-04-17}
+
+\begin{document}
+\maketitle
+
+\section*{Scope}
+
+This report is restricted to disturbance-mode results only. Combined-agent,
+matrix, structured-matrix, and residual notebooks are excluded. The only
+model-update family kept here is reidentification.
+
+The notebook families covered are:
+\begin{itemize}
+\item distillation:
+      \texttt{distillation\_RL\_assisted\_MPC\_horizons\_unified.ipynb},
+      \texttt{distillation\_RL\_assisted\_MPC\_horizons\_dueling\_unified.ipynb},
+      \texttt{distillation\_RL\_assisted\_MPC\_weights\_unified.ipynb},
+      \texttt{distillation\_RL\_assisted\_MPC\_reidentification\_unified.ipynb}
+\item polymer:
+      \texttt{RL\_assisted\_MPC\_horizons\_unified.ipynb},
+      \texttt{RL\_assisted\_MPC\_horizons\_dueling\_unified.ipynb},
+      \texttt{RL\_assisted\_MPC\_weights\_unified.ipynb},
+      \texttt{RL\_assisted\_MPC\_reidentification\_unified.ipynb}
+\end{itemize}
+
+For each included method, the figures focus on:
+\begin{itemize}
+\item average reward comparison against the paired MPC bundle
+\item last-episode MPC comparison
+\end{itemize}
+
+\section*{Selection Notes}
+
+\begin{itemize}
+\item Distillation is presented first, per your request.
+\item The latest stored April 16, 2026 distillation horizon, dueling-horizon,
+      and weights runs use the newer unified reward profile introduced on
+      April 16, 2026.
+\item The latest stored disturbance reidentification result for distillation is
+      still the TD3 run from April 16, 2026.
+\item On polymer, I found qualifying disturbance bundles for DQN horizon,
+      dueling horizon, weights, and reidentification.
+\end{itemize}
+
+\section*{Executive Summary}
+
+\begin{itemize}
+\item Distillation horizon adaptation is currently the strongest family in the
+      report. The April 16, 2026 DQN and dueling runs both beat the paired MPC
+      baseline, and the dueling variant is more concentrated around a small set
+      of horizon recipes.
+\item Distillation SAC weights are also positive on the newer reward profile,
+      with final gap \(+1.520\) and last-50 gap \(+2.272\).
+\item Distillation reidentification is still the most mixed result: strong
+      mid-run collapse followed by recovery to a positive final gap \(+0.060\).
+\item Polymer dueling horizon is still the best polymer disturbance result on
+      disk. It beats the paired MPC baseline in 190 of 200 episodes and ends
+      with final gap \(+1.692\).
+\item Polymer weights are also clearly positive, with final gap \(+1.515\) and
+      last-50 gap \(+1.732\).
+\item Polymer DQN horizon remains positive and clearly beats MPC, but it is now
+      weaker than the latest polymer dueling and weights runs.
+\item Polymer reidentification is still slightly negative at the end, with final
+      gap \(-0.070\), so polymer remains a weak benchmark for evaluating the
+      model-update idea.
+\end{itemize}
+
+\section*{Distillation}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrcr}
+\toprule
+Method & Agent & RL Final & MPC Final & Final Gap & Better Eps \\
+\midrule
+DQN horizon & DDQN & 19.433 & 16.079 & +3.354 & 118/200 \\
+Dueling horizon & Dueling DDQN & 18.914 & 16.079 & +2.835 & 186/200 \\
+Weights & SAC & 17.599 & 16.079 & +1.520 & 169/200 \\
+Reidentification & TD3 & -0.205 & -0.265 & +0.060 & 70/200 \\
+\bottomrule
+\end{tabular}
+\caption{Latest stored distillation disturbance runs with paired MPC comparison.}
+\end{table}
+
+\subsection*{DQN Horizon}
+
+The latest stored disturbance DQN horizon run is
+\texttt{distillation\_horizon\_disturb\_fluctuation\_standard\_unified/20260416\_192434},
+compared against
+\texttt{distillation\_compare\_horizon\_disturb\_fluctuation\_standard/20260416\_192443}.
+
+\begin{itemize}
+\item Final reward is 19.433 versus paired MPC 16.079, so the final gap is
+      \(+3.354\). The last-50 gap is still positive at \(+0.299\).
+\item The nominal MPC pair \((6, 3)\) is the most used recipe, but only at
+      7.88\% of logged selections. The policy remains broad rather than
+      collapsing to one horizon pair.
+\item The best reward occurs at episode 131, but the run still has large
+      negative excursions, with worst gap \(-11.253\) at episode 51.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\textwidth]{../Distillation/Results/distillation_compare_horizon_disturb_fluctuation_standard/20260416_192443/compare_rewards.png}
+\hfill
+\includegraphics[width=0.49\textwidth]{../Distillation/Results/distillation_compare_horizon_disturb_fluctuation_standard/20260416_192443/compare_outputs_last_episode.png}
+\caption{Distillation DQN horizon: average reward comparison, last-episode MPC
+comparison.}
+\end{figure}
+
+\subsection*{Dueling Horizon}
+
+The latest stored disturbance dueling-horizon run is
+\texttt{distillation\_dueling\_horizon\_disturb\_fluctuation\_standard\_unified/20260416\_192302},
+compared against
+\texttt{distillation\_compare\_dueling\_horizon\_disturb\_fluctuation\_standard/20260416\_192310}.
+
+\begin{itemize}
+\item Final reward is 18.914 versus paired MPC 16.079, for final gap
+      \(+2.835\). The last-50 gap is much stronger at \(+2.720\), and RL is
+      better in 186 of 200 episodes.
+\item The policy is much more concentrated than plain DQN horizon:
+      \((6, 3)\) accounts for 53.36\% of logged selections, followed by
+      \((8, 2)\) at 20.27\% and \((13, 5)\) at 16.12\%.
+\item This currently looks like the more stable distillation horizon method:
+      smaller final gap than DQN, but a much stronger late-run gap.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\textwidth]{../Distillation/Results/distillation_compare_dueling_horizon_disturb_fluctuation_standard/20260416_192310/compare_rewards.png}
+\hfill
+\includegraphics[width=0.49\textwidth]{../Distillation/Results/distillation_compare_dueling_horizon_disturb_fluctuation_standard/20260416_192310/compare_outputs_last_episode.png}
+\caption{Distillation dueling horizon: average reward comparison, last-episode
+MPC comparison.}
+\end{figure}
+
+\subsection*{Weights}
+
+The latest stored disturbance weights run is the SAC result
+\texttt{distillation\_weights\_sac\_disturb\_fluctuation\_standard\_unified/20260416\_192555},
+compared against
+\texttt{distillation\_compare\_weights\_sac\_disturb\_fluctuation\_standard/20260416\_192602}.
+
+\begin{itemize}
+\item Final reward is 17.599 versus paired MPC 16.079, so the final gap is
+      \(+1.520\). The last-50 gap is larger at \(+2.272\), which means the
+      late part of training is stronger than the final episode alone suggests.
+\item The four logged penalty multipliers average
+      \([1.146,\ 1.162,\ 0.999,\ 1.033]\) and end at
+      \([0.837,\ 1.100,\ 0.761,\ 1.014]\).
+\item This is a useful positive result on the new reward profile even though the
+      latest qualifying run is SAC rather than TD3.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\textwidth]{../Distillation/Results/distillation_compare_weights_sac_disturb_fluctuation_standard/20260416_192602/compare_rewards.png}
+\hfill
+\includegraphics[width=0.49\textwidth]{../Distillation/Results/distillation_compare_weights_sac_disturb_fluctuation_standard/20260416_192602/compare_outputs_last_episode.png}
+\caption{Distillation weights: average reward comparison, last-episode MPC
+comparison.}
+\end{figure}
+
+\subsection*{Reidentification}
+
+The latest stored disturbance reidentification run is
+\texttt{distillation\_reidentification\_td3\_disturb\_fluctuation\_mismatch\_unified/20260416\_113030},
+compared against
+\texttt{distillation\_compare\_reidentification\_td3\_disturb\_fluctuation\_mismatch/20260416\_113035}.
+
+\begin{itemize}
+\item Final reward is \(-0.205\) versus paired MPC \(-0.265\), for final gap
+      \(+0.060\). The last-50 gap is \(+0.025\).
+\item The main issue is still the mid-run collapse. The worst gap is
+      \(-4.237\) at episode 51, after which the run recovers and finally reaches
+      its best reward at episode 200.
+\item The blend factors stay moderate overall:
+      \(\eta_A \approx 0.323\) mean and 0.385 last,
+      \(\eta_B \approx 0.355\) mean and 0.398 last. Mean coefficient clipping is
+      only 2.58\%, much lower than the polymer reidentification case.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\textwidth]{../Distillation/Results/distillation_compare_reidentification_td3_disturb_fluctuation_mismatch/20260416_113035/compare_rewards.png}
+\hfill
+\includegraphics[width=0.49\textwidth]{../Distillation/Results/distillation_compare_reidentification_td3_disturb_fluctuation_mismatch/20260416_113035/compare_outputs_last_episode.png}
+\caption{Distillation reidentification: average reward comparison, last-episode
+MPC comparison.}
+\end{figure}
+
+\section*{Polymer}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrcr}
+\toprule
+Method & Agent & RL Final & MPC Final & Final Gap & Better Eps \\
+\midrule
+DQN horizon & DDQN & -2.533 & -3.843 & +1.310 & 196/200 \\
+Dueling horizon & Dueling DDQN & -2.726 & -4.417 & +1.692 & 190/200 \\
+Weights & TD3 & -2.903 & -4.417 & +1.515 & 195/200 \\
+Reidentification & TD3 & -4.487 & -4.417 & -0.070 & 10/200 \\
+\bottomrule
+\end{tabular}
+\caption{Latest stored polymer disturbance runs with paired MPC comparison.}
+\end{table}
+
+\subsection*{DQN Horizon}
+
+This notebook changes the MPC prediction and control horizons online with a DQN
+policy. The latest stored disturbance run is
+\texttt{horizon\_disturb\_unified/20260407\_175020}, compared against
+\texttt{disturb\_compare\_horizon\_unified/20260407\_175031}.
+
+\begin{itemize}
+\item Final reward is \(-2.533\) versus paired MPC \(-3.843\), so the final gap
+      is \(+1.310\). The last-50 gap is \(+1.213\), and RL is better in
+      196 of 200 episodes.
+\item The nominal MPC pair \((9, 3)\) is still the most used recipe, but only
+      at 3.22\% of logged horizon selections. The policy is spread broadly over
+      many longer-horizon combinations.
+\item The best reward occurs late at episode 197. This remains a strong polymer
+      disturbance result, but it is now behind the latest dueling and weights
+      runs.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\textwidth]{../Polymer/Results/disturb_compare_horizon_unified/20260407_175031/compare_rewards.png}
+\hfill
+\includegraphics[width=0.49\textwidth]{../Polymer/Results/disturb_compare_horizon_unified/20260407_175031/compare_outputs_last_episode.png}
+\caption{Polymer DQN horizon: average reward comparison, last-episode MPC
+comparison.}
+\end{figure}
+
+\subsection*{Dueling Horizon}
+
+This notebook uses the dueling DDQN horizon supervisor. The latest stored
+disturbance run is
+\texttt{dueling\_horizon\_disturb\_unified/20260417\_035217}, compared against
+\texttt{disturb\_compare\_dueling\_horizon\_unified/20260417\_035231}.
+
+\begin{itemize}
+\item Final reward is \(-2.726\) versus paired MPC \(-4.417\), so the final gap
+      is \(+1.692\). The last-50 gap is \(+1.745\), and RL is better in
+      190 of 200 episodes.
+\item Unlike the distillation dueling case, polymer does not concentrate on the
+      nominal MPC pair \((9, 3)\). The nominal pair is only 5.79\% of logged
+      horizon selections and 0.83\% of decision points.
+\item The most-used horizon recipes are all non-nominal, led by \((19, 5)\),
+      \((9, 8)\), and \((17, 4)\). This is still the strongest polymer
+      disturbance result currently stored.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\textwidth]{../Polymer/Results/disturb_compare_dueling_horizon_unified/20260417_035231/compare_rewards.png}
+\hfill
+\includegraphics[width=0.49\textwidth]{../Polymer/Results/disturb_compare_dueling_horizon_unified/20260417_035231/compare_outputs_last_episode.png}
+\caption{Polymer dueling horizon: average reward comparison, last-episode MPC
+comparison.}
+\end{figure}
+
+\subsection*{Weights}
+
+This notebook lets TD3 scale the output and input penalty weights online. The
+latest stored disturbance run is
+\texttt{td3\_weights\_disturb/20260417\_031734}, compared against
+\texttt{disturb\_compare\_td3\_weights/20260417\_031746}.
+
+\begin{itemize}
+\item Final reward is \(-2.903\) versus paired MPC \(-4.417\), so the final gap
+      is \(+1.515\). The last-50 gap is \(+1.732\), and RL is better in
+      195 of 200 episodes.
+\item The four logged penalty multipliers average
+      \([1.403,\ 1.495,\ 1.263,\ 1.333]\) and end at
+      \([1.957,\ 1.703,\ 1.176,\ 1.246]\).
+\item This is a clear positive polymer result, but it still trails the latest
+      dueling-horizon run on final reward gap.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\textwidth]{../Polymer/Results/disturb_compare_td3_weights/20260417_031746/compare_rewards.png}
+\hfill
+\includegraphics[width=0.49\textwidth]{../Polymer/Results/disturb_compare_td3_weights/20260417_031746/compare_outputs_last_episode.png}
+\caption{Polymer weights: average reward comparison, last-episode MPC
+comparison.}
+\end{figure}
+
+\subsection*{Reidentification}
+
+This notebook identifies low-rank model corrections online and lets TD3 blend
+the nominal and identified models. The latest stored disturbance run is
+\texttt{td3\_reidentification\_disturb/20260415\_120803}, compared against
+\texttt{disturb\_compare\_td3\_reidentification/20260415\_120810}.
+
+\begin{itemize}
+\item Final reward is \(-4.487\) versus paired MPC \(-4.417\), so the final gap
+      is \(-0.070\). The last-50 gap is \(-0.087\), and RL is better in only
+      10 of 200 episodes.
+\item The mean blend factors are \(\eta_A \approx 0.421\) and
+      \(\eta_B \approx 0.411\), but by the end the policy shifts strongly toward
+      \(B\): \(\eta_A = 0.108\), \(\eta_B = 0.846\).
+\item Mean coefficient clipping fraction is 12.18\%, much higher than the
+      distillation reidentification run. Polymer is still not giving a useful
+      positive signal for this family.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\textwidth]{../Polymer/Results/disturb_compare_td3_reidentification/20260415_120810/compare_rewards.png}
+\hfill
+\includegraphics[width=0.49\textwidth]{../Polymer/Results/disturb_compare_td3_reidentification/20260415_120810/compare_outputs_last_episode.png}
+\caption{Polymer reidentification: average reward comparison, last-episode MPC
+comparison.}
+\end{figure}
+
+\section*{Van de Vusse Motivation And Current Stage}
+
+The current motivation for Van de Vusse is still the same: polymer is giving a
+good signal for horizon and weight adaptation, but it is still a weak benchmark
+for the model-update idea. Polymer reidentification remains slightly worse than
+MPC, and the removed matrix-style families were also not giving strong gains.
+That makes it hard to judge whether the adaptation idea itself is weak or
+whether the polymer benchmark is simply not sensitive enough.
+
+Van de Vusse is therefore being developed as a benchmark where operating-point
+changes should create a clearer need for model adaptation. The current stage is
+still pre-RL:
+\begin{itemize}
+\item nonlinear plant added under \texttt{systems/vandevusse/}
+\item direct-local-linearization system identification in place
+\item corrected benchmark feed-temperature handling
+\item offset-free MPC baseline notebook running in disturbance mode with the
+      canonical \texttt{ca0\_blocks} disturbance
+\item observer-update cleanup and observer-pole search utilities added
+\item no Van de Vusse RL result bundle yet, so it is not part of the tables
+\end{itemize}
+
+\end{document}

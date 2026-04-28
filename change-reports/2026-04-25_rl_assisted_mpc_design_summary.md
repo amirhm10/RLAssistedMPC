@@ -15,8 +15,8 @@ Updated the summary after review to remove the future-facing safety/diagnostic m
 - Replaced the safety/diagnostic section with algorithm-style descriptions for scalar matrix, structured matrix, residual, weight, horizon, and combined multi-agent methods.
 - Clarifies which agent families are used for each method: TD3/SAC for continuous supervisors and DQN/dueling DQN for discrete horizon selection.
 - States the project success in both case studies with the correct interpretation:
-  - polymer shows direct closed-loop RL-assisted MPC improvement over MPC;
-  - distillation shows successful diagnosis and partial control success, with residual behavior promising and matrix authority requiring additional protection.
+  - polymer RL-assisted MPC methods improved performance over fixed MPC;
+  - distillation RL-assisted MPC methods improved performance over fixed MPC across the available reward and physical-performance metrics.
 - Adds citations for MPC, DQN, DDPG, TD3, SAC, and dueling DQN.
 
 ## Validation

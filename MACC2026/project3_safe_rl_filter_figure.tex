@@ -1,0 +1,29 @@
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    font=\sffamily\bfseries\footnotesize,
+    box/.style={draw=black, line width=1pt, fill=white, minimum width=1.35cm, minimum height=0.58cm, align=center},
+    panel/.style={draw=black, line width=1pt, fill=white},
+    flow/.style={-{Latex[length=2.2mm]}, line width=1pt, shorten >=1.2pt, shorten <=1.2pt},
+    dashflow/.style={-{Latex[length=2.2mm]}, dashed, line width=1.1pt, shorten >=1.2pt, shorten <=1.2pt}
+]
+\draw[line width=1.2pt, fill=gray!7] (0,0) rectangle (8.4,5.2);
+\draw[line width=1.2pt, fill=white] (0.25,4.45) rectangle (8.15,4.95);
+\node[font=\sffamily\bfseries\color{red!75!black}] at (4.2,4.70) {Lyapunov-filtered safe RL};
+
+\draw[panel] (0.65,0.65) rectangle (7.85,4.20);
+\node[box, fill=green!14] (target) at (1.35,3.25) {Target};
+\node[box, fill=orange!18] (agent) at (3.05,3.25) {TD3};
+\node[box, fill=yellow!18, minimum width=1.55cm] (filter) at (4.85,3.25) {Safety\\filter};
+\node[box, fill=red!12, minimum width=1.70cm] (fallback) at (4.85,1.45) {Lyapunov\\MPC};
+\node[box, fill=blue!14, minimum height=0.78cm] (process) at (7.05,2.35) {Process};
+
+\draw[flow] (0.20,3.25) -- node[above]{$y_{SP}$} (target.west);
+\draw[flow] (target.east) -- (agent.west);
+\draw[dashflow, color=orange!85!black] (agent.east) -- (filter.west);
+\draw[flow] (filter.east) -- node[above]{accept} (process.north west);
+\draw[flow] (filter.south) -- node[right]{reject} (fallback.north);
+\draw[flow] (fallback.east) -- node[below]{safe} (process.south west);
+\draw[flow] (process.east) -- node[above]{y} (8.20,2.35);
+\draw[flow] (process.south) -- ++(0,-0.65) -- ++(-5.70,0) -- (target.south);
+\end{tikzpicture}%
+}

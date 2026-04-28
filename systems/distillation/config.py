@@ -72,8 +72,8 @@ RL_REWARD_DEFAULTS = {
 }
 
 DISTILLATION_BASELINE_RUN_PROFILES = {
-    ("nominal", "none"): {"n_tests": 2, "set_points_len": 100, "warm_start": 5, "test_cycle": [False, True], "plot_start_episode": 1},
-    ("disturb", "ramp"): {"n_tests": 200, "set_points_len": 100, "warm_start": 5, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2},
+    ("nominal", "none"): {"n_tests": 2, "set_points_len": 200, "warm_start": 5, "test_cycle": [False, True], "plot_start_episode": 1},
+    ("disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 5, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2},
     ("disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 5, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2},
 }
 

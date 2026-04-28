@@ -1,0 +1,4 @@
+variant,bc_enabled,release_guard_enabled,acceptance_fallback_enabled,release_clip_steps,fallback_steps,candidate_executed_max_diff,post_warm_start_action_freeze_subepisodes,post_warm_start_actor_freeze_subepisodes
+"BC-only, 0.1/10",True,False,False,0,0,0.0,0,0
+"Stronger uniform BC, 0.6/25",True,False,False,0,0,0.0,0,0
+"Weighted BC, Step 4E",True,False,False,0,0,0.0,0,0

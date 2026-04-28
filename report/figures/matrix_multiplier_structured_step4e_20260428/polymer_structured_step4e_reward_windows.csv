@@ -1,0 +1,16 @@
+variant,style,window,reward_delta_mean,win_rate
+"BC-only, 0.1/10",bc_only,11-20,-1.467778475795532,0.0
+"BC-only, 0.1/10",bc_only,21-40,-0.8323444652494523,0.2
+"BC-only, 0.1/10",bc_only,41-100,0.16867105939628274,0.7
+"BC-only, 0.1/10",bc_only,101-200,0.7568792834805842,1.0
+"BC-only, 0.1/10",bc_only,1-200,0.2724173519892988,0.75
+"Stronger uniform BC, 0.6/25",strong_uniform,11-20,-1.0842503947748359,0.0
+"Stronger uniform BC, 0.6/25",strong_uniform,21-40,-1.4796539595932507,0.05
+"Stronger uniform BC, 0.6/25",strong_uniform,41-100,0.22425567201375163,0.75
+"Stronger uniform BC, 0.6/25",strong_uniform,101-200,0.6842922006800535,1.0
+"Stronger uniform BC, 0.6/25",strong_uniform,1-200,0.2072446489909289,0.75
+"Weighted BC, Step 4E",weighted,11-20,-0.8435662593485098,0.1
+"Weighted BC, Step 4E",weighted,21-40,-0.415830731583093,0.15
+"Weighted BC, Step 4E",weighted,41-100,0.4644651005992258,0.9333333333333333
+"Weighted BC, Step 4E",weighted,101-200,0.8197685178749917,1.0
+"Weighted BC, Step 4E",weighted,1-200,0.46546216573637245,0.82

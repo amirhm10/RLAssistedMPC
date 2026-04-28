@@ -84,6 +84,16 @@ def _copy_mpc_acceptance_fallback_defaults(enabled=False):
     }
 
 
+def _copy_mpc_dual_cost_shadow_defaults(enabled=False):
+    return {
+        "enabled": bool(enabled),
+        "relative_tolerance": 1e-4,
+        "absolute_tolerance": 1e-8,
+        "benefit_tolerance": 0.0,
+        "fallback_on_candidate_solve_failure": True,
+    }
+
+
 def _copy_behavioral_cloning_defaults(
     enabled=False,
     *,
@@ -504,6 +514,7 @@ POLYMER_MATRIX_DEFAULTS = {
             enabled=True,
         ),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
+        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
@@ -620,6 +631,7 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
             enabled=True,
         ),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
+        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition, e.g. [[0, 1], [2, 3], [4, 5, 6]].
         "band_offsets": [0, 1, 2],  # Non-negative offsets used in band mode. Must include 0.

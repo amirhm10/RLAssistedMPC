@@ -19,7 +19,7 @@ from utils.behavioral_cloning import (
 )
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
-from utils.mpc_acceptance_gate import run_mpc_acceptance_gate
+from utils.mpc_acceptance_gate import run_mpc_acceptance_gate, run_mpc_dual_cost_shadow
 from utils.multiplier_release_schedule import (
     build_release_authority_schedule,
     clip_multipliers_to_release_bounds,
@@ -304,6 +304,8 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     acceptance_store_executed_action = bool(
         acceptance_cfg.get("store_executed_action_in_replay", release_store_executed_action)
     )
+    dual_cost_shadow_cfg = dict(structured_cfg.get("mpc_dual_cost_shadow", {}))
+    dual_cost_shadow_enabled = bool(dual_cost_shadow_cfg.get("enabled", False))
     bc_schedule = build_behavioral_cloning_schedule(
         config=structured_cfg.get("behavioral_cloning", {}),
         warm_start_step=warm_start_step,
@@ -359,6 +361,18 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     acceptance_nominal_cost_log = np.full(nFE, np.nan)
     acceptance_cost_margin_log = np.full(nFE, np.nan)
     acceptance_threshold_log = np.full(nFE, np.nan)
+    dual_cost_shadow_active_log = np.zeros(nFE, dtype=int)
+    dual_cost_shadow_reason_code_log = np.zeros(nFE, dtype=int)
+    dual_cost_shadow_candidate_cost_native_log = np.full(nFE, np.nan)
+    dual_cost_shadow_nominal_cost_log = np.full(nFE, np.nan)
+    dual_cost_shadow_candidate_cost_on_nominal_log = np.full(nFE, np.nan)
+    dual_cost_shadow_nominal_cost_on_candidate_log = np.full(nFE, np.nan)
+    dual_cost_shadow_nominal_penalty_log = np.full(nFE, np.nan)
+    dual_cost_shadow_safe_threshold_log = np.full(nFE, np.nan)
+    dual_cost_shadow_candidate_advantage_log = np.full(nFE, np.nan)
+    dual_cost_shadow_safe_pass_log = np.zeros(nFE, dtype=int)
+    dual_cost_shadow_benefit_pass_log = np.zeros(nFE, dtype=int)
+    dual_cost_shadow_dual_pass_log = np.zeros(nFE, dtype=int)
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     innovation_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
@@ -529,7 +543,11 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         effective_mapped = effective_mapped_for_update.copy()
         prediction_fallback_reason = 0
 
-        if (not acceptance_enabled) and not (np.all(np.isfinite(A_candidate)) and np.all(np.isfinite(B_candidate))):
+        if (
+            (not acceptance_enabled)
+            and (not dual_cost_shadow_enabled)
+            and not (np.all(np.isfinite(A_candidate)) and np.all(np.isfinite(B_candidate)))
+        ):
             if not prediction_fallback_on_solve_failure:
                 raise RuntimeError(f"Assisted structured matrix prediction model became non-finite at step {i}.")
             prediction_payload = nominal_update_payload
@@ -540,6 +558,24 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             structured_prediction_fallback_count += 1
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
+        shadow_trace = None
+        if dual_cost_shadow_enabled:
+            shadow_trace = run_mpc_dual_cost_shadow(
+                mpc_obj=mpc_obj,
+                solve_fn=_solve_assisted_prediction_step,
+                shadow_cfg=dual_cost_shadow_cfg,
+                A_candidate=A_candidate,
+                B_candidate=B_candidate,
+                A_nominal=A_base,
+                B_nominal=B_base,
+                y_sp=y_sp[i, :],
+                u_prev_dev=scaled_current_input_dev,
+                x0_model=xhatdhat[:, i],
+                initial_guess=ic_opt_step,
+                bounds=original_bounds,
+                step_idx=i,
+            )
+
         if acceptance_enabled:
             acceptance_trace = run_mpc_acceptance_gate(
                 mpc_obj=mpc_obj,
@@ -565,6 +601,29 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
                 prediction_payload = nominal_update_payload
                 effective_action = structured_baseline_raw.copy()
                 effective_mapped = np.ones(action_dim, dtype=float)
+        elif dual_cost_shadow_enabled:
+            acceptance_trace = {
+                "accepted": True,
+                "fallback_active": False,
+                "reason_code": 0,
+                "candidate_cost_on_nominal": np.nan,
+                "candidate_cost_native": np.nan,
+                "nominal_cost": np.nan,
+                "cost_margin": np.nan,
+                "threshold": np.nan,
+            }
+            sol = shadow_trace["sol"]
+            if bool(shadow_trace["executed_candidate"]):
+                prediction_payload = update_payload
+                effective_action = effective_action_for_update.copy()
+                effective_mapped = effective_mapped_for_update.copy()
+            else:
+                prediction_payload = nominal_update_payload
+                effective_action = structured_baseline_raw.copy()
+                effective_mapped = np.ones(action_dim, dtype=float)
+                prediction_fallback_active_log[i] = 1
+                prediction_fallback_reason = 3
+                structured_prediction_fallback_count += 1
         else:
             acceptance_trace = {
                 "accepted": True,
@@ -651,6 +710,19 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         acceptance_nominal_cost_log[i] = float(acceptance_trace["nominal_cost"])
         acceptance_cost_margin_log[i] = float(acceptance_trace["cost_margin"])
         acceptance_threshold_log[i] = float(acceptance_trace["threshold"])
+        if shadow_trace is not None:
+            dual_cost_shadow_active_log[i] = 1
+            dual_cost_shadow_reason_code_log[i] = int(shadow_trace["reason_code"])
+            dual_cost_shadow_candidate_cost_native_log[i] = float(shadow_trace["candidate_cost_native"])
+            dual_cost_shadow_nominal_cost_log[i] = float(shadow_trace["nominal_cost"])
+            dual_cost_shadow_candidate_cost_on_nominal_log[i] = float(shadow_trace["candidate_cost_on_nominal"])
+            dual_cost_shadow_nominal_cost_on_candidate_log[i] = float(shadow_trace["nominal_cost_on_candidate"])
+            dual_cost_shadow_nominal_penalty_log[i] = float(shadow_trace["nominal_penalty"])
+            dual_cost_shadow_safe_threshold_log[i] = float(shadow_trace["safe_threshold"])
+            dual_cost_shadow_candidate_advantage_log[i] = float(shadow_trace["candidate_advantage"])
+            dual_cost_shadow_safe_pass_log[i] = int(bool(shadow_trace["safe_pass"]))
+            dual_cost_shadow_benefit_pass_log[i] = int(bool(shadow_trace["benefit_pass"]))
+            dual_cost_shadow_dual_pass_log[i] = int(bool(shadow_trace["dual_pass"]))
 
         if use_shifted_mpc_warm_start:
             ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
@@ -898,6 +970,20 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "mpc_acceptance_nominal_cost_log": acceptance_nominal_cost_log,
         "mpc_acceptance_cost_margin_log": acceptance_cost_margin_log,
         "mpc_acceptance_threshold_log": acceptance_threshold_log,
+        "mpc_dual_cost_shadow": dual_cost_shadow_cfg,
+        "mpc_dual_cost_shadow_enabled": dual_cost_shadow_enabled,
+        "mpc_dual_cost_shadow_active_log": dual_cost_shadow_active_log,
+        "mpc_dual_cost_shadow_reason_code_log": dual_cost_shadow_reason_code_log,
+        "mpc_dual_cost_shadow_candidate_cost_native_log": dual_cost_shadow_candidate_cost_native_log,
+        "mpc_dual_cost_shadow_nominal_cost_log": dual_cost_shadow_nominal_cost_log,
+        "mpc_dual_cost_shadow_candidate_cost_on_nominal_log": dual_cost_shadow_candidate_cost_on_nominal_log,
+        "mpc_dual_cost_shadow_nominal_cost_on_candidate_log": dual_cost_shadow_nominal_cost_on_candidate_log,
+        "mpc_dual_cost_shadow_nominal_penalty_log": dual_cost_shadow_nominal_penalty_log,
+        "mpc_dual_cost_shadow_safe_threshold_log": dual_cost_shadow_safe_threshold_log,
+        "mpc_dual_cost_shadow_candidate_advantage_log": dual_cost_shadow_candidate_advantage_log,
+        "mpc_dual_cost_shadow_safe_pass_log": dual_cost_shadow_safe_pass_log,
+        "mpc_dual_cost_shadow_benefit_pass_log": dual_cost_shadow_benefit_pass_log,
+        "mpc_dual_cost_shadow_dual_pass_log": dual_cost_shadow_dual_pass_log,
         "theta_a_log": theta_a_log,
         "theta_b_log": theta_b_log,
         "effective_theta_a_log": effective_theta_a_log,

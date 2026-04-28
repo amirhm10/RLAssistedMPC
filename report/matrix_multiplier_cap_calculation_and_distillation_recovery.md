@@ -27,7 +27,7 @@ This report is now an ongoing working document. The current implementation seque
 | Step 2 structured polymer result | Polymer structured matrix TD3 disturbance | Updated from first Step 2 run and `[256, 256]` follow-up | Same result summary, with per-coordinate structured multipliers | Keep Step 2; Step 3 should test whether bad candidates can be rejected |
 | Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until Step 3 polymer results are reviewed |
 | Step 3B: tolerant acceptance or fallback layer | Polymer first, then distillation | Polymer result reviewed; not sufficient | Acceptance/fallback logs, cost-margin distributions, tolerance replay curve | Do not increase tolerance blindly; move to Step 3C shadow/benefit diagnostics |
-| Step 3C: dual-cost benefit diagnostics | Polymer first, then distillation | Proposed from latest results | Nominal safety penalty plus candidate-model advantage logs | Implement as shadow-only before using it for fallback |
+| Step 3C: dual-cost benefit diagnostics | Polymer first, then distillation | Implemented as polymer shadow-study mode; distillation remains off by default | Nominal safety penalty plus candidate-model advantage logs | Run polymer study reruns before turning it into an execution gate |
 | Step 4: behavioral-cloning handoff | Polymer scalar and structured matrix first, distillation later | Implemented and reviewed here; stronger polymer reruns now analyzed | BC reward-window comparison, handoff diagnostics, and isolation checks | Tune scalar and structured BC before any distillation enablement |
 | Step 4A: BC-only isolation readout | Polymer scalar and structured matrix | Implemented and reviewed here | BC-only reward windows, nominal-distance logs, multiplier tables | Use as the reference before reintroducing safety interventions |
 | Step 4B: slower BC decay | Polymer scalar and structured matrix | Implemented and reviewed from strengthened reruns | Longer active BC window | Keep for scalar; structured still needs a more targeted anchor |
@@ -1017,6 +1017,77 @@ Recommended next configuration for polymer:
 For distillation matrix, the latest pre-step run says Step 2-style release protection is necessary before any transfer. But the polymer Step 3B result says we should not transfer a simple nominal-cost fallback gate. Distillation should receive Step 2 release protection plus Step 3C shadow diagnostics first, not Step 3B hard fallback.
 
 For distillation residual, the next question is different. Residual is already authority-limited by `rho`, but its tail still loses. That suggests a residual-specific improvement: use the `rho`/projection logs to decide when the residual policy is being mostly clipped and should stop training on its raw requested correction. In other words, residual may need executed-action replay plus a penalty for persistent authority projection, not a matrix-style multiplier cap.
+
+#### 2026-04-28 Step 3C Implementation: Shadow Dual-Cost Diagnostics
+
+Step 3C is now implemented as a **shadow-only diagnostic layer** for the polymer scalar and structured matrix notebooks. It does **not** change the Step 4G shared defaults. Instead, the two polymer matrix notebooks now expose a local study mode with:
+
+- Step 2 release protection still **on**;
+- Step 4 BC temporarily **off**;
+- Step 3B hard fallback **off**;
+- Step 3C dual-cost shadow logging **on**.
+
+Distillation keeps the same config surface, but Step 3C remains **disabled by default** there.
+
+The implemented Step 3C diagnostic logs four MPC quantities at each live step:
+
+$$ J_{\mathrm{cand}}(U_t^{\mathrm{cand}}), \quad J_{\mathrm{nom}}(U_t^{\mathrm{nom}}), \quad J_{\mathrm{nom}}(U_t^{\mathrm{cand}}), \quad J_{\mathrm{cand}}(U_t^{\mathrm{nom}}). $$
+
+From them, the two Step 3C study metrics are:
+
+$$ \mathrm{nominal\_penalty}_t = J_{\mathrm{nom}}(U_t^{\mathrm{cand}}) - J_{\mathrm{nom}}(U_t^{\mathrm{nom}}). $$
+
+$$ \mathrm{candidate\_advantage}_t = J_{\mathrm{cand}}(U_t^{\mathrm{nom}}) - J_{\mathrm{cand}}(U_t^{\mathrm{cand}}). $$
+
+The implemented nominal-safety budget is:
+
+$$ \epsilon_{\mathrm{safe},t} = \tau_{\mathrm{rel}} \, J_{\mathrm{nom}}(U_t^{\mathrm{nom}}) + \tau_{\mathrm{abs}}, $$
+
+with the current shadow defaults:
+
+- `relative_tolerance = 1e-4`
+- `absolute_tolerance = 1e-8`
+- `benefit_tolerance = 0.0`
+
+So the logged shadow pass flags are:
+
+$$ \mathrm{safe\_pass}_t = [\mathrm{nominal\_penalty}_t \leq \epsilon_{\mathrm{safe},t}], $$
+
+$$ \mathrm{benefit\_pass}_t = [\mathrm{candidate\_advantage}_t \geq \epsilon_{\mathrm{benefit}}], $$
+
+$$ \mathrm{dual\_pass}_t = \mathrm{safe\_pass}_t \wedge \mathrm{benefit\_pass}_t. $$
+
+This first implementation is intentionally **shadow-only**:
+
+- the dual-pass decision does **not** yet change execution;
+- the Step 2-clipped candidate still executes as usual;
+- the only nominal fallback allowed in Step 3C study mode is **candidate solve failure**, which is treated as numerical robustness rather than as a cost-based decision.
+
+That choice matters because it isolates the Step 3 question cleanly. The new logs can now answer whether a clipped candidate is:
+
+1. nominal-safe,
+2. candidate-useful,
+3. both,
+4. or neither,
+
+without BC changing the policy during the readout.
+
+The current Step 3C implementation policy is therefore:
+
+| System | Shared default | Study notebook behavior |
+|---|---|---|
+| Polymer scalar matrix | Step 4G stays on in shared defaults | Local notebook override runs Step 3C study mode |
+| Polymer structured matrix | Step 4G stays on in shared defaults | Local notebook override runs Step 3C study mode |
+| Distillation scalar matrix | Step 3C config present, disabled | no local enablement |
+| Distillation structured matrix | Step 3C config present, disabled | no local enablement |
+
+The next Step 3C evidence to inspect after fresh polymer reruns is:
+
+- reward windows under the Step 2-only guarded execution path;
+- `nominal_penalty` distributions;
+- `candidate_advantage` distributions;
+- `safe_pass`, `benefit_pass`, and `dual_pass` rates;
+- candidate-solve-failure fallbacks, which should remain rare.
 
 #### 2026-04-27 Revisit: Step 2B Is Not Enough For Distillation
 

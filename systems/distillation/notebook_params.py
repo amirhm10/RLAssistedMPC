@@ -97,6 +97,16 @@ def _copy_mpc_acceptance_fallback_defaults(enabled=False):
     }
 
 
+def _copy_mpc_dual_cost_shadow_defaults(enabled=False):
+    return {
+        "enabled": bool(enabled),
+        "relative_tolerance": 1e-4,
+        "absolute_tolerance": 1e-8,
+        "benefit_tolerance": 0.0,
+        "fallback_on_candidate_solve_failure": True,
+    }
+
+
 def _copy_behavioral_cloning_defaults(enabled=False):
     return {
         "enabled": bool(enabled),
@@ -421,6 +431,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
         "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
+        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 0.0,
@@ -519,6 +530,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
         "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
+        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
         "prediction_fallback_on_solve_failure": True,  # Use the shared structured-runner fallback instead of stopping on an assisted MPC solve failure.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition.

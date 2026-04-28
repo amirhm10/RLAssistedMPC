@@ -1,0 +1,5 @@
+method,variant,bc_enabled,release_guard_enabled,acceptance_fallback_enabled,post_warm_start_action_freeze_subepisodes,post_warm_start_actor_freeze_subepisodes,protected_live_subepisodes,authority_ramp_subepisodes,release_clip_steps,fallback_steps,release_schedule_enabled
+Scalar matrix,"Stronger BC, Step 4B-4C",True,False,False,0,0,15,30,0,0,False
+Scalar matrix,Step 4G,True,True,False,2,2,8,12,12720,0,True
+Structured matrix,"Weighted BC, Step 4E",True,False,False,0,0,15,30,0,0,False
+Structured matrix,Step 4G,True,True,False,3,3,10,15,17482,0,True

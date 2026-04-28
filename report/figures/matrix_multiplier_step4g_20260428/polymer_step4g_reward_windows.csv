@@ -1,0 +1,21 @@
+method,variant,style,window,reward_delta_mean,win_rate
+Scalar matrix,"Stronger BC, Step 4B-4C",baseline,11-20,-0.5428704236678487,0.2
+Scalar matrix,"Stronger BC, Step 4B-4C",baseline,21-40,-0.19483325665736762,0.4
+Scalar matrix,"Stronger BC, Step 4B-4C",baseline,41-100,0.4278563888874816,1.0
+Scalar matrix,"Stronger BC, Step 4B-4C",baseline,101-200,0.7091619858704703,1.0
+Scalar matrix,"Stronger BC, Step 4B-4C",baseline,1-200,0.4363108254971941,0.87
+Scalar matrix,Step 4G,step4g,11-20,-0.1943722156585098,0.3
+Scalar matrix,Step 4G,step4g,21-40,-0.11761505291592862,0.35
+Scalar matrix,Step 4G,step4g,41-100,0.4582766203191876,1.0
+Scalar matrix,Step 4G,step4g,101-200,0.6801680919553991,1.0
+Scalar matrix,Step 4G,step4g,1-200,0.4560866787437811,0.87
+Structured matrix,"Weighted BC, Step 4E",baseline,11-20,-0.8435662593485098,0.1
+Structured matrix,"Weighted BC, Step 4E",baseline,21-40,-0.415830731583093,0.15
+Structured matrix,"Weighted BC, Step 4E",baseline,41-100,0.4644651005992258,0.9333333333333333
+Structured matrix,"Weighted BC, Step 4E",baseline,101-200,0.8197685178749917,1.0
+Structured matrix,"Weighted BC, Step 4E",baseline,1-200,0.46546216573637245,0.82
+Structured matrix,Step 4G,step4g,11-20,-0.138440790912055,0.4
+Structured matrix,Step 4G,step4g,21-40,-0.31430823361153565,0.3
+Structured matrix,Step 4G,step4g,41-100,0.30615353512040167,0.8333333333333334
+Structured matrix,Step 4G,step4g,101-200,0.7800554500617374,1.0
+Structured matrix,Step 4G,step4g,1-200,0.4435206854050765,0.82

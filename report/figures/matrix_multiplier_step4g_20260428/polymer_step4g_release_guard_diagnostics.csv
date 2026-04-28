@@ -1,0 +1,13 @@
+method,variant,style,window,guard_active_fraction,clip_fraction_mean,clip_steps,phase_disabled_fraction,phase_nominal_fraction,phase_protected_fraction,phase_ramp_fraction,phase_full_fraction
+Scalar matrix,"Stronger BC, Step 4B-4C",baseline,11-20,0.0,0.0,0,1.0,0.0,0.0,0.0,0.0
+Scalar matrix,"Stronger BC, Step 4B-4C",baseline,21-40,0.0,0.0,0,1.0,0.0,0.0,0.0,0.0
+Scalar matrix,"Stronger BC, Step 4B-4C",baseline,101-200,0.0,0.0,0,1.0,0.0,0.0,0.0,0.0
+Scalar matrix,Step 4G,step4g,11-20,1.0,0.33945833333333325,5847,0.0,0.200125,0.799875,0.0,0.0
+Scalar matrix,Step 4G,step4g,21-40,0.6000625,0.17810416666666665,6873,0.0,0.0,6.25e-05,0.6,0.3999375
+Scalar matrix,Step 4G,step4g,101-200,0.0,0.0,0,0.0,0.0,0.0,0.0,1.0
+Structured matrix,"Weighted BC, Step 4E",baseline,11-20,0.0,0.0,0,1.0,0.0,0.0,0.0,0.0
+Structured matrix,"Weighted BC, Step 4E",baseline,21-40,0.0,0.0,0,1.0,0.0,0.0,0.0,0.0
+Structured matrix,"Weighted BC, Step 4E",baseline,101-200,0.0,0.0,0,1.0,0.0,0.0,0.0,0.0
+Structured matrix,Step 4G,step4g,11-20,1.0,0.1814583333333333,5322,0.0,0.300125,0.699875,0.0,0.0
+Structured matrix,Step 4G,step4g,21-40,0.9000625,0.201125,12160,0.0,0.0,0.1500625,0.75,0.0999375
+Structured matrix,Step 4G,step4g,101-200,0.0,0.0,0,0.0,0.0,0.0,0.0,1.0

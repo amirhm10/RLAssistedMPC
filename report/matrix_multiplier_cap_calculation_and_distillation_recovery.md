@@ -1412,6 +1412,125 @@ So the new default interpretation is:
 - **polymer structured**: weighted Step 4E BC plus a slightly stricter light release guard;
 - **distillation**: keep Step 4G disabled until polymer reruns validate the combined handoff.
 
+#### 2026-04-28 Step 4G: Polymer Rerun Results
+
+This update uses the latest polymer Step 4G reruns:
+
+- Scalar matrix RL bundle: `Polymer/Results/td3_multipliers_disturb/20260428_162645/input_data.pkl`
+- Scalar matrix comparison bundle: `Polymer/Results/disturb_compare_td3_multipliers/20260428_162700/input_data.pkl`
+- Structured matrix RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260428_162948/input_data.pkl`
+- Structured matrix comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260428_163005/input_data.pkl`
+
+These are the first runs with the new combined defaults:
+
+- scalar matrix: stronger Step 4 BC plus Step 4G light release guard and `2 / 2` hidden freeze;
+- structured matrix: weighted Step 4E BC plus Step 4G light release guard and `3 / 3` hidden freeze;
+- no Step 3 fallback in either run.
+
+The saved bundles confirm that these were real Step 4G runs:
+
+| Method | Variant | BC enabled | Release guard enabled | Acceptance/fallback enabled | Hidden freeze | Guard schedule | Release clip steps | Fallback steps |
+|---|---|---|---|---|---|---|---:|---:|
+| Scalar matrix | Stronger BC, Step 4B-4C | `True` | `False` | `False` | `0 / 0` | n/a | 0 | 0 |
+| Scalar matrix | Step 4G | `True` | `True` | `False` | `2 / 2` | `8 protected / 12 ramp` | 12720 | 0 |
+| Structured matrix | Weighted BC, Step 4E | `True` | `False` | `False` | `0 / 0` | n/a | 0 | 0 |
+| Structured matrix | Step 4G | `True` | `True` | `False` | `3 / 3` | `10 protected / 15 ramp` | 17482 | 0 |
+
+So this is a clean readout of what the light execution guard adds on top of the validated BC baselines.
+
+<img src="./figures/matrix_multiplier_step4g_20260428/polymer_step4g_reward_delta_traces.png" alt="Polymer Step 4G reward-delta traces against the previous scalar and structured BC baselines" width="1200" style="max-width: 100%; height: auto;" />
+
+<img src="./figures/matrix_multiplier_step4g_20260428/polymer_step4g_reward_windows.png" alt="Polymer Step 4G reward-window comparison against the previous scalar and structured BC baselines" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Variant | 11-20 delta | 21-40 delta | 41-100 delta | 101-200 delta | 1-200 delta | 1-200 win rate |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Scalar matrix | Stronger BC, Step 4B-4C | -0.5429 | -0.1948 | +0.4279 | +0.7092 | +0.4363 | 87.0% |
+| Scalar matrix | Step 4G | -0.1944 | -0.1176 | +0.4583 | +0.6802 | +0.4561 | 87.0% |
+| Structured matrix | Weighted BC, Step 4E | -0.8436 | -0.4158 | +0.4645 | +0.8198 | +0.4655 | 82.0% |
+| Structured matrix | Step 4G | -0.1384 | -0.3143 | +0.3062 | +0.7801 | +0.4435 | 82.0% |
+
+The scalar result is unambiguous:
+
+- the first live trough shrinks again: `-0.5429 -> -0.1944`;
+- the next live window also improves: `-0.1948 -> -0.1176`;
+- the full-run reward improves: `+0.4363 -> +0.4561`;
+- the late tail stays positive and strong, although slightly below the BC-only tail.
+
+So for scalar matrix, the light guard is not just a safety layer. It improves the handoff materially without flattening the later benefit.
+
+The structured result is more nuanced:
+
+- the first live trough improves dramatically: `-0.8436 -> -0.1384`;
+- `21-40` also improves: `-0.4158 -> -0.3143`;
+- but the mid-run and tail gains are smaller: `41-100` and `101-200` both drop;
+- the full-run reward slips slightly: `+0.4655 -> +0.4435`.
+
+So Step 4G solves much more of the early structured release problem, but it pays for part of that protection by giving back some of the later structured reward.
+
+This is clearer in the handoff diagnostics.
+
+<img src="./figures/matrix_multiplier_step4g_20260428/polymer_step4g_handoff_diagnostics.png" alt="Polymer Step 4G BC and action diagnostics against the previous scalar and structured BC baselines" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Variant | Window | Mean BC weight | Mean policy-nominal distance | Mean multiplier distance | Mean action saturation |
+|---|---|---|---:|---:|---:|---:|
+| Scalar matrix | Stronger BC, Step 4B-4C | 11-20 | 0.1089 | 1.0196 | 0.4983 | 0.1302 |
+| Scalar matrix | Step 4G | 11-20 | 0.1089 | 0.7884 | 0.3263 | 0.1558 |
+| Scalar matrix | Stronger BC, Step 4B-4C | 21-40 | 0.0035 | 1.0629 | 0.4401 | 0.0716 |
+| Scalar matrix | Step 4G | 21-40 | 0.0035 | 1.2177 | 0.4497 | 0.1454 |
+| Structured matrix | Weighted BC, Step 4E | 11-20 | 0.2571 | 1.6623 | 0.6617 | 0.6966 |
+| Structured matrix | Step 4G | 11-20 | 0.2571 | 1.2148 | 0.4090 | 0.5209 |
+| Structured matrix | Weighted BC, Step 4E | 21-40 | 0.0164 | 1.9032 | 0.6635 | 0.5952 |
+| Structured matrix | Step 4G | 21-40 | 0.0164 | 1.7359 | 0.6352 | 0.6077 |
+
+The BC schedule itself is unchanged relative to the preceding scalar and structured baselines. So the improvements above are not coming from more BC. They come from **executing a guarded release path on top of the same BC policy**.
+
+For scalar, the guard acts exactly the way it should:
+
+- it keeps the early executed multipliers much closer to nominal;
+- the first live reward improves sharply;
+- the full-run reward still edges up.
+
+For structured, the guard also does what it was supposed to do, but the tradeoff is sharper:
+
+- the policy stays much closer to nominal in `11-20`;
+- multiplier distance and saturation both fall materially;
+- but later windows no longer recover as strongly as the pure Step 4E run.
+
+So the structured interpretation is not "Step 4G failed." It is that the current light guard is **more conservative than the weighted Step 4E baseline needs** if the goal is maximum full-run reward, but it is much better if the goal is reducing the first live release dip.
+
+The release-guard activity itself confirms this.
+
+<img src="./figures/matrix_multiplier_step4g_20260428/polymer_step4g_release_guard_diagnostics.png" alt="Polymer Step 4G guard activity and clipping against the previous scalar and structured BC baselines" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Variant | Window | Guard active fraction | Mean clip fraction | Protected phase fraction | Ramp phase fraction | Full phase fraction |
+|---|---|---|---:|---:|---:|---:|---:|
+| Scalar matrix | Step 4G | 11-20 | 1.0000 | 0.3395 | 0.7999 | 0.0000 | 0.0000 |
+| Scalar matrix | Step 4G | 21-40 | 0.6001 | 0.1781 | 0.0001 | 0.6000 | 0.3999 |
+| Structured matrix | Step 4G | 11-20 | 1.0000 | 0.1815 | 0.6999 | 0.0000 | 0.0000 |
+| Structured matrix | Step 4G | 21-40 | 0.9001 | 0.2011 | 0.1501 | 0.7500 | 0.0999 |
+
+This matches the intended schedules:
+
+- scalar spends episodes `11-20` under the nominal-plus-protected release path, then enters a shorter ramp during `21-40`;
+- structured stays guarded longer, with more of `21-40` still spent in protected or ramp phases.
+
+That longer structured guard explains the main Step 4G tradeoff. The stricter release path successfully protects the first live structured window, but it also delays how quickly the weighted structured policy can exploit its later authority.
+
+The current Step 4G conclusion is therefore:
+
+| Finding | Conclusion |
+|---|---|
+| Scalar Step 4G clearly beats the stronger scalar BC-only baseline in the first two live windows and in full-run reward. | Step 4G is now the scalar matrix default to keep. |
+| Structured Step 4G dramatically improves the early release windows relative to Step 4E. | The release guard is doing real protective work in structured mode. |
+| Structured Step 4G gives back some `41-200` reward relative to pure Step 4E. | The current structured Step 4G schedule is slightly too conservative if full-run reward is the only target. |
+| Neither Step 4G run uses fallback. | The readout remains clean: this is BC plus guarded execution, not hidden nominal replay. |
+
+So the practical next interpretation is:
+
+- **scalar matrix**: keep Step 4G as the current working default;
+- **structured matrix**: Step 4G is viable, but the guard schedule should probably be lightened slightly if the goal is to recover more of the Step 4E tail while keeping the new early-window protection;
+- **distillation**: still keep Step 4G off by default until polymer structured guard timing is settled more tightly.
+
 #### 2026-04-28 Step 4B-4D: Stronger BC Polymer Rerun
 
 This update uses the latest strengthened Step 4 polymer runs:

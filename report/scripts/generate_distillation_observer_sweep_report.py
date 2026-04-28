@@ -31,6 +31,11 @@ ANNOTATE_LABELS = {
     "p01_mid_current_test",
     "p29_very_conservative_mixed",
 }
+INDIVIDUAL_REVIEW_LABELS = [
+    "p00_old_aggressive_reference",
+    "p19_uniform_fast",
+    "p20_uniform_mid",
+]
 
 
 def reverse_min_max(scaled, data_min, data_max):
@@ -152,6 +157,41 @@ def plot_selected_outputs_inputs(selected: dict[str, dict], output_path: Path) -
     plt.close(fig)
 
 
+def plot_single_candidate_outputs(label: str, bundle: dict, output_path: Path) -> None:
+    time_in_sub = int(bundle["time_in_sub_episodes"])
+    start = time_in_sub
+    end = 2 * time_in_sub
+    y = np.asarray(bundle["y"], float)
+    data_min = np.asarray(bundle["data_min"], float)
+    data_max = np.asarray(bundle["data_max"], float)
+    steady_y = np.asarray(bundle["steady_states"]["y_ss"], float)
+    n_inputs = int(np.asarray(bundle["u"], float).shape[1])
+    y_ss_scaled = (steady_y - data_min[n_inputs:]) / (data_max[n_inputs:] - data_min[n_inputs:])
+    y_sp_abs_scaled = np.asarray(bundle["y_sp"], float) + y_ss_scaled
+    y_sp_phys = reverse_min_max(y_sp_abs_scaled, data_min[n_inputs:], data_max[n_inputs:])
+    t_y = np.arange(start, end + 1)
+    t_sp = np.arange(start, end)
+
+    fig, axes = plt.subplots(2, 1, figsize=(11, 6.5), constrained_layout=True)
+    axes[0].plot(t_y, y[start : end + 1, 0], color="tab:blue", linewidth=2.2, label="output")
+    axes[0].plot(t_sp, y_sp_phys[start:end, 0], color="0.35", linestyle="--", linewidth=1.6, label="setpoint")
+    axes[0].set_title(f"{label}: tray-24 ethane composition")
+    axes[0].set_ylabel("Composition (-)")
+    axes[0].grid(True, alpha=0.25)
+    axes[0].legend(frameon=False)
+
+    axes[1].plot(t_y, y[start : end + 1, 1], color="tab:red", linewidth=2.2, label="output")
+    axes[1].plot(t_sp, y_sp_phys[start:end, 1], color="0.35", linestyle="--", linewidth=1.6, label="setpoint")
+    axes[1].set_title(f"{label}: tray-85 temperature")
+    axes[1].set_ylabel("Temperature (K)")
+    axes[1].set_xlabel("Step")
+    axes[1].grid(True, alpha=0.25)
+    axes[1].legend(frameon=False)
+
+    fig.savefig(output_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     df = load_summary()
     df.sort_values("reward_last_episode_mean", ascending=False).to_csv(
@@ -170,6 +210,12 @@ def main() -> None:
     plot_reward_vs_poles(df, OUTPUT_DIR / "observer_sweep_reward_vs_poles.png")
     bundles = {label: load_bundle(label) for label in SELECTED_LABELS}
     plot_selected_outputs_inputs(bundles, OUTPUT_DIR / "observer_sweep_selected_outputs_inputs.png")
+    for label in INDIVIDUAL_REVIEW_LABELS:
+        plot_single_candidate_outputs(
+            label,
+            bundles[label],
+            OUTPUT_DIR / f"{label}_episode2_output_tracking.png",
+        )
 
 
 if __name__ == "__main__":

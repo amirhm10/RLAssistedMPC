@@ -121,7 +121,61 @@ This is the cleanest way to read the sweep:
 - `p20` already crosses into clearly worse behavior
 - `p01` and `p27` are not just mediocre; they are bad enough to drive the plant into frequent upper-bound action saturation
 
-So the assumption “make the observer steadier” failed in exactly the direction you were worried about: the controller becomes slower to correct, the outputs drift harder, and the manipulated inputs spend more time on the bounds.
+So the assumption "make the observer steadier" failed in exactly the direction you were worried about: the controller becomes slower to correct, the outputs drift harder, and the manipulated inputs spend more time on the bounds.
+
+## Individual Output Tracking Review
+
+The overlaid trajectory figure is useful for ranking, but the three most relevant candidates are easier to inspect one at a time:
+
+- the current old aggressive observer (`p00`)
+- the best slower alternative (`p19`)
+- the next-best slower alternative (`p20`)
+
+These are the three output-tracking views to review directly.
+
+| Candidate | Episode-2 reward | Tray-24 composition MAE | Tray-85 temperature MAE |
+| --- | ---: | ---: | ---: |
+| `p00_old_aggressive_reference` | `+18.1192` | `0.0028` | `0.0105` |
+| `p19_uniform_fast` | `+8.7685` | `0.0028` | `0.0197` |
+| `p20_uniform_mid` | `-20.1236` | `0.0088` | `0.0558` |
+
+This table matches what the plots show: `p00` is still the cleanest tracker, `p19` is the only slower alternative that stays reasonably close, and `p20` is already outside the good regime.
+
+### `p00_old_aggressive_reference`
+
+<img src="./figures/distillation_observer_pole_sweep_20260428/p00_old_aggressive_reference_episode2_output_tracking.png" alt="Old aggressive observer episode-2 output tracking" width="1000" style="max-width: 100%; height: auto;" />
+
+This is still the clean nominal reference:
+
+- both outputs stay close to the setpoint changes
+- the composition response is tight
+- the tray-85 temperature follows without visible drift
+
+### `p19_uniform_fast`
+
+<img src="./figures/distillation_observer_pole_sweep_20260428/p19_uniform_fast_episode2_output_tracking.png" alt="Uniform fast observer episode-2 output tracking" width="1000" style="max-width: 100%; height: auto;" />
+
+This is the only slower family member that still looks usable:
+
+- composition tracking is still close to the setpoint
+- temperature tracking is looser than `p00`, but still acceptable
+- the gap from `p00` is visible, but it stays in the same qualitative regime
+
+### `p20_uniform_mid`
+
+<img src="./figures/distillation_observer_pole_sweep_20260428/p20_uniform_mid_episode2_output_tracking.png" alt="Uniform mid observer episode-2 output tracking" width="1000" style="max-width: 100%; height: auto;" />
+
+This is the practical boundary case:
+
+- it is not a full collapse like `p01` or `p27`
+- but the outputs already drift enough that the reward turns negative
+- this is where the observer has become too slow to keep the nominal baseline in the good regime
+
+So if you want to visually review the observer-space transition, the clean sequence is:
+
+1. `p00`: strong baseline
+2. `p19`: slower, but still usable
+3. `p20`: already too slow
 
 ## Representative Episode-2 Trajectories
 

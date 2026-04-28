@@ -19,6 +19,13 @@ The experiment goal was narrow: test whether making the observer more steady hel
 
 This is a temporary nominal-only observer study. It does **not** say which observer is best for disturbance rejection yet.
 
+Update: this report now covers two temporary nominal sweeps from 2026-04-28:
+
+- the original broad conceptual sweep: `20260428_010057`
+- the focused `p19` follow-up sweep: `20260428_141210`
+
+The first sweep answered the question "does making the observer much steadier help?" The second sweep answered the narrower question "is there a better local neighborhood around `p19_uniform_fast`?"
+
 ## Headline Result
 
 The observer sweep does **not** support the assumption that a steadier observer helps this baseline.
@@ -244,6 +251,181 @@ That is the right next question now:
 - not "can a steadier observer help?"
 - but "how much can we relax the aggressive observer before the nominal baseline starts to deteriorate?"
 
+## Focused Follow-Up Sweep Around `p19`
+
+The latest sweep reran the same temporary nominal baseline, but replaced the broad candidate list with a short follow-up family centered on `p19_uniform_fast`.
+
+This follow-up run is stored under:
+
+- `Distillation/Results/observer_pole_sweep_temp/20260428_141210/observer_pole_sweep_summary.csv`
+- `Distillation/Data/observer_pole_sweep_temp/20260428_141210/*.pickle`
+
+The follow-up question was narrower than the first sweep:
+
+- is `p19` sitting in a good local neighborhood?
+- can we move slightly faster than `p19` and recover more of the old aggressive observer performance?
+- are the last two poles the sensitive part of that neighborhood?
+
+### Headline Result
+
+Yes. The focused sweep found several candidates that are **clearly better than `p19_uniform_fast`**, but still **do not beat `p00_old_aggressive_reference`**.
+
+The best follow-up candidate is:
+
+- `q01_uniform_fast_minus_04`
+- poles: `[0.16, 0.21, 0.26, 0.31, 0.36, 0.41, 0.46]`
+- last-episode mean reward: `+14.1764`
+
+The next two best are:
+
+- `q11_front_faster_b`
+  - poles: `[0.12, 0.18, 0.24, 0.30, 0.36, 0.45, 0.55]`
+  - last-episode mean reward: `+12.9200`
+- `q10_front_faster_a`
+  - poles: `[0.15, 0.20, 0.25, 0.30, 0.35, 0.45, 0.55]`
+  - last-episode mean reward: `+12.4427`
+
+The main interpretation is:
+
+- the `p19` neighborhood is real and useful;
+- moving **slightly faster** than `p19` helps;
+- but the best local follow-up (`q01`) still remains below `p00` by about `3.94` reward units in episode 2.
+
+So the original broad-sweep conclusion still holds: the good region is on the aggressive-to-fast side. The new follow-up just narrows that region much more precisely.
+
+### Follow-Up Ranking
+
+<img src="./figures/distillation_observer_followup_20260428/observer_followup_reward_ranking.png" alt="Focused distillation observer follow-up reward ranking" width="1200" style="max-width: 100%; height: auto;" />
+
+Top follow-up candidates by second-episode reward:
+
+| Rank | Label | Last-episode mean reward | Output-1 MAE | Output-2 MAE |
+|---|---|---:|---:|---:|
+| 1 | `q01_uniform_fast_minus_04` | `+14.1764` | `0.0024` | `0.0157` |
+| 2 | `q11_front_faster_b` | `+12.9200` | `0.0025` | `0.0171` |
+| 3 | `q10_front_faster_a` | `+12.4427` | `0.0025` | `0.0174` |
+| 4 | `q06_tail_faster` | `+12.0574` | `0.0026` | `0.0171` |
+| 5 | `q02_uniform_fast_minus_02` | `+11.8952` | `0.0026` | `0.0174` |
+
+Reference points:
+
+| Label | Last-episode mean reward |
+|---|---:|
+| `p00_old_aggressive_reference` | `+18.1192` |
+| `q03_uniform_fast_center` (`p19`) | `+8.7685` |
+| `q05_uniform_fast_plus_04` | `-0.2288` |
+| `q08_tail_slower` | `-134.3498` |
+| `q09_tail_slowest` | `-1058.4610` |
+
+This is the clean ranking picture:
+
+- `q01` is the best local refinement;
+- `q10`, `q11`, and `q06` are all good enough to confirm that the fast neighborhood is stable;
+- once the sweep moves slower than the `p19` center, performance degrades quickly;
+- once the last two poles are slowed enough, the baseline collapses again.
+
+### What The Follow-Up Sweep Learned
+
+<img src="./figures/distillation_observer_followup_20260428/observer_followup_family_reward_trends.png" alt="Focused distillation observer follow-up family reward trends" width="1200" style="max-width: 100%; height: auto;" />
+
+The family trends answer the design questions directly.
+
+#### 1. Uniform neighborhood around `p19`
+
+The uniform family is monotone in the expected direction:
+
+- `q01`: `+14.1764`
+- `q02`: `+11.8952`
+- `q03` (`p19`): `+8.7685`
+- `q04`: `+5.1326`
+- `q05`: `-0.2288`
+
+So, in this neighborhood:
+
+- moving a little **faster** than `p19` helps;
+- moving a little **slower** than `p19` hurts;
+- the sign change is already visible by `q05`.
+
+That means `p19` was not the local optimum. It was already sitting on the **slow side** of the useful local region.
+
+#### 2. Varying only the last two poles
+
+Keeping the first five poles fixed and changing only the last two gives a very sharp result:
+
+- `q06_tail_faster`: `+12.0574`
+- `q03_uniform_fast_center`: `+8.7685`
+- `q07_tail_mid`: `+7.6173`
+- `q08_tail_slower`: `-134.3498`
+- `q09_tail_slowest`: `-1058.4610`
+
+So the last two poles matter a lot:
+
+- modestly faster tail poles help;
+- slightly slower tails are already harmful;
+- much slower tails are catastrophic.
+
+This is the strongest structural result in the follow-up sweep. It says the observer's slowest modes are still a critical performance bottleneck, even when the front end is held fixed.
+
+#### 3. Faster front-end variants
+
+The faster front-end family also helps:
+
+- `q10_front_faster_a`: `+12.4427`
+- `q11_front_faster_b`: `+12.9200`
+
+So there is more than one way to improve on `p19`:
+
+- make the whole uniform set slightly faster (`q01`, `q02`);
+- or keep a moderate tail and make the front-end poles faster (`q10`, `q11`).
+
+The best result still comes from `q01`, which suggests that the cleanest next refinement should stay close to that uniform-fast neighborhood rather than moving immediately toward a more mixed pole structure.
+
+### Tracking Comparison
+
+<img src="./figures/distillation_observer_followup_20260428/observer_followup_selected_outputs_inputs.png" alt="Focused distillation observer follow-up selected output and input trajectories" width="1200" style="max-width: 100%; height: auto;" />
+
+The trajectory comparison shows the improvement path clearly:
+
+- `p00_old_aggressive_reference`
+  - still tracks best overall
+  - still has the cleanest temperature regulation
+- `q01_uniform_fast_minus_04`
+  - clearly better than `q03`
+  - composition remains tight
+  - temperature stays much closer to the setpoint than `q03`
+- `q11_front_faster_b`
+  - also clearly better than `q03`
+  - similar qualitative regime to `q01`, but slightly weaker
+- `q03_uniform_fast_center`
+  - still usable
+  - but visibly looser than `q01` and `q11`
+
+So the follow-up sweep does not overturn the original observer conclusion. It sharpens it:
+
+- `p00` is still the best nominal reference;
+- `p19` was a good direction, but not the best point in that direction;
+- the useful local neighborhood is a bit faster than `p19`, not slower.
+
+### Updated Recommendation
+
+The report recommendation should now change from "keep `p19` as the slower alternative" to:
+
+1. Keep `p00_old_aggressive_reference` as the nominal baseline reference.
+2. Replace `p19_uniform_fast` with **`q01_uniform_fast_minus_04`** as the best slower / smoother alternative found so far.
+3. Keep **`q11_front_faster_b`** and **`q10_front_faster_a`** as the next backup candidates.
+4. Stop exploring slower tails such as `q08` and `q09`.
+5. If another refinement sweep is run, center it around:
+   - `q01_uniform_fast_minus_04`
+   - `q11_front_faster_b`
+   - `q10_front_faster_a`
+   - a small number of candidates between `q01` and `p00`
+
+So the next question is now narrower than before:
+
+- not "is `p19` good?"
+- and not "does a steadier observer help?"
+- but "how close can we move toward `p00` while keeping the smoother behavior of the best fast-local candidates?"
+
 ## Artifacts
 
 Generated analysis artifacts:
@@ -254,3 +436,11 @@ Generated analysis artifacts:
 - `report/figures/distillation_observer_pole_sweep_20260428/observer_sweep_top10.csv`
 - `report/figures/distillation_observer_pole_sweep_20260428/observer_sweep_bottom10.csv`
 - `report/figures/distillation_observer_pole_sweep_20260428/observer_sweep_selected_candidates.csv`
+
+Follow-up sweep artifacts:
+
+- `report/figures/distillation_observer_followup_20260428/observer_followup_reward_ranking.png`
+- `report/figures/distillation_observer_followup_20260428/observer_followup_family_reward_trends.png`
+- `report/figures/distillation_observer_followup_20260428/observer_followup_selected_outputs_inputs.png`
+- `report/figures/distillation_observer_followup_20260428/observer_followup_ranked_summary.csv`
+- `report/figures/distillation_observer_followup_20260428/observer_followup_selected_candidates.csv`

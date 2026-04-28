@@ -84,14 +84,20 @@ def _copy_mpc_acceptance_fallback_defaults(enabled=False):
     }
 
 
-def _copy_behavioral_cloning_defaults(enabled=False):
+def _copy_behavioral_cloning_defaults(
+    enabled=False,
+    *,
+    lambda_bc_start=0.1,
+    lambda_bc_end=0.0,
+    active_subepisodes=10,
+):
     return {
         "enabled": bool(enabled),
         "target_mode": "nominal_only",
-        "lambda_bc_start": 0.1,
-        "lambda_bc_end": 0.0,
+        "lambda_bc_start": float(lambda_bc_start),
+        "lambda_bc_end": float(lambda_bc_end),
         "decay_mode": "exp",
-        "active_subepisodes": 10,
+        "active_subepisodes": int(active_subepisodes),
         "start_after_warm_start": True,
         "log_diagnostics": True,
     }
@@ -473,7 +479,12 @@ POLYMER_MATRIX_DEFAULTS = {
     "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
     "post_warm_start_action_freeze_subepisodes": 0,
     "post_warm_start_actor_freeze_subepisodes": 0,
-    "behavioral_cloning": _copy_behavioral_cloning_defaults(enabled=True),
+    # Step 4 polymer scalar matrix default: stronger and longer nominal-anchor BC.
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(
+        enabled=True,
+        lambda_bc_start=0.3,
+        active_subepisodes=20,
+    ),
     "controller": {
         "predict_h": 9,
         "cont_h": 3,
@@ -567,7 +578,13 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
     "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
     "post_warm_start_action_freeze_subepisodes": 0,
     "post_warm_start_actor_freeze_subepisodes": 0,
-    "behavioral_cloning": _copy_behavioral_cloning_defaults(enabled=True),
+    # Step 4 polymer structured default: stronger than scalar because the action
+    # space is larger and the first BC-only handoff stayed much farther from nominal.
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(
+        enabled=True,
+        lambda_bc_start=0.6,
+        active_subepisodes=25,
+    ),
     "controller": {
         "predict_h": 9,
         "cont_h": 3,

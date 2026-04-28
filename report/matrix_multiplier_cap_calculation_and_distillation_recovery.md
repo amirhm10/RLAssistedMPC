@@ -1,7 +1,7 @@
 # Matrix Multiplier Cap Calculation And Distillation Recovery
 
 Date: 2026-04-24
-Updated: 2026-04-27
+Updated: 2026-04-28
 
 This report rewrites the cap-selection logic for the matrix and structured-matrix supervisors. It also explains why the polymer cap now works while the distillation cap still does not give better-than-MPC behavior, even after tightening the `A` multiplier to `[0.99, 1.01]`, keeping `B` wide, and reducing TD3 exploration and target policy smoothing noise to `0.01`.
 
@@ -28,11 +28,11 @@ This report is now an ongoing working document. The current implementation seque
 | Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until Step 3 polymer results are reviewed |
 | Step 3B: tolerant acceptance or fallback layer | Polymer first, then distillation | Polymer result reviewed; not sufficient | Acceptance/fallback logs, cost-margin distributions, tolerance replay curve | Do not increase tolerance blindly; move to Step 3C shadow/benefit diagnostics |
 | Step 3C: dual-cost benefit diagnostics | Polymer first, then distillation | Proposed from latest results | Nominal safety penalty plus candidate-model advantage logs | Implement as shadow-only before using it for fallback |
-| Step 4: behavioral-cloning handoff | Polymer scalar and structured matrix first, distillation later | Implemented and reviewed here; stronger polymer defaults now set | BC reward-window comparison, handoff diagnostics, and isolation checks | Tune scalar and structured BC before any distillation enablement |
+| Step 4: behavioral-cloning handoff | Polymer scalar and structured matrix first, distillation later | Implemented and reviewed here; stronger polymer reruns now analyzed | BC reward-window comparison, handoff diagnostics, and isolation checks | Tune scalar and structured BC before any distillation enablement |
 | Step 4A: BC-only isolation readout | Polymer scalar and structured matrix | Implemented and reviewed here | BC-only reward windows, nominal-distance logs, multiplier tables | Use as the reference before reintroducing safety interventions |
-| Step 4B: slower BC decay | Polymer scalar and structured matrix | Implemented in current polymer defaults | Longer active BC window | Check whether the first live trough shrinks without losing the tail |
-| Step 4C: larger BC start weight | Polymer scalar and structured matrix | Implemented in current polymer defaults | Stronger early nominal anchor | Check whether raw action distance from nominal drops faster |
-| Step 4D: structured-specific stronger BC | Polymer structured matrix | Implemented in current polymer defaults | Structured-only stronger BC schedule | Reduce early structured saturation and off-nominal B usage |
+| Step 4B: slower BC decay | Polymer scalar and structured matrix | Implemented and reviewed from strengthened reruns | Longer active BC window | Keep for scalar; structured still needs a more targeted anchor |
+| Step 4C: larger BC start weight | Polymer scalar and structured matrix | Implemented and reviewed from strengthened reruns | Stronger early nominal anchor | Keep for scalar; do not assume global weight solves structured mode |
+| Step 4D: structured-specific stronger BC | Polymer structured matrix | Implemented and reviewed from strengthened reruns | Structured-only stronger BC schedule | Replace global strengthening with per-coordinate or A/B-split BC |
 | Step 4E: per-coordinate BC weighting | Polymer first, then distillation | Proposed | Coordinate-specific nominal BC, especially on `B` directions | Use if structured still needs more control than scalar |
 | Step 4F: executed-action BC | Distillation priority after polymer validation | Proposed | Clone the actually executed action when a safety layer intervenes | Add when Step 2 or fallback is reintroduced |
 | Step 4G: BC plus guarded execution | Polymer first, then distillation | Proposed after stronger Step 4 reruns | Reintroduce release caps or fallback only after the actor stays closer to nominal | Use after the BC-only handoff is strong enough on its own |
@@ -1345,6 +1345,103 @@ That means:
 - then reintroduce guarded execution such as release caps or fallback as a second-stage test.
 
 This ordering matters. If guarded execution is restored too early, it becomes hard to tell whether a better result came from a better actor or from a stronger external clamp.
+
+#### 2026-04-28 Step 4B-4D: Stronger BC Polymer Rerun
+
+This update uses the latest strengthened Step 4 polymer runs:
+
+- Scalar matrix RL bundle: `Polymer/Results/td3_multipliers_disturb/20260427_234906/input_data.pkl`
+- Scalar matrix comparison bundle: `Polymer/Results/disturb_compare_td3_multipliers/20260427_234922/input_data.pkl`
+- Structured matrix RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260427_234944/input_data.pkl`
+- Structured matrix comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260427_235002/input_data.pkl`
+
+These are the stronger-default reruns:
+
+- scalar matrix: `lambda_bc_start = 0.3`, `active_subepisodes = 20`;
+- structured matrix: `lambda_bc_start = 0.6`, `active_subepisodes = 25`.
+
+They are still **BC-only isolation runs**. The saved bundles confirm that release clipping and acceptance fallback remained inactive:
+
+| Method | Variant | BC enabled | Release guard enabled | Acceptance/fallback enabled | Release clip steps | Fallback steps | Candidate-executed max diff |
+|---|---|---|---|---|---:|---:|---:|
+| Scalar matrix | Stronger BC, 2026-04-27 | `True` | `False` | `False` | 0 | 0 | 0.0 |
+| Structured matrix | Stronger BC, 2026-04-27 | `True` | `False` | `False` | 0 | 0 | 0.0 |
+
+So this rerun is a clean test of whether a stronger nominal anchor alone improves the polymer handoff.
+
+<img src="./figures/matrix_multiplier_bc_strengthened_20260428/polymer_step4_strengthened_reward_delta_traces.png" alt="Polymer Step 4 reward-delta traces for the original and strengthened BC runs" width="1200" style="max-width: 100%; height: auto;" />
+
+<img src="./figures/matrix_multiplier_bc_strengthened_20260428/polymer_step4_strengthened_reward_windows.png" alt="Polymer Step 4 reward-window comparison for the original and strengthened BC runs" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Variant | 11-20 delta | 21-40 delta | 41-100 delta | 101-200 delta | 1-200 delta | 1-200 win rate |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Scalar matrix | BC-only, 2026-04-27 | -1.0497 | -0.1925 | +0.4076 | +0.7757 | +0.4384 | 84.5% |
+| Scalar matrix | Stronger BC, 2026-04-27 | -0.5429 | -0.1948 | +0.4279 | +0.7092 | +0.4363 | 87.0% |
+| Structured matrix | BC-only, 2026-04-27 | -1.4678 | -0.8323 | +0.1687 | +0.7569 | +0.2724 | 75.0% |
+| Structured matrix | Stronger BC, 2026-04-27 | -1.0843 | -1.4797 | +0.2243 | +0.6843 | +0.2072 | 75.0% |
+
+The scalar result is encouraging:
+
+- the first live trough shrinks materially: `-1.0497 -> -0.5429`;
+- the full-run result stays essentially unchanged: `+0.4384 -> +0.4363`;
+- the late tail remains strong: `+0.7092` over episodes `101-200`;
+- the overall win rate improves: `84.5% -> 87.0%`.
+
+But the structured result is mixed:
+
+- the first live trough also shrinks: `-1.4678 -> -1.0843`;
+- the next window gets much worse: `-0.8323 -> -1.4797`;
+- the full-run result drops: `+0.2724 -> +0.2072`;
+- the late tail is still positive, but weaker: `+0.6843` versus `+0.7569`.
+
+So the stronger Step 4 defaults help the scalar handoff, but they do **not** fix structured mode. For structured matrix, a larger global BC weight and a longer global BC window mainly move the cost later rather than solving the handoff cleanly.
+
+This is clearer in the diagnostics.
+
+<img src="./figures/matrix_multiplier_bc_strengthened_20260428/polymer_step4_strengthened_handoff_diagnostics.png" alt="Polymer Step 4 diagnostics for the original and strengthened BC runs" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Variant | Window | Mean BC weight | Mean policy-nominal distance | Mean actor-target distance | Mean multiplier distance | Mean action saturation |
+|---|---|---|---:|---:|---:|---:|---:|
+| Scalar matrix | BC-only, 2026-04-27 | 11-20 | 0.0193 | 1.0686 | 1.1312 | 0.5256 | 0.1391 |
+| Scalar matrix | Stronger BC, 2026-04-27 | 11-20 | 0.1089 | 1.0196 | 1.1039 | 0.4983 | 0.1302 |
+| Scalar matrix | BC-only, 2026-04-27 | 21-40 | 0.0000 | 1.1138 | 1.1002 | 0.4683 | 0.0745 |
+| Scalar matrix | Stronger BC, 2026-04-27 | 21-40 | 0.0035 | 1.0629 | 1.1738 | 0.4401 | 0.0716 |
+| Structured matrix | BC-only, 2026-04-27 | 11-20 | 0.0193 | 1.8262 | 1.8790 | 0.6820 | 0.7538 |
+| Structured matrix | Stronger BC, 2026-04-27 | 11-20 | 0.2571 | 1.7975 | 1.8706 | 0.6707 | 0.7277 |
+| Structured matrix | BC-only, 2026-04-27 | 21-40 | 0.0000 | 1.9707 | 1.9798 | 0.6565 | 0.6737 |
+| Structured matrix | Stronger BC, 2026-04-27 | 21-40 | 0.0164 | 1.9438 | 2.0468 | 0.6321 | 0.6211 |
+
+The scalar interpretation is straightforward: the stronger schedule is doing real work. In episodes `11-20`, the mean BC weight rises from `0.0193` to `0.1089`, and the policy stays slightly closer to nominal with lower multiplier distance and lower saturation. That is enough to shrink the first trough without flattening the positive scalar tail.
+
+The structured interpretation is different. The stronger schedule also increases the BC weight dramatically and does push the structured policy somewhat closer to nominal. But the gain is small relative to the size of the action space, and the structured actor still carries a large off-nominal policy through the extended handoff. The cost is pushed into episodes `21-40` instead of being removed.
+
+The multiplier means make the structured failure mode more concrete:
+
+| Method | Variant | Window | Key mean multipliers |
+|---|---|---|---|
+| Scalar matrix | BC-only, 2026-04-27 | 11-20 | `alpha = 0.8427`, `B_col_1 = 0.9638`, `B_col_2 = 0.9481` |
+| Scalar matrix | Stronger BC, 2026-04-27 | 11-20 | `alpha = 0.8912`, `B_col_1 = 0.9632`, `B_col_2 = 1.0059` |
+| Structured matrix | BC-only, 2026-04-27 | 11-20 | `A_block_1 = 0.9049`, `A_block_2 = 0.8347`, `A_block_3 = 0.8816`, `A_off = 0.8360`, `B_col_1 = 1.1839`, `B_col_2 = 0.8088` |
+| Structured matrix | Stronger BC, 2026-04-27 | 11-20 | `A_block_1 = 0.9287`, `A_block_2 = 0.8659`, `A_block_3 = 0.8183`, `A_off = 0.8670`, `B_col_1 = 0.9519`, `B_col_2 = 0.9958` |
+| Structured matrix | Stronger BC, 2026-04-27 | 21-40 | `A_block_1 = 0.9599`, `A_block_2 = 0.8866`, `A_block_3 = 0.8231`, `A_off = 0.8672`, `B_col_1 = 1.0033`, `B_col_2 = 1.0209` |
+
+This is the key structured-matrix result. The stronger schedule successfully pulls the `B` columns much closer to nominal during episodes `11-20`. But that alone does not make the structured handoff good, because the A-side blocks remain materially off-nominal and the later `21-40` reward window still collapses. In other words, the global stronger anchor reduces the most obvious `B` overshoot, but it is still too blunt a tool for the full structured action surface.
+
+The current Step 4 readout is therefore:
+
+| Finding | Conclusion |
+|---|---|
+| Scalar stronger BC halves the first live trough and keeps the full-run reward essentially unchanged. | The scalar matrix handoff is responding to a stronger nominal anchor in the intended direction. |
+| Scalar stronger BC still does not beat the older hidden-release first-live window (`-0.5429` versus `-0.4473`). | Scalar Step 4 is better, but not yet a full replacement for guarded release. |
+| Structured stronger BC improves `11-20`, but the loss shifts into `21-40` and the full run gets worse. | Structured mode needs a more targeted BC design, not just more of the same global penalty. |
+| The stronger structured run pulls both `B` columns close to `1.0` early, yet the handoff still degrades. | The remaining structured problem is no longer just `B` overshoot; it is the broader six-dimensional handoff geometry. |
+
+So the next Step 4 direction should branch by method:
+
+- keep the stronger scalar Step 4 schedule as the current scalar baseline;
+- do **not** transfer polymer scalar success directly to structured mode;
+- move structured mode to Step 4E-style per-coordinate or A/B-split BC weighting;
+- keep distillation Step 4 disabled until polymer structured mode is cleaner.
 
 ### Why This Helps Distillation
 

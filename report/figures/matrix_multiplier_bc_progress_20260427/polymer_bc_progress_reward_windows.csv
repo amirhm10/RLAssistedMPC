@@ -1,0 +1,31 @@
+family,variant,window,mean_reward_delta,win_rate
+Scalar matrix,Hidden release only (2026-04-24),11-20,-0.4473383725866339,0.3
+Scalar matrix,Hidden release only (2026-04-24),21-40,-0.4895437579787525,0.1
+Scalar matrix,Hidden release only (2026-04-24),41-100,0.4749003764520078,0.9
+Scalar matrix,Hidden release only (2026-04-24),101-200,0.7251018103069878,1.0
+Scalar matrix,Hidden release only (2026-04-24),1-200,0.433699486406733,0.815
+Structured matrix,Hidden release only (2026-04-24),11-20,-0.4360672098996831,0.2
+Structured matrix,Hidden release only (2026-04-24),21-40,-1.0236928749079799,0.0
+Structured matrix,Hidden release only (2026-04-24),41-100,0.18405279620208337,0.7166666666666667
+Structured matrix,Hidden release only (2026-04-24),101-200,0.8393580020835248,1.0
+Structured matrix,Hidden release only (2026-04-24),1-200,0.35072195466144895,0.745
+Scalar matrix,Step 3B stack (2026-04-25),11-20,-0.12258791701497662,0.2
+Scalar matrix,Step 3B stack (2026-04-25),21-40,-0.15377214676977213,0.1
+Scalar matrix,Step 3B stack (2026-04-25),41-100,-0.09907309522934912,0.08333333333333333
+Scalar matrix,Step 3B stack (2026-04-25),101-200,0.0088110997158401,0.62
+Scalar matrix,Step 3B stack (2026-04-25),1-200,-0.04682322649376711,0.375
+Structured matrix,Step 3B stack (2026-04-25),11-20,-0.09074233075484246,0.2
+Structured matrix,Step 3B stack (2026-04-25),21-40,-0.0165254906241211,0.4
+Structured matrix,Step 3B stack (2026-04-25),41-100,0.1406813569298775,0.9666666666666667
+Structured matrix,Step 3B stack (2026-04-25),101-200,-0.0002722230766069433,0.36
+Structured matrix,Step 3B stack (2026-04-25),1-200,0.035878392685349154,0.54
+Scalar matrix,BC-only (2026-04-27),11-20,-1.0496883229339704,0.0
+Scalar matrix,BC-only (2026-04-27),21-40,-0.19249626148604754,0.3
+Scalar matrix,BC-only (2026-04-27),41-100,0.4076228410448163,0.9833333333333333
+Scalar matrix,BC-only (2026-04-27),101-200,0.775670357135411,1.0
+Scalar matrix,BC-only (2026-04-27),1-200,0.4383877513306908,0.845
+Structured matrix,BC-only (2026-04-27),11-20,-1.467778475795532,0.0
+Structured matrix,BC-only (2026-04-27),21-40,-0.8323444652494523,0.2
+Structured matrix,BC-only (2026-04-27),41-100,0.16867105939628274,0.7
+Structured matrix,BC-only (2026-04-27),101-200,0.7568792834805842,1.0
+Structured matrix,BC-only (2026-04-27),1-200,0.2724173519892988,0.75

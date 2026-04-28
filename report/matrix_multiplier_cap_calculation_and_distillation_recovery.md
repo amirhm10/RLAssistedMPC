@@ -1,6 +1,7 @@
 # Matrix Multiplier Cap Calculation And Distillation Recovery
 
 Date: 2026-04-24
+Updated: 2026-04-27
 
 This report rewrites the cap-selection logic for the matrix and structured-matrix supervisors. It also explains why the polymer cap now works while the distillation cap still does not give better-than-MPC behavior, even after tightening the `A` multiplier to `[0.99, 1.01]`, keeping `B` wide, and reducing TD3 exploration and target policy smoothing noise to `0.01`.
 
@@ -17,7 +18,7 @@ The updated conclusion is consistent with the current notebook and runner code. 
 
 This report is now an ongoing working document. The current implementation sequence uses **steps**. Step 1 was the offline sensitivity diagnostic; Step 2 is the release-protected advisory-cap trial. Step 2 is still an execution guard only: it does not change TD3/SAC architecture, reward, exploration settings, or the wide training action space.
 
-| Step | Scope | Status on 2026-04-24 | Expected artifact | Next action |
+| Step | Scope | Status on 2026-04-27 | Expected artifact | Next action |
 |---|---|---|---|---|
 | Step 1: offline `rho` + gain sensitivity | Scalar matrix and structured matrix, unified for polymer and distillation | Implemented; scalar and structured polymer diagnostics completed | `sensitivity_by_coordinate.csv`, `candidate_scan_summary.csv`, `suggested_bounds.csv`, optional plots | Use the diagnostics as advisory release bounds |
 | Step 1 result update | Latest polymer scalar matrix run and latest structured matrix run | Updated here from 2026-04-24 result bundles | Result tables and report figures added | Protect the release window before trying static caps |
@@ -27,6 +28,7 @@ This report is now an ongoing working document. The current implementation seque
 | Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until Step 3 polymer results are reviewed |
 | Step 3B: tolerant acceptance or fallback layer | Polymer first, then distillation | Polymer result reviewed; not sufficient | Acceptance/fallback logs, cost-margin distributions, tolerance replay curve | Do not increase tolerance blindly; move to Step 3C shadow/benefit diagnostics |
 | Step 3C: dual-cost benefit diagnostics | Polymer first, then distillation | Proposed from latest results | Nominal safety penalty plus candidate-model advantage logs | Implement as shadow-only before using it for fallback |
+| Step 3D: BC-only handoff isolation | Polymer scalar and structured matrix | Implemented and reviewed here | BC reward-window comparison, handoff diagnostics, and isolation checks | Strengthen BC or combine it with an execution-aware release layer before any distillation enablement |
 | Step 4: release stabilization | Distillation priority | Reserved | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
 | Step 5: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
 
@@ -1168,6 +1170,96 @@ The next readout should compare three things on polymer:
 3. whether the tail keeps any positive matrix benefit once BC decays away.
 
 For distillation, the same BC surface should stay off by default until polymer shows whether actor anchoring helps without masking all useful matrix authority.
+
+#### 2026-04-27 Polymer BC-Only Result
+
+This update uses the latest polymer BC-only runs:
+
+- Scalar matrix RL bundle: `Polymer/Results/td3_multipliers_disturb/20260427_185932/input_data.pkl`
+- Scalar matrix comparison bundle: `Polymer/Results/disturb_compare_td3_multipliers/20260427_185946/input_data.pkl`
+- Structured matrix RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260427_190030/input_data.pkl`
+- Structured matrix comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260427_190047/input_data.pkl`
+
+First, this really is a BC-only handoff test. The saved configs and logs show that the earlier matrix-step protections were inactive:
+
+| Method | BC enabled | Release caps enabled | Acceptance/fallback enabled | Action freeze subepisodes | Actor freeze subepisodes | Release clipping steps | Fallback steps | Candidate-executed max diff |
+|---|---|---|---|---:|---:|---:|---:|---:|
+| Scalar matrix | `True` | `False` | `False` | 0 | 0 | 0 | 0 | 0.0 |
+| Structured matrix | `True` | `False` | `False` | 0 | 0 | 0 | 0 | 0.0 |
+
+So the plant saw exactly the BC-only executed multipliers. There was no hidden release clip, no Step 3 fallback, and no warm-start freeze after episode 10. That also means the first relevant handoff window moves earlier than in the older runs. For the BC-only run, the right first-live comparison window is **episodes 11-20**, not `16-30`.
+
+<img src="./figures/matrix_multiplier_bc_progress_20260427/polymer_bc_progress_reward_windows.png" alt="Polymer matrix progress from hidden release to Step 3B stack to BC-only" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Variant | 11-20 delta | 21-40 delta | 41-100 delta | 101-200 delta | 1-200 delta | 1-200 win rate |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Scalar matrix | Hidden release only, 2026-04-24 | -0.4473 | -0.4895 | +0.4749 | +0.7251 | +0.4337 | 81.5% |
+| Scalar matrix | Step 3B stack, 2026-04-25 | -0.1226 | -0.1538 | -0.0991 | +0.0088 | -0.0468 | 37.5% |
+| Scalar matrix | BC-only, 2026-04-27 | -1.0497 | -0.1925 | +0.4076 | +0.7757 | +0.4384 | 84.5% |
+| Structured matrix | Hidden release only, 2026-04-24 | -0.4361 | -1.0237 | +0.1841 | +0.8394 | +0.3507 | 74.5% |
+| Structured matrix | Step 3B stack, 2026-04-25 | -0.0907 | -0.0165 | +0.1407 | -0.0003 | +0.0359 | 54.0% |
+| Structured matrix | BC-only, 2026-04-27 | -1.4678 | -0.8323 | +0.1687 | +0.7569 | +0.2724 | 75.0% |
+
+The scalar BC-only run is mixed but useful:
+
+- it does **not** make the first live window safer;
+- it recovers quickly enough to match and slightly exceed the older scalar full-run result;
+- it clearly beats the Step 3B stack, which stayed too close to MPC to keep the positive matrix tail.
+
+The structured BC-only run is weaker:
+
+- it keeps a strong tail (`+0.7569` in episodes 101-200),
+- it is still much better than the Step 3B stack,
+- but it is worse than the older hidden-release baseline over the full run because the early BC window is too costly.
+
+So the latest polymer evidence says: **BC-only is not yet a release-safety replacement**. It can preserve late learning, especially for scalar matrix, but by itself it does not smooth the first live handoff enough.
+
+<img src="./figures/matrix_multiplier_bc_progress_20260427/polymer_bc_only_handoff_diagnostics.png" alt="Polymer BC-only handoff diagnostics over the first 60 episodes" width="1200" style="max-width: 100%; height: auto;" />
+
+The diagnostics explain why. The BC schedule decays quickly, and the policy still moves far from nominal during the active BC window:
+
+| Method | Window | Mean BC weight | Mean policy-nominal distance | Mean actor-target distance | Mean multiplier distance | Mean action saturation |
+|---|---|---:|---:|---:|---:|---:|
+| Scalar matrix | 11-20 | 0.0193 | 1.0686 | 1.1311 | 0.5256 | 0.1391 |
+| Scalar matrix | 21-40 | 0.0000 | 1.1138 | 1.1002 | 0.4683 | 0.0745 |
+| Scalar matrix | 101-200 | 0.0000 | 1.2096 | n/a | 0.3649 | 0.0378 |
+| Structured matrix | 11-20 | 0.0193 | 1.8262 | 1.8789 | 0.6820 | 0.7538 |
+| Structured matrix | 21-40 | 0.0000 | 1.9707 | 1.9798 | 0.6565 | 0.6737 |
+| Structured matrix | 101-200 | 0.0000 | 2.0442 | n/a | 0.6553 | 0.5008 |
+
+Two facts matter here:
+
+1. The effective BC weight over episodes 11-20 is already small. The schedule starts at `0.1`, but the episode-window mean is only `0.0193` because the decay runs to zero over the first 10 post-warm-start subepisodes.
+2. The same scalar BC weight is being used for both the 3-dimensional scalar action and the 6-dimensional structured action. The structured run stays much farther from nominal and remains heavily saturated even after BC decays.
+
+The structured action-space result is especially important for the next iteration. Even with a nominal anchor, the structured actor is still using a high-authority off-nominal policy during the handoff.
+
+<img src="./figures/matrix_multiplier_bc_progress_20260427/polymer_bc_only_window_multiplier_means.png" alt="Polymer BC-only mean multipliers during early handoff and tail" width="1200" style="max-width: 100%; height: auto;" />
+
+The mean multipliers confirm that BC is not holding the executed policy close to `theta = 1` during the early handoff:
+
+- scalar `11-20`: `alpha = 0.8427`, `B_col_1 = 0.9638`, `B_col_2 = 0.9481`;
+- scalar `101-200`: `alpha = 0.9503`, `B_col_1 = 1.0141`, `B_col_2 = 1.0580`;
+- structured `11-20`: `A_block_1 = 0.9049`, `A_block_2 = 0.8347`, `A_block_3 = 0.8816`, `A_off = 0.8360`, `B_col_1 = 1.1839`, `B_col_2 = 0.8088`;
+- structured `21-40`: `B_col_1` rises further to `1.2653`, while `B_col_2 = 0.9003`;
+- structured `101-200`: `B_col_1` returns near nominal, but the A-side multipliers still remain well below `1`.
+
+So the current polymer BC-only result should be read as follows:
+
+| Finding | Conclusion |
+|---|---|
+| Scalar BC-only full run is slightly better than the older hidden-release scalar baseline (`+0.4384` versus `+0.4337`). | BC can preserve or slightly improve late scalar learning quality. |
+| Scalar BC-only first live window is much worse than either hidden release or Step 3B. | BC-only is not a safer handoff yet. |
+| Structured BC-only tail is still strong, but full-run reward is lower than the older structured hidden-release baseline (`+0.2724` versus `+0.3507`). | The current structured BC anchor is too weak to replace the earlier handoff logic. |
+| Candidate and executed multipliers are identical at every step. | The early losses and late gains are genuine BC-only behavior, not masked by a clip or fallback layer. |
+
+The practical next step is therefore narrower than `enable BC everywhere`:
+
+- keep the shared BC surface,
+- do **not** enable distillation BC by default yet,
+- strengthen the polymer handoff before transfer: either slower BC decay, larger BC weight, dimension-scaled BC weight for structured mode, or execution-aware BC that clones the actually executed action when a safety layer intervenes.
+
+The polymer evidence now supports online BC as a useful direction, but not yet as a complete replacement for release protection.
 
 ### Why This Helps Distillation
 

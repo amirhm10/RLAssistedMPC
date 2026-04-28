@@ -1,0 +1,21 @@
+method,variant,style,window,reward_delta_mean,win_rate
+Scalar matrix,"BC-only, 2026-04-27",old,11-20,-1.0496883229339704,0.0
+Scalar matrix,"BC-only, 2026-04-27",old,21-40,-0.19249626148604754,0.3
+Scalar matrix,"BC-only, 2026-04-27",old,41-100,0.4076228410448163,0.9833333333333333
+Scalar matrix,"BC-only, 2026-04-27",old,101-200,0.775670357135411,1.0
+Scalar matrix,"BC-only, 2026-04-27",old,1-200,0.4383877513306908,0.845
+Scalar matrix,"Stronger BC, 2026-04-27",new,11-20,-0.5428704236678487,0.2
+Scalar matrix,"Stronger BC, 2026-04-27",new,21-40,-0.19483325665736762,0.4
+Scalar matrix,"Stronger BC, 2026-04-27",new,41-100,0.4278563888874816,1.0
+Scalar matrix,"Stronger BC, 2026-04-27",new,101-200,0.7091619858704703,1.0
+Scalar matrix,"Stronger BC, 2026-04-27",new,1-200,0.4363108254971941,0.87
+Structured matrix,"BC-only, 2026-04-27",old,11-20,-1.467778475795532,0.0
+Structured matrix,"BC-only, 2026-04-27",old,21-40,-0.8323444652494523,0.2
+Structured matrix,"BC-only, 2026-04-27",old,41-100,0.16867105939628274,0.7
+Structured matrix,"BC-only, 2026-04-27",old,101-200,0.7568792834805842,1.0
+Structured matrix,"BC-only, 2026-04-27",old,1-200,0.2724173519892988,0.75
+Structured matrix,"Stronger BC, 2026-04-27",new,11-20,-1.0842503947748359,0.0
+Structured matrix,"Stronger BC, 2026-04-27",new,21-40,-1.4796539595932507,0.05
+Structured matrix,"Stronger BC, 2026-04-27",new,41-100,0.22425567201375163,0.75
+Structured matrix,"Stronger BC, 2026-04-27",new,101-200,0.6842922006800535,1.0
+Structured matrix,"Stronger BC, 2026-04-27",new,1-200,0.2072446489909289,0.75

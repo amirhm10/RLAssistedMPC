@@ -39,18 +39,32 @@ def generate_feed_fluctuation(
     fast_std=0.0,
     seed=42,
 ):
-    rng = np.random.default_rng(int(seed))
     total_steps = int(total_steps)
-    seq = np.full(total_steps, float(nominal_feed), dtype=float)
+    nominal_feed = float(nominal_feed)
+    rng = np.random.RandomState(int(seed))
+    seq = np.empty(total_steps, dtype=float)
+    current = nominal_feed
     idx = 0
+
     while idx < total_steps:
-        horizon = int(rng.integers(int(slow_horizon_range[0]), int(slow_horizon_range[1]) + 1))
-        offset = float(np.clip(rng.normal(0.0, float(slow_std)), float(slow_offset_bounds[0]), float(slow_offset_bounds[1])))
-        end = min(total_steps, idx + horizon)
-        seq[idx:end] += offset
-        idx = end
-    if float(fast_std) > 0.0:
-        seq += rng.normal(0.0, float(fast_std), size=total_steps)
+        horizon = int(rng.randint(int(slow_horizon_range[0]), int(slow_horizon_range[1])))
+        horizon = min(horizon, total_steps - idx)
+
+        if slow_offset_bounds is not None:
+            lo_off, hi_off = map(float, slow_offset_bounds)
+            offset = float(rng.randn() * float(slow_std))
+            while offset < lo_off or offset > hi_off:
+                offset = float(rng.randn() * float(slow_std))
+            target = nominal_feed + offset
+        else:
+            drift = float(rng.randn() * float(slow_std))
+            target = current + drift
+
+        ramp = np.linspace(current, target, horizon, dtype=float)
+        noise = rng.randn(horizon) * float(fast_std)
+        seq[idx : idx + horizon] = ramp + noise
+        current = target
+        idx += horizon
     return seq
 
 
@@ -63,4 +77,3 @@ def build_distillation_disturbance_schedule(run_mode, disturbance_profile, total
     if profile == "ramp":
         return generate_feed_ramp(total_steps=total_steps, nominal_feed=nominal_feed)
     return generate_feed_fluctuation(total_steps=total_steps, nominal_feed=nominal_feed, seed=seed)
-

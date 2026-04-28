@@ -1,0 +1,167 @@
+\input{ResearchSummaryPreamble}
+%--------------------------------------------------------------------------------------MAIN DOCUMENT
+\begin{document}
+
+
+% REMEMBER TO PUT THIS LINE AT THE END OF YOUR RESEARCH SUMMARY.
+%    \end{document}
+
+\MySection{Amir Hossein Hamedi}	% Your name here
+
+% Please CHANGE all the following information, but leave all "\\" at the end of the lines
+\begin{tabbing}
+  \scshape{Industrial Collaboration}: \= Name of XYZ Company  \kill % EXCEPT, do not change this line please 
+  \scshape{Research Title}:           \tabs  \bfseries{Hybrid and Machine Learning Methods for Control and Fault Detection}  \\
+  \scshape{Advisor}:                  \tabs  Dr. Prashant Mhaskar                                         \\
+  \scshape{Date}:                     \tabs  May 2025 \\
+  \scshape{Industrial Collaboration}: \tabs  Relevant industrial interaction sought. % OR, name of company you are collaborating with.
+\end{tabbing}
+
+
+%------------------
+\ResearchGoals
+%------------------
+% Please REPLACE the following paragraph with a description of your research goals.  Use a short description of
+% between two or three sentences.
+
+Precise control of industrial processes is critical for maintaining high product quality, operational safety, and economic efficiency. Traditional control strategies often struggle with complex, nonlinear, and multi-variable systems, while advanced methods like Model Predictive Control (MPC) face limitations due to their dependency on accurate models and computational challenges. Additionally, faults such as flooding in distillation columns pose significant risks to safety, product quality, and asset integrity, yet conventional detection methods often fail to provide proactive warnings. To address these issues, this research aims to develop a robust and adaptive reinforcement learning (RL)-based control strategy pre-trained by MPC solutions and enhanced by a hybrid fault detection approach that combines first-principles modeling with data-driven methods, ultimately improving reliability, safety, and efficiency in industrial operations.
+
+%------------------
+\Background
+%------------------
+% Please REPLACE the following paragraphs to provide the reader with a brief background on your research area.  About
+% three to four paragraphs possibly with equations.
+
+
+Effective and reliable control is crucial for ensuring high product quality, operational safety, and economic efficiency in chemical engineering processes. Classical Proportional-Integral-Derivative (PID) controllers, despite their simplicity and widespread use, often fall short when managing complex, nonlinear, multivariable dynamics and sudden disturbances or faults in industrial systems (\cite{wahid2018comparative}). These limitations motivate the adoption of more advanced control methodologies capable of addressing such complexities.
+
+
+Model Predictive Control (MPC) has emerged as a robust alternative due to its predictive capability and explicit consideration of constraints, making it suitable for multivariable systems. However, MPC heavily depends on accurate process models, which can be derived either from first-principles or data-driven approaches. First-principle models require significant effort and continuous maintenance, while data-driven models depend on the availability of rich and informative datasets. Additionally, nonlinear MPC (NMPC) involves solving complex, non-convex optimization problems online, leading to computational challenges and potential convergence issues (\cite{khather2023review}). On the other hand, linear MPC, although computationally efficient and widely applied in industry, may exhibit performance degradation when handling severe disturbances, highly nonlinear conditions, or faults.
+
+Reinforcement Learning (RL) has recently been recognized as a promising control strategy for chemical processes due to its adaptive and model-free nature. Traditional RL methods, however, necessitate extensive random exploration, making them impractical and potentially unsafe for direct implementation in industrial settings. To overcome this issue, an innovative approach involving linear MPC-based pre-training has been proposed (\cite{hassanpour2024practically}). This method leverages the practical benefits of linear MPC to provide a safe and informed starting point for RL agents, thereby significantly restricting the exploration space required during the learning phase and ensuring safer operation.
+
+Fault detection, especially for critical events such as flooding in distillation columns, remains an essential yet challenging component of industrial process control. Flooding, a condition triggered by excessive liquid-vapor traffic, can rapidly compromise system safety, product quality, and economic performance (\cite{jalanko2021flooding}). Traditional fault detection techniques often identify faults only after their occurrence, limiting the scope for proactive intervention. To address this gap, our research proposes a hybrid approach combining first-principles hydraulic modeling with data-driven techniques. By integrating insights from internal hydraulic dynamics, which are typically difficult to measure directly, this hybrid framework significantly enhances fault prediction capabilities, enabling early detection and proactive control actions. Consequently, the combined use of advanced RL control strategies and proactive fault detection promises substantial improvements in the reliability, safety, and efficiency of industrial chemical processes.
+
+%------------------
+\ResearchPlan
+%------------------
+% Please REPLACE the following paragraphs to provide the reader with your research plan.  
+% An enumerated list with a few items should suffice.
+
+% % Enumerated list 
+The research will likely proceed as follows:
+
+\begin{itemize}
+    \item \textbf{Safe RL Controller Pre-Trained via Linear MPC}
+        \begin{enumerate}
+            \item \textit{MPC design}\\
+                  Design step–response test on the target plant, fit a linear state-space model, and formulate a linear MPC whose performance serves as the imitation target.  
+            \item \textit{Pre-training Phase}\\
+                  start a twin-delayed deep deterministic policy gradient (TD3) agent; train it offline until it reproduces the MPC closed-loop trajectories.
+            \item \textit{Safe On-Line Reinforcement Phase}\\
+                  Deploy the agent on the real (or high-fidelity simulated) plant; enable \emph{restricted} exploration to ensure safety while the agent learns plant non-linearities.  
+            \item \textit{Performance Assessment}\\
+                  compare against the baseline MPC under unmeasured disturbances and set-point tracking.
+        \end{enumerate}
+    \item \textbf{RL-Assisted MPC}
+        \begin{enumerate}
+            \item \textit{Nominal MPC}\\
+                  Use the same step-test MPC and make its main tuning settings adjustable.  
+            \item \textit{Actor–Critic Adaptation Layer}\\
+                  Embed a TD3 agent whose actions update selected MPC settings each control step. 
+            \item \textit{Search Limits}\\
+                  Keep the TD3 search inside a small range (about $\pm20\%$) around the normal values.  
+            \item \textit{Comparative Study}\\
+                  Evaluate nominal MPC, adaptive MPC (re-identified model), and RL-tuned MPC under nominal conditions and disturbances.  
+        \end{enumerate}
+    \item \textbf{A Hybrid Framework for Early Flooding Detection in Distillation Columns}
+        \begin{enumerate}
+            \item \textit{Simplified Liquid-Only Hydraulic Model}\\
+                  Derive ODEs for tray holdup and downcomer liquid height assuming all-liquid hydraulics; introduce vapor-phase correction factors.  
+            \item \textit{Data Augmentation}\\
+                  Augment the plant measurements with hydraulic results.  
+            \item \textit{Early-Warning Classifier}\\
+                  Train a data-driven model with augmented states and develop a framework for FDD.  
+            \item \textit{Validation}\\
+                  Compare the results of hybrid and pure data-driven model with the actual results.  
+        \end{enumerate}
+\end{itemize}
+
+%------------------
+\CurrentStatus
+%------------------
+% Brief description of the current status of your research 
+
+
+\begin{itemize}
+    \item \textbf{Case studies}
+    \begin{itemize}
+        \item Polymerization reactor; governing ODEs from (\cite{bustos2016application}).
+        \item Ethylene splitter (C2) distillation column simulated with Aspen Dynamics.
+    \end{itemize}
+
+    \item \textbf{Project progress}
+    \begin{itemize}
+        \item \textit{Safe RL controller}. Pre-training done; TD3 agents now copy the MPC in both cases. With nominal settings and a tuned reward, on-line runs improved control, and under disturbances the RL removed offset much faster than the MPC.
+        \item \textit{RL-assisted MPC}. So far tuned the state-space matrices ($A$, $B$, $C$) for the distillation column at nominal conditions; performance beats the nominal MPC.
+        \item \textit{Hydraulic flooding detection}. Built the column hydraulics, added downcomer filling data, and merged them with plant measurements. PCA flagged about twice as many flooding samples as the data-only approach.
+    \end{itemize}
+\end{itemize}
+
+
+%------------------ Please use only ONE OF THE FOLLOWING two headings:  (remove the "%" sign from the line you don't want)
+% ALTERNATIVELY put a "%" in front of both headings if this section is not appropriate to your research.
+% \IndustrialCollaboration
+% \IndustrialCollaborationSought
+
+\IndustrialCollaborationSought
+
+We are looking forward to industrial partners for collaboration in the area of hybrid and machine learning based modeling and control designs.
+
+
+%--------------------------------------
+% List of References that are not cited
+
+\nocite{Bonvin1997} \nocite{bonvin2001} \nocite{datta94}
+\nocite{ingruber85} \nocite{kayihan97} \nocite{kilian00}
+\nocite{qin2000a} \nocite{Rawlings1989} \nocite{Ruppen1997}
+\nocite{Rydholm1965} \nocite{smook92} \nocite{visser00}
+
+
+%------------------
+% The List of References will automatically be inserted here.  (Remember to complete the *.BIB file template)
+% You DO NOT need to edit this section
+%------------------
+\bibliography{hamedia.bib}
+\bibliographystyle{apalnew}
+
+% ------- Poster slides ------
+% You DO NOT need to edit this section
+% Please do the following to get PNG poster files from Powerpoint:
+
+% 1. Open your Powerpoint presentation and choose File / Save As
+% 2. When choosing "Save as type", please select PNG Portable Network Graphics Format (*.png)"
+% 3. Click Save
+% 4. Answer "Yes" to the question: "Do you want to export every slide in the presentation? To export only
+%    the current slide, click No"
+% 5. It will tell you that it was successful and also the name of the folder where the PNG files were saved.
+% 6. Copy those PNG files into your folder on the backup computer.  The files will be called "Slide1.PNG",
+%    "Slide2.PNG" etc.
+
+
+\newpage
+\begin{figure}[htb]
+  \centering
+  \PosterSlides
+  \\
+  \vspace{1cm}
+  \subfigure[Slide 1]{\includegraphics[width=0.48\textwidth,keepaspectratio]{hamedia/Slide1.PNG}}
+  \subfigure[Slide 2]{\includegraphics[width=0.48\textwidth,keepaspectratio]{hamedia/Slide2.PNG}}
+  \\
+  \subfigure[Slide 3]{\includegraphics[width=0.48\textwidth,keepaspectratio]{hamedia/Slide3.PNG}}
+  \subfigure[Slide 4]{\includegraphics[width=0.48\textwidth,keepaspectratio]{hamedia/Slide4.PNG}}
+  \\
+  \subfigure[Slide 5]{\includegraphics[width=0.48\textwidth,keepaspectratio]{hamedia/Slide5.PNG}}
+  \subfigure[Slide 6]{\includegraphics[width=0.48\textwidth,keepaspectratio]{hamedia/Slide6.PNG}}
+\end{figure}
+\end{document}

@@ -1,13 +1,13 @@
 # Polymer Wide-Range Matrix and Structured Report With Distillation Counterpart
 
-Date: 2026-04-21
+Date: 2026-04-22
 
 This report focuses on the latest widened-range polymer matrix and structured-matrix runs, then extends the same admissibility and design logic to the distillation column as a cross-system counterpart.
 
 The goal is to answer five questions with data from the saved runs and the shared polymer model:
 
 1. Why did the widened matrix/structured methods improve, and why did reidentification still fail?
-2. What reward is actually used in polymer, and how should it be changed if both outputs should matter more evenly?
+2. What reward is actually used in polymer and distillation, and how should it be changed if both outputs should matter more evenly?
 3. Is there a mathematical way to set the multiplier range, instead of widening blindly?
 4. Why do the wide runs first degrade and then recover, and how can residual-style ideas help?
 5. Is polymer reidentification still worth pursuing, or is it currently dominated by direct multiplier methods?
@@ -61,20 +61,22 @@ After the earlier report, new polymer matrix and structured runs were generated 
 
 | Run | Saved bundle | Tail phys MAE | Final test phys MAE | Out1 MAE | Out2 MAE | Final-10 reward | Final test input move |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Matrix latest capped rerun | `Polymer/Results/td3_multipliers_disturb/20260421_174016/input_data.pkl` | 0.1491 | 0.1487 | 0.0530 | 0.2443 | -3.5948 | 0.0302 |
-| Structured latest rerun | `Polymer/Results/td3_structured_matrices_disturb/20260421_174057/input_data.pkl` | 0.3146 | 0.2454 | 0.0825 | 0.4082 | -4.6748 | 0.0679 |
+| Matrix first capped rerun | `Polymer/Results/td3_multipliers_disturb/20260421_174016/input_data.pkl` | 0.1491 | 0.1487 | 0.0530 | 0.2443 | -3.5948 | 0.0302 |
+| Matrix latest capped rerun | `Polymer/Results/td3_multipliers_disturb/20260421_201555/input_data.pkl` | 0.1569 | 0.1519 | 0.0536 | 0.2502 | -3.5982 | 0.0303 |
+| Structured first capped rerun | `Polymer/Results/td3_structured_matrices_disturb/20260421_174057/input_data.pkl` | 0.3146 | 0.2454 | 0.0825 | 0.4082 | -4.6748 | 0.0679 |
+| Structured latest capped rerun | `Polymer/Results/td3_structured_matrices_disturb/20260421_201436/input_data.pkl` | 0.1640 | 0.1551 | 0.0488 | 0.2614 | -3.6136 | 0.0377 |
 <img src="./polymer_wide_range_matrix_structured/figures/wide_range_latest_cap_reruns.png" alt="Latest matrix and structured reruns after the cap update" width="1200" style="max-width: 100%; height: auto;" />
 
-The latest matrix rerun is a real improvement. Final test MAE moves from `0.1534` in the previous wide run to `0.1487`, and output-2 MAE drops from `0.2574` to `0.2443` while final test input movement also falls from `0.0338` to `0.0302`.
-The latest structured rerun is worse, not better. Final test MAE rises from `0.1925` to `0.2454`, output 2 degrades further to `0.4082`, and tail MAE jumps to `0.3146`.
+The current matrix capped rerun remains strong, but it is now a tradeoff rather than a strict improvement. Relative to the first capped rerun, final test MAE moves from `0.1487` to `0.1519`, while reward improves slightly from `-3.5844` to `-3.5773`. The policy is still using the capped `A` side correctly and keeping `B` wide.
+The structured family changed much more. The first capped-structured attempt was still effectively uncapped on the `A` side and performed poorly, but the latest rerun with the actual `A` cap applied improves final test MAE from `0.2454` to `0.1551`, cuts output-2 MAE from `0.4082` to `0.2614`, and improves reward from `-4.2549` to `-3.5554`.
 
-The reason is important: the latest matrix rerun actually used the capped `A` bound, but the latest structured rerun did not. The saved matrix bundle shows `high_coef = [1.0566, 1.25, 1.25]`, so the scalar `A` multiplier was capped as intended. The saved structured bundle, however, still shows `structured_high_bounds = [1.25, 1.25, 1.25, 1.25, 1.25, 1.25]`. So the structured notebook wiring did not pass the intended `A/B` overrides into the structured spec when that run was created.
+The reason is now clear in the saved bundles. Both matrix reruns use `high_coef = [1.0566, 1.25, 1.25]`, so the scalar `A` multiplier was capped as intended in both cases. The first structured capped attempt still saved `structured_high_a = [1.25, 1.25, 1.25, 1.25]`, so the `A` cap was effectively missing there. The latest structured rerun saves `structured_high_a = [1.0566, 1.0566, 1.0566, 1.0566]` with `structured_high_b = [1.25, 1.25]`, which means the intended tight-`A`, wide-`B` design is finally the one being trained and evaluated.
 
-That means the latest structured failure is not evidence that the matrix-derived `A` cap failed for structured. It is evidence that the structured training run was still effectively uncapped on the `A` side. The saved spectral diagnostics confirm that: previous structured wide had mean/p95 spectral radius `1.1054` / `1.1357`, while the latest structured rerun still reaches `0.9459` / `1.1598` with `3` fallback events logged over the full rollout.
+The structural effect is visible in the spectral diagnostics. The failed first capped-structured attempt had mean/p95 spectral radius `0.9459` / `1.1598` and `3` fallback events. The latest capped-structured rerun brings that down to `0.9000` / `0.9999` with zero fallback events. So the main structured problem was not that the cap idea was wrong; it was that the cap had not actually been applied in the earlier rerun.
 
 ## Does Structured Need A Different Cap Than Matrix?
 
-Probably yes in the long run, but the current failed rerun does not prove that yet because it was not actually capped. There are two separate questions:
+Probably yes in the long run, but the new reruns sharpen the conclusion. There are two separate questions:
 
 1. If the intended structured `A` cap is truly enforced, is it mathematically reasonable?
 2. Even if it is mathematically reasonable, should structured still use a stricter cap than matrix because it perturbs several coupled `A` groups at once?
@@ -99,15 +101,15 @@ That frontier shows that the intended structured `A` cap of `1.0566` is actually
 
 But structured is still more delicate than matrix because its action changes several `A`-side groups and the off-diagonal coupling together. A single scalar `alpha` cap from the plain matrix family does not fully capture that geometry. The frontier suggests a practical structured hierarchy:
 
-- `A_high ~= 1.0566` is a reasonable first structured cap and should be tested with the notebook wiring fixed.
+- `A_high ~= 1.0566` is a reasonable first structured cap and now has one encouraging rerun behind it.
 - If you want more margin, `A_high ~= 1.04-1.05` is cleaner: unstable fraction stays zero and the near-unit fraction drops sharply.
-- Only after a properly capped structured rerun should we conclude that structured needs an even tighter cap or a separate off-diagonal cap.
+- The latest structured success means the next structured question is not "does the cap work at all?" but "should the structured `A` cap be slightly tighter than the matrix cap for better consistency?"
 
 ## Why Matrix Wide Worked And Reidentification Did Not
 
 The latest matrix result is successful because the controller is allowed to choose from a small, direct, always-realized model family. There is no identification gate between the action and the prediction model used by MPC. The action changes three smooth multipliers and the model correction is immediately available to the optimizer on every step.
 
-In the final test episode, matrix wide mainly uses a damped `A` correction and a stronger first-input `B` correction: `alpha` mean is `0.9536`, while `delta1` mean is `1.1400` and its p95 reaches `1.2000`. That is a coherent low-dimensional correction, not a noisy online identification problem.
+In the current latest capped matrix test episode, the policy still mainly uses a damped `A` correction and a stronger first-input `B` correction: `alpha` mean is `0.9319`, while `delta1` mean is `1.1264` and its p95 reaches `1.2496`. That is a coherent low-dimensional correction, not a noisy online identification problem.
 
 Reidentification is fundamentally different. The policy may request strong blend authority, but the online identification engine almost never produces an admissible new model. In the latest polymer reidentification run, candidate-valid fraction is only `0.0011` and update-success fraction is only `0.0002`. Median condition number is `185509.1` and p95 is `2199603.2`. So reidentification is bottlenecked by data informativity and numerical conditioning, not by the policy alone.
 
@@ -159,6 +161,34 @@ The saved runs already show this reward tradeoff in the final test episode:
 <img src="./polymer_wide_range_matrix_structured/figures/wide_range_reward_tradeoff.png" alt="Reward versus evaluation tradeoff for the wide matrix and structured runs" width="1200" style="max-width: 100%; height: auto;" />
 
 Structured wide improves output 1 sharply: final test scaled MAE drops from `0.2751` to `0.2227`. But output 2 worsens from `0.3292` to `0.4169`. Under the actual polymer reward, the output-1 quadratic and linear penalties both fall materially, while the output-2 penalties rise by less. The reward therefore improves even though the held-out mean physical error gets worse.
+
+## Distillation Reward Geometry
+
+The distillation reward uses the same relative-band structure as polymer, but the current parameter balance is much more asymmetric toward output 1. The same formulas apply,
+
+$$
+\text{edge slope}_i = 2 Q_i\,\text{band}_i,
+\qquad
+\text{bonus prefactor}_i = \beta Q_i\,\text{band}_i^2,
+$$
+
+so the relevant balance question is again how `Q_diag` interacts with the scaled reward band, not just the raw `Q_diag` entries themselves.
+
+| Setpoint | Output | Physical setpoint | Band (phys) | Band (scaled) | Edge slope | Bonus prefactor |
+| --- | --- | --- | --- | --- | --- | --- |
+| SP1 | out1 | 0.0130 | 0.0039 | 0.00731 | 540.8755 | 13.8367 |
+| SP1 | out2 | -23.0000 | 0.4600 | 0.02582 | 77.4739 | 7.0026 |
+| SP2 | out1 | 0.0280 | 0.0084 | 0.01574 | 1164.9627 | 64.1890 |
+| SP2 | out2 | -21.0000 | 0.4200 | 0.02358 | 70.7370 | 5.8377 |
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_cross_system_reward_balance.png" alt="Cross-system reward balance sweep" width="1200" style="max-width: 100%; height: auto;" />
+
+For polymer, the current `Q1 = 518.0` is close to the bonus-equalized value `510.3` but well above the edge-equalized value `212.4`. That is why polymer still favors output 1 outside the reward band even though the inside-band bonus is relatively balanced.
+For distillation, the asymmetry is much larger. The current `Q1 = 37000` is far above both the edge-equalized target `3773` and the bonus-equalized target `11045` with `Q2` fixed at `1500`. So the current distillation reward strongly prioritizes output 1 both near and outside the reward band.
+
+That suggests different reward moves for the two systems:
+
+- Polymer: if the evaluation objective should become more even, reduce `Q1` from `518` toward roughly `212` or separate the inside-band bonus weights from the outside-band penalty weights.
+- Distillation: the current `Q1` is so dominant that a meaningful even-output ablation should test `Q1` in the rough range `3773-11045` instead of `37000`.
 
 ## Mathematical Limits For The Multiplier Range
 
@@ -287,6 +317,33 @@ The current saved disturbance matrix run does not beat baseline (`0.1569` vs `0.
 
 That is exactly why the cross-system figure matters. Polymer needs guards because the model family is fragile. Distillation does not need those guards for the same mathematical reason, but it still needs better policy learning and reward alignment before wider ranges will automatically help.
 
+## How To Prevent Catastrophic Distillation Episodes While Keeping Wide Search
+
+The current distillation failure mode is not a pure stability failure. It is a performance failure: the RL policy can move the prediction model into a region where the solve still succeeds, but the closed-loop reward and tracking collapse. That means a structured solve fallback alone is not enough for the plain matrix family.
+
+A practical wide-search design is to keep the raw policy search space wide, but gate the effective `A` deviation by mismatch magnitude and by a nominal-cost acceptance test. One useful formulation is
+
+$$
+\theta_t^{eff} = 1 + \lambda_t\big(\theta_t^{rl} - 1\big),
+\qquad
+\lambda_t = \min\big(g_{\tau}(\tau_t),\; g_J(J_t^{cand}, J_t^{nom})\big),
+$$
+
+where `theta` is the multiplier vector, `tau_t` is a raw mismatch magnitude such as `max |tracking_error_raw|`, `g_tau` is a deadband-plus-exponential gate, and `g_J` is a backtracking acceptance filter that shrinks the proposal whenever the candidate one-step predicted cost is much worse than nominal.
+
+For distillation, the safest version is asymmetric:
+
+1. keep the raw search space wide for both `A` and `B`,
+2. keep the effective `A` tube narrow near setpoint,
+3. allow `B` to stay wider because it changes authority more than pole location,
+4. add the same nominal fallback/backtracking logic to plain matrix that structured already uses on solve failure.
+
+<img src="./polymer_wide_range_matrix_structured/figures/wide_range_distillation_safe_search.png" alt="Distillation safe wide-search explainer" width="1200" style="max-width: 100%; height: auto;" />
+
+The figure makes the idea concrete. Near setpoint, the effective `A` range can stay close to the current `[0.99, 1.01]` tube even though the raw action still searches over `[0.75, 1.25]`. As the mismatch grows, the gate opens and the same raw policy can use more of the wide space. The second panel shows the other half of the safeguard: if the candidate MPC objective is much worse than nominal, backtrack the blend factor before applying the model.
+
+This is the cleanest way to keep wide search without repeating the catastrophic early distillation episodes. It uses the same residual-style authority idea already present elsewhere in the repo, but applies it to model deviation instead of residual control. The design direction is consistent with adaptive/robust MPC approaches that keep uncertainty updates inside recursively feasible sets and with output-feedback MPC schemes that refresh estimator dynamics only under protected model changes [AdaptiveMPC2020] [RAMPC2023] [OutputFeedbackRMPC2019].
+
 ## Will Shifted MPC Warm Start Help Across Methods?
 
 Here `shifted MPC warm start` means initializing the solver with the previous optimal move sequence shifted one step forward, not the notebook's episode-schedule warm-start segment. The optimizer-level idea is
@@ -346,7 +403,7 @@ So the practical conclusion is: yes, warm start is worth testing beyond matrices
 
 ## Would Periodic Observer Updating Help?
 
-Every mismatch-capable method already updates the observer state every step. The real question is whether the observer model or observer gain should be redesigned occasionally when the effective prediction model drifts. With a fixed observer gain `L`, the estimation error behaves qualitatively like
+Every mismatch-capable method already updates the observer state every step. The real question is whether the observer model or observer gain should be redesigned occasionally when the effective prediction model drifts. The short answer is: redesigning observer poles every episode is probably too aggressive, especially for distillation. A thresholded or slower refresh is more plausible than an unconditional episode-by-episode redesign. With a fixed observer gain `L`, the estimation error behaves qualitatively like
 
 $$
 e_{k+1} \approx (\hat A - L C)e_k + (\Delta A\,x_k + \Delta B\,u_k),
@@ -356,8 +413,8 @@ so a fixed nominal observer becomes less appropriate when the controller keeps t
 
 | Case | Mean A drift | Mean B drift | Mean spectral radius |
 | --- | --- | --- | --- |
-| Polymer matrix wide | 0.0872 | 0.1257 | 0.9025 |
-| Polymer structured wide | 0.1573 | 0.1462 | 1.1054 |
+| Polymer matrix latest capped | 0.0952 | 0.1563 | 0.8819 |
+| Polymer structured latest capped | 0.1788 | 0.1489 | 0.9000 |
 | Distillation matrix SAC | 0.0161 | 0.0189 | n/a |
 | Distillation structured SAC | 0.0120 | 0.0157 | 0.7721 |
 <img src="./polymer_wide_range_matrix_structured/figures/wide_range_observer_refresh_support.png" alt="Observer-refresh support diagnostics" width="1200" style="max-width: 100%; height: auto;" />
@@ -367,11 +424,11 @@ so a fixed nominal observer becomes less appropriate when the controller keeps t
 | Polymer reidentification | 0.0011 | 0.0002 | 0.1999 | 185536.0 | 2199679.8 |
 | Distillation reidentification | 0.2177 | 0.0109 | 0.0475 | 20706.9 | 33159.2 |
 
-The observer-refresh question splits cleanly by system. In the polymer wide runs, mean model drift is substantial: around `0.0872` to `0.1573` on the `A` side and `0.1257` to `0.1462` on the `B` side. In the current distillation matrix/structured runs, the same drift is only about `0.0161` to `0.0120`. That means periodic observer redesign is far more plausible as a polymer-wide-multiplier stabilization tool than as a fix for the current distillation matrix/structured runs.
+The observer-refresh question splits cleanly by system. In the polymer wide runs, mean model drift is substantial: around `0.0952` to `0.1788` on the `A` side and `0.1563` to `0.1489` on the `B` side. In the current distillation matrix/structured runs, the same drift is only about `0.0161` to `0.0120`. That means periodic observer redesign is far more plausible as a polymer-wide-multiplier stabilization tool than as a fix for the current distillation matrix/structured runs.
 
 But periodic observer refresh only helps if the refreshed model is trustworthy. That is exactly why it is not a good first fix for current polymer reidentification: candidate-valid fraction is only `0.0011` and update-success fraction is only `0.0002`. There is almost no accepted model stream to refresh from. Distillation reidentification is materially healthier on that axis: candidate-valid fraction `0.2177`, update-success fraction `0.0109`, and condition numbers an order of magnitude lower.
 
-So the practical recommendation is narrow, not blanket: periodic observer redesign is worth exploring if it is based on a smoothed accepted effective model and protected by the same admissibility checks as the controller. The best first candidates are polymer matrix/structured with slow refresh from interval-mean effective models, and distillation reidentification where candidate quality is already much better than polymer. Polymer reidentification should not use observer refresh as a primary rescue mechanism until its identification layer becomes trustworthy.
+So the practical recommendation is narrow, not blanket: periodic observer redesign is worth exploring only if it is based on a smoothed accepted effective model and protected by the same admissibility checks as the controller. The best first candidates are polymer matrix/structured with slow refresh from interval-mean effective models, and distillation reidentification where candidate quality is already much better than polymer. For current distillation matrix/structured, per-episode pole redesign is unlikely to be the main fix because the model drift is too small; gating and acceptance filters are more relevant there. Polymer reidentification should not use observer refresh as a primary rescue mechanism until its identification layer becomes trustworthy.
 
 ## Is The Current Exploration Noise Making The Wide-Range Problem Worse?
 
@@ -495,15 +552,16 @@ That said, the literature does not support calling reidentification useless in g
 ## Conclusions
 
 - The latest matrix wide run is genuinely more successful than the previous matrix runs. Its final test MAE `0.1534` beats the previous narrow refresh `0.1730`, the legacy matrix run `0.1717`, and baseline MPC `0.1701`.
-- The newest capped matrix rerun is better again: final test MAE improves further to `0.1487`. The policy uses the capped `A` side correctly and shifts more of the correction burden onto the `B` side.
-- The newest structured rerun is worse, but that run still used uniform structured bounds up to `1.25` on all grouped multipliers. So it does not show that the structured `A` cap failed; it shows that the structured notebook did not yet apply the intended cap during that run.
-- Structured wide is therefore still not a clean success. The current uncapped/over-wide structured reruns over-optimize output 1, degrade output 2, and keep the prediction model much more aggressive than the matrix family.
+- The latest capped matrix rerun stays in that successful regime. Relative to the first capped rerun, it trades a small MAE regression (`0.1487` to `0.1519`) for slightly better reward, while still using the capped `A` side and wide `B` side as intended.
+- The latest structured rerun is the real correction in this update. Once the `A` cap was actually applied, final test MAE improved from `0.2454` to `0.1551`, spectral p95 dropped below `1`, and fallback events disappeared.
+- Structured is therefore no longer a simple failure story. The right conclusion is narrower: structured can work with tight `A` / wide `B`, but it is more cap-sensitive than plain matrix and still likely needs a slightly tighter `A` limit or stronger acceptance logic for consistency.
 - The actual polymer reward is bonus-balanced more than edge-balanced. If both outputs should matter more evenly in evaluation, the most direct reward fix is to reduce `Q1` toward about `212` or to separate inside-band bonus weights from outside-band penalty weights.
+- Distillation reward balance is currently much more asymmetric than polymer. With `Q2 = 1500`, an even-output ablation should test `Q1` in the rough range `3773-11045`, not the current `37000`.
 - For the matrix family, observability and controllability do not bound positive `alpha`; the meaningful analytical upper bound is `alpha < 1.0566` if all candidate `A` matrices must stay open-loop stable. There is no comparable analytical lower bound, so the lower side should be chosen by a trust-region or time-scale rule. For `B`, the useful bounds are about gain-trust and actuator headroom, not spectral stability.
 - For structured updates, the matrix-derived cap `1.0566` is still a sensible first `A`-side bound. Monte Carlo sampling with `B_high = 1.25` gives zero unstable fraction at that cap. If more margin is wanted, the report's asymmetric frontier suggests `A_high` around `1.04-1.05` before tightening `B`.
-- Distillation is mathematically much less fragile than polymer: `alpha_max_stable` is `1.1929` instead of `1.0566`, and the structured unstable fraction at `1.20` is only `0.013` instead of `0.556`. But the currently saved disturbance RL runs still do not beat the distillation baseline, so wider admissibility alone is not enough.
+- Distillation is mathematically much less fragile than polymer: `alpha_max_stable` is `1.1929` instead of `1.0566`, and the structured unstable fraction at `1.20` is only `0.013` instead of `0.556`. But the currently saved disturbance RL runs still do not beat the distillation baseline, so wider admissibility alone is not enough. A safer next design is wide raw search with mismatch-gated effective `A` authority plus nominal-cost backtracking/fallback.
 - Shifted MPC warm start is worth testing beyond the matrix family, but primarily as a solver-quality improvement. The highest-payoff candidates in the current codebase are residual, matrix, structured, weights, and reidentification. Horizon is a weaker target because the subproblem dimension changes too often.
-- Periodic observer redesign should not be treated as a blanket fix. It is most defensible when sustained model drift is present and the refreshed model is trustworthy. That makes polymer matrix/structured and distillation reidentification more plausible targets than current polymer reidentification.
+- Periodic observer redesign should not be treated as a blanket fix, and every-episode pole redesign is probably too aggressive. It is most defensible when sustained model drift is present and the refreshed model is trustworthy. That makes polymer matrix/structured and distillation reidentification more plausible targets than current distillation matrix/structured or polymer reidentification.
 - The degradation-then-recovery pattern is expected after abrupt widening. The most practical fix is staged widening, smoother exploration, mismatch-gated authority, and uncertainty-set shaping before wider training ranges are accepted.
 - Polymer reidentification is currently dominated by the widened direct-multiplier methods and should be deprioritized until the identification layer itself is redesigned around informative-window generation and candidate validation.
 
@@ -521,8 +579,11 @@ That said, the literature does not support calling reidentification useless in g
 - [Korenkevych2019] Autoregressive Policies for Continuous Control Deep Reinforcement Learning.
 - [Seo2025] Continuous Control with Coarse-to-fine Reinforcement Learning.
 - [Chen2024] Robust model predictive control with polytopic model uncertainty through System Level Synthesis.
+- [AdaptiveMPC2020] Adaptive model predictive control for a class of constrained linear systems with parametric uncertainties.
+- [RAMPC2023] Robust adaptive model predictive control with persistent excitation conditions.
 - [Limon2013] Robust feedback model predictive control of constrained uncertain systems.
 - [Kothare1996] Robust constrained model predictive control using linear matrix inequalities.
+- [OutputFeedbackRMPC2019] Output feedback robust MPC for linear systems with norm-bounded model uncertainty and disturbance.
 
 [Diehl2005]: https://doi.org/10.1137/S0363012902400713
 [Jerez2014]: https://doi.org/10.1109/TAC.2014.2351991
@@ -536,5 +597,8 @@ That said, the literature does not support calling reidentification useless in g
 [Korenkevych2019]: https://www.ijcai.org/proceedings/2019/0382.pdf
 [Seo2025]: https://proceedings.mlr.press/v270/seo25a.html
 [Chen2024]: https://doi.org/10.1016/j.automatica.2023.111431
+[AdaptiveMPC2020]: https://doi.org/10.1016/j.automatica.2020.108974
+[RAMPC2023]: https://doi.org/10.1016/j.automatica.2023.110959
 [Limon2013]: https://doi.org/10.1016/j.jprocont.2012.08.003
 [Kothare1996]: https://doi.org/10.1016/0005-1098(96)00063-5
+[OutputFeedbackRMPC2019]: https://doi.org/10.1016/j.automatica.2019.07.002

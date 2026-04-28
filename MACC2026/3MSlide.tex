@@ -1,0 +1,146 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{pdflscape}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{amsmath,amssymb,graphicx,geometry,gensymb,pifont}
+\usepackage[section]{placeins}
+\usepackage[thinlines]{easytable}
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage{ragged2e}
+\usepackage[listings,theorems]{tcolorbox}
+\usepackage{subcaption}
+\usepackage{animate}
+
+\usepackage[ruled,vlined,linesnumbered,noend]{algorithm2e}
+\SetAlFnt{\footnotesize}
+\setlength{\algomargin}{0.6em}
+\DontPrintSemicolon
+\SetKwInput{KwIn}{Input}
+\SetKwInput{KwOut}{Output}
+
+\usepackage{tabularray}
+\usepackage{tabularx}
+\usepackage{booktabs}      % pretty rules
+\usepackage{tabularx}      % automatic-width column(s)
+\usepackage{makecell}      % easy line breaks inside cells
+\renewcommand\theadfont{\normalsize\bfseries}
+\renewcommand\cellalign{tl}  % left-align makecell content
+
+
+\captionsetup[figure]{font=tiny}
+
+
+
+\definecolor{maroon1}{rgb}{0.478, 0, 0.235}
+\definecolor{dimgray}{rgb}{0.369, 0.416, 0.443}
+\definecolor{lightgray}{rgb}{0.94,0.94,0.97}
+\definecolor{lightgray2}{rgb}{0.5,0.5,0.5}
+\definecolor{darkgreen}{rgb}{0, 0.5, 0}
+\definecolor{lightpink}{rgb}{1, 0.93, 0.96}
+
+
+
+\usetheme{Copenhagen}
+\usecolortheme[named=maroon1]{structure}
+
+\setbeamerfont{caption}{size=\scriptsize}
+
+\setbeamertemplate{navigation symbols}{}
+
+% \expandafter\def\expandafter\insertshorttitle\expandafter{%
+% \insertshorttitle\hfill%
+% \insertframenumber\,/\,\inserttotalframenumber}
+
+\setbeamercolor{block body}{fg=black,bg=lightgray}
+
+\title[March 2026]{{\bf A Practical Reinforcement Learning Control Framework for Complex Process Systems}}
+\author[A. H. Hamedi]{\textcolor {black} { \underline{\bf \scriptsize A. H. Hamedi}\\\vspace{0.2cm}{\scriptsize \color{maroon1} Department of Chemical Engineering, McMaster University}\\\vspace{0.1cm}}}
+
+
+\date[\today]{}
+
+\begin{document}
+
+%%%%%%% One-slide summary %%%%%%%%
+\begin{frame}
+\frametitle{\centering \scriptsize \textbf{Practical Reinforcement Learning Control Framework for Complex Process Systems (Amir H. Hamedi)}}
+\scriptsize
+
+\vspace{-0.5cm}
+
+\begin{columns}[T,onlytextwidth]
+
+%========================
+% Left: RL-assisted MPC
+%========================
+\begin{column}{0.48\textwidth}
+
+\begin{block}{\textbf{RL-assisted MPC} \scriptsize{(ongoing work)}}
+\begin{itemize}\justifying
+    \item RL improves \textbf{linear MPC online} with multi-agent structure.
+\end{itemize}
+\end{block}
+
+\vspace{-0.15cm}
+\begin{figure}
+    \centering
+    \includegraphics[width=.7\linewidth,height=0.25\textheight]{Figures/RL Assisted.png}
+\end{figure}
+
+\vspace{-0.5cm}
+\begin{center}
+{\tiny \textbf{Proposed RL-assisted MPC diagram}}
+\end{center}
+
+\vspace{-0.3cm}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.78\linewidth,height=0.3\textheight]{Figures/compare_outputs_last_episode_nominal.png}
+\end{figure}
+
+\vspace{-0.7cm}
+\begin{center}
+{\tiny \textbf{Polymer reactor: RL-assisted MPC (blue), MPC (orange)}}
+\end{center}
+
+\end{column}
+
+%========================
+% Right: Practical RL controller
+%========================
+\begin{column}{0.49\textwidth}
+
+\begin{block}{\textbf{Practical RL controller}}
+\begin{itemize}\justifying
+    \item Start from \textbf{offset-free linear MPC}, then improve online for complex process systems.
+\end{itemize}
+\end{block}
+
+\vspace{-0.2cm}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.78\linewidth,height=0.35\textheight]{Figures/C2_nom_outputs_compare_three.png}
+\end{figure}
+
+\vspace{-0.22cm}
+\begin{center}
+{\tiny \textbf{C$_2$ splitter: Modified RL (blue), Pre-trained RL (orange), MPC (green dotted)}}
+\end{center}
+
+\vspace{-0.22cm}
+\begin{block}{\textbf{Ongoing work}}
+\centering
+\scriptsize Stable constrained RL using a Lyapunov contraction idea and an output-constraint safety layer
+\end{block}
+
+\end{column}
+
+\end{columns}
+
+\end{frame}
+
+\end{document}

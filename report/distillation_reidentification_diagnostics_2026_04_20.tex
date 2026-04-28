@@ -1,0 +1,237 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{hyperref}
+
+\title{Distillation Reidentification Diagnostics\\Latest Run Review on April 20, 2026}
+\author{Prepared from stored disturbance-mode result bundles}
+\date{April 20, 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Scope}
+This note analyzes the latest stored distillation-column reidentification run
+\texttt{20260420\_171837} and compares it against the three most informative earlier runs:
+\texttt{20260416\_113030}, \texttt{20260417\_174602}, and \texttt{20260418\_115020}.
+All runs come from the same disturbance-mode distillation reidentification result family.
+
+The main conclusion is that the April 20 run did \emph{not} fall back to nominal MPC in the same way as April 17 or April 18. It is a cleaner isolation experiment:
+\begin{itemize}
+\item warm-start identification was frozen,
+\item validity fading was off,
+\item the blend was forced to a small constant $\eta_A=\eta_B=0.05$,
+\item the slower identification cadence $160/20$ was preserved.
+\end{itemize}
+
+That setup removes the catastrophic collapse seen on April 18 and avoids the authority collapse seen on April 17. However, it is not yet evidence that the RL policy has learned a good blending strategy, because the actor was bypassed by the fixed-$\eta$ setting.
+
+\section*{Core Mechanics}
+The prediction model used by reidentification is blended between the nominal model and the active identified model:
+\begin{align}
+A_k^{\mathrm{pred}} &= A_0 + \eta_{A,k}\left(A_k^{\mathrm{id}} - A_0\right), \\
+B_k^{\mathrm{pred}} &= B_0 + \eta_{B,k}\left(B_k^{\mathrm{id}} - B_0\right).
+\end{align}
+
+This means the model deviation actually seen by the controller is scaled directly by the blend:
+\begin{align}
+\frac{\lVert A_k^{\mathrm{pred}} - A_0 \rVert}{\lVert A_0 \rVert}
+&=
+\eta_{A,k}
+\frac{\lVert A_k^{\mathrm{id}} - A_0 \rVert}{\lVert A_0 \rVert}, \\
+\frac{\lVert B_k^{\mathrm{pred}} - B_0 \rVert}{\lVert B_0 \rVert}
+&=
+\eta_{B,k}
+\frac{\lVert B_k^{\mathrm{id}} - B_0 \rVert}{\lVert B_0 \rVert}.
+\end{align}
+
+Two further mechanics matter:
+\begin{itemize}
+\item On April 17, the requested blend was additionally reduced by a validity scale $s_k$ and by smoothing:
+\begin{align}
+\eta_k^{\mathrm{req}} &= (1-\tau)\eta_{k-1}^{\mathrm{req}} + \tau \eta_k^{\mathrm{raw}}, \\
+\eta_k &= s_k \eta_k^{\mathrm{req}}.
+\end{align}
+This created a very strong authority bottleneck.
+\item Identification cadence is defined by an identification window $W$ and update period $p$. The overlap fraction is
+\begin{equation}
+\mathrm{overlap} = 1 - \frac{p}{W}.
+\end{equation}
+For $80/5$, the overlap is $93.75\%$; for $160/20$, it is $87.5\%$.
+\end{itemize}
+
+\section*{Compared Runs}
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{|m{1.8cm}|m{1.2cm}|m{1.6cm}|m{1.7cm}|m{1.2cm}|m{1.4cm}|m{2.4cm}|}
+\hline
+Run & $W/p$ & Guard & $\eta$ handling & Freeze warm start & Validity mode & Main purpose \\
+\hline
+Apr 16 & 80/5 & \texttt{fro\_only} & learned, $\tau=0.1$ & no & off & baseline open-blend run \\
+\hline
+Apr 17 & 160/20 & val+clip & learned, $\tau=0.03$ & yes & diag.\ fade & hardening against collapse \\
+\hline
+Apr 18 & 160/20 & \texttt{fro\_only} & learned, $\tau=0.03$ & no & off & isolate cadence with open blend \\
+\hline
+Apr 20 & 160/20 & \texttt{fro\_only} & fixed $\eta=0.05$, $\tau=1$ & yes & off & isolate cadence under small safe blend \\
+\hline
+\end{tabular}
+\caption{Configuration changes across the four reference runs.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{|m{2.0cm}|r|r|r|r|r|r|}
+\hline
+Run & Avg.\ gap & Last-50 gap & Final gap & Better than MPC & Mean $\eta$ & Accepted / events \\
+\hline
+Apr 16 & $-0.381$ & $+0.025$ & $+0.060$ & 70 / 200 & 0.388 & 1019 / 15985 \\
+\hline
+Apr 17 & $-0.117$ & $0.000$ & $0.000$ & 75 / 200 & 0.00184 & 97 / 3800 \\
+\hline
+Apr 18 & $-5.830$ & $-0.00015$ & $0.000$ & 48 / 200 & 0.0705 & 629 / 3993 \\
+\hline
+Apr 20 & $-0.0727$ & $+0.0155$ & $+0.442$ & 64 / 200 & 0.0475 & 871 / 3800 \\
+\hline
+\end{tabular}
+\caption{Outcome summary using episode reward gap $\bar{J}_{\mathrm{RL}}-\bar{J}_{\mathrm{MPC}}$. Absolute reward values changed after April 16, 2026, so cross-run comparisons should use the gap rather than raw reward magnitude.}
+\end{table}
+
+\section*{Figure-Based Diagnosis}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/distillation_reidentification_2026_04_20/reward_gap_overlay.png}
+\caption{Episode reward gap versus MPC. April 18 shows the large collapse. April 17 converges to MPC because the blend disappears. April 20 avoids both extremes and stays near MPC with a slight late positive gap.}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/distillation_reidentification_2026_04_20/eta_overlay.png}
+\caption{Episode-mean blend. April 17 goes to essentially zero authority, April 18 starts with a much larger blend and later retreats to zero, while April 20 keeps the blend fixed at 0.05 after warm start.}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/distillation_reidentification_2026_04_20/id_activity_overlay.png}
+\caption{Identification activity. The April 20 run preserves the slower 160/20 cadence but still obtains frequent accepted updates once warm start ends.}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/distillation_reidentification_2026_04_20/effective_model_deviation_overlay.png}
+\caption{Effective blended model deviation. This is the key mechanism figure: April 20 keeps the identified model active, but the controller only sees a small fraction of that deviation because the blend is fixed at 0.05.}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/distillation_reidentification_2026_04_20/latest_reward_compare.png}
+\caption{Latest run reward comparison against the paired MPC baseline. The run is slightly worse on average, but it is not collapsed and ends above MPC.}
+\end{figure}
+
+\section*{What Changed in the Latest Result}
+The latest run changed the experiment in three important ways:
+\begin{enumerate}
+\item \textbf{Warm-start identification was frozen.}
+This removed the hidden-drift mechanism that had reappeared on April 18, where 45 accepted updates accumulated during episodes 1--10 before blending was allowed.
+\item \textbf{The blend was fixed at a small constant value.}
+After warm start, $\eta_A=\eta_B=0.05$ at every step. This is a true authority restriction, unlike a small smoothing factor alone.
+\item \textbf{Validity fading stayed off.}
+So the run isolates the $160/20$ cadence without the additional suppression that dominated April 17.
+\end{enumerate}
+
+The outcome is materially better than the April 18 run:
+\begin{itemize}
+\item average gap improved from $-5.830$ to $-0.0727$,
+\item last-50 gap improved from $-1.46\times10^{-4}$ to $+0.0155$,
+\item final gap improved from essentially zero to $+0.442$,
+\item accepted updates increased from 629 to 871 while keeping the same $160/20$ cadence.
+\end{itemize}
+
+The most important interpretation is that the \emph{slower cadence itself is not the main cause of collapse}. The April 20 run still uses $160/20$, but it avoids catastrophic behavior because the warm-start drift is removed and the blend authority is truly limited.
+
+\section*{What Was Wrong in the Earlier Runs}
+\subsection*{April 16: collapse then recovery}
+This run used the more aggressive $80/5$ cadence, no warm-start freeze, and an open learned blend. During warm start, 312 accepted updates were already accumulated while $\eta=0$, so the active identified model drifted before being exposed.
+
+Once blending turned on, the episode-mean blend during episodes 11--30 was 0.552. The corresponding mean effective $A$-deviation term was about
+\[
+\overline{\eta_A\lVert \Delta A \rVert/\lVert A_0 \rVert} \approx 0.054.
+\]
+That is large enough to damage reward strongly: the gap over episodes 11--30 averaged $-1.007$.
+
+This run later recovered because accepted updates rose again late in training: 648 accepted updates in episodes 151--200, with a valid-candidate rate of 0.162 and a late reward gap of $+0.025$.
+
+\subsection*{April 17: over-regularized authority}
+This run froze warm-start identification, which was good, but it also combined:
+\begin{itemize}
+\item slower cadence,
+\item tighter $A$-side restrictions,
+\item a stricter candidate guard,
+\item validity fading,
+\item and very small smoothing factor $\tau=0.03$.
+\end{itemize}
+
+The result was an authority collapse. The raw actor still asked for large blend early, but the applied blend during episodes 11--30 averaged only 0.0117. Accepted updates also fell to only 97 over 3800 events. The agent therefore learned that the safest reliable policy was $\eta \approx 0$, which reproduces nominal MPC.
+
+\subsection*{April 18: open blend, hidden drift reintroduced}
+This run removed the validity fade but also removed warm-start freezing, while keeping $160/20$ and the small smoothing factor.
+
+That reintroduced the original failure mode. During episodes 1--10, 45 accepted updates were collected while blending was still zero. By the time the blend was exposed, the active $A$ ratio was already near the cap:
+\[
+\overline{\lVert \Delta A \rVert/\lVert A_0 \rVert} \approx 0.092 \quad \text{during episodes 1--10.}
+\]
+
+Then the blend turned on too strongly: episodes 11--30 used mean $\eta \approx 0.347$, which implies an effective $A$-deviation near
+\[
+\overline{\eta_A\lVert \Delta A \rVert/\lVert A_0 \rVert} \approx 0.034.
+\]
+That produced the worst failure in the comparison set: a mean gap of $-17.30$ over episodes 11--30, reaching $-26.14$ at episode 30. After this collapse, the actor learned to retreat back to $\eta \approx 0$.
+
+\section*{Interpretation of the Latest April 20 Run}
+The latest run is best read as a \textbf{stability isolation}:
+\begin{itemize}
+\item it shows that $160/20$ can work without catastrophic collapse,
+\item it shows that freezing identification during warm start matters,
+\item it shows that a true low blend authority is enough to prevent the April 18 failure mode,
+\item but it does \emph{not} show that the actor can yet learn the correct blend by itself.
+\end{itemize}
+
+This is visible directly in the effective-deviation figure. In the latest run, the active identified $A$ model is still near the allowed boundary, with mean active ratio around 0.098, but because the blend is fixed at 0.05 the controller only sees an effective $A$ deviation near
+\[
+0.05 \times 0.098 \approx 0.0049,
+\]
+which is much smaller than the exposed deviations in April 16 and April 18.
+
+So the latest run says something precise: \textbf{the identified model quality is still not convincingly good, but small trusted exposure to that model is not destructive}. That is useful, but it is a different claim from ``the RL supervisor has learned a good reidentification policy.''
+
+\section*{Practical Next Steps}
+\begin{enumerate}
+\item \textbf{Keep warm-start freezing on.}
+This is the cleanest separation between baseline MPC warm start and later reidentification.
+
+\item \textbf{Replace fixed $\eta$ with a real hard authority cap.}
+The next useful experiment is actor-controlled blending with a configurable cap such as $\eta_{\max}\in\{0.05,0.10,0.20\}$. A small smoothing factor alone is not enough, because it only delays the blend instead of limiting it.
+
+\item \textbf{Hold the cadence at $160/20$ while sweeping the cap.}
+The April 20 run already shows that cadence is not the main issue. The next isolation should therefore vary authority, not cadence.
+
+\item \textbf{Keep validity fading off during the authority sweep.}
+Otherwise it becomes hard to distinguish policy behavior from external suppression.
+
+\item \textbf{Only after a stable authority range is found, reintroduce stronger guards.}
+Candidate validation and blend fading should be tested one at a time, not as one combined hardening package.
+
+\item \textbf{Improve stored RL-vs-MPC trajectory logging.}
+The current result bundles preserve episode reward comparison correctly, but the stored RL/MPC state-input aliases are not reliable for trajectory-based comparison plots. Fixing that would make future supervisory reports stronger.
+\end{enumerate}
+
+\section*{Bottom Line}
+The latest result is a good diagnostic step. It shows that the April 18 collapse was not caused simply by the $160/20$ identification cadence. The larger issue was exposing a drifted near-cap identified model with too much blend authority.
+
+The current evidence therefore supports the following next move: keep the April 20 logic of warm-start freeze and no validity fade, replace the fixed $\eta=0.05$ with an actor-controlled but \emph{hard-capped} blend, and then measure whether the actor can improve over MPC without either collapsing or learning to shut itself off.
+
+\end{document}

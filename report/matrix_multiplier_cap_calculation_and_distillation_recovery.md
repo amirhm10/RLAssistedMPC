@@ -33,9 +33,9 @@ This report is now an ongoing working document. The current implementation seque
 | Step 4B: slower BC decay | Polymer scalar and structured matrix | Implemented and reviewed from strengthened reruns | Longer active BC window | Keep for scalar; structured still needs a more targeted anchor |
 | Step 4C: larger BC start weight | Polymer scalar and structured matrix | Implemented and reviewed from strengthened reruns | Stronger early nominal anchor | Keep for scalar; do not assume global weight solves structured mode |
 | Step 4D: structured-specific stronger BC | Polymer structured matrix | Implemented and reviewed from strengthened reruns | Structured-only stronger BC schedule | Replace global strengthening with per-coordinate or A/B-split BC |
-| Step 4E: per-coordinate BC weighting | Polymer first, then distillation | Proposed | Coordinate-specific nominal BC, especially on `B` directions | Use if structured still needs more control than scalar |
+| Step 4E: per-coordinate BC weighting | Polymer first, then distillation | Implemented and reviewed from latest structured rerun | Coordinate-specific nominal BC, especially on `B` directions | Keep as the structured BC baseline and move next to guarded execution |
 | Step 4F: executed-action BC | Distillation priority after polymer validation | Proposed | Clone the actually executed action when a safety layer intervenes | Add when Step 2 or fallback is reintroduced |
-| Step 4G: BC plus guarded execution | Polymer first, then distillation | Proposed after stronger Step 4 reruns | Reintroduce release caps or fallback only after the actor stays closer to nominal | Use after the BC-only handoff is strong enough on its own |
+| Step 4G: BC plus guarded execution | Polymer first, then distillation | Proposed next after weighted structured success | Reintroduce release caps or fallback only after the actor stays closer to nominal | Test whether the remaining early trough can be reduced without losing the new BC gains |
 | Step 5: release stabilization | Distillation priority | Reserved | BC plus release-ramp or actor-freeze hybrid study | Use if degradation is mainly policy-release driven |
 | Step 6: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
 
@@ -1313,7 +1313,7 @@ This is not yet full per-dimension normalization inside the loss. It is a strong
 
 #### Step 4E: Per-Coordinate BC Weighting
 
-If the stronger structured schedule still leaves large first-live losses, the next tighter move should be coordinate-specific BC rather than one more global increase.
+The weighted structured rerun is now implemented. The idea is to replace the uniform structured BC penalty with coordinate-specific weighting rather than adding one more global BC increase.
 
 The main idea is:
 
@@ -1321,7 +1321,7 @@ The main idea is:
 - allow lighter BC on less dangerous `A` directions,
 - optionally weight the most sensitive structured coordinates more heavily.
 
-This should be the first refinement after the current stronger-default rerun if structured mode is still the weak case.
+This is now the active structured-matrix Step 4 refinement.
 
 #### Step 4F: Executed-Action BC
 
@@ -1442,6 +1442,118 @@ So the next Step 4 direction should branch by method:
 - do **not** transfer polymer scalar success directly to structured mode;
 - move structured mode to Step 4E-style per-coordinate or A/B-split BC weighting;
 - keep distillation Step 4 disabled until polymer structured mode is cleaner.
+
+#### 2026-04-28 Step 4E: Weighted Structured BC Rerun
+
+This update uses the latest polymer structured-matrix weighted-BC run:
+
+- Structured matrix RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260428_025906/input_data.pkl`
+- Structured matrix comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260428_025922/input_data.pkl`
+
+This is still a **BC-only isolation run**:
+
+- `lambda_bc_start = 0.6`
+- `active_subepisodes = 25`
+- no release guard
+- no acceptance fallback
+- no post-warm-start freeze
+
+The change relative to the previous structured rerun is only the BC penalty shape. Instead of one uniform structured penalty, the latest run weights the structured coordinates as:
+
+- `A_block_1 = 1.25`
+- `A_block_2 = 1.0`
+- `A_block_3 = 1.0`
+- `A_off = 1.25`
+- `B_col_1 = 2.5`
+- `B_col_2 = 2.5`
+
+So this is a clean Step 4E test of whether stronger BC on the `B` side, with moderate extra weight on selected `A` terms, improves the structured handoff without adding Step 2 or Step 3 back into the loop.
+
+The saved bundle confirms that it remained a true BC-only test:
+
+| Variant | BC enabled | Release guard enabled | Acceptance/fallback enabled | Release clip steps | Fallback steps | Candidate-executed max diff |
+|---|---|---|---|---:|---:|---:|
+| Weighted BC, Step 4E | `True` | `False` | `False` | 0 | 0 | 0.0 |
+
+<img src="./figures/matrix_multiplier_structured_step4e_20260428/polymer_structured_step4e_reward_delta_traces.png" alt="Structured Step 4E reward-delta traces against earlier structured BC variants" width="1200" style="max-width: 100%; height: auto;" />
+
+<img src="./figures/matrix_multiplier_structured_step4e_20260428/polymer_structured_step4e_reward_windows.png" alt="Structured Step 4E reward-window comparison against earlier structured BC variants" width="1200" style="max-width: 100%; height: auto;" />
+
+| Variant | 11-20 delta | 21-40 delta | 41-100 delta | 101-200 delta | 1-200 delta | 1-200 win rate |
+|---|---:|---:|---:|---:|---:|---:|
+| BC-only, `0.1/10` | -1.4678 | -0.8323 | +0.1687 | +0.7569 | +0.2724 | 75.0% |
+| Stronger uniform BC, `0.6/25` | -1.0843 | -1.4797 | +0.2243 | +0.6843 | +0.2072 | 75.0% |
+| Weighted BC, Step 4E | -0.8436 | -0.4158 | +0.4645 | +0.8198 | +0.4655 | 82.0% |
+
+This is the strongest structured result so far.
+
+Relative to the earlier structured BC variants, the weighted run:
+
+- improves the first live window again: `-1.0843 -> -0.8436`;
+- removes most of the shifted `21-40` collapse: `-1.4797 -> -0.4158`;
+- gives the best mid-run recovery: `+0.4645` in `41-100`;
+- gives the best full-run reward: `+0.4655`;
+- improves the structured win rate: `75.0% -> 82.0%`.
+
+It also now beats the older hidden-release structured full-run baseline (`+0.4655` versus `+0.3507`), although the first live `11-20` window is still worse than the older hidden-release `11-20` trough (`-0.8436` versus `-0.4361`).
+
+So the weighted structured run does **not** fully solve the release-safety problem, but it does change the Step 4 picture materially: structured BC is no longer the weak case by default. The weighted design makes structured BC useful on its own, even before any guarded execution is restored.
+
+<img src="./figures/matrix_multiplier_structured_step4e_20260428/polymer_structured_step4e_handoff_diagnostics.png" alt="Structured Step 4E handoff diagnostics against earlier structured BC variants" width="1200" style="max-width: 100%; height: auto;" />
+
+| Variant | Window | Mean BC weight | Mean policy-nominal distance | Mean actor-target distance | Mean multiplier distance | Mean action saturation |
+|---|---|---:|---:|---:|---:|---:|
+| BC-only, `0.1/10` | 11-20 | 0.0193 | 1.8262 | 1.8790 | 0.6820 | 0.7538 |
+| Stronger uniform BC, `0.6/25` | 11-20 | 0.2571 | 1.7975 | 1.8706 | 0.6707 | 0.7277 |
+| Weighted BC, Step 4E | 11-20 | 0.2571 | 1.6623 | 1.7473 | 0.6617 | 0.6966 |
+| BC-only, `0.1/10` | 21-40 | 0.0000 | 1.9707 | 1.9798 | 0.6565 | 0.6737 |
+| Stronger uniform BC, `0.6/25` | 21-40 | 0.0164 | 1.9438 | 2.0468 | 0.6321 | 0.6211 |
+| Weighted BC, Step 4E | 21-40 | 0.0164 | 1.9032 | 1.9934 | 0.6635 | 0.5952 |
+| BC-only, `0.1/10` | 101-200 | 0.0000 | 2.0442 | n/a | 0.6553 | 0.5008 |
+| Stronger uniform BC, `0.6/25` | 101-200 | 0.0000 | 1.9957 | n/a | 0.6423 | 0.4350 |
+| Weighted BC, Step 4E | 101-200 | 0.0000 | 1.9144 | n/a | 0.6293 | 0.4377 |
+
+This is the main mechanism change:
+
+- the **BC weight schedule is unchanged** from the stronger uniform structured run;
+- the improvement comes from the **coordinate weighting**, not from more total BC weight;
+- the weighted run is closer to nominal in `11-20`, closer again in `21-40`, and keeps lower saturation while also improving the reward windows.
+
+That means the earlier structured problem really was about how the nominal anchor was distributed across the action coordinates, not just about how large the overall BC coefficient was.
+
+The multiplier means support that reading:
+
+| Variant | Window | Key mean multipliers |
+|---|---|---|
+| BC-only, `0.1/10` | 11-20 | `A_block_1 = 0.9049`, `A_block_2 = 0.8347`, `A_block_3 = 0.8816`, `A_off = 0.8360`, `B_col_1 = 1.1839`, `B_col_2 = 0.8088` |
+| Stronger uniform BC, `0.6/25` | 11-20 | `A_block_1 = 0.9287`, `A_block_2 = 0.8659`, `A_block_3 = 0.8183`, `A_off = 0.8670`, `B_col_1 = 0.9519`, `B_col_2 = 0.9958` |
+| Weighted BC, Step 4E | 11-20 | `A_block_1 = 0.8687`, `A_block_2 = 0.8219`, `A_block_3 = 0.9345`, `A_off = 0.8656`, `B_col_1 = 0.9175`, `B_col_2 = 1.0594` |
+| Weighted BC, Step 4E | 21-40 | `A_block_1 = 0.8746`, `A_block_2 = 0.7498`, `A_block_3 = 0.9556`, `A_off = 0.8483`, `B_col_1 = 0.8573`, `B_col_2 = 1.0834` |
+| Weighted BC, Step 4E | 101-200 | `A_block_1 = 0.9216`, `A_block_2 = 0.8862`, `A_block_3 = 0.8223`, `A_off = 0.8064`, `B_col_1 = 0.9325`, `B_col_2 = 0.9827` |
+
+The weighted run is not simply “closer to one everywhere.” It is using the action space differently:
+
+- `B_col_1` no longer overshoots as badly as the original BC-only run;
+- `B_col_2` stays much closer to nominal than before;
+- `A_block_3` is allowed to stay near nominal early, while the remaining A-side blocks still carry structured authority.
+
+So the weighted design is doing what it was supposed to do: emphasize the sensitive `B` directions without forcing the entire structured policy back toward the scalar-like nominal behavior.
+
+The current structured Step 4 conclusion is now:
+
+| Finding | Conclusion |
+|---|---|
+| Weighted Step 4E beats both earlier structured BC variants in full-run reward and win rate. | Step 4E is the current structured baseline. |
+| Weighted Step 4E also improves both early windows relative to the stronger uniform BC run. | The structured problem was the BC shape, not just the BC magnitude. |
+| Weighted Step 4E still leaves a negative `11-20` trough. | Structured BC is better, but not yet a complete replacement for guarded execution. |
+| Weighted Step 4E now exceeds the older hidden-release structured full-run reward. | Structured BC is now strong enough to justify trying Step 4G on top of it. |
+
+The next structured experiment should therefore **stop tuning BC strength** and move to **Step 4G**:
+
+- keep the weighted Step 4E structured BC as the new structured baseline,
+- reintroduce a light release guard,
+- keep fallback off,
+- test whether the remaining `11-20` trough can be reduced without losing the new full-run gain.
 
 ### Why This Helps Distillation
 

@@ -28,9 +28,16 @@ This report is now an ongoing working document. The current implementation seque
 | Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until Step 3 polymer results are reviewed |
 | Step 3B: tolerant acceptance or fallback layer | Polymer first, then distillation | Polymer result reviewed; not sufficient | Acceptance/fallback logs, cost-margin distributions, tolerance replay curve | Do not increase tolerance blindly; move to Step 3C shadow/benefit diagnostics |
 | Step 3C: dual-cost benefit diagnostics | Polymer first, then distillation | Proposed from latest results | Nominal safety penalty plus candidate-model advantage logs | Implement as shadow-only before using it for fallback |
-| Step 3D: BC-only handoff isolation | Polymer scalar and structured matrix | Implemented and reviewed here | BC reward-window comparison, handoff diagnostics, and isolation checks | Strengthen BC or combine it with an execution-aware release layer before any distillation enablement |
-| Step 4: release stabilization | Distillation priority | Reserved | BC decay, actor freeze, reward-shaping, or release-ramp study | Use if degradation is mainly policy-release driven |
-| Step 5: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
+| Step 4: behavioral-cloning handoff | Polymer scalar and structured matrix first, distillation later | Implemented and reviewed here; stronger polymer defaults now set | BC reward-window comparison, handoff diagnostics, and isolation checks | Tune scalar and structured BC before any distillation enablement |
+| Step 4A: BC-only isolation readout | Polymer scalar and structured matrix | Implemented and reviewed here | BC-only reward windows, nominal-distance logs, multiplier tables | Use as the reference before reintroducing safety interventions |
+| Step 4B: slower BC decay | Polymer scalar and structured matrix | Implemented in current polymer defaults | Longer active BC window | Check whether the first live trough shrinks without losing the tail |
+| Step 4C: larger BC start weight | Polymer scalar and structured matrix | Implemented in current polymer defaults | Stronger early nominal anchor | Check whether raw action distance from nominal drops faster |
+| Step 4D: structured-specific stronger BC | Polymer structured matrix | Implemented in current polymer defaults | Structured-only stronger BC schedule | Reduce early structured saturation and off-nominal B usage |
+| Step 4E: per-coordinate BC weighting | Polymer first, then distillation | Proposed | Coordinate-specific nominal BC, especially on `B` directions | Use if structured still needs more control than scalar |
+| Step 4F: executed-action BC | Distillation priority after polymer validation | Proposed | Clone the actually executed action when a safety layer intervenes | Add when Step 2 or fallback is reintroduced |
+| Step 4G: BC plus guarded execution | Polymer first, then distillation | Proposed after stronger Step 4 reruns | Reintroduce release caps or fallback only after the actor stays closer to nominal | Use after the BC-only handoff is strong enough on its own |
+| Step 5: release stabilization | Distillation priority | Reserved | BC plus release-ramp or actor-freeze hybrid study | Use if degradation is mainly policy-release driven |
+| Step 6: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
 
 For Step 1, the important interpretation rule is: a suggested bound is a **diagnostic recommendation**, not a permanent training constraint. The notebooks keep `apply_suggested_caps = False`, so the existing multiplier ranges remain the actor's wide training ranges. Step 2 can temporarily clip the executed multiplier during first live release, but it keeps the actor output space wide.
 
@@ -1105,16 +1112,16 @@ This directly targets both observed failures:
 - Polymer Step 3B: the actor and executed behavior remain different, and accepted candidates are not necessarily useful.
 - Distillation Step 2B: the first learned `B` movement is small enough to look harmless but large enough to damage the Aspen closed loop.
 
-#### 2026-04-27 Implementation Progress: Shared BC Next Step
+#### 2026-04-27 Step 4: Behavioral-Cloning Handoff
 
-The next implemented step is a shared behavioral-cloning handoff surface for the `matrix` and `structured_matrix` supervisors. The design split is:
+Step 4 is the shared behavioral-cloning handoff surface for the `matrix` and `structured_matrix` supervisors. The design split is:
 
 | Layer | Responsibility |
 |---|---|
 | Runner | Build the BC schedule from warm start and subepisode length, expose the nominal target action, and log BC diagnostics at env-step resolution. |
 | Agent | Add the BC penalty to the actor loss during the active handoff window and report BC metadata from `train_step()`. |
 
-The first implementation is intentionally narrow:
+The Step 4 implementation is intentionally narrow:
 
 - shared only across scalar and structured matrix supervisors;
 - enabled by default only for polymer matrix and polymer structured matrix;
@@ -1122,7 +1129,7 @@ The first implementation is intentionally narrow:
 - no replay-buffer schema change;
 - no executed-action BC yet.
 
-For polymer, this is a **BC-only isolation run**. The earlier matrix-step protections are disabled on purpose:
+For polymer, Step 4 starts with a **BC-only isolation run**. The earlier matrix-step protections are disabled on purpose:
 
 | Polymer matrix-family setting | New default |
 |---|---|
@@ -1147,13 +1154,22 @@ For SAC matrix and structured matrix, the BC penalty is applied to the determini
 
 $$ \mathcal{L}_{\mathrm{actor}}^{\mathrm{SAC}} = \mathbb{E}[\alpha \log \pi(a|s) - Q_1(s,a)] + \lambda_{\mathrm{BC}}(t)\,\mathbb{E}[\|\mu_\pi(s)-a_{\mathrm{nom}}\|_2^2]. $$
 
-The first schedule uses an exponential-shaped decay over the first `10` post-warm-start subepisodes:
+The first implemented Step 4 schedule used an exponential-shaped decay over the first `10` post-warm-start subepisodes:
 
 $$ \lambda_{\mathrm{BC}}(t_{\mathrm{start}}) = 0.1, \qquad \lambda_{\mathrm{BC}}(t_{\mathrm{end}}) = 0.0. $$
 
+That first schedule was enough to preserve late scalar benefit, but it was not strong enough to protect the first live polymer handoff. The current Step 4 defaults now strengthen the nominal anchor:
+
+| Polymer Step 4 default | `active_subepisodes` | `lambda_bc_start` | `lambda_bc_end` | Why |
+|---|---:|---:|---:|---|
+| Scalar matrix | 20 | 0.3 | 0.0 | Keep BC active deeper into the early live window and make the nominal anchor materially stronger than the original `0.1` start. |
+| Structured matrix | 25 | 0.6 | 0.0 | Give structured mode a stronger and longer anchor because the 6-D action space stayed much farther from nominal than scalar mode. |
+
+Distillation still keeps the same Step 4 surface disabled by default.
+
 The target remains `nominal_only` for the first pass. That is why replay stays unchanged. The BC target is global for the active handoff window, so the actor can receive it directly from the runner during `train_step()` without storing per-transition clone targets.
 
-The expected diagnostics for the next polymer run are:
+The expected diagnostics for the next Step 4 polymer rerun are:
 
 | Diagnostic | Meaning |
 |---|---|
@@ -1163,15 +1179,15 @@ The expected diagnostics for the next polymer run are:
 | `bc_actor_target_distance_log` | Mean actor-output distance to the nominal target during actor updates. |
 | `bc_policy_nominal_distance_log` | Raw action distance from the current policy request to the nominal raw action. |
 
-The next readout should compare three things on polymer:
+The next Step 4 readout should compare three things on polymer:
 
-1. whether the first live reward trough shrinks relative to Step 3B,
-2. whether raw policy distance from nominal decays during the first 10 post-warm-start subepisodes,
+1. whether the first live reward trough shrinks relative to the first BC-only readout,
+2. whether raw policy distance from nominal decays during the longer Step 4 window,
 3. whether the tail keeps any positive matrix benefit once BC decays away.
 
 For distillation, the same BC surface should stay off by default until polymer shows whether actor anchoring helps without masking all useful matrix authority.
 
-#### 2026-04-27 Polymer BC-Only Result
+#### 2026-04-27 Step 4A: BC-Only Isolation Result
 
 This update uses the latest polymer BC-only runs:
 
@@ -1260,6 +1276,75 @@ The practical next step is therefore narrower than `enable BC everywhere`:
 - strengthen the polymer handoff before transfer: either slower BC decay, larger BC weight, dimension-scaled BC weight for structured mode, or execution-aware BC that clones the actually executed action when a safety layer intervenes.
 
 The polymer evidence now supports online BC as a useful direction, but not yet as a complete replacement for release protection.
+
+#### Step 4B: Slower BC Decay
+
+The first BC-only polymer readout says the anchor disappears too quickly. The direct fix is a longer BC window so the actor is still regularized after the first few post-warm-start episodes.
+
+This is now implemented in polymer defaults:
+
+- scalar matrix `active_subepisodes`: `10 -> 20`
+- structured matrix `active_subepisodes`: `10 -> 25`
+
+The reason for the longer structured window is empirical: the structured actor remained far from nominal for longer and did so in a larger action space.
+
+#### Step 4C: Larger BC Start Weight
+
+The original `lambda_bc_start = 0.1` was too small in practice. Over episodes 11-20, the effective mean BC weight was only about `0.0193`, which was not enough to keep the first live policy close to nominal.
+
+This is now implemented in polymer defaults:
+
+- scalar matrix `lambda_bc_start`: `0.1 -> 0.3`
+- structured matrix `lambda_bc_start`: `0.1 -> 0.6`
+
+This keeps the change simple: make the anchor stronger before adding a new target or a new safety-learning interaction.
+
+#### Step 4D: Structured-Matrix Stronger BC
+
+Structured mode needs extra care because it controls six raw action dimensions instead of three. The first BC-only run showed:
+
+- larger policy distance from nominal,
+- much higher early action saturation,
+- more persistent off-nominal `B` usage.
+
+So Step 4 now treats structured mode as a separate polymer handoff case rather than assuming the scalar BC strength is transferable. The current structured defaults use both a larger start weight and a longer active window.
+
+This is not yet full per-dimension normalization inside the loss. It is a stronger structured default schedule chosen to match the larger and more aggressive structured action surface.
+
+#### Step 4E: Per-Coordinate BC Weighting
+
+If the stronger structured schedule still leaves large first-live losses, the next tighter move should be coordinate-specific BC rather than one more global increase.
+
+The main idea is:
+
+- keep stronger BC on `B` directions during handoff,
+- allow lighter BC on less dangerous `A` directions,
+- optionally weight the most sensitive structured coordinates more heavily.
+
+This should be the first refinement after the current stronger-default rerun if structured mode is still the weak case.
+
+#### Step 4F: Executed-Action BC
+
+Executed-action BC is not the first fix for the current polymer BC-only run because, in that run, the plant saw the same action the policy requested. But it is the important next Step 4 extension once a safety layer is back in the loop.
+
+Executed-action BC means:
+
+- if clipping, fallback, or projection changes the action,
+- then train the actor toward the final executed action rather than only the nominal anchor.
+
+That is the right next transfer step for distillation after polymer validates the stronger nominal-only handoff.
+
+#### Step 4G: BC Plus Guarded Execution
+
+The last Step 4 option is to put the safety layers back only after the actor is already behaving better under the stronger nominal anchor.
+
+That means:
+
+- rerun polymer with the stronger Step 4B-4D defaults first,
+- verify that the first live trough and the policy-to-nominal distance improve materially,
+- then reintroduce guarded execution such as release caps or fallback as a second-stage test.
+
+This ordering matters. If guarded execution is restored too early, it becomes hard to tell whether a better result came from a better actor or from a stronger external clamp.
 
 ### Why This Helps Distillation
 

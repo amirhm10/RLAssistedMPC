@@ -90,6 +90,8 @@ def _copy_behavioral_cloning_defaults(
     lambda_bc_start=0.1,
     lambda_bc_end=0.0,
     active_subepisodes=10,
+    coordinate_weights=None,
+    label_weight_overrides=None,
 ):
     return {
         "enabled": bool(enabled),
@@ -100,6 +102,8 @@ def _copy_behavioral_cloning_defaults(
         "active_subepisodes": int(active_subepisodes),
         "start_after_warm_start": True,
         "log_diagnostics": True,
+        "coordinate_weights": None if coordinate_weights is None else np.asarray(coordinate_weights, float).copy(),
+        "label_weight_overrides": {} if label_weight_overrides is None else dict(label_weight_overrides),
     }
 
 
@@ -580,10 +584,21 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
     "post_warm_start_actor_freeze_subepisodes": 0,
     # Step 4 polymer structured default: stronger than scalar because the action
     # space is larger and the first BC-only handoff stayed much farther from nominal.
+    # Step 4E now splits the nominal anchor by coordinate instead of applying one
+    # uniform structured penalty: keep moderate A-side pull, but emphasize both B
+    # columns during handoff.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
         enabled=True,
         lambda_bc_start=0.6,
         active_subepisodes=25,
+        label_weight_overrides={
+            "A_block_1": 1.25,
+            "A_block_2": 1.0,
+            "A_block_3": 1.0,
+            "A_off": 1.25,
+            "B_col_1": 2.5,
+            "B_col_2": 2.5,
+        },
     ),
     "controller": {
         "predict_h": 9,

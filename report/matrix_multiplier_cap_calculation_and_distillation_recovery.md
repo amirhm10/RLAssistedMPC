@@ -35,7 +35,7 @@ This report is now an ongoing working document. The current implementation seque
 | Step 4D: structured-specific stronger BC | Polymer structured matrix | Implemented and reviewed from strengthened reruns | Structured-only stronger BC schedule | Replace global strengthening with per-coordinate or A/B-split BC |
 | Step 4E: per-coordinate BC weighting | Polymer first, then distillation | Implemented and reviewed from latest structured rerun | Coordinate-specific nominal BC, especially on `B` directions | Keep as the structured BC baseline and move next to guarded execution |
 | Step 4F: executed-action BC | Distillation priority after polymer validation | Proposed | Clone the actually executed action when a safety layer intervenes | Add when Step 2 or fallback is reintroduced |
-| Step 4G: BC plus guarded execution | Polymer first, then distillation | Proposed next after weighted structured success | Reintroduce release caps or fallback only after the actor stays closer to nominal | Test whether the remaining early trough can be reduced without losing the new BC gains |
+| Step 4G: BC plus guarded execution | Polymer first, distillation disabled by default | Implemented in polymer defaults; report math and rationale added here | Reintroduce a light Step 2 release guard on top of the validated Step 4 BC baselines | Run fresh polymer reruns and inspect whether the remaining early trough shrinks without losing BC gains |
 | Step 5: release stabilization | Distillation priority | Reserved | BC plus release-ramp or actor-freeze hybrid study | Use if degradation is mainly policy-release driven |
 | Step 6: closed-loop robustness scan | Distillation priority | Reserved | Short rollout grid over candidate caps and disturbances | Use before trusting distillation caps |
 
@@ -1345,6 +1345,72 @@ That means:
 - then reintroduce guarded execution such as release caps or fallback as a second-stage test.
 
 This ordering matters. If guarded execution is restored too early, it becomes hard to tell whether a better result came from a better actor or from a stronger external clamp.
+
+#### 2026-04-28 Step 4G Implementation: BC Plus Light Release Guard
+
+Step 4G is now implemented as the **default polymer handoff policy** for both scalar and structured matrix supervisors. It does not add a new runtime subsystem. Instead, it combines:
+
+- the existing Step 4 nominal-anchor behavioral cloning,
+- the existing Step 2 release-protected advisory-cap execution guard,
+- a short hidden post-warm-start freeze,
+- and no Step 3 fallback.
+
+So the Step 4G phase sequence is:
+
+1. warm start;
+2. short hidden freeze;
+3. protected release window under diagnostic advisory bounds;
+4. log-space authority ramp back to the wide training bounds;
+5. full authority.
+
+The training loss itself is unchanged. The actor still learns under the nominal-only BC objective:
+
+$$ \mathcal{L}_{\mathrm{actor}}^{\mathrm{TD3}} = -\mathbb{E}[Q_1(s,\pi(s))] + \lambda_{\mathrm{BC}} \, \mathbb{E}[\|\pi(s)-a_{\mathrm{nom}}\|_2^2]. $$
+
+$$ \mathcal{L}_{\mathrm{actor}}^{\mathrm{SAC}} = \mathbb{E}[\alpha \log \pi(a|s) - Q_1(s,a)] + \lambda_{\mathrm{BC}} \, \mathbb{E}[\|\mu_\pi(s)-a_{\mathrm{nom}}\|_2^2]. $$
+
+What changes in Step 4G is the **executed** action path. The policy still requests a multiplier action in the wide raw action space, which is mapped to candidate multipliers:
+
+$$ \theta_{\mathrm{cand}} = f_{\mathrm{map}}(a_{\mathrm{raw}}^{\pi}; \theta_{\mathrm{low}}^{\mathrm{wide}}, \theta_{\mathrm{high}}^{\mathrm{wide}}). $$
+
+During the guarded release phases, Step 2 clips the candidate multipliers to the effective advisory bounds:
+
+$$ \theta_{\mathrm{exec}} = \mathrm{clip}\!\left(\theta_{\mathrm{cand}}, \theta_{\mathrm{low}}^{\mathrm{eff}}(k), \theta_{\mathrm{high}}^{\mathrm{eff}}(k)\right). $$
+
+The runner then maps the executed multipliers back to the original wide raw-action coordinates before solving the assisted MPC:
+
+$$ a_{\mathrm{raw}}^{\mathrm{exec}} = f_{\mathrm{raw}}(\theta_{\mathrm{exec}}; \theta_{\mathrm{low}}^{\mathrm{wide}}, \theta_{\mathrm{high}}^{\mathrm{wide}}). $$
+
+So Step 4G still trains the actor toward the nominal anchor, but it executes a guarded version of the policy request while the first live authority is being released.
+
+This implementation also reuses Step 1 in a narrow way. The offline diagnostic is **not** being reintroduced as a training method. It is turned back on only to supply the advisory bounds needed by Step 2 in the current notebook path.
+
+The implemented polymer defaults are:
+
+| Method | Hidden freeze | BC baseline | Step 2 protected subepisodes | Step 2 ramp subepisodes | Step 3 |
+|---|---:|---|---:|---:|---|
+| Scalar matrix | `2 / 2` | `lambda_bc_start = 0.3`, `active_subepisodes = 20` | `8` | `12` | Off |
+| Structured matrix | `3 / 3` | weighted Step 4E, `lambda_bc_start = 0.6`, `active_subepisodes = 25` | `10` | `15` | Off |
+
+Distillation keeps the same config surface but remains **off by default**:
+
+- `behavioral_cloning.enabled = False` for distillation matrix and structured matrix;
+- no polymer Step 4G default transfer is activated there;
+- existing distillation Step 2 behavior remains unchanged where it was already active.
+
+The expected Step 4G diagnostics after fresh polymer reruns are:
+
+- reward windows, especially `11-20` and `21-40`;
+- BC weight and actor-to-nominal distance;
+- Step 2 clip fraction and policy-to-executed distance;
+- release phase occupancy through protected and ramp windows;
+- zero acceptance-fallback activity throughout the run.
+
+So the new default interpretation is:
+
+- **polymer scalar**: stronger Step 4 BC plus a light release guard;
+- **polymer structured**: weighted Step 4E BC plus a slightly stricter light release guard;
+- **distillation**: keep Step 4G disabled until polymer reruns validate the combined handoff.
 
 #### 2026-04-28 Step 4B-4D: Stronger BC Polymer Rerun
 

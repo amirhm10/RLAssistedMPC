@@ -481,9 +481,10 @@ POLYMER_MATRIX_DEFAULTS = {
         ("sac", "disturb"): {"result_prefix": "sac_multipliers_disturb", "compare_prefix": "disturb_compare_sac_multipliers", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
     "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
-    "post_warm_start_action_freeze_subepisodes": 0,
-    "post_warm_start_actor_freeze_subepisodes": 0,
-    # Step 4 polymer scalar matrix default: stronger and longer nominal-anchor BC.
+    "post_warm_start_action_freeze_subepisodes": 2,
+    "post_warm_start_actor_freeze_subepisodes": 2,
+    # Step 4G polymer scalar matrix default: keep the stronger nominal-anchor BC,
+    # but restore a short hidden freeze and a light Step 2 release guard.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
         enabled=True,
         lambda_bc_start=0.3,
@@ -498,8 +499,10 @@ POLYMER_MATRIX_DEFAULTS = {
         "R2_penalty": 1.0,
         "low_coef": _polymer_matrix_multiplier_bounds()[0],
         "high_coef": _polymer_matrix_multiplier_bounds()[1],
-        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
-        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=False),
+        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
+        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(
+            enabled=True,
+        ),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
@@ -580,13 +583,10 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
         ("sac", "disturb"): {"result_prefix": "sac_structured_matrices_disturb", "compare_prefix": "disturb_compare_sac_structured_matrices", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
     "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
-    "post_warm_start_action_freeze_subepisodes": 0,
-    "post_warm_start_actor_freeze_subepisodes": 0,
-    # Step 4 polymer structured default: stronger than scalar because the action
-    # space is larger and the first BC-only handoff stayed much farther from nominal.
-    # Step 4E now splits the nominal anchor by coordinate instead of applying one
-    # uniform structured penalty: keep moderate A-side pull, but emphasize both B
-    # columns during handoff.
+    "post_warm_start_action_freeze_subepisodes": 3,
+    "post_warm_start_actor_freeze_subepisodes": 3,
+    # Step 4G polymer structured default: keep the Step 4E weighted nominal anchor,
+    # but restore a short hidden freeze and a slightly stricter light Step 2 guard.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
         enabled=True,
         lambda_bc_start=0.6,
@@ -615,8 +615,10 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
         "a_high_override": min(POLYMER_DEFAULT_MULTIPLIER_HIGH, POLYMER_MATRIX_ALPHA_UPPER_CAP),  # Cap A-side widening at the analyzed alpha limit.
         "b_low_override": POLYMER_DEFAULT_MULTIPLIER_LOW,  # Scalar or array override for B-side structured bounds.
         "b_high_override": POLYMER_DEFAULT_MULTIPLIER_HIGH,  # Allow wider B-side uncertainty than A-side.
-        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=False),
-        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=False),
+        "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
+        "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(
+            enabled=True,
+        ),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition, e.g. [[0, 1], [2, 3], [4, 5, 6]].
@@ -634,6 +636,12 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
     "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
 }
+
+POLYMER_MATRIX_DEFAULTS["controller"]["release_protected_advisory_caps"]["protected_live_subepisodes"] = 8
+POLYMER_MATRIX_DEFAULTS["controller"]["release_protected_advisory_caps"]["authority_ramp_subepisodes"] = 12
+
+POLYMER_STRUCTURED_MATRIX_DEFAULTS["controller"]["release_protected_advisory_caps"]["protected_live_subepisodes"] = 10
+POLYMER_STRUCTURED_MATRIX_DEFAULTS["controller"]["release_protected_advisory_caps"]["authority_ramp_subepisodes"] = 15
 
 POLYMER_REIDENTIFICATION_DEFAULTS = {
     "agent_kind": "td3",

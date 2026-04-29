@@ -132,6 +132,21 @@ Separate transient performance from near-setpoint performance.
 
 If the controller improves tracking but receives a worse reward, investigate whether the reward is misaligned with the evaluation objective.
 
+### 4A. Support analysis with figures
+
+Research analysis should normally be supported by created or audited figures, not text alone.
+
+When raw data or saved bundles are available:
+
+- create at least one figure for each main claim
+- prefer a small set of high-signal figures over many weak ones
+- include learning-trend plots when reward evolution matters
+- include tracking or tail-behavior plots when offset or settling claims matter
+- include diagnostic plots when a mechanism is claimed, for example action projection, saturation, replay bias, or authority gating
+- save new figures under `report/figures/` using a clear dated folder name
+- reference the exact figure files in the report and in the final response
+- if a useful figure cannot be generated, say what data are missing and what should be saved next time
+
 ### 5. Audit figures
 
 For every figure used in a report or analysis, check:
@@ -200,6 +215,8 @@ Clearly distinguish:
 - What should be tested next
 
 Do not make the report sound like the method is proven if only simulation evidence is available.
+
+When the task is a report update or result review, include the strongest available figures directly in the report unless the user explicitly asks for a text-only note.
 
 ### 8. Propose next experiments
 

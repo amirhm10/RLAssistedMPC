@@ -525,9 +525,9 @@ POLYMER_MATRIX_DEFAULTS = {
     "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
     "post_warm_start_action_freeze_subepisodes": 2,
     "post_warm_start_actor_freeze_subepisodes": 2,
-    # Step 3C polymer scalar matrix default: keep Step 2 active, log dual-cost
-    # shadow diagnostics, and disable BC/usefulness gating so execution remains
-    # a pure release-guarded shadow study.
+    # Step 3D polymer scalar matrix default: keep Step 2 active, disable BC,
+    # and enable the usefulness gate so both polymer matrix families share the
+    # same usefulness-gated execution path.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
         enabled=False,
         lambda_bc_start=0.3,
@@ -547,8 +547,8 @@ POLYMER_MATRIX_DEFAULTS = {
             enabled=True,
         ),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
-        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=True),
-        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=False),
+        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
+        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=True),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,

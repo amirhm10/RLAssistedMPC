@@ -451,7 +451,14 @@ DISTILLATION_MATRIX_DEFAULTS = {
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
-    "behavioral_cloning": _copy_behavioral_cloning_defaults(enabled=False),
+    # Distillation scalar matrix default: restore the wide A/B search,
+    # keep Step 1 and Step 2 active, and enable Step 4G BC while
+    # leaving Step 3 as shadow diagnostics only.
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(
+        enabled=True,
+        lambda_bc_start=0.3,
+        active_subepisodes=20,
+    ),
     "run_profiles": deepcopy(DISTILLATION_MATRIX_RUN_PROFILES),
     "post_warm_start_action_freeze_subepisodes": 5,
     "post_warm_start_actor_freeze_subepisodes": 5,
@@ -471,7 +478,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
         "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
-        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
+        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=True),
         "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,

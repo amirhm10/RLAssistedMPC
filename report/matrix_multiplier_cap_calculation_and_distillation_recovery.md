@@ -1,18 +1,20 @@
 # Matrix Multiplier Cap Calculation And Distillation Recovery
 
 Date: 2026-04-24
-Updated: 2026-04-28
+Updated: 2026-04-29
 
-This report rewrites the cap-selection logic for the matrix and structured-matrix supervisors. It also explains why the polymer cap now works while the distillation cap still does not give better-than-MPC behavior, even after tightening the `A` multiplier to `[0.99, 1.01]`, keeping `B` wide, and reducing TD3 exploration and target policy smoothing noise to `0.01`.
+This report rewrites the cap-selection logic for the matrix and structured-matrix supervisors. It also explains why the polymer cap now works while the distillation cap still does not give better-than-MPC behavior, first in the earlier `B`-only rerun with `A` tightened to `[0.99, 1.01]`, and now also in the latest mirror rerun that keeps `B` pinned at `1.0` while leaving `A` wide.
 
 The earlier 2026-04-24 distillation result was initially treated as a user-provided observation. The 2026-04-25 saved result bundles are now available and are analyzed later in this report:
 
 - `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260425_082831/input_data.pkl`
 - `Distillation/Results/distillation_compare_matrix_td3_disturb_fluctuation_mismatch/20260425_082842/input_data.pkl`
+- `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260429_033606/input_data.pkl`
+- `Distillation/Results/distillation_compare_matrix_td3_disturb_fluctuation_mismatch/20260429_033621/input_data.pkl`
 - `Distillation/Results/distillation_matrix_sac_disturb_fluctuation_standard_unified/20260415_104840/input_data.pkl`
 - `Distillation/Results/distillation_compare_matrix_sac_disturb_fluctuation_standard/20260415_104846/input_data.pkl`
 
-The updated conclusion is consistent with the current notebook and runner code. The distillation cap issue is now less about open-loop `A` stability and more about policy release, `B` authority, reward alignment, and lack of a safe-improvement acceptance layer.
+The updated conclusion is consistent with the current notebook and runner code. The distillation cap issue is now less about open-loop `A` stability and more about policy release, `B` authority, reward alignment, and lack of a safe-improvement acceptance layer. The new A-only versus B-only comparison sharpens that further: `B` is dangerous when released abruptly, but removing `B` entirely is also not a satisfactory solution.
 
 ## Ongoing Progress Scheme
 
@@ -2906,9 +2908,77 @@ The reward also uses relative bands and inside-band bonus logic from `utils/rewa
 
 <img src="./polymer_wide_range_matrix_structured/figures/wide_range_cross_system_reward_balance.png" alt="Cross-system reward balance" width="1200" style="max-width: 100%; height: auto;" />
 
+### 5. Mirror Test: A-Only Versus B-Only Authority
+
+The newest scalar distillation matrix run gives a much cleaner directional comparison than the earlier one-run diagnosis. The two relevant TD3 disturbance bundles are:
+
+- **B-only authority**: `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260425_082831/input_data.pkl`
+- **A-only authority**: `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260429_033606/input_data.pkl`
+
+Both runs share the same nominal MPC baseline:
+
+- `Distillation/Data/mpc_results_disturb_fluctuation.pickle`
+
+They also share the same warm-start and hidden-release schedule:
+
+- warm start: `10` subepisodes,
+- hidden post-warm-start action freeze: `5` subepisodes,
+- first live learned episode: **episode 16**.
+
+The authority split is the mirror image:
+
+| Run | `A` range | `B_col_1` range | `B_col_2` range |
+| --- | --- | --- | --- |
+| B-only | `[0.99, 1.01]` | `[0.75, 1.25]` | `[0.75, 1.25]` |
+| A-only | `[0.75, 1.1929]` | `[1.0, 1.0]` | `[1.0, 1.0]` |
+
+There is one important scientific caveat. The newer A-only run also enabled **Step 2 release-protected advisory caps**, while the older B-only run did **not**. So the first-live reward trough is not pure evidence about `A` versus `B`; it is partially confounded by guarded release.
+
+Even with that caveat, the comparison is still highly informative:
+
+| Readout | A-only | B-only | MPC baseline |
+| --- | ---: | ---: | ---: |
+| First live episode reward | `-217.16` | `-514.33` | `+18.11` |
+| Mean reward, episodes 16-200 | `-19.05` | `+5.36` | `+17.77` |
+| Mean reward, last 20 episodes | `-10.43` | `+16.19` | `+17.30` |
+| First positive post-live episode | `102` | `27` | n/a |
+| Post-live episodes beating MPC | `0 / 185` | `5 / 185` | n/a |
+| Last episode reward | `+1.54` | `+21.74` | `+16.08` |
+
+<img src="./figures/2026-04-29_distillation_matrix_A_only_vs_B_only/episode_reward_compare.png" alt="Episode reward comparison for the distillation A-only and B-only matrix runs" width="1200" style="max-width: 100%; height: auto;" />
+
+The executed multipliers confirm that the policies truly used the authority they were given, rather than simply staying near nominal:
+
+| Post-live executed multiplier statistic | A-only | B-only |
+| --- | --- | --- |
+| Mean multipliers | `A = 0.9728`, `B_1 = 1.0000`, `B_2 = 1.0000` | `A = 1.0001`, `B_1 = 1.0170`, `B_2 = 1.0126` |
+| Fraction with `|theta - 1| > 0.01` | `A = 88.7%`, `B_1 = 0.0%`, `B_2 = 0.0%` | `A = 0.01%`, `B_1 = 82.2%`, `B_2 = 67.7%` |
+| Range touched | `A in [0.7517, 1.1929]`, `B_1 = B_2 = 1.0` | `A in [0.99, 1.01]`, `B_1, B_2 in [0.75, 1.25]` |
+
+<img src="./figures/2026-04-29_distillation_matrix_A_only_vs_B_only/executed_multiplier_compare.png" alt="Executed multiplier traces for the distillation A-only and B-only matrix runs" width="1200" style="max-width: 100%; height: auto;" />
+
+So the mirror test changes the interpretation in a useful way:
+
+1. **Freezing `B` reduces the immediate release shock**, but does not produce a good long-run controller.
+2. **Allowing `B` is necessary for recovery**, because the B-only run becomes positive much earlier and nearly reaches MPC in the last 20 episodes.
+3. **Unprotected `B` is still too dangerous**, because the first live episode collapses badly and the run still underperforms MPC on mean post-live reward.
+
+That third point matters: the comparison does **not** say that `B` is bad and should be removed forever. It says the opposite. The useful authority in distillation appears to live largely on the `B` side, but that authority needs to be opened carefully rather than released all at once.
+
+The final-episode tracking numbers support the same conclusion:
+
+| Last-episode MAE | A-only | B-only | MPC baseline |
+| --- | ---: | ---: | ---: |
+| Output 1 | `0.0018` | `0.0004` | `0.0015` |
+| Output 2 | `0.2040` | `0.2071` | `0.1792` |
+
+<img src="./figures/2026-04-29_distillation_matrix_A_only_vs_B_only/final_episode_outputs_compare.png" alt="Final episode output comparison for the distillation A-only and B-only matrix runs" width="1200" style="max-width: 100%; height: auto;" />
+
+The B-only run wins on output 1 and on final reward, but both RL runs are still worse than MPC on output 2. That is consistent with the earlier reward-balance warning: the policy can partially recover the dominant output and still not outperform MPC in the weaker, more interaction-sensitive channel.
+
 ## Recommended Distillation Fix
 
-Do not keep narrowing `A`. Keep the current `A` default and add a protected effective-authority layer:
+Do not keep narrowing `A`, and do not interpret the A-only rerun as evidence that `B` should be frozen permanently. Keep the current conservative `A` default and add a protected effective-authority layer:
 
 $$
 \theta_t^{\mathrm{eff}} = 1 + \lambda_t(\theta_t^{\mathrm{raw}} - 1).

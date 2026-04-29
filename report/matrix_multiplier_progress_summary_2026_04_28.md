@@ -196,7 +196,48 @@ So the current logical explanation is:
 
 1. **Polymer** is closer to a handoff-limited problem. Its nominal model is nearer the unit circle, but its control directions are much less ill-conditioned. That is why BC plus guarded execution works well.
 2. **Distillation** is closer to a gain-direction and estimator-quality problem. Its nominal model is spectrally calmer, but its control directions are much more ill-conditioned, strongly coupled, and likely closer to non-minimum-phase limitations. That is why wide multiplier authority can be harmful even when `A` remains stable.
-3. The next distillation fix should therefore focus on **`B` authority and candidate usefulness**, not on making `A` even tighter and not on copying polymer Step 4G too early.
+3. The next distillation fix should therefore focus on **protected `B` authority and candidate usefulness**, not on making `A` even tighter and not on copying polymer Step 4G too early.
+
+### 2026-04-29 Distillation A-Only Versus B-Only Mirror Test
+
+The latest scalar distillation matrix run is now a clean directionality test:
+
+- **A-only run**: `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260429_033606/input_data.pkl`
+- **B-only run**: `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260425_082831/input_data.pkl`
+- common MPC baseline: `Distillation/Data/mpc_results_disturb_fluctuation.pickle`
+
+The two runs are mirror images in authority:
+
+- **A-only** used `A in [0.75, 1.1929]` and pinned both `B` columns at `1.0`;
+- **B-only** used `A in [0.99, 1.01]` and left both `B` columns wide over `[0.75, 1.25]`.
+
+The first live learned action starts at **episode 16** in both runs. The main caveat is that the newer A-only run also had **Step 2 release-protected advisory caps enabled**, while the older B-only run did not. So the first-live trough cannot be attributed to the `A/B` split alone.
+
+| Readout | A-only | B-only | MPC baseline |
+| --- | ---: | ---: | ---: |
+| First live episode reward | `-217.16` | `-514.33` | `+18.11` |
+| Mean reward, episodes 16-200 | `-19.05` | `+5.36` | `+17.77` |
+| Mean reward, last 20 episodes | `-10.43` | `+16.19` | `+17.30` |
+| First positive post-live episode | `102` | `27` | n/a |
+| Post-live episodes beating MPC | `0 / 185` | `5 / 185` | n/a |
+| Last-episode reward | `+1.54` | `+21.74` | `+16.08` |
+
+<img src="./figures/2026-04-29_distillation_matrix_A_only_vs_B_only/episode_reward_compare.png" alt="Distillation matrix reward comparison for A-only and B-only authority splits" width="1100" style="max-width: 100%; height: auto;" />
+
+The executed multipliers confirm that both policies actually used the authority they were given:
+
+- **A-only** kept `B_col_1 = B_col_2 = 1.0` and moved `A` away from `1.0` by more than `1%` on `88.7%` of post-live steps;
+- **B-only** kept `A` essentially pinned, but moved `B_col_1` and `B_col_2` away from `1.0` by more than `1%` on `82.2%` and `67.7%` of post-live steps.
+
+<img src="./figures/2026-04-29_distillation_matrix_A_only_vs_B_only/executed_multiplier_compare.png" alt="Executed multiplier traces for the distillation A-only and B-only matrix runs" width="1100" style="max-width: 100%; height: auto;" />
+
+The interpretation is more informative than either run by itself:
+
+1. Removing `B` authority helps the **immediate release shock**, but it does **not** give a good controller.
+2. The better long-run run is still the one allowed to move `B`. That means the useful corrective authority in the distillation column is not living only in `A`.
+3. But the B-only run is still not a satisfactory final answer, because its early collapse is severe and its output-2 behavior still lags MPC even when reward recovers.
+
+In the final episode, the B-only run gets the best output-1 MAE (`0.0004` versus `0.0018` for A-only and `0.0015` for MPC), but both RL runs are still worse than MPC on output 2 (`0.2071` for B-only, `0.2040` for A-only, `0.1792` for MPC). So the mirror test supports the earlier diagnosis: the next distillation scalar fix should be **guarded and usefulness-gated `B` authority**, not permanent `B = 1`, and not further tightening of `A`.
 
 ### Proposed Step 3D Direction
 
@@ -263,9 +304,9 @@ The paper search supports this interpretation:
 - **Polymer scalar matrix**: keep **Step 4G** as the working default.
 - **Polymer structured matrix**: keep **Step 4G** as the working default, but consider lightening the guard schedule if the target is maximum full-run reward rather than minimum early dip.
 - **Step 3C**: keep it **shadow-only** for now.
-- **Distillation scalar matrix**: keep Step 3D off for now; Step 2 remains the only active guard.
+- **Distillation scalar matrix**: keep Step 3D off for now; the next scalar rerun should be a **matched-release** comparison with guarded `B` authority rather than another tighter-`A` trial.
 - **Distillation structured matrix**: use **Step 3D (Step 2 + usefulness gate)** as the new default experiment surface, with Step 3B/3C/4 off.
 
 ## One-Line Takeaway
 
-The project has moved from "how do we cap multipliers" to "how do we decide when a clipped candidate is actually worth executing." Right now, the best answer in polymer is **BC plus guarded execution**, and the new distillation structured default is **Step 2 plus a `B`-aware usefulness gate**.
+The project has moved from "how do we cap multipliers" to "how do we decide when a clipped candidate is actually worth executing." Right now, the best answer in polymer is **BC plus guarded execution**, and the new distillation question is **how to open `B` only when the candidate is useful enough to justify it**.

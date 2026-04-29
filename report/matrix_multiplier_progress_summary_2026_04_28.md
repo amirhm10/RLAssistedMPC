@@ -91,6 +91,12 @@ That affects the shared distillation notebook defaults, but it does not change t
 
 Step 2 itself does **not** need a fresh RL run to exist. It only needs `advisory_bounds`, and in this repo those bounds come from the Step 1 offline multiplier diagnostic. The important implementation detail is that the diagnostic depends on the identified model, the multiplier bounds, and the prediction horizon. It does **not** depend on the observer poles. So the recent observer change to the `p19` poles does **not** by itself force a new cap calculation.
 
+Mathematically, the Step 1 diagnostic is a finite-horizon model diagnostic, not an observer diagnostic. Its core objects are the prediction-direction operators
+
+$$ G_N(A,B,C) = \begin{bmatrix} C B \\ C A B \\ \cdots \\ C A^{N-1} B \end{bmatrix}, \qquad H_N(A,B,C) = \sum_{k=0}^{N-1} C A^k B. $$
+
+The release cap logic depends on how multiplier changes distort `G_N` and `H_N`. The observer poles only affect the state estimate used online; they do not change the saved identified `A`, `B`, `C` matrices used by the offline cap diagnostic.
+
 Operationally, the current notebook path does **not** auto-load the last saved `suggested_bounds.csv`. It expects either:
 
 1. a fresh Step 1 diagnostic result in memory, or
@@ -120,6 +126,16 @@ That means a naive "just enable Step 2" transfer is probably not enough. Distill
 - tighter manual `B` upper bounds before the first transfer run, or
 - a revised Step 1 gain threshold that produces a more asymmetric upper-side cap on the sensitive `B` directions.
 
+<img src="./figures/distillation_transfer_20260428/distillation_transfer_caps_and_structured_sensitivity.png" alt="Current distillation scalar Step 2 suggested ranges and structured gain sensitivity ranking" width="1200" style="max-width: 100%; height: auto;" />
+
+The left panel shows the practical Step 2 problem directly: the current scalar suggestion barely shrinks the upper side. The right panel shows why the next tightening should focus on `A_block_2` and especially `B_col_2` in structured mode.
+
+In execution terms, Step 2 currently does
+
+$$ \theta_{B,\mathrm{exec},t} = \operatorname{clip}\!\left(\theta_{B,\mathrm{pol},t}, \ell_B, h_B\right), $$
+
+but the saved `h_B` is still too permissive. So Step 2 can be active and still fail to prevent harmful `B`-side authority.
+
 ### Why Step 4G Should Stay Off In Distillation
 
 Step 4G worked in polymer because polymer's main failure mode was the **handoff shock**: the first live actor release was too abrupt, and BC plus a light release guard fixed that directly. Distillation does not look like only a handoff problem. The saved distillation matrix runs show that the policy can recover after release and still fail to beat nominal MPC. That means the bottleneck is not just "first live actions are too aggressive." It is also "the learned model change is often not locally useful for the actual column."
@@ -146,6 +162,24 @@ Using the saved identified models in `Polymer/Data/system_dict.pickle` and `Dist
 
 That last pair matters a lot. In distillation, a multiplier error on the model does not only change "how much total action" MPC wants. It changes **which manipulated input MPC thinks is effective**, in a much more ill-conditioned setting.
 
+<img src="./figures/distillation_transfer_20260428/distillation_transfer_local_model_metrics.png" alt="Polymer versus distillation local model metrics for spectral radius, finite-horizon gain norm, conditioning, and input authority skew" width="1200" style="max-width: 100%; height: auto;" />
+
+<img src="./figures/distillation_transfer_20260428/distillation_transfer_horizon_sum_heatmaps.png" alt="Polymer and distillation horizon-sum gain matrices" width="1000" style="max-width: 100%; height: auto;" />
+
+The heatmaps make the split more concrete. Distillation has the larger and more skewed horizon-sum gain matrix, especially through the second manipulated input. That is the control-relevant reason why `B` errors are more dangerous there than in polymer.
+
+The scalar sensitivity comparison says the same thing from a different angle:
+
+<img src="./figures/distillation_transfer_20260428/distillation_transfer_scalar_sensitivity.png" alt="Scalar matrix sensitivity comparison between polymer and distillation" width="1000" style="max-width: 100%; height: auto;" />
+
+In polymer scalar mode, `alpha` clearly dominates the control-relevant drift, which is why `A`-focused protection and BC handoff worked so well. In distillation scalar mode, `alpha` and `B_col_2` are almost equally gain-sensitive. That is why "tighten `A` more" is no longer the right next move.
+
+One useful control-relevant drift measure is
+
+$$ r_G(\theta) = \frac{\left\| G_N(A_\theta, B_\theta, C) - G_N(A_0, B_0, C) \right\|_F}{\left\| G_N(A_0, B_0, C) \right\|_F}. $$
+
+This quantity is what the distillation sensitivity scans are really warning about. Even when `\rho(A_\theta) < 1`, the horizon gain geometry seen by MPC can still move enough to produce a harmful input allocation.
+
 This matches the literature well:
 
 - the high-purity distillation benchmark literature describes these columns as **ill-conditioned**, **strongly interactive**, and hard to identify in the low-gain direction under feedback;
@@ -163,6 +197,32 @@ So the current logical explanation is:
 1. **Polymer** is closer to a handoff-limited problem. Its nominal model is nearer the unit circle, but its control directions are much less ill-conditioned. That is why BC plus guarded execution works well.
 2. **Distillation** is closer to a gain-direction and estimator-quality problem. Its nominal model is spectrally calmer, but its control directions are much more ill-conditioned, strongly coupled, and likely closer to non-minimum-phase limitations. That is why wide multiplier authority can be harmful even when `A` remains stable.
 3. The next distillation fix should therefore focus on **`B` authority and candidate usefulness**, not on making `A` even tighter and not on copying polymer Step 4G too early.
+
+### Proposed Step 3D Direction
+
+This is where a more detailed Step 3 can help. The current Step 3C is good instrumentation, but the next distillation version should become a **phase-aware, `B`-aware usefulness gate** built on top of Step 2-clipped candidates.
+
+The current Step 3C quantities are
+
+$$ \Delta J_t^{\mathrm{nom}} = J_t^{\mathrm{nom}}(U_{\mathrm{cand}}) - J_t^{\mathrm{nom}}(U_{\mathrm{nom}}), $$
+
+$$ \Delta J_t^{\mathrm{cand}} = J_t^{\mathrm{cand}}(U_{\mathrm{nom}}) - J_t^{\mathrm{cand}}(U_{\mathrm{cand}}). $$
+
+For a distillation-focused Step 3D, the missing term is a direct `B`-authority penalty, for example
+
+$$ d_{B,t} = \left\| W_B \left(\theta_{B,\mathrm{exec},t} - \mathbf{1}\right) \right\|_2, $$
+
+where `W_B` weights the more dangerous `B` directions, especially the second one.
+
+A reasonable proposed acceptance rule is then
+
+$$ \Delta J_t^{\mathrm{nom}} \le \tau_t^{\mathrm{safe}}, \qquad \Delta J_t^{\mathrm{cand}} \ge \tau_t^{\mathrm{use}} + \lambda_B d_{B,t}, \qquad r_G(\theta_{\mathrm{exec},t}) \le \tau_G. $$
+
+This is **not implemented yet**. It is the next logical design for distillation because it directly couples:
+
+- nominal safety,
+- candidate usefulness,
+- and the dangerous `B`-direction authority that the current runs keep exposing.
 
 ### Paper-Backed Readout
 

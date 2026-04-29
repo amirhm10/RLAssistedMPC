@@ -22,9 +22,16 @@ It now also adds a distillation transfer note that answers:
 - what the current saved distillation caps actually do,
 - and why the distillation column is structurally harsher than polymer.
 
+This update now also adds:
+
+- control-relevant local-model comparison figures,
+- Step 2 cap and structured sensitivity figures for distillation,
+- and explicit equations for the finite-horizon gain view and the proposed Step 3D direction.
+
 ## Main conclusion captured in the summary
 
 - Step 3C is useful as shadow diagnostics, but not yet good enough as a hard gate.
 - Step 4G is the strongest current polymer default.
 - Distillation should move through Step 2 plus Step 3C shadow before any stronger transfer.
 - Distillation looks more ill-conditioned and input-direction-sensitive than polymer, not more spectrally fragile.
+- The next detailed distillation Step 3 should be a `B`-aware usefulness gate, not a copy of polymer Step 4G.

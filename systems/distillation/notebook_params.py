@@ -107,6 +107,35 @@ def _copy_mpc_dual_cost_shadow_defaults(enabled=False):
     }
 
 
+def _copy_mpc_usefulness_gate_defaults(enabled=False):
+    return {
+        "enabled": bool(enabled),
+        "relative_tolerance": 1e-4,
+        "absolute_tolerance": 1e-8,
+        "benefit_tolerance": 0.0,
+        "b_penalty_lambda": 0.02,
+        "b_label_weights": {"B_col_1": 1.0, "B_col_2": 2.0},
+        "safe_threshold_scales_by_phase": {
+            "protected": 0.75,
+            "ramp": 1.0,
+            "full": 1.25,
+        },
+        "benefit_threshold_offsets_by_phase": {
+            "protected": 0.0010,
+            "ramp": 0.0005,
+            "full": 0.0,
+        },
+        "gain_drift_thresholds_by_phase": {
+            "protected": 0.10,
+            "ramp": 0.15,
+            "full": 0.22,
+        },
+        "fallback_on_candidate_solve_failure": True,
+        "store_executed_action_in_replay": True,
+        "log_policy_candidate_and_executed": True,
+    }
+
+
 def _copy_behavioral_cloning_defaults(enabled=False):
     return {
         "enabled": bool(enabled),
@@ -432,6 +461,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
+        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 0.0,
@@ -531,6 +561,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
+        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=True),
         "prediction_fallback_on_solve_failure": True,  # Use the shared structured-runner fallback instead of stopping on an assisted MPC solve failure.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition.

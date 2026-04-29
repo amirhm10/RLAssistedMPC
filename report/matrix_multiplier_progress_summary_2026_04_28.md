@@ -9,7 +9,7 @@ The overall result so far is:
 - **polymer scalar matrix**: the strongest current method is **Step 4G**: behavioral cloning plus a light Step 2 release guard;
 - **polymer structured matrix**: the strongest pure-BC method is **Step 4E** weighted BC, while the strongest guarded handoff is also **Step 4G**, with the caveat that the current structured guard is slightly too conservative for maximum full-run reward;
 - **Step 3C** is **useful as shadow instrumentation**, but the current dual-cost terms are **not good enough to become a hard fallback gate**;
-- **distillation** should not receive the old Step 3B gate as-is. The current best transfer direction is still **Step 2 plus Step 3C shadow-only logging**, not Step 3B hard fallback and not immediate Step 4G transfer.
+- **distillation** should not receive the old Step 3B gate as-is. The current transfer direction is still **Step 2 plus a more detailed usefulness gate**, not Step 3B hard fallback and not immediate Step 4G transfer.
 
 So the short answer to the Step 3C question is:
 
@@ -79,7 +79,7 @@ Distillation should stay more conservative than polymer. The current evidence do
 1. keep Step 2-style guarded execution available,
 2. enable Step 3C in **shadow-only** mode,
 3. inspect whether the distillation shadow signals are actually informative before letting them control fallback,
-4. only then revisit whether a phase-aware Step 3D gate or an execution-aware BC extension is justified.
+4. use the new Step 3D gate only where the distillation-specific `B`-authority problem justifies it, and keep execution-aware BC as a later extension.
 
 The distillation observer default has now also been switched to the `p19`-style poles:
 
@@ -218,7 +218,23 @@ A reasonable proposed acceptance rule is then
 
 $$ \Delta J_t^{\mathrm{nom}} \le \tau_t^{\mathrm{safe}}, \qquad \Delta J_t^{\mathrm{cand}} \ge \tau_t^{\mathrm{use}} + \lambda_B d_{B,t}, \qquad r_G(\theta_{\mathrm{exec},t}) \le \tau_G. $$
 
-This is **not implemented yet**. It is the next logical design for distillation because it directly couples:
+This is now implemented in the shared matrix-family runners as **Step 3D hard gating**, with these default policy choices:
+
+- polymer scalar matrix: off
+- polymer structured matrix: off
+- distillation scalar matrix: off
+- distillation structured matrix: on
+
+The implemented v1 policy is intentionally narrow. It keeps:
+
+- Step 2 on,
+- Step 3B off,
+- Step 3C off,
+- Step 4 off,
+
+for the default distillation structured notebook path. That makes Step 3D the only new execution gate being studied there.
+
+The reason for that narrow enablement is the same one the prior analysis already established: distillation structured is the one surface where `B` authority, not BC handoff quality, is the dominant unresolved risk. So Step 3D directly couples:
 
 - nominal safety,
 - candidate usefulness,
@@ -247,8 +263,9 @@ The paper search supports this interpretation:
 - **Polymer scalar matrix**: keep **Step 4G** as the working default.
 - **Polymer structured matrix**: keep **Step 4G** as the working default, but consider lightening the guard schedule if the target is maximum full-run reward rather than minimum early dip.
 - **Step 3C**: keep it **shadow-only** for now.
-- **Distillation**: do not transfer Step 3B or Step 4G yet; use **Step 2 + Step 3C shadow** as the next serious transfer study, and tighten `B` authority before trusting the first release.
+- **Distillation scalar matrix**: keep Step 3D off for now; Step 2 remains the only active guard.
+- **Distillation structured matrix**: use **Step 3D (Step 2 + usefulness gate)** as the new default experiment surface, with Step 3B/3C/4 off.
 
 ## One-Line Takeaway
 
-The project has moved from "how do we cap multipliers" to "how do we hand off authority safely without destroying the late RL benefit." Right now, the best answer in polymer is **BC plus guarded execution**, and the best answer in distillation is still **instrument first, gate later**.
+The project has moved from "how do we cap multipliers" to "how do we decide when a clipped candidate is actually worth executing." Right now, the best answer in polymer is **BC plus guarded execution**, and the new distillation structured default is **Step 2 plus a `B`-aware usefulness gate**.

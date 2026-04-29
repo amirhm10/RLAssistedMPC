@@ -19,7 +19,11 @@ from utils.behavioral_cloning import (
 )
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
-from utils.mpc_acceptance_gate import run_mpc_acceptance_gate, run_mpc_dual_cost_shadow
+from utils.mpc_acceptance_gate import (
+    run_mpc_acceptance_gate,
+    run_mpc_dual_cost_shadow,
+    run_mpc_usefulness_gate,
+)
 from utils.multiplier_release_schedule import (
     build_release_authority_schedule,
     clip_multipliers_to_release_bounds,
@@ -306,6 +310,17 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     )
     dual_cost_shadow_cfg = dict(structured_cfg.get("mpc_dual_cost_shadow", {}))
     dual_cost_shadow_enabled = bool(dual_cost_shadow_cfg.get("enabled", False))
+    usefulness_gate_cfg = dict(structured_cfg.get("mpc_usefulness_gate", {}))
+    usefulness_gate_enabled = bool(usefulness_gate_cfg.get("enabled", False))
+    usefulness_gate_store_executed_action = bool(
+        usefulness_gate_cfg.get("store_executed_action_in_replay", release_store_executed_action)
+    )
+    if int(acceptance_enabled) + int(dual_cost_shadow_enabled) + int(usefulness_gate_enabled) > 1:
+        raise ValueError(
+            "At most one of mpc_acceptance_fallback, mpc_dual_cost_shadow, or mpc_usefulness_gate may be enabled."
+        )
+    if usefulness_gate_enabled and not bool(release_schedule.get("enabled", False)):
+        raise ValueError("mpc_usefulness_gate requires release_protected_advisory_caps to be enabled.")
     bc_schedule = build_behavioral_cloning_schedule(
         config=structured_cfg.get("behavioral_cloning", {}),
         warm_start_step=warm_start_step,
@@ -373,6 +388,25 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     dual_cost_shadow_safe_pass_log = np.zeros(nFE, dtype=int)
     dual_cost_shadow_benefit_pass_log = np.zeros(nFE, dtype=int)
     dual_cost_shadow_dual_pass_log = np.zeros(nFE, dtype=int)
+    usefulness_gate_active_log = np.zeros(nFE, dtype=int)
+    usefulness_gate_fallback_active_log = np.zeros(nFE, dtype=int)
+    usefulness_gate_reason_code_log = np.zeros(nFE, dtype=int)
+    usefulness_gate_candidate_cost_native_log = np.full(nFE, np.nan)
+    usefulness_gate_nominal_cost_log = np.full(nFE, np.nan)
+    usefulness_gate_candidate_cost_on_nominal_log = np.full(nFE, np.nan)
+    usefulness_gate_nominal_cost_on_candidate_log = np.full(nFE, np.nan)
+    usefulness_gate_nominal_penalty_log = np.full(nFE, np.nan)
+    usefulness_gate_safe_threshold_log = np.full(nFE, np.nan)
+    usefulness_gate_candidate_advantage_log = np.full(nFE, np.nan)
+    usefulness_gate_b_authority_distance_log = np.full(nFE, np.nan)
+    usefulness_gate_b_penalty_log = np.full(nFE, np.nan)
+    usefulness_gate_benefit_threshold_log = np.full(nFE, np.nan)
+    usefulness_gate_gain_drift_log = np.full(nFE, np.nan)
+    usefulness_gate_gain_drift_threshold_log = np.full(nFE, np.nan)
+    usefulness_gate_safe_pass_log = np.zeros(nFE, dtype=int)
+    usefulness_gate_benefit_pass_log = np.zeros(nFE, dtype=int)
+    usefulness_gate_gain_pass_log = np.zeros(nFE, dtype=int)
+    usefulness_gate_gate_pass_log = np.zeros(nFE, dtype=int)
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     innovation_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
@@ -546,6 +580,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         if (
             (not acceptance_enabled)
             and (not dual_cost_shadow_enabled)
+            and (not usefulness_gate_enabled)
             and not (np.all(np.isfinite(A_candidate)) and np.all(np.isfinite(B_candidate)))
         ):
             if not prediction_fallback_on_solve_failure:
@@ -559,6 +594,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
         shadow_trace = None
+        usefulness_trace = None
         if dual_cost_shadow_enabled:
             shadow_trace = run_mpc_dual_cost_shadow(
                 mpc_obj=mpc_obj,
@@ -568,6 +604,27 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
                 B_candidate=B_candidate,
                 A_nominal=A_base,
                 B_nominal=B_base,
+                y_sp=y_sp[i, :],
+                u_prev_dev=scaled_current_input_dev,
+                x0_model=xhatdhat[:, i],
+                initial_guess=ic_opt_step,
+                bounds=original_bounds,
+                step_idx=i,
+            )
+        if usefulness_gate_enabled:
+            usefulness_trace = run_mpc_usefulness_gate(
+                mpc_obj=mpc_obj,
+                solve_fn=_solve_assisted_prediction_step,
+                gate_cfg=usefulness_gate_cfg,
+                A_candidate=A_candidate,
+                B_candidate=B_candidate,
+                A_nominal=A_base,
+                B_nominal=B_base,
+                C_matrix=C_aug,
+                predict_h=structured_cfg["predict_h"],
+                theta_B_candidate=effective_mapped_for_update[a_dim:],
+                b_labels=action_labels[a_dim:],
+                phase_code=release_trace["phase_code"],
                 y_sp=y_sp[i, :],
                 u_prev_dev=scaled_current_input_dev,
                 x0_model=xhatdhat[:, i],
@@ -594,6 +651,26 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             )
             sol = acceptance_trace["sol"]
             if bool(acceptance_trace["accepted"]):
+                prediction_payload = update_payload
+                effective_action = effective_action_for_update.copy()
+                effective_mapped = effective_mapped_for_update.copy()
+            else:
+                prediction_payload = nominal_update_payload
+                effective_action = structured_baseline_raw.copy()
+                effective_mapped = np.ones(action_dim, dtype=float)
+        elif usefulness_gate_enabled:
+            acceptance_trace = {
+                "accepted": True,
+                "fallback_active": False,
+                "reason_code": 0,
+                "candidate_cost_on_nominal": np.nan,
+                "candidate_cost_native": np.nan,
+                "nominal_cost": np.nan,
+                "cost_margin": np.nan,
+                "threshold": np.nan,
+            }
+            sol = usefulness_trace["sol"]
+            if bool(usefulness_trace["executed_candidate"]):
                 prediction_payload = update_payload
                 effective_action = effective_action_for_update.copy()
                 effective_mapped = effective_mapped_for_update.copy()
@@ -723,6 +800,26 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             dual_cost_shadow_safe_pass_log[i] = int(bool(shadow_trace["safe_pass"]))
             dual_cost_shadow_benefit_pass_log[i] = int(bool(shadow_trace["benefit_pass"]))
             dual_cost_shadow_dual_pass_log[i] = int(bool(shadow_trace["dual_pass"]))
+        if usefulness_trace is not None:
+            usefulness_gate_active_log[i] = 1
+            usefulness_gate_fallback_active_log[i] = int(bool(usefulness_trace["fallback_active"]))
+            usefulness_gate_reason_code_log[i] = int(usefulness_trace["reason_code"])
+            usefulness_gate_candidate_cost_native_log[i] = float(usefulness_trace["candidate_cost_native"])
+            usefulness_gate_nominal_cost_log[i] = float(usefulness_trace["nominal_cost"])
+            usefulness_gate_candidate_cost_on_nominal_log[i] = float(usefulness_trace["candidate_cost_on_nominal"])
+            usefulness_gate_nominal_cost_on_candidate_log[i] = float(usefulness_trace["nominal_cost_on_candidate"])
+            usefulness_gate_nominal_penalty_log[i] = float(usefulness_trace["nominal_penalty"])
+            usefulness_gate_safe_threshold_log[i] = float(usefulness_trace["safe_threshold"])
+            usefulness_gate_candidate_advantage_log[i] = float(usefulness_trace["candidate_advantage"])
+            usefulness_gate_b_authority_distance_log[i] = float(usefulness_trace["b_authority_distance"])
+            usefulness_gate_b_penalty_log[i] = float(usefulness_trace["b_penalty"])
+            usefulness_gate_benefit_threshold_log[i] = float(usefulness_trace["benefit_threshold"])
+            usefulness_gate_gain_drift_log[i] = float(usefulness_trace["gain_drift"])
+            usefulness_gate_gain_drift_threshold_log[i] = float(usefulness_trace["gain_drift_threshold"])
+            usefulness_gate_safe_pass_log[i] = int(bool(usefulness_trace["safe_pass"]))
+            usefulness_gate_benefit_pass_log[i] = int(bool(usefulness_trace["benefit_pass"]))
+            usefulness_gate_gain_pass_log[i] = int(bool(usefulness_trace["gain_pass"]))
+            usefulness_gate_gate_pass_log[i] = int(bool(usefulness_trace["gate_pass"]))
 
         if use_shifted_mpc_warm_start:
             ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
@@ -795,7 +892,12 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         )
 
         if not test:
-            replay_action = effective_action if acceptance_store_executed_action else action
+            store_executed_action = (
+                usefulness_gate_store_executed_action
+                if usefulness_gate_enabled
+                else acceptance_store_executed_action
+            )
+            replay_action = effective_action if store_executed_action else action
             bc_context = resolve_behavioral_cloning_context(
                 bc_schedule,
                 step_idx=i,
@@ -984,6 +1086,28 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "mpc_dual_cost_shadow_safe_pass_log": dual_cost_shadow_safe_pass_log,
         "mpc_dual_cost_shadow_benefit_pass_log": dual_cost_shadow_benefit_pass_log,
         "mpc_dual_cost_shadow_dual_pass_log": dual_cost_shadow_dual_pass_log,
+        "mpc_usefulness_gate": usefulness_gate_cfg,
+        "mpc_usefulness_gate_enabled": usefulness_gate_enabled,
+        "mpc_usefulness_gate_store_executed_action_in_replay": usefulness_gate_store_executed_action,
+        "mpc_usefulness_gate_active_log": usefulness_gate_active_log,
+        "mpc_usefulness_gate_fallback_active_log": usefulness_gate_fallback_active_log,
+        "mpc_usefulness_gate_reason_code_log": usefulness_gate_reason_code_log,
+        "mpc_usefulness_gate_candidate_cost_native_log": usefulness_gate_candidate_cost_native_log,
+        "mpc_usefulness_gate_nominal_cost_log": usefulness_gate_nominal_cost_log,
+        "mpc_usefulness_gate_candidate_cost_on_nominal_log": usefulness_gate_candidate_cost_on_nominal_log,
+        "mpc_usefulness_gate_nominal_cost_on_candidate_log": usefulness_gate_nominal_cost_on_candidate_log,
+        "mpc_usefulness_gate_nominal_penalty_log": usefulness_gate_nominal_penalty_log,
+        "mpc_usefulness_gate_safe_threshold_log": usefulness_gate_safe_threshold_log,
+        "mpc_usefulness_gate_candidate_advantage_log": usefulness_gate_candidate_advantage_log,
+        "mpc_usefulness_gate_b_authority_distance_log": usefulness_gate_b_authority_distance_log,
+        "mpc_usefulness_gate_b_penalty_log": usefulness_gate_b_penalty_log,
+        "mpc_usefulness_gate_benefit_threshold_log": usefulness_gate_benefit_threshold_log,
+        "mpc_usefulness_gate_gain_drift_log": usefulness_gate_gain_drift_log,
+        "mpc_usefulness_gate_gain_drift_threshold_log": usefulness_gate_gain_drift_threshold_log,
+        "mpc_usefulness_gate_safe_pass_log": usefulness_gate_safe_pass_log,
+        "mpc_usefulness_gate_benefit_pass_log": usefulness_gate_benefit_pass_log,
+        "mpc_usefulness_gate_gain_pass_log": usefulness_gate_gain_pass_log,
+        "mpc_usefulness_gate_gate_pass_log": usefulness_gate_gate_pass_log,
         "theta_a_log": theta_a_log,
         "theta_b_log": theta_b_log,
         "effective_theta_a_log": effective_theta_a_log,

@@ -1183,6 +1183,54 @@ The next step should therefore be:
 - **distillation**: use the new Step 3C path as **shadow-only logging** on top of Step 2, because polymer now shows that the current dual-cost terms are informative but not execution-ready;
 - if a later Step 3D gate is still desired, make it **phase-aware** and give it a stronger usefulness signal than the current candidate-model self-advantage.
 
+#### 2026-04-28 Step 3D Implementation: Distillation Structured Usefulness Gate
+
+The repo now implements that next Step 3 direction as a dedicated **Step 3D usefulness gate** in the shared scalar and structured matrix runners. The gate is hard execution logic, not a shadow metric:
+
+- it evaluates the **Step 2-clipped** candidate,
+- it executes the clipped candidate only if the full Step 3D rule passes,
+- otherwise it executes **nominal MPC** for that step.
+
+The implemented rule is
+
+$$ \Delta J_t^{\mathrm{nom}} \le \tau_t^{\mathrm{safe}}, \qquad \Delta J_t^{\mathrm{cand}} \ge \tau_t^{\mathrm{use}} + \lambda_B d_{B,t}, \qquad r_G(\theta_t) \le \tau_t^{G}. $$
+
+with
+
+$$ \Delta J_t^{\mathrm{nom}} = J_t^{\mathrm{nom}}(U_{\mathrm{cand}}) - J_t^{\mathrm{nom}}(U_{\mathrm{nom}}), \qquad \Delta J_t^{\mathrm{cand}} = J_t^{\mathrm{cand}}(U_{\mathrm{nom}}) - J_t^{\mathrm{cand}}(U_{\mathrm{cand}}), $$
+
+$$ d_{B,t} = \left\| W_B \left(\theta_{B,t} - \mathbf{1}\right) \right\|_2, \qquad r_G(\theta_t) = \frac{\left\| G_N(A_{\theta_t}, B_{\theta_t}, C) - G_N(A_0, B_0, C) \right\|_F}{\left\| G_N(A_0, B_0, C) \right\|_F + 10^{-12}}. $$
+
+The thresholds are phase-aware:
+
+- tighter in the protected release window,
+- baseline during the release ramp,
+- looser after full authority.
+
+The default enablement policy is intentionally narrow:
+
+| Notebook family | Step 3D default |
+|---|---|
+| Polymer scalar matrix | off |
+| Polymer structured matrix | off |
+| Distillation scalar matrix | off |
+| Distillation structured matrix | on |
+
+That default matches the current cross-system reading:
+
+- **polymer** already has a better-tested answer in Step 4G;
+- **distillation scalar** is still too unconstrained on the `B` side to justify a hard usefulness gate as the default surface;
+- **distillation structured** is the one place where the unresolved problem is clearly `B` authority plus candidate usefulness, so Step 3D is now the default experiment path there.
+
+The policy around that default is:
+
+- Step 2 required,
+- Step 3B off,
+- Step 3C off,
+- Step 4 off.
+
+So the current repo stance is not that Step 3C suddenly became sufficient. It is that the repo now exposes the **next distillation-specific gate** that the Step 3C and distillation sensitivity results were pointing toward.
+
 #### 2026-04-27 Revisit: Step 2B Is Not Enough For Distillation
 
 This revisit separates two distillation matrix signals that should not be merged:

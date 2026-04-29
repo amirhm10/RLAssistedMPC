@@ -18,3 +18,4 @@ Updated the `research-result-loop` skill to require figure-supported analysis an
 - the skill now explicitly requires figure-backed research analysis
 - the residual/combined report now includes new polymer and distillation figures instead of relying only on tables and prose
 - the polymer combined section remains central and is now supported by a direct late-window trace figure
+- the residual report now also states an explicit rollout plan for executed-action anchoring and clarifies that it is a high-priority hypothesis for distillation degradation, not a guaranteed full fix

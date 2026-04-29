@@ -205,6 +205,25 @@ Success signal:
 - smaller late offset
 - no major loss in final-20 reward
 
+Expected scope:
+
+- This is the highest-priority mechanism fix because it directly targets the raw-versus-executed mismatch seen in both polymer and distillation.
+- It is likely to help with distillation degradation if projection mismatch is the dominant cause of the late reward collapse.
+- It is not guaranteed to fix the distillation problem by itself, because the latest SAC run still needs reward-window decomposition. Part of the degradation may come from reward-term imbalance, critic drift, or changing late-episode behavior rather than only from projection mismatch.
+
+Suggested rollout plan:
+
+1. Add the anchor behind a config flag and log the anchor weight, actor loss split, and raw-executed action gap.
+2. Rerun polymer residual only first, because it is the cleanest place to test whether the gap shrinks without multi-agent confounding.
+3. Rerun polymer combined second, using the same anchor setting, to see whether the late offset decreases while preserving the large reward gain.
+4. Rerun distillation TD3 next, because the April 25 TD3 run is the clearest degradation case with a large late offset.
+5. Rerun distillation SAC after that, together with the reward-window diagnostic breakdown, because the latest SAC run has a large reward drop but still ends with better final tail MAE than MPC.
+
+Decision rule:
+
+- If the anchor lowers the raw-executed gap and reduces reward drop or late offset, keep it and tune its strength.
+- If the gap improves but the distillation reward still degrades strongly, the next blocker is likely reward design or critic stability rather than projection mismatch alone.
+
 ### 2. Near-setpoint offset penalty for polymer combined
 
 Purpose: keep the combined reward gain while removing the small steady-state bias.
@@ -250,3 +269,4 @@ Success signal:
 - The nominal polymer reward comparison is weak because the saved nominal baseline file contains only two reward episodes.
 - The latest SAC distillation run has a very large reward drop but a better final tail MAE than fluctuation MPC, so the next diagnostic pass must be windowed by episode rather than judged only from the last episode.
 - The combined polymer runs still confound four agents under one reward. A targeted combined ablation with residual disabled would make the source of the late bias easier to isolate.
+- Executed-action anchoring is the best current hypothesis-level fix for the distillation degradation mechanism, but the report does not claim it is already proven to solve the full degradation problem.

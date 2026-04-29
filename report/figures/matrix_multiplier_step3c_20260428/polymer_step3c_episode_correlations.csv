@@ -1,0 +1,3 @@
+method,variant,reward_vs_safe_pass_corr,reward_vs_benefit_pass_corr,reward_vs_dual_pass_corr,reward_vs_nominal_penalty_corr,reward_vs_candidate_advantage_corr,safe_pass_full_mean,benefit_pass_full_mean,dual_pass_full_mean
+Scalar matrix,Step 3C shadow study,-0.41446793375770696,-0.17596932946882007,-0.41494984044558697,0.22904863710839277,0.22919234609642308,0.49463749999999995,0.9998312500000001,0.4944687499999999
+Structured matrix,Step 3C shadow study,-0.5254092455426048,-0.019516637977836357,-0.5254252309320221,0.276804172180966,0.2665133012082707,0.4583562499999999,0.99994375,0.4583

@@ -1,0 +1,21 @@
+method,variant,style,window,reward_delta_mean,win_rate
+Scalar matrix,Step 3C shadow study,step3c,11-20,-0.0658532067065992,0.6
+Scalar matrix,Step 3C shadow study,step3c,21-40,-0.07820408428438134,0.45
+Scalar matrix,Step 3C shadow study,step3c,41-100,0.341494882761251,0.8833333333333333
+Scalar matrix,Step 3C shadow study,step3c,101-200,0.650165345106511,1.0
+Scalar matrix,Step 3C shadow study,step3c,1-200,0.41641783136270627,0.86
+Scalar matrix,Step 4G default,step4g,11-20,-0.1943722156585098,0.3
+Scalar matrix,Step 4G default,step4g,21-40,-0.11761505291592862,0.35
+Scalar matrix,Step 4G default,step4g,41-100,0.4582766203191876,1.0
+Scalar matrix,Step 4G default,step4g,101-200,0.6801680919553991,1.0
+Scalar matrix,Step 4G default,step4g,1-200,0.4560866787437811,0.87
+Structured matrix,Step 3C shadow study,step3c,11-20,-0.09028914061118076,0.5
+Structured matrix,Step 3C shadow study,step3c,21-40,-0.17061819772273268,0.4
+Structured matrix,Step 3C shadow study,step3c,41-100,0.2259400007843396,0.7333333333333333
+Structured matrix,Step 3C shadow study,step3c,101-200,0.7302551418700266,1.0
+Structured matrix,Step 3C shadow study,step3c,1-200,0.41133305711232643,0.805
+Structured matrix,Step 4G default,step4g,11-20,-0.138440790912055,0.4
+Structured matrix,Step 4G default,step4g,21-40,-0.31430823361153565,0.3
+Structured matrix,Step 4G default,step4g,41-100,0.30615353512040167,0.8333333333333334
+Structured matrix,Step 4G default,step4g,101-200,0.7800554500617374,1.0
+Structured matrix,Step 4G default,step4g,1-200,0.4435206854050765,0.82

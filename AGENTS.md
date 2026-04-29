@@ -167,6 +167,41 @@ Legacy split notebooks were removed after the unified migration. Historical mism
 - If a task asks for "the training loop" or "current experiment logic," verify whether the notebook-local supervisor is the active implementation before editing module-level helpers.
 - For major repo changes, add a short markdown note under `change-reports/` and include it in a local git commit. For normal completed changes, make a local git commit without asking after verification. Stage only files relevant to the current task; never include unrelated dirty notebooks, generated artifacts, cache files, or timestamped experiment output unless the user explicitly asks. Do not push to `origin`/GitHub remote until the user asks for the end-of-day remote push.
 
+## Research analysis and report workflow
+
+For any task involving report writing, result analysis, mathematical derivation, literature connection, paper citation, figure creation, figure auditing, experiment comparison, next-step planning, or summaries of what worked and failed, automatically use the repo skill:
+
+`$research-result-loop`
+
+This applies even if the user does not explicitly mention the skill.
+
+Trigger examples include:
+
+- analyze RL/MPC results
+- fill or update the report
+- derive the math behind a method
+- connect results to papers
+- create figures
+- audit figures
+- propose the next experiment
+- summarize what worked and what failed
+- explain why performance improved or worsened
+- compare OF-MPC, RL1, RL2, residual RL, Lyapunov-filtered RL, or model-identification methods
+- review reward functions
+- review replay buffers
+- review tracking, settling, offset, input movement, or constraint violations
+
+When this workflow is triggered, behave like a researcher rather than only a coder. Inspect the relevant files, reconstruct the method mathematically, evaluate results quantitatively when possible, connect to verified literature, update report text carefully, and propose concrete next experiments.
+
+Important preservation rules:
+
+- Do not overwrite raw data or old figures.
+- Do not invent citations.
+- Do not make broad code changes unless asked.
+- Do not overstate simulation results.
+- Keep report edits targeted and scientifically defensible.
+- Always list files inspected and files changed.
+
 ## Environment Caveats
 
 - There is no repo-level `README`, `pyproject.toml`, `requirements.txt`, or environment file in the current tree.

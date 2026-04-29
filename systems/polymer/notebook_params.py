@@ -630,9 +630,8 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
     "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
     "post_warm_start_action_freeze_subepisodes": 3,
     "post_warm_start_actor_freeze_subepisodes": 3,
-    # Step 3C polymer structured default: keep Step 2 active, log dual-cost
-    # shadow diagnostics, and disable BC/usefulness gating so execution remains
-    # a pure release-guarded shadow study.
+    # Step 3D polymer structured default: keep Step 2 active, disable BC,
+    # and enable the usefulness gate to mirror the distillation structured path.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
         enabled=False,
         lambda_bc_start=0.6,
@@ -666,8 +665,8 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
             enabled=True,
         ),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
-        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=True),
-        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=False),
+        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
+        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=True),
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition, e.g. [[0, 1], [2, 3], [4, 5, 6]].
         "band_offsets": [0, 1, 2],  # Non-negative offsets used in band mode. Must include 0.

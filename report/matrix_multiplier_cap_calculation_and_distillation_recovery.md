@@ -27,7 +27,7 @@ This report is now an ongoing working document. The current implementation seque
 | Step 2 structured polymer result | Polymer structured matrix TD3 disturbance | Updated from first Step 2 run and `[256, 256]` follow-up | Same result summary, with per-coordinate structured multipliers | Keep Step 2; Step 3 should test whether bad candidates can be rejected |
 | Step 2 distillation transfer decision | Distillation scalar and structured notebooks | Keep disabled for now | Decision note: enable Step 2, modify it, or proceed to Step 3 first | Do not transfer until Step 3 polymer results are reviewed |
 | Step 3B: tolerant acceptance or fallback layer | Polymer first, then distillation | Polymer result reviewed; not sufficient | Acceptance/fallback logs, cost-margin distributions, tolerance replay curve | Do not increase tolerance blindly; move to Step 3C shadow/benefit diagnostics |
-| Step 3C: dual-cost benefit diagnostics | Polymer first, then distillation | Implemented as polymer shadow-study mode; distillation remains off by default | Nominal safety penalty plus candidate-model advantage logs | Run polymer study reruns before turning it into an execution gate |
+| Step 3C: dual-cost benefit diagnostics | Polymer first, then distillation | Polymer study reruns reviewed here; distillation remains off by default | Nominal safety penalty plus candidate-model advantage logs | Keep Step 3C shadow-only for now; do not turn the current terms into a hard gate |
 | Step 4: behavioral-cloning handoff | Polymer scalar and structured matrix first, distillation later | Implemented and reviewed here; stronger polymer reruns now analyzed | BC reward-window comparison, handoff diagnostics, and isolation checks | Tune scalar and structured BC before any distillation enablement |
 | Step 4A: BC-only isolation readout | Polymer scalar and structured matrix | Implemented and reviewed here | BC-only reward windows, nominal-distance logs, multiplier tables | Use as the reference before reintroducing safety interventions |
 | Step 4B: slower BC decay | Polymer scalar and structured matrix | Implemented and reviewed from strengthened reruns | Longer active BC window | Keep for scalar; structured still needs a more targeted anchor |
@@ -1088,6 +1088,100 @@ The next Step 3C evidence to inspect after fresh polymer reruns is:
 - `candidate_advantage` distributions;
 - `safe_pass`, `benefit_pass`, and `dual_pass` rates;
 - candidate-solve-failure fallbacks, which should remain rare.
+
+#### 2026-04-28 Step 3C Polymer Study Results
+
+This update uses the first polymer Step 3C shadow-study reruns:
+
+- Scalar matrix RL bundle: `Polymer/Results/td3_multipliers_disturb_step3c_shadow/20260428_191043/input_data.pkl`
+- Scalar matrix comparison bundle: `Polymer/Results/disturb_compare_td3_multipliers_step3c_shadow/20260428_191057/input_data.pkl`
+- Structured matrix RL bundle: `Polymer/Results/td3_structured_matrices_disturb_step3c_shadow/20260428_191143/input_data.pkl`
+- Structured matrix comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices_step3c_shadow/20260428_191201/input_data.pkl`
+
+These runs are exactly the intended Step 3C study configuration:
+
+| Method | Variant | BC enabled | Release guard enabled | Hard fallback enabled | Step 3C shadow enabled | Freeze | Release schedule | Fallback steps | Candidate solve-failure steps |
+|---|---|---|---|---|---|---|---|---:|---:|
+| Scalar matrix | Step 3C shadow study | `False` | `True` | `False` | `True` | `2 / 2` | `8 protected / 12 ramp` | 0 | 0 |
+| Structured matrix | Step 3C shadow study | `False` | `True` | `False` | `True` | `3 / 3` | `10 protected / 15 ramp` | 0 | 0 |
+
+So this is a clean readout of **Step 2 guarded execution plus Step 3C logging**, without BC and without nominal fallback interfering with the interpretation.
+
+<img src="./figures/matrix_multiplier_step3c_20260428/polymer_step3c_reward_delta_traces.png" alt="Polymer Step 3C reward-delta traces against the current Step 4G defaults" width="1200" style="max-width: 100%; height: auto;" />
+
+<img src="./figures/matrix_multiplier_step3c_20260428/polymer_step3c_reward_windows.png" alt="Polymer Step 3C reward-window comparison against the current Step 4G defaults" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Variant | 11-20 delta | 21-40 delta | 41-100 delta | 101-200 delta | 1-200 delta | 1-200 win rate |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Scalar matrix | Step 3C shadow study | -0.0659 | -0.0782 | +0.3415 | +0.6502 | +0.4164 | 86.0% |
+| Scalar matrix | Step 4G default | -0.1944 | -0.1176 | +0.4583 | +0.6802 | +0.4561 | 87.0% |
+| Structured matrix | Step 3C shadow study | -0.0903 | -0.1706 | +0.2259 | +0.7303 | +0.4113 | 80.5% |
+| Structured matrix | Step 4G default | -0.1384 | -0.3143 | +0.3062 | +0.7801 | +0.4435 | 82.0% |
+
+The main reward result is:
+
+- Step 3C study mode improves the **first two live windows** relative to Step 4G for both scalar and structured matrix.
+- But Step 4G still wins the **full run** for both methods.
+
+So the practical read is not that Step 3C beats Step 4G. It is that:
+
+- **Step 2 alone already gives a strong early guarded release path**;
+- **BC is what recovers the stronger `41-200` reward**;
+- Step 3C should therefore be judged as a **diagnostic layer**, not as a competing default handoff method.
+
+The new Step 3C shadow logs make that clearer.
+
+<img src="./figures/matrix_multiplier_step3c_20260428/polymer_step3c_shadow_window_diagnostics.png" alt="Polymer Step 3C shadow pass rates and dual-cost terms by window" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Window | Mean nominal penalty | Mean safe threshold | Mean candidate advantage | Safe pass rate | Benefit pass rate | Dual pass rate | Mean clip fraction |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Scalar matrix | 11-20 | 0.00250 | 0.00478 | 0.00250 | 0.5649 | 0.9999 | 0.5648 | 0.3362 |
+| Scalar matrix | 21-40 | 0.00482 | 0.00478 | 0.00482 | 0.4606 | 1.0000 | 0.4606 | 0.1708 |
+| Scalar matrix | 41-100 | 0.00520 | 0.00441 | 0.00519 | 0.5071 | 0.9999 | 0.5070 | 0.0000 |
+| Scalar matrix | 101-200 | 0.00476 | 0.00415 | 0.00476 | 0.4364 | 0.9997 | 0.4361 | 0.0000 |
+| Structured matrix | 11-20 | 0.00410 | 0.00480 | 0.00416 | 0.6093 | 0.9998 | 0.6090 | 0.1880 |
+| Structured matrix | 21-40 | 0.00846 | 0.00481 | 0.00849 | 0.5958 | 1.0000 | 0.5958 | 0.2144 |
+| Structured matrix | 41-100 | 0.01254 | 0.00449 | 0.01260 | 0.4906 | 0.9999 | 0.4906 | 0.0000 |
+| Structured matrix | 101-200 | 0.01208 | 0.00405 | 0.01209 | 0.3422 | 1.0000 | 0.3422 | 0.0000 |
+
+This is the key Step 3C finding:
+
+- the **benefit pass is saturated** at essentially `1.0` everywhere;
+- the **dual pass is therefore almost identical to the safe pass**;
+- and the safe test itself is mostly reading **closeness to nominal**, not usefulness on the guarded closed loop.
+
+The episode-level correlation confirms that.
+
+<img src="./figures/matrix_multiplier_step3c_20260428/polymer_step3c_reward_vs_safe_pass.png" alt="Polymer Step 3C episode reward delta versus safe-pass fraction" width="1200" style="max-width: 100%; height: auto;" />
+
+| Method | Reward vs safe-pass correlation | Reward vs dual-pass correlation | Reward vs nominal-penalty correlation | Reward vs candidate-advantage correlation |
+|---|---:|---:|---:|---:|
+| Scalar matrix | -0.4145 | -0.4149 | +0.2290 | +0.2292 |
+| Structured matrix | -0.5254 | -0.5254 | +0.2768 | +0.2665 |
+
+That sign matters. The later positive-reward episodes are **less likely** to satisfy the current safe test, not more likely. So the current Step 3C nominal-safety threshold would reject many of the episodes that actually give the best late guarded performance.
+
+The structured run makes that especially clear:
+
+- `11-20` and `21-40` have the highest safe-pass rates, but still negative reward deltas;
+- `101-200` has the best reward delta (`+0.7303`), but the lowest safe-pass rate (`0.3422`);
+- the candidate advantage is still almost always positive, so it does not separate good from bad candidates.
+
+So the current Step 3C conclusion is:
+
+| Finding | Conclusion |
+|---|---|
+| Step 3C study mode is competitive in the first live windows. | Step 2 guarded execution is already doing important early stabilizing work. |
+| Step 4G still wins full-run reward for both scalar and structured matrix. | Keep Step 4G as the polymer default. |
+| Benefit pass is almost always true. | The current candidate-advantage term is not useful as a discriminator. |
+| Safe-pass fraction is negatively correlated with reward delta. | The current nominal-safety threshold should **not** be turned into a hard fallback gate. |
+
+The next step should therefore be:
+
+- **polymer**: keep Step 4G as the working default for scalar and structured matrix;
+- **do not** convert the current Step 3C terms directly into Step 3D hard fallback;
+- **distillation**: use the new Step 3C path as **shadow-only logging** on top of Step 2, because polymer now shows that the current dual-cost terms are informative but not execution-ready;
+- if a later Step 3D gate is still desired, make it **phase-aware** and give it a stronger usefulness signal than the current candidate-model self-advantage.
 
 #### 2026-04-27 Revisit: Step 2B Is Not Enough For Distillation
 

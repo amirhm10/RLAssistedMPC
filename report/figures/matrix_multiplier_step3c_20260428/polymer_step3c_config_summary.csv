@@ -1,0 +1,5 @@
+method,variant,behavioral_cloning_enabled,release_guard_enabled,mpc_acceptance_enabled,mpc_dual_cost_shadow_enabled,action_freeze_subepisodes,actor_freeze_subepisodes,protected_live_subepisodes,authority_ramp_subepisodes,fallback_steps,candidate_solve_failure_steps
+Scalar matrix,Step 3C shadow study,False,True,False,True,2,2,8,12,0,0
+Scalar matrix,Step 4G default,True,True,False,False,2,2,8,12,0,0
+Structured matrix,Step 3C shadow study,False,True,False,True,3,3,10,15,0,0
+Structured matrix,Step 4G default,True,True,False,False,3,3,10,15,0,0

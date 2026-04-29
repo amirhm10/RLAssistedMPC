@@ -2163,29 +2163,84 @@ $$
 
 In block mode, diagonal state groups are scaled by their own `theta_A` values, off-block couplings are scaled by `theta_A_off`, and each input column of `B` is scaled by its corresponding `theta_B`.
 
-The current distillation config in `systems/distillation/config.py` sets:
+The current shared distillation scalar matrix surface now restores the wide multiplier search in `systems/distillation/notebook_params.py`:
 
 | Quantity | Current value |
 | --- | --- |
-| `DISTILLATION_MATRIX_ALPHA_UPPER_CAP` | `1.1929` |
-| `DISTILLATION_MATRIX_ALPHA_DEFAULT_LOW` | `0.99` |
-| `DISTILLATION_MATRIX_ALPHA_DEFAULT_HIGH` | `1.01` |
-| `DISTILLATION_DEFAULT_MULTIPLIER_LOW` | `0.75` |
-| `DISTILLATION_DEFAULT_MULTIPLIER_HIGH` | `1.25` |
+| `low_coef` | `[0.75, 0.75, 0.75]` |
+| `high_coef` | `[1.1929, 1.25, 1.25]` |
+| `post_warm_start_action_freeze_subepisodes` | `5` |
+| `post_warm_start_actor_freeze_subepisodes` | `5` |
 
-The current distillation TD3 matrix defaults in `systems/distillation/notebook_params.py` now also use:
+The current distillation TD3 matrix defaults also use:
 
 | TD3 field | Current value |
 | --- | ---: |
-| `target_policy_smoothing_noise_std` | 0.01 |
-| `std_start` | 0.01 |
-| `std_end` | 0.01 |
+| `exploration_mode` | `param_noise` |
 | `param_noise_std_start` | 0.01 |
 | `param_noise_std_end` | 0.01 |
-| `post_warm_start_action_freeze_subepisodes` | 5 |
-| `post_warm_start_actor_freeze_subepisodes` | 5 |
+| `param_noise_resample_interval` | 4 |
+| `target_policy_smoothing_noise_std` | 0.01 |
+| `noise_clip` | 0.2 |
+| `std_start` | 0.01 |
+| `std_end` | 0.01 |
 
-That means the newest degradation is happening even after the first round of conservative release changes. In the active distillation matrix notebook output, the first several subepisodes stay at nominal multipliers, then the first live learned region degrades sharply. The visible output shows:
+The method detail matters here. The current scalar distillation TD3 path does **not** use the `0.01` value as plain additive action noise. In `TD3Agent/agent.py`, the live behavior policy uses **parameter noise**:
+
+$$
+\tilde{\psi}_k = \psi_k + \epsilon_k, \qquad \epsilon_k \sim \mathcal{N}(0,\sigma_{\mathrm{pn}}^2 I),
+$$
+
+and the perturbed actor is reused for several environment steps:
+
+$$
+a_t = \pi_{\tilde{\psi}_k}(s_t), \qquad k \text{ resampled every 4 live steps.}
+$$
+
+The separate TD3 target-policy smoothing term used only inside the critic target is:
+
+$$
+a' = \operatorname{clip}\!\left(\pi_{\bar{\psi}}(s') + \nu,\,-1,\,1\right), \qquad \nu \sim \operatorname{clip}\!\left(\mathcal{N}(0,\sigma_{\mathrm{targ}}^2 I),[-c,c]\right),
+$$
+
+with `sigma_targ = 0.01` and `c = 0.2`.
+
+So the notebook has two different `0.01` quantities:
+
+1. a **behavior-exploration parameter-noise scale** in network-parameter space,
+2. a **training-only target smoothing scale** in action space.
+
+Those should not be read as saying "the live action perturbation is only `0.01`." To first order,
+
+$$
+\Delta a_t \approx J_{\pi}(s_t)\,\epsilon_k,
+$$
+
+so the realized action perturbation depends on the actor Jacobian as well as the parameter-noise scale. In the saved representative distillation TD3 matrix runs, the induced action-space perturbation is much larger than `0.01`:
+
+| Representative run | Mean `|a_{pert} - a_{clean}|` | Median | 95th percentile |
+| --- | ---: | ---: | ---: |
+| A-only TD3, `20260429_033606` | `0.1120` | `0.0994` | `0.2547` |
+| B-only TD3, `20260425_082831` | `0.0945` | `0.0650` | `0.2713` |
+
+These two runs are not a clean controller comparison for exploration policy alone, because they also differ in authority split and release protection. But they are still useful **exploration diagnostics**, and they show the key point clearly: the effective action-space exploration remains order `10^{-1}`, not order `10^{-2}`.
+
+<img src="./figures/2026-04-29_distillation_td3_exploration_method/td3_param_noise_exploration_summary.png" alt="Distillation TD3 matrix exploration summary for rolling live action perturbation magnitude and mean median p95 statistics" width="1200" style="max-width: 100%; height: auto;" />
+
+There is also a logging caveat worth stating explicitly. The current `param_noise_scale_trace` records the scale only on **resample events**. Because the perturbed actor is then reused for the next few steps, zeros on the other steps do **not** mean the parameter perturbation disappeared. The correct live measure of behavioral exploration is `exploration_trace`, which logs the realized action-space deviation from the clean actor output.
+
+Methodologically, this is only half right for distillation scalar matrix:
+
+- using **parameter noise** rather than i.i.d. Gaussian action noise is defensible, because the multiplier action is a compact model-space parameterization and coherent multi-step perturbations are more meaningful than step-to-step jitter;
+- but keeping the same undifferentiated `0.01` parameter-noise schedule from other continuous families is probably **not** the right distillation default once `B` is wide, because it still produces substantial action-space movement and does not distinguish the more dangerous `B` directions from the safer `A` side.
+
+So the right conclusion is not "TD3 with parameter noise is wrong." The better conclusion is:
+
+1. **TD3 with coherent parameter-noise exploration is a reasonable base method** for model-multiplier search.
+2. **Distillation needs that exploration to be phase-aware and coordinate-aware**, especially on the `B` coordinates.
+3. The current wide distillation matrix notebook should therefore be read as a **guarded exploration experiment surface** rather than proof that the plain inherited TD3 exploration recipe is already appropriate.
+
+In the representative saved distillation matrix runs, the first several subepisodes stay at nominal multipliers, then the first live learned region degrades sharply. The visible output shows:
 
 | Subepisode | Avg reward | Mean `alpha` | Mean `delta` |
 | ---: | ---: | ---: | --- |
@@ -2879,9 +2934,9 @@ $$
 
 during the first live deployment. So the critic can still overvalue actions outside the narrow baseline-action support. This is exactly the failure mode discussed in TD3 and offline RL literature: value approximation error and out-of-distribution actions can lead the actor toward bad actions [Fujimoto2018] [FujimotoGu2021] [Kumar2020].
 
-### 2. Reducing Noise Reduces Variance, Not Bias
+### 2. Reducing The Nominal Noise Scale Reduces Variance, Not Bias
 
-Changing exploration and target policy smoothing noise to `0.01` makes the run less random, but it does not fix a biased actor objective or a wrong cost landscape. If the critic ranks a bad `B` correction too highly, small noise can still converge to that correction. It can also slow discovery of useful alternatives, which explains the user-observed pattern:
+Reducing the **parameter-noise scale** and the **target-policy smoothing noise** to `0.01` makes the TD3 run less random in configuration space, but it does not fix a biased actor objective or a wrong cost landscape. In the representative distillation matrix runs above, the realized action-space perturbation still has median magnitude `0.0650` to `0.0994` and p95 around `0.255` to `0.271`, so the behavior policy is not actually "almost deterministic" after this change. If the critic ranks a bad `B` correction too highly, lower nominal noise can still converge to that correction. It can also slow discovery of useful alternatives, which explains the user-observed pattern:
 
 - heavy degradation after release,
 - recovery only after enough online data accumulates,

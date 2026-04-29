@@ -81,15 +81,15 @@ Distillation should stay more conservative than polymer. The current evidence do
 3. inspect whether the distillation shadow signals are actually informative before letting them control fallback,
 4. use the new Step 3D gate only where the distillation-specific `B`-authority problem justifies it, and keep execution-aware BC as a later extension.
 
-The distillation observer default has now also been switched to the `p19`-style poles:
+The shared distillation observer default has now been restored to the old aggressive `p00` poles:
 
-`[0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50]`
+`[0.0115, 0.0320, 0.0350, 0.0410, 0.0419, 0.0748, 0.4104]`
 
 That affects the shared distillation notebook defaults, but it does not change the handoff conclusion above.
 
 ### Distillation Step 2: Run Needed Or Not?
 
-Step 2 itself does **not** need a fresh RL run to exist. It only needs `advisory_bounds`, and in this repo those bounds come from the Step 1 offline multiplier diagnostic. The important implementation detail is that the diagnostic depends on the identified model, the multiplier bounds, and the prediction horizon. It does **not** depend on the observer poles. So the recent observer change to the `p19` poles does **not** by itself force a new cap calculation.
+Step 2 itself does **not** need a fresh RL run to exist. It only needs `advisory_bounds`, and in this repo those bounds come from the Step 1 offline multiplier diagnostic. The important implementation detail is that the diagnostic depends on the identified model, the multiplier bounds, and the prediction horizon. It does **not** depend on the observer poles. So restoring the shared distillation default back to the old aggressive `p00` poles does **not** by itself force a new cap calculation.
 
 Mathematically, the Step 1 diagnostic is a finite-horizon model diagnostic, not an observer diagnostic. Its core objects are the prediction-direction operators
 
@@ -238,6 +238,23 @@ The interpretation is more informative than either run by itself:
 3. But the B-only run is still not a satisfactory final answer, because its early collapse is severe and its output-2 behavior still lags MPC even when reward recovers.
 
 In the final episode, the B-only run gets the best output-1 MAE (`0.0004` versus `0.0018` for A-only and `0.0015` for MPC), but both RL runs are still worse than MPC on output 2 (`0.2071` for B-only, `0.2040` for A-only, `0.1792` for MPC). So the mirror test supports the earlier diagnosis: the next distillation scalar fix should be **guarded and usefulness-gated `B` authority**, not permanent `B = 1`, and not further tightening of `A`.
+
+### TD3 Exploration Method In Distillation Matrix
+
+The current distillation scalar matrix TD3 path uses **parameter-noise exploration**, not plain additive Gaussian action noise. In `TD3Agent/agent.py`, the actor is copied into a perturbed actor, Gaussian parameter noise with nominal scale `0.01` is added, and that perturbed actor is reused for `4` live steps before being resampled again.
+
+That is a reasonable exploration method for the matrix family in principle, because the action is a compact model-space multiplier vector and coherent multi-step perturbations are more meaningful than one-step jitter. But the saved distillation runs show that the user-facing "`0.01` noise" description is misleading. The realized action-space exploration magnitude is much larger:
+
+- A-only TD3 run `20260429_033606`: mean `0.1120`, median `0.0994`, p95 `0.2547`
+- B-only TD3 run `20260425_082831`: mean `0.0945`, median `0.0650`, p95 `0.2713`
+
+<img src="./figures/2026-04-29_distillation_td3_exploration_method/td3_param_noise_exploration_summary.png" alt="Distillation TD3 matrix exploration summary showing rolling live exploration magnitude and mean median p95 statistics" width="1100" style="max-width: 100%; height: auto;" />
+
+So the method judgment should be split:
+
+1. **TD3 plus parameter noise is a defensible base method** for matrix exploration.
+2. **The current inherited distillation schedule is probably too blunt**, because it still induces large live action perturbations and does not distinguish the dangerous `B` directions from the safer `A` side.
+3. The right move is therefore **not** to abandon TD3. The right move is to keep TD3 but pair it with guarded release, Step 3 shadow diagnostics, and eventually a more `B`-aware exploration design.
 
 ### Proposed Step 3D Direction
 

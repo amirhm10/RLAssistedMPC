@@ -525,10 +525,11 @@ POLYMER_MATRIX_DEFAULTS = {
     "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
     "post_warm_start_action_freeze_subepisodes": 2,
     "post_warm_start_actor_freeze_subepisodes": 2,
-    # Step 4G polymer scalar matrix default: keep the stronger nominal-anchor BC,
-    # but restore a short hidden freeze and a light Step 2 release guard.
+    # Step 3C polymer scalar matrix default: keep Step 2 active, log dual-cost
+    # shadow diagnostics, and disable BC/usefulness gating so execution remains
+    # a pure release-guarded shadow study.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
-        enabled=True,
+        enabled=False,
         lambda_bc_start=0.3,
         active_subepisodes=20,
     ),
@@ -546,7 +547,7 @@ POLYMER_MATRIX_DEFAULTS = {
             enabled=True,
         ),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
-        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
+        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=True),
         "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
@@ -629,10 +630,11 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
     "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
     "post_warm_start_action_freeze_subepisodes": 3,
     "post_warm_start_actor_freeze_subepisodes": 3,
-    # Step 4G polymer structured default: keep the Step 4E weighted nominal anchor,
-    # but restore a short hidden freeze and a slightly stricter light Step 2 guard.
+    # Step 3C polymer structured default: keep Step 2 active, log dual-cost
+    # shadow diagnostics, and disable BC/usefulness gating so execution remains
+    # a pure release-guarded shadow study.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
-        enabled=True,
+        enabled=False,
         lambda_bc_start=0.6,
         active_subepisodes=25,
         label_weight_overrides={
@@ -664,7 +666,7 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
             enabled=True,
         ),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
-        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
+        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=True),
         "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=False),
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition, e.g. [[0, 1], [2, 3], [4, 5, 6]].

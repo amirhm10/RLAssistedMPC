@@ -23,7 +23,7 @@ DISTILLATION_RL_SETPOINTS_PHYS = np.array([[0.013, -23.0], [0.028, -21.0]], dtyp
 # Keep the combined study on the same supervisory targets as the other
 # distillation RL notebooks so warm-start MPC behavior is directly comparable.
 DISTILLATION_COMBINED_SETPOINTS_PHYS = DISTILLATION_RL_SETPOINTS_PHYS.copy()
-DISTILLATION_OBSERVER_POLES = np.array([0.032, 0.03501095, 0.04099389, 0.04190188, 0.07477281, 0.01153274, 0.41036367])
+DISTILLATION_OBSERVER_POLES = np.array([0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50], dtype=float)
 
 HORIZON_PREDICT_GRID = list(range(4, 15))
 HORIZON_CONTROL_GRID = list(range(2, 14))

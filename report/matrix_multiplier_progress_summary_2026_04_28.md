@@ -1,6 +1,6 @@
 # Matrix Multiplier Progress Summary (2026-04-28)
 
-This report is the short version of the matrix and structured-matrix handoff work. The long working document in `report/matrix_multiplier_cap_calculation_and_distillation_recovery.md` keeps the figures, derivations, and detailed run-by-run evidence. This summary keeps only the implementation sequence, the main result of each step, and the current conclusions.
+This report is the short version of the matrix and structured-matrix handoff work. The long working document in `report/matrix_multiplier_cap_calculation_and_distillation_recovery.md` keeps the figures, derivations, and detailed run-by-run evidence. This summary keeps only the implementation sequence, the main result of each step, the current conclusions, and the current distillation transfer logic.
 
 ## Executive Summary
 
@@ -13,7 +13,7 @@ The overall result so far is:
 
 So the short answer to the Step 3C question is:
 
-> **No, the current report does not say Step 3C “won’t work at all.” It says the current Step 3C formulation is useful as a diagnostic layer, but not good enough yet to become an execution gate.**
+> **No, the current report does not say Step 3C "won't work at all." It says the current Step 3C formulation is useful as a diagnostic layer, but not good enough yet to become an execution gate.**
 
 ## Step-by-Step Progress
 
@@ -27,7 +27,7 @@ Step 2 added guarded execution during early live release. The actor still traine
 
 ### Step 3B: Tolerant Acceptance / Fallback
 
-Step 3B tested whether a nominal-cost trust-region style acceptance layer could reject bad candidates while keeping useful authority. The mechanism worked mechanically: it no longer rejected almost everything like the stricter version, and live acceptance increased. But the control result was not good enough. The accepted candidates were often “close enough” to nominal under the nominal MPC objective while still not being useful on the nonlinear plant. The finding from Step 3B was clear: **nominal-cost closeness is a safety-style filter, not a performance filter**.
+Step 3B tested whether a nominal-cost trust-region style acceptance layer could reject bad candidates while keeping useful authority. The mechanism worked mechanically: it no longer rejected almost everything like the stricter version, and live acceptance increased. But the control result was not good enough. The accepted candidates were often "close enough" to nominal under the nominal MPC objective while still not being useful on the nonlinear plant. The finding from Step 3B was clear: **nominal-cost closeness is a safety-style filter, not a performance filter**.
 
 ### Step 3C: Shadow Dual-Cost Diagnostics
 
@@ -43,7 +43,7 @@ The next scalar BC changes increased the BC weight and extended the active BC wi
 
 ### Step 4D: Stronger Structured BC
 
-Applying the same “just make BC stronger” logic to structured mode was not enough. A larger global BC weight and a longer BC window improved the earliest release window, but it mainly moved the problem rather than solving it. The later `21-40` region became worse. This was the point where it became clear that structured mode did not just need “more BC.” It needed **better-shaped BC**.
+Applying the same "just make BC stronger" logic to structured mode was not enough. A larger global BC weight and a longer BC window improved the earliest release window, but it mainly moved the problem rather than solving it. The later `21-40` region became worse. This was the point where it became clear that structured mode did not just need "more BC." It needed **better-shaped BC**.
 
 ### Step 4E: Weighted Structured BC
 
@@ -70,7 +70,7 @@ Step 4G combined the validated BC baselines with a light Step 2 release guard. T
 
 ### What Step 3C currently means
 
-Step 3C should currently be read as a **measurement layer**, not as a control layer. It tells us how much nominal budget the candidate consumes and whether the candidate model internally prefers its own action over nominal. That is useful for diagnosis. But the polymer results show that those current quantities are not yet aligned with “this candidate should execute.” So Step 3C is valuable, but only as **shadow logging** right now.
+Step 3C should currently be read as a **measurement layer**, not as a control layer. It tells us how much nominal budget the candidate consumes and whether the candidate model internally prefers its own action over nominal. That is useful for diagnosis. But the polymer results show that those current quantities are not yet aligned with "this candidate should execute." So Step 3C is valuable, but only as **shadow logging** right now.
 
 ## Distillation Status
 
@@ -87,13 +87,108 @@ The distillation observer default has now also been switched to the `p19`-style 
 
 That affects the shared distillation notebook defaults, but it does not change the handoff conclusion above.
 
+### Distillation Step 2: Run Needed Or Not?
+
+Step 2 itself does **not** need a fresh RL run to exist. It only needs `advisory_bounds`, and in this repo those bounds come from the Step 1 offline multiplier diagnostic. The important implementation detail is that the diagnostic depends on the identified model, the multiplier bounds, and the prediction horizon. It does **not** depend on the observer poles. So the recent observer change to the `p19` poles does **not** by itself force a new cap calculation.
+
+Operationally, the current notebook path does **not** auto-load the last saved `suggested_bounds.csv`. It expects either:
+
+1. a fresh Step 1 diagnostic result in memory, or
+2. a manual `RELEASE_PROTECTED_ADVISORY_CAPS["advisory_bounds"]` override built from a saved diagnostic.
+
+So the correct answer is:
+
+- if `system_dict`, multiplier ranges, structured family, and `predict_h` are unchanged, Step 2 can be turned on from the already saved diagnostic outputs;
+- if those changed, rerun Step 1 first.
+
+The bigger issue is not whether Step 2 can be enabled. The bigger issue is whether the **current distillation caps are strong enough**.
+
+### What The Current Distillation Caps Actually Say
+
+The latest saved scalar distillation diagnostic does **not** produce a strong upper-side clamp on the harmful `B` authority. The saved advisory table is effectively:
+
+| Coordinate | Current range | Suggested range | Readout |
+| --- | --- | --- | --- |
+| `alpha` | `[0.75, 1.1929]` | `[0.7738, 1.1929]` | Mild lower-side tightening only |
+| `B_col_1` | `[0.75, 1.25]` | `[0.75, 1.25]` | No tightening |
+| `B_col_2` | `[0.75, 1.25]` | `[0.7753, 1.25]` | Mild lower-side tightening only |
+
+The latest structured distillation diagnostic says the most gain-sensitive coordinates are `A_block_2` and `B_col_2`, but its suggested bounds still leave the high side wide. So Step 2 is **mechanically available** for distillation right now, but the saved caps are still too weak to fully address the bad high-side authority that shows up in the harmful runs.
+
+That means a naive "just enable Step 2" transfer is probably not enough. Distillation likely needs either:
+
+- tighter manual `B` upper bounds before the first transfer run, or
+- a revised Step 1 gain threshold that produces a more asymmetric upper-side cap on the sensitive `B` directions.
+
+### Why Step 4G Should Stay Off In Distillation
+
+Step 4G worked in polymer because polymer's main failure mode was the **handoff shock**: the first live actor release was too abrupt, and BC plus a light release guard fixed that directly. Distillation does not look like only a handoff problem. The saved distillation matrix runs show that the policy can recover after release and still fail to beat nominal MPC. That means the bottleneck is not just "first live actions are too aggressive." It is also "the learned model change is often not locally useful for the actual column."
+
+So for distillation:
+
+- **Step 2** can reduce the worst early release damage;
+- **Step 3C shadow** can tell us whether the clipped candidate is even plausibly useful;
+- **Step 4G** should stay off until those two layers show that the distillation candidate models are informative enough to justify BC-guided transfer.
+
+### Why Distillation Reacts Worse Than Polymer
+
+The local model comparison changes the diagnosis in an important way. Distillation does **not** look more spectrally fragile than polymer. It looks more **ill-conditioned and direction-sensitive**.
+
+Using the saved identified models in `Polymer/Data/system_dict.pickle` and `Distillation/Data/system_dict.pickle`, the key finite-horizon quantities are:
+
+| Local model metric | Polymer | Distillation | Reading |
+| --- | ---: | ---: | --- |
+| `rho(A_phys)` | `0.9464` | `0.7746` | Distillation has **more** open-loop spectral margin, so pure `A` instability is not the main explanation |
+| `||G_N||_F` for the current MPC horizon | `0.2487` | `0.6026` | Distillation has larger finite-horizon input-output authority |
+| Horizon-sum gain condition number | `2.94` | `16.27` | Distillation is much more ill-conditioned in the control-relevant gain directions |
+| Horizon-sum RGA | moderate interaction | strongly non-diagonal with negative off-diagonals | Distillation input allocation is much more interaction-sensitive |
+| Absolute horizon-sum authority of input 2 | `0.9414` | `1.4110` | Distillation is more dominated by the second manipulated input |
+
+That last pair matters a lot. In distillation, a multiplier error on the model does not only change "how much total action" MPC wants. It changes **which manipulated input MPC thinks is effective**, in a much more ill-conditioned setting.
+
+This matches the literature well:
+
+- the high-purity distillation benchmark literature describes these columns as **ill-conditioned**, **strongly interactive**, and hard to identify in the low-gain direction under feedback;
+- the right-half-plane-zero literature shows that internal composition or tray-temperature specifications can introduce non-minimum-phase behavior or transmission-zero limitations;
+- the observer literature for ill-conditioned distillation warns that estimator design can become sensitive because the measurement and input effects are strongly collinear.
+
+That is also consistent with the local observer sweep:
+
+- the old aggressive observer `p00` remained the best nominal baseline;
+- the slower `p19` observer was usable but weaker;
+- slower observers such as `p20` and the earlier `p01` family degraded badly.
+
+So the current logical explanation is:
+
+1. **Polymer** is closer to a handoff-limited problem. Its nominal model is nearer the unit circle, but its control directions are much less ill-conditioned. That is why BC plus guarded execution works well.
+2. **Distillation** is closer to a gain-direction and estimator-quality problem. Its nominal model is spectrally calmer, but its control directions are much more ill-conditioned, strongly coupled, and likely closer to non-minimum-phase limitations. That is why wide multiplier authority can be harmful even when `A` remains stable.
+3. The next distillation fix should therefore focus on **`B` authority and candidate usefulness**, not on making `A` even tighter and not on copying polymer Step 4G too early.
+
+### Paper-Backed Readout
+
+The paper search supports this interpretation:
+
+- Skogestad's critical survey says distillation control is shaped by flow dynamics, identification difficulty from open-loop responses, estimator use from temperatures, and fundamental differences between internal and external flows.
+- The IFAC benchmark on high-purity distillation explicitly describes the plant as **ill-conditioned**, **strongly interactive**, and difficult to identify in the low-gain direction even though that direction matters under feedback control.
+- The IFAC paper on input multiplicity and right-half-plane zeros says that when at least one controlled specification is an internal composition or tray temperature, transmission-zero limitations may appear. That is directly relevant here because the controlled outputs are tray-24 composition and tray-85 temperature.
+- The estimator paper for ill-conditioned high-purity distillation reports strong collinearity in measurement and input effects, which fits the observer-pole sensitivity seen in the local sweep.
+- The learning-based MPC review supports the project-level conclusion that learned model changes need an explicit safety or uncertainty layer; plain policy improvement is not enough.
+
+## Distillation References
+
+- Sigurd Skogestad, *Dynamics and Control of Distillation Columns - A Critical Survey* (1997): https://doi.org/10.4173/mic.1997.3.1
+- *Identification for Control of High-Purity Distillation Columns - A Benchmark Problem* (IFAC, 1995): https://www.sciencedirect.com/science/article/abs/pii/S147466701747056X
+- *Input Multiplicity and Right Half Plane Zeros in Ideal Two-Product Distillation* (IFAC, 1995): https://www.sciencedirect.com/science/article/abs/pii/S1474667017470194
+- *Estimators for Ill-Conditioned Plants: High-Purity Distillation* (IFAC, 1992): https://www.sciencedirect.com/science/article/abs/pii/B9780080412672500425
+- Hewing, Wabersich, Menner, Zeilinger, *Learning-Based Model Predictive Control: Toward Safe Learning in Control* (2020): https://doi.org/10.1146/annurev-control-090419-075625
+
 ## Current Recommendation
 
 - **Polymer scalar matrix**: keep **Step 4G** as the working default.
 - **Polymer structured matrix**: keep **Step 4G** as the working default, but consider lightening the guard schedule if the target is maximum full-run reward rather than minimum early dip.
 - **Step 3C**: keep it **shadow-only** for now.
-- **Distillation**: do not transfer Step 3B; use **Step 2 + Step 3C shadow** as the next serious transfer study.
+- **Distillation**: do not transfer Step 3B or Step 4G yet; use **Step 2 + Step 3C shadow** as the next serious transfer study, and tighten `B` authority before trusting the first release.
 
 ## One-Line Takeaway
 
-The project has moved from “how do we cap multipliers"” to “how do we hand off authority safely without destroying the late RL benefit"” Right now, the best answer in polymer is **BC plus guarded execution**, and the best answer in distillation is still **instrument first, gate later**.
+The project has moved from "how do we cap multipliers" to "how do we hand off authority safely without destroying the late RL benefit." Right now, the best answer in polymer is **BC plus guarded execution**, and the best answer in distillation is still **instrument first, gate later**.

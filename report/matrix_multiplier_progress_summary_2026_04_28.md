@@ -1,0 +1,99 @@
+# Matrix Multiplier Progress Summary (2026-04-28)
+
+This report is the short version of the matrix and structured-matrix handoff work. The long working document in `report/matrix_multiplier_cap_calculation_and_distillation_recovery.md` keeps the figures, derivations, and detailed run-by-run evidence. This summary keeps only the implementation sequence, the main result of each step, and the current conclusions.
+
+## Executive Summary
+
+The overall result so far is:
+
+- **polymer scalar matrix**: the strongest current method is **Step 4G**: behavioral cloning plus a light Step 2 release guard;
+- **polymer structured matrix**: the strongest pure-BC method is **Step 4E** weighted BC, while the strongest guarded handoff is also **Step 4G**, with the caveat that the current structured guard is slightly too conservative for maximum full-run reward;
+- **Step 3C** is **useful as shadow instrumentation**, but the current dual-cost terms are **not good enough to become a hard fallback gate**;
+- **distillation** should not receive the old Step 3B gate as-is. The current best transfer direction is still **Step 2 plus Step 3C shadow-only logging**, not Step 3B hard fallback and not immediate Step 4G transfer.
+
+So the short answer to the Step 3C question is:
+
+> **No, the current report does not say Step 3C “won’t work at all.” It says the current Step 3C formulation is useful as a diagnostic layer, but not good enough yet to become an execution gate.**
+
+## Step-by-Step Progress
+
+### Step 1: Offline Sensitivity Diagnostic
+
+Step 1 introduced the offline sensitivity scan for scalar and structured multiplier coordinates. The main purpose was not to create a permanent cap, but to identify which coordinates were dangerous and where advisory release bounds should come from. This step worked as intended. It gave a useful ranking of sensitive directions, especially for structured mode, and it provided the data needed for later guarded-execution steps. The important finding was that the diagnostic should be treated as an **advisory execution input**, not as a permanent training constraint.
+
+### Step 2: Release-Protected Advisory Caps
+
+Step 2 added guarded execution during early live release. The actor still trained in the wide action space, but the executed multipliers were clipped to advisory bounds during the protected and ramp windows. This materially improved polymer performance, especially by reducing the first live release shock. Step 2 established the first reliable rule of the project: **the policy may ask for aggressive actions early, so execution needs release protection even if training remains wide-range**. Step 2 alone was already good enough to produce positive full-run polymer results, which made it the first clearly useful handoff mechanism.
+
+### Step 3B: Tolerant Acceptance / Fallback
+
+Step 3B tested whether a nominal-cost trust-region style acceptance layer could reject bad candidates while keeping useful authority. The mechanism worked mechanically: it no longer rejected almost everything like the stricter version, and live acceptance increased. But the control result was not good enough. The accepted candidates were often “close enough” to nominal under the nominal MPC objective while still not being useful on the nonlinear plant. The finding from Step 3B was clear: **nominal-cost closeness is a safety-style filter, not a performance filter**.
+
+### Step 3C: Shadow Dual-Cost Diagnostics
+
+Step 3C added dual-cost shadow diagnostics without letting those diagnostics control execution. In the polymer Step 3C study runs, Step 2 stayed on, Step 4 BC was turned off, hard fallback stayed off, and the new logs recorded nominal penalty, candidate advantage, and the safe / benefit / dual pass rates. This was useful, but not in the way a hard gate needs. The candidate-benefit signal was almost always positive, so it did not separate good from bad decisions. The safe-pass signal did separate behavior, but in the wrong direction: later positive-reward episodes were **less likely** to satisfy the current safe test. So the Step 3C finding is: **keep it as instrumentation, do not promote the current formulation into a hard gate**.
+
+### Step 4A: BC-Only Isolation
+
+Step 4A introduced behavioral cloning as a nominal-anchor handoff method and isolated it by turning off the other protection layers in polymer. This established that BC can help, but also showed that the original BC schedule was too weak and too short, especially for structured mode. The main value of this step was diagnostic: it proved that a nominal anchor is a real lever, but not yet a complete handoff solution by itself.
+
+### Step 4B / 4C: Stronger Scalar BC
+
+The next scalar BC changes increased the BC weight and extended the active BC window. That improved the scalar handoff in the right direction. The first live trough got smaller while the full-run scalar reward remained competitive. This showed that scalar mode really was limited by a weak nominal anchor. The result was strong enough that stronger scalar BC became the right baseline for combining BC with guarded execution later.
+
+### Step 4D: Stronger Structured BC
+
+Applying the same “just make BC stronger” logic to structured mode was not enough. A larger global BC weight and a longer BC window improved the earliest release window, but it mainly moved the problem rather than solving it. The later `21-40` region became worse. This was the point where it became clear that structured mode did not just need “more BC.” It needed **better-shaped BC**.
+
+### Step 4E: Weighted Structured BC
+
+Step 4E changed the shape of the structured BC penalty by weighting the sensitive coordinates, especially the `B` directions, more heavily than the others. This was the best structured pure-BC result. It improved both early and mid windows relative to the earlier structured BC variants and gave the strongest structured full-run reward among the BC-only designs. The key finding was that the structured problem was about **how the nominal anchor is distributed across coordinates**, not just about the total BC magnitude.
+
+### Step 4G: BC Plus Guarded Execution
+
+Step 4G combined the validated BC baselines with a light Step 2 release guard. This is the strongest current polymer default. For scalar matrix, it is clearly the best overall result: it improves the early live windows and also gives the best full-run reward. For structured matrix, it protects the early release much better than pure Step 4E, but it gives back some of the later tail because the current structured guard schedule is slightly too conservative. The Step 4G finding is: **this is the right default handoff family for polymer**, especially for scalar, while structured may still benefit from a lighter guarded-release schedule.
+
+## Current Findings
+
+### What clearly works
+
+- Release protection during early live authority is necessary.
+- BC is a real handoff improvement, especially for scalar matrix.
+- Structured mode needs coordinate-aware regularization.
+- The best current polymer handoff is **Step 4G**, not Step 3 and not BC-only.
+
+### What clearly does not work
+
+- Step 3B nominal-cost fallback is not a sufficient performance filter.
+- Stronger global BC alone does not solve structured mode.
+- The current Step 3C benefit signal is too weak as a discriminator because it is almost always positive.
+
+### What Step 3C currently means
+
+Step 3C should currently be read as a **measurement layer**, not as a control layer. It tells us how much nominal budget the candidate consumes and whether the candidate model internally prefers its own action over nominal. That is useful for diagnosis. But the polymer results show that those current quantities are not yet aligned with “this candidate should execute.” So Step 3C is valuable, but only as **shadow logging** right now.
+
+## Distillation Status
+
+Distillation should stay more conservative than polymer. The current evidence does not support transferring Step 3B hard fallback or turning on Step 4G by default. The safer next distillation path is:
+
+1. keep Step 2-style guarded execution available,
+2. enable Step 3C in **shadow-only** mode,
+3. inspect whether the distillation shadow signals are actually informative before letting them control fallback,
+4. only then revisit whether a phase-aware Step 3D gate or an execution-aware BC extension is justified.
+
+The distillation observer default has now also been switched to the `p19`-style poles:
+
+`[0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50]`
+
+That affects the shared distillation notebook defaults, but it does not change the handoff conclusion above.
+
+## Current Recommendation
+
+- **Polymer scalar matrix**: keep **Step 4G** as the working default.
+- **Polymer structured matrix**: keep **Step 4G** as the working default, but consider lightening the guard schedule if the target is maximum full-run reward rather than minimum early dip.
+- **Step 3C**: keep it **shadow-only** for now.
+- **Distillation**: do not transfer Step 3B; use **Step 2 + Step 3C shadow** as the next serious transfer study.
+
+## One-Line Takeaway
+
+The project has moved from “how do we cap multipliers"” to “how do we hand off authority safely without destroying the late RL benefit"” Right now, the best answer in polymer is **BC plus guarded execution**, and the best answer in distillation is still **instrument first, gate later**.

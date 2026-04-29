@@ -2,6 +2,13 @@ import numpy as np
 import scipy.optimize as spo
 
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
+from utils.behavioral_cloning import (
+    build_behavioral_cloning_bundle_fields,
+    build_behavioral_cloning_schedule,
+    init_behavioral_cloning_logs,
+    record_behavioral_cloning_step,
+    resolve_behavioral_cloning_context,
+)
 from utils.helpers import (
     apply_min_max,
     build_polymer_disturbance_schedule,
@@ -126,8 +133,6 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
 
     phase1 = None
     phase1_action_source_log = None
-    policy_action_raw_log = None
-    executed_action_raw_log = None
     phase1_train_traces = None
     if agent_kind == "td3":
         phase1 = build_phase1_schedule(
@@ -146,9 +151,20 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         )
         agent.actor_freeze = int(phase1["effective_actor_freeze"])
         phase1_action_source_log = np.zeros(nFE, dtype=int)
-        policy_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
-        executed_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
         phase1_train_traces = init_phase1_train_traces()
+    bc_schedule = build_behavioral_cloning_schedule(
+        config=residual_cfg.get("behavioral_cloning", {}),
+        warm_start_step=warm_start_step,
+        time_in_sub_episodes=time_in_sub_episodes,
+        n_steps=nFE,
+        start_step_override=(phase1["first_live_action_step"] if phase1 is not None else None),
+    )
+    bc_logs = init_behavioral_cloning_logs(nFE)
+    bc_action_gap_tolerance = float(bc_schedule.get("action_gap_tolerance", 0.0))
+    bc_target_mode = str(bc_schedule.get("target_mode", "nominal_only")).strip().lower()
+    policy_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+    executed_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+    policy_executed_gap_norm_log = np.zeros(nFE, dtype=float)
 
     n_inputs = int(B_aug.shape[1])
     n_outputs = int(C_aug.shape[0])
@@ -282,9 +298,15 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             action_dim=action_dim,
         )
         action = action_decision.action
-        policy_action = action_decision.policy_action
 
         a_res_raw_log[i, :] = np.asarray(action, float).reshape(-1)
+        if i > warm_start_step:
+            policy_action_for_log = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
+            if not np.all(np.isfinite(policy_action_for_log)):
+                policy_action_for_log = zero_action.copy()
+        else:
+            policy_action_for_log = zero_action.copy()
+        policy_action_raw_log[i, :] = policy_action_for_log
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
 
@@ -338,12 +360,11 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         delta_u_res_raw_log[i, :] = projection["delta_u_res_raw"]
         delta_u_res_exec_log[i, :] = projection["delta_u_res_exec"]
         a_res_exec_log[i, :] = projection["a_exec"]
+        executed_action_raw_log[i, :] = np.asarray(projection["a_exec"], float).reshape(-1)
+        policy_executed_gap_norm_log[i] = float(
+            np.linalg.norm(policy_action_raw_log[i, :] - executed_action_raw_log[i, :])
+        )
         if phase1 is not None:
-            policy_action_raw_log[i, :] = np.asarray(
-                policy_action if policy_action is not None else zero_action,
-                float,
-            ).reshape(-1)
-            executed_action_raw_log[i, :] = np.asarray(projection["a_exec"], float).reshape(-1)
             phase1_action_source_log[i] = int(action_decision.source)
         u_rl_scaled[i, :] = projection["u_applied_scaled_abs"]
 
@@ -423,7 +444,20 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             mismatch_transform_post_clip=mismatch_cfg["mismatch_transform_post_clip"],
         )
 
-        replay_train_continuous_agent(
+        if bc_target_mode == "executed_action":
+            bc_target_action = np.asarray(action_exec, float).reshape(-1)
+        else:
+            bc_target_action = zero_action.copy()
+        bc_context = None
+        if not test and i >= warm_start_step:
+            if float(np.max(np.abs(policy_action_raw_log[i, :] - bc_target_action))) > bc_action_gap_tolerance:
+                bc_context = resolve_behavioral_cloning_context(
+                    bc_schedule,
+                    step_idx=i,
+                    target_action=bc_target_action,
+                )
+
+        train_result = replay_train_continuous_agent(
             agent=agent,
             state=current_rl_state,
             action=action_exec,
@@ -434,6 +468,16 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             test=test,
             train_start_step=warm_start_step,
             phase1_train_traces=phase1_train_traces if phase1 is not None else None,
+            bc_context=bc_context,
+        )
+        record_behavioral_cloning_step(
+            bc_logs,
+            step_idx=i,
+            bc_context=bc_context,
+            policy_action=policy_action_raw_log[i, :],
+            target_action=bc_target_action,
+            target_mode=bc_target_mode,
+            train_meta=train_result.get("train_meta"),
         )
 
         if i in sub_episodes_changes_dict:
@@ -488,6 +532,9 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "delta_u_res_exec_log": delta_u_res_exec_log,
         "residual_raw_log": delta_u_res_raw_log,
         "residual_exec_log": delta_u_res_exec_log,
+        "policy_action_raw_log": policy_action_raw_log,
+        "executed_action_raw_log": executed_action_raw_log,
+        "policy_executed_gap_norm_log": policy_executed_gap_norm_log,
         "rho_log": rho_log,
         "rho_raw_log": rho_raw_log,
         "rho_eff_log": rho_eff_log,
@@ -562,9 +609,14 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "truncated_fraction_trace",
         "lambda_return_mean_trace",
         "target_logprob_mean_trace",
+        "bc_active_trace",
+        "bc_weight_trace",
+        "bc_loss_trace",
+        "bc_actor_target_distance_trace",
     ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
+    result_bundle.update(build_behavioral_cloning_bundle_fields(bc_schedule, bc_logs))
     if phase1 is not None:
         result_bundle.update(
             build_phase1_bundle_fields(

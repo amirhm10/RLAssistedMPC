@@ -126,15 +126,17 @@ def _copy_mpc_usefulness_gate_defaults(enabled=False):
 def _copy_behavioral_cloning_defaults(
     enabled=False,
     *,
+    target_mode="nominal_only",
     lambda_bc_start=0.1,
     lambda_bc_end=0.0,
     active_subepisodes=10,
     coordinate_weights=None,
     label_weight_overrides=None,
+    action_gap_tolerance=0.0,
 ):
     return {
         "enabled": bool(enabled),
-        "target_mode": "nominal_only",
+        "target_mode": str(target_mode),
         "lambda_bc_start": float(lambda_bc_start),
         "lambda_bc_end": float(lambda_bc_end),
         "decay_mode": "exp",
@@ -143,6 +145,7 @@ def _copy_behavioral_cloning_defaults(
         "log_diagnostics": True,
         "coordinate_weights": None if coordinate_weights is None else np.asarray(coordinate_weights, float).copy(),
         "label_weight_overrides": {} if label_weight_overrides is None else dict(label_weight_overrides),
+        "action_gap_tolerance": float(action_gap_tolerance),
     }
 
 
@@ -892,6 +895,13 @@ POLYMER_RESIDUAL_DEFAULTS = {
     "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
     "post_warm_start_action_freeze_subepisodes": 5,
     "post_warm_start_actor_freeze_subepisodes": 5,
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(
+        enabled=True,
+        target_mode="executed_action",
+        lambda_bc_start=0.3,
+        active_subepisodes=20,
+        action_gap_tolerance=1e-6,
+    ),
     "controller": {
         "predict_h": 9,
         "cont_h": 3,

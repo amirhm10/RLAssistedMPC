@@ -155,6 +155,23 @@ _FAMILY_FILE_MAP = {
 }
 
 
+def _snapshot_stem(path):
+    path = Path(path).expanduser()
+    return path.with_suffix("") if path.suffix.lower() == ".dynf" else path
+
+
+def resolve_snapshot_dir(path):
+    stem = _snapshot_stem(path)
+    candidates = [stem]
+    if not stem.name.startswith("AM_"):
+        candidates.insert(0, stem.with_name(f"AM_{stem.name}"))
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+
 def default_plant_paths(family, disturbance_profile):
     disturbance_profile = str(disturbance_profile).lower()
     family = str(family).lower()
@@ -172,7 +189,7 @@ def default_plant_paths(family, disturbance_profile):
         raise KeyError(f"Unknown disturbance profile '{disturbance_profile}' for {family}.")
     dyn_name = _FAMILY_FILE_MAP[family][disturbance_profile]
     dyn_path = DEFAULT_ASPEN_ROOT / dyn_name
-    snaps_path = DEFAULT_ASPEN_ROOT / dyn_name.replace(".dynf", "")
+    snaps_path = resolve_snapshot_dir(dyn_path)
     return dyn_path, snaps_path
 
 
@@ -203,6 +220,6 @@ def resolve_aspen_paths(
     if snaps_path_override:
         snaps_path = Path(snaps_path_override).expanduser()
     else:
-        snaps_path = dyn_path.with_suffix("")
+        snaps_path = resolve_snapshot_dir(dyn_path)
 
     return dyn_path, snaps_path, source

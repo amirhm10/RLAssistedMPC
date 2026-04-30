@@ -2,6 +2,8 @@ from pathlib import Path
 
 import numpy as np
 
+from .config import resolve_snapshot_dir
+
 try:
     import win32com.client  # type: ignore
 except ImportError:  # pragma: no cover - environment dependent
@@ -97,17 +99,36 @@ class DistillationColumnAspen:
             self.feed.FmR.Value = float(disturbances[0])
 
     def close(self, snaps_path=None, prefix="snp"):
-        if snaps_path:
-            snaps_path = Path(snaps_path)
-            if snaps_path.exists():
-                files = sorted(
-                    [path for path in snaps_path.iterdir() if path.is_file() and path.name.startswith(prefix)],
-                    key=lambda item: item.stat().st_ctime,
-                )
-                for path in files:
+        close_error = None
+        try:
+            self.ad.CloseDocument(False)
+        except Exception as exc:  # pragma: no cover - depends on local Aspen COM
+            close_error = exc
+
+        try:
+            self.ad.Quit()
+        except Exception as exc:  # pragma: no cover - depends on local Aspen COM
+            if close_error is None:
+                close_error = exc
+
+        cleanup_root = resolve_snapshot_dir(snaps_path or self.path)
+        if cleanup_root.exists():
+            files = sorted(
+                [
+                    path
+                    for path in cleanup_root.iterdir()
+                    if path.is_file() and (path.name.startswith(prefix) or path.suffix.lower() in {".snp", ".tsnp"})
+                ],
+                key=lambda item: item.stat().st_ctime,
+            )
+            for path in files:
+                try:
                     path.unlink(missing_ok=True)
-        self.ad.CloseDocument(False)
-        self.ad.Quit()
+                except OSError:
+                    pass
+
+        if close_error is not None:
+            raise close_error
 
 
 def distillation_system_stepper(system, disturbance_step):
@@ -125,4 +146,3 @@ def build_distillation_system(path, ss_inputs, initialization_point, delta_t=1.0
         delta_t=delta_t,
         visible=visible,
     )
-

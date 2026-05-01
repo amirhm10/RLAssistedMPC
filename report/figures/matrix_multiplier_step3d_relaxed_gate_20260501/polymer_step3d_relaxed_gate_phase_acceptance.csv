@@ -1,0 +1,17 @@
+family,variant,style,phase_code,phase_label,steps,gate_pass_fraction
+Scalar matrix,Step 3D relaxed gate,relaxed,1,nominal,9601,0.0
+Scalar matrix,Step 3D relaxed gate,relaxed,2,protected,6400,0.0
+Scalar matrix,Step 3D relaxed gate,relaxed,3,ramp,9600,0.0
+Scalar matrix,Step 3D relaxed gate,relaxed,4,full,134399,0.0
+Scalar matrix,Step 3D hard gate,hard,1,nominal,9601,0.0
+Scalar matrix,Step 3D hard gate,hard,2,protected,6400,0.0
+Scalar matrix,Step 3D hard gate,hard,3,ramp,9600,0.0
+Scalar matrix,Step 3D hard gate,hard,4,full,134399,0.0
+Structured matrix,Step 3D relaxed gate,relaxed,1,nominal,10401,0.0
+Structured matrix,Step 3D relaxed gate,relaxed,2,protected,8000,0.0
+Structured matrix,Step 3D relaxed gate,relaxed,3,ramp,12000,0.0
+Structured matrix,Step 3D relaxed gate,relaxed,4,full,129599,0.0016280989822452334
+Structured matrix,Step 3D hard gate,hard,1,nominal,10401,0.0
+Structured matrix,Step 3D hard gate,hard,2,protected,8000,0.0
+Structured matrix,Step 3D hard gate,hard,3,ramp,12000,0.0
+Structured matrix,Step 3D hard gate,hard,4,full,129599,0.0

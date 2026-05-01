@@ -3367,14 +3367,71 @@ Success criteria:
 
 If that relaxed full-phase gate still collapses to zero acceptance, the next conclusion should be that Step 3D should remain shadow-only for polymer until the usefulness statistic is redesigned, rather than being kept as a hard execution layer.
 
-### 2026-05-01 Status
+### 2026-05-01 Relaxed Full-Phase Gate Result
 
-This remains the immediate next polymer Step 3D ablation. The shared polymer defaults have now been prepared for that test by changing only the full-phase gain-drift threshold to `0.40`.
+The intended ablation was then run on both polymer matrix families. The latest saved bundles confirm the exact requested configuration:
 
-- Step 2 release-protected advisory caps remain on.
-- Behavioral cloning remains off so the gate stays isolated.
-- Protected and ramp thresholds remain strict at `0.10` and `0.15`.
-- No new scalar or structured rerun results are claimed in this report update yet; the change here is only the prepared next-step configuration.
+- scalar RL bundle: `Polymer/Results/td3_multipliers_disturb/20260501_124838/input_data.pkl`
+- scalar comparison bundle: `Polymer/Results/disturb_compare_td3_multipliers/20260501_124847/input_data.pkl`
+- structured RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260501_125051/input_data.pkl`
+- structured comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260501_125104/input_data.pkl`
+- in both runs: `release_guard_enabled = True`, `behavioral_cloning_enabled = False`, and `gain_drift_thresholds_by_phase = {protected: 0.10, ramp: 0.15, full: 0.40}`
+
+So the execution matches the intended test: Step 2 stayed on, BC stayed off, and only the full live-phase gain threshold was relaxed.
+
+### Quantitative Outcome
+
+| Family | Full-run gate pass | Full-phase gate pass | Final executed multiplier distance | Final-test MAE | MPC final-test MAE | Average reward delta vs MPC | Final-10 reward delta vs MPC |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Scalar matrix, relaxed gate | `0 / 160000` | `0 / 134399` | `0.000000` | `0.16498` | `0.16501` | `+1.77e-05` | `-3.06e-05` |
+| Structured matrix, relaxed gate | `211 / 160000` | `211 / 129599` | `0.000714` | `0.16420` | `0.16501` | `-0.01071` | `-0.00189` |
+
+<img src="./figures/matrix_multiplier_step3d_relaxed_gate_20260501/polymer_step3d_relaxed_gate_reward_delta.png" alt="Polymer Step 3D relaxed-gate reward delta versus MPC compared with the earlier hard gate and Step 4G references" width="1200" style="max-width: 100%; height: auto;" />
+
+<img src="./figures/matrix_multiplier_step3d_relaxed_gate_20260501/polymer_step3d_relaxed_gate_mae_and_authority.png" alt="Polymer Step 3D relaxed-gate final-test MAE and executed multiplier authority compared with hard gate and Step 4G references" width="1200" style="max-width: 100%; height: auto;" />
+
+The scalar result is the clearest negative result in the section: relaxing the full-phase gain threshold alone does **not** change executed behavior at all. The relaxed scalar run is numerically identical to the prior hard-gate run on reward windows, final-test MAE, tail MAE, and zero accepted steps. The policy still proposes larger candidate authority than before, but the executed controller remains exactly nominal.
+
+The structured result is more interesting but still not a control success. The gate becomes non-empty, but only barely:
+
+- accepted steps rise from `0` to `211` out of `160000`,
+- every accepted step appears in the **full** release phase,
+- the final-test executed multiplier distance becomes strictly positive, but only at `7.14e-4`,
+- final-test MAE improves over MPC by only about `0.49%`, which is far below the material-gain bar,
+- average reward delta becomes negative, and the tail MAE is slightly worse than MPC.
+
+So the structured run satisfies the first two success criteria only in a very weak mechanical sense. It opens the gate, but not enough to produce a meaningful closed-loop advantage.
+
+### Why The Relaxed Threshold Still Fails
+
+The new figures show that the gain-threshold relaxation does what it was supposed to do technically: it reduces pure gain-drift rejection pressure. But the bottleneck simply moves to the remaining gate terms.
+
+| Family | Variant | Reject nominal safety | Reject candidate usefulness | Reject gain drift |
+| --- | --- | ---: | ---: | ---: |
+| Scalar matrix | hard gate | `38.40%` | `58.95%` | `2.65%` |
+| Scalar matrix | relaxed gate | `63.20%` | `34.11%` | `2.70%` |
+| Structured matrix | hard gate | `45.76%` | `52.36%` | `1.88%` |
+| Structured matrix | relaxed gate | `57.42%` | `41.16%` | `1.29%` |
+
+<img src="./figures/matrix_multiplier_step3d_relaxed_gate_20260501/polymer_step3d_relaxed_gate_criteria.png" alt="Polymer Step 3D relaxed-gate statistics and final-test pass fractions compared with the earlier hard gate" width="1200" style="max-width: 100%; height: auto;" />
+
+<img src="./figures/matrix_multiplier_step3d_relaxed_gate_20260501/polymer_step3d_relaxed_gate_phase_and_window.png" alt="Polymer Step 3D relaxed-gate acceptance by release phase and executed multiplier distance by episode window" width="1200" style="max-width: 100%; height: auto;" />
+
+This leads to two sharper conclusions:
+
+1. **Scalar matrix** is still effectively a baseline-bootstrapped nominal controller. Relaxing the full-phase gain threshold from `0.22` to `0.40` is not enough, because the safe/useful conjunction remains empty on the executed trajectory.
+2. **Structured matrix** is no longer fully empty, but the acceptance set is still too small to matter in control terms. A full-phase pass rate of about `0.163%` is enough to make the gate technically nonzero, but it is nowhere near enough to recover Step 4G-level authority or reward.
+
+### Updated Polymer Recommendation
+
+The relaxed full-phase gain-threshold study is therefore informative, but it should **not** be read as a successful Step 3D transfer for polymer.
+
+- Keep **Step 4G** as the working polymer execution default for both scalar and structured matrix.
+- Do **not** spend another polymer rerun only relaxing the gain-drift threshold.
+- For scalar polymer, Step 3D should remain shadow-only unless the safety/usefulness statistics are redesigned.
+- For structured polymer, if Step 3D remains a live execution surface, the next change must target the safety/usefulness logic rather than only the gain threshold, because that is now the dominant blocker.
+
+In short: the requested ablation confirmed that the prior `0.22` full-phase gain threshold was part of the problem, but it also showed that **threshold-only relaxation is insufficient**. Scalar stays collapsed to nominal execution, and structured opens only a tiny full-phase gate that is still far weaker than Step 4G.
 
 ## Sources
 

@@ -3354,7 +3354,7 @@ The next useful experiment is not another blind rerun of the same Step 3D defaul
 
 1. keep Step 2 on,
 2. keep BC off so the gate itself is isolated,
-3. relax only the full-phase gain-drift threshold in `systems/polymer/notebook_params.py` from `0.22` toward the empirically observed candidate regime around `0.39-0.41`,
+3. relax only the full-phase gain-drift threshold in `systems/polymer/notebook_params.py` from `0.22` to `0.40`, which sits inside the empirically observed candidate regime around `0.39-0.41`,
 4. leave protected and ramp phases strict,
 5. rerun both scalar and structured matrix with the same compare path and generate the same figures.
 
@@ -3366,6 +3366,15 @@ Success criteria:
 - output-2 MAE must not degrade silently while reward stays flat.
 
 If that relaxed full-phase gate still collapses to zero acceptance, the next conclusion should be that Step 3D should remain shadow-only for polymer until the usefulness statistic is redesigned, rather than being kept as a hard execution layer.
+
+### 2026-05-01 Status
+
+This remains the immediate next polymer Step 3D ablation. The shared polymer defaults have now been prepared for that test by changing only the full-phase gain-drift threshold to `0.40`.
+
+- Step 2 release-protected advisory caps remain on.
+- Behavioral cloning remains off so the gate stays isolated.
+- Protected and ramp thresholds remain strict at `0.10` and `0.15`.
+- No new scalar or structured rerun results are claimed in this report update yet; the change here is only the prepared next-step configuration.
 
 ## Sources
 

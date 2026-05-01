@@ -115,7 +115,10 @@ def _copy_mpc_usefulness_gate_defaults(enabled=False):
         "gain_drift_thresholds_by_phase": {
             "protected": 0.10,
             "ramp": 0.15,
-            "full": 0.22,
+            # Relax only the full live phase so Step 3D can test the candidate
+            # gain-drift regime observed in the latest polymer reruns without
+            # weakening the early protected/ramp release windows.
+            "full": 0.40,
         },
         "fallback_on_candidate_solve_failure": True,
         "store_executed_action_in_replay": True,

@@ -3248,6 +3248,125 @@ Declare success only if:
 7. Run a distillation reward-balance ablation. The current reward can recover while still not beating MPC in physical MAE, especially if output 2 is underprotected.
 8. Only after D1-D5 work should `A` be widened toward the larger distillation analytical stability cap. The current bottleneck is policy/performance safety, not spectral admissibility.
 
+## 2026-04-30 Polymer Step 3D Hard-Gate Addendum
+
+The latest polymer scalar and structured matrix reruns answer the current Step 3 question much more sharply than "they are almost similar to MPC." Under the present hard Step 3D configuration, they are effectively **nominal-MPC execution policies**.
+
+Relevant run bundles:
+
+- Scalar Step 3D latest RL bundle: `Polymer/Results/td3_multipliers_disturb/20260430_160646/input_data.pkl`
+- Scalar Step 3D latest comparison bundle: `Polymer/Results/disturb_compare_td3_multipliers/20260430_160657/input_data.pkl`
+- Structured Step 3D latest RL bundle: `Polymer/Results/td3_structured_matrices_disturb/20260430_134358/input_data.pkl`
+- Structured Step 3D latest comparison bundle: `Polymer/Results/disturb_compare_td3_structured_matrices/20260430_134411/input_data.pkl`
+- Polymer disturb MPC baseline: `Polymer/Data/mpc_results_dist.pickle`
+
+### Quantitative Summary
+
+| Family | Step 3D final-test MAE | MPC final-test MAE | Step 3D vs MPC | Step 4G final-test MAE | Step 3D final-10 reward delta vs MPC | Step 4G final-10 reward delta vs MPC |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Scalar matrix | `0.16498` | `0.16501` | `-0.015%` | `0.14387` | `-3.06e-05` | `+0.72190` |
+| Structured matrix | `0.16498` | `0.16501` | `-0.015%` | `0.13993` | `-3.06e-05` | `+0.85250` |
+
+So the latest Step 3D reruns do not produce a meaningful improvement over MPC. The final-test MAE difference is numerically negligible. In contrast, the earlier Step 4G references were materially better than MPC by about `12.8%` in scalar matrix and `15.2%` in structured matrix final-test MAE.
+
+<img src="./figures/matrix_multiplier_step3d_20260430/polymer_step3d_reward_delta_vs_step4g.png" alt="Polymer Step 3D latest reward delta versus MPC compared with Step 4G references" width="1200" style="max-width: 100%; height: auto;" />
+
+The reward traces make the collapse clear. Both Step 3D latest runs stay essentially on the zero-delta line for all 200 episodes, while the Step 4G references recover to a clear positive reward advantage over MPC.
+
+### Why The Result Collapses To MPC
+
+The critical mechanism is not weak policy outputs. The policy is proposing nontrivial model changes, but the hard gate never lets them execute.
+
+| Family | Gate pass, full run | Gate pass, final test | Candidate multiplier distance, final test | Executed multiplier distance, final test | Policy-executed raw gap, final test |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Scalar matrix | `0 / 160000` | `0 / 800` | `0.4986` | `0.0000` | `1.6554` |
+| Structured matrix | `0 / 160000` | `0 / 800` | `0.7167` | `0.0000` | `2.3276` |
+
+<img src="./figures/matrix_multiplier_step3d_20260430/polymer_step3d_mae_and_authority.png" alt="Polymer Step 3D latest MAE versus MPC and Step 4G, plus candidate versus executed multiplier distances" width="1200" style="max-width: 100%; height: auto;" />
+
+This means:
+
+- the actor still asks for sizable deviations from the nominal model,
+- the executed model stays exactly nominal,
+- the plant therefore sees almost the same controller as baseline MPC,
+- the replay buffer is then populated with nominal executed actions because `store_executed_action_in_replay = True`.
+
+That last point matters. Once the gate rejects everything, Step 3D stops being a performance-improving controller and becomes a **safe policy improvement with full baseline bootstrapping** style mechanism. That is consistent with the intuition in [Laroche2019] and with trust-region style thinking from [Schulman2015]: if the acceptance set is too small, the baseline dominates and learned authority never becomes visible online.
+
+### Which Gate Term Is Blocking Acceptance
+
+The rejection is not caused by solver failure. There were zero candidate-solve-failure rejections in the latest scalar and structured runs. The rejection comes from the gate inequalities themselves.
+
+| Family | Safe pass, full run | Useful pass, full run | Gain pass, full run | Safe pass, final test | Useful pass, final test | Gain pass, final test |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Scalar matrix | `0.6160` | `0.0345` | `0.0613` | `0.6050` | `0.0313` | `0.0000` |
+| Structured matrix | `0.5424` | `0.0597` | `0.0650` | `0.5038` | `0.0625` | `0.0000` |
+
+Reason-code breakdown for the full run:
+
+| Family | Reject nominal safety | Reject candidate usefulness | Reject gain drift |
+| --- | ---: | ---: | ---: |
+| Scalar matrix | `38.40%` | `58.95%` | `2.65%` |
+| Structured matrix | `45.76%` | `52.36%` | `1.88%` |
+
+<img src="./figures/matrix_multiplier_step3d_20260430/polymer_step3d_gate_criteria.png" alt="Polymer Step 3D latest gate statistics versus thresholds and pass rates" width="1200" style="max-width: 100%; height: auto;" />
+
+The statistics behind those failures are:
+
+- Scalar matrix, full run:
+  - nominal penalty mean `0.00190` versus safe threshold `0.00555`, so safety is often but not always satisfied;
+  - candidate advantage mean `0.00190` versus usefulness threshold `0.01560`, so usefulness almost always fails;
+  - gain drift mean `0.3640` versus gain threshold `0.2038`, so gain drift is structurally too large.
+- Scalar matrix, final test:
+  - gain drift mean rises to `0.3890` while the threshold is only `0.2200`, so gain pass is zero on all 800 final-test steps.
+- Structured matrix, full run:
+  - nominal penalty mean `0.00664` versus safe threshold `0.00549`, so safety is already slightly too tight on average;
+  - candidate advantage mean `0.00663` versus usefulness threshold `0.01567`, so usefulness still fails most steps;
+  - gain drift mean `0.3674` versus threshold `0.2009`, again leaving too little admissible room.
+- Structured matrix, final test:
+  - gain drift mean is `0.4070` versus threshold `0.2200`, so gain pass is again zero on all final-test steps.
+
+So the present Step 3D gate is empty for practical purposes. The policy proposes actions, but the conjunction
+
+$$ \text{safe pass} \wedge \text{useful pass} \wedge \text{gain pass} $$
+
+is never true on the executed online trajectory.
+
+### Why Step 3D Looks Reproducibly Similar To MPC
+
+This is not just a single-run accident. The scalar rerun from `20260429_183823` is numerically identical to the 2026-04-30 scalar rerun on reward deltas, MAE, and zero-pass gate statistics. The structured rerun from `20260429_183810` accepted only `6` out of `160000` steps and still stayed essentially on the MPC line. So the current polymer Step 3D outcome is reproducible: the hard gate is too strict, not just noisy.
+
+### Interpretation
+
+The current polymer Step 3D setting does not show that the multiplier policy is intrinsically useless. It shows that the **current hard acceptance set is too small relative to the candidate family being trained**.
+
+That distinction matters:
+
+- Step 4G succeeds because authority is actually executed online.
+- Step 3D latest fails to improve because the candidate family is only explored in the actor, not in the executed controller.
+- Because executed actions are stored in replay, repeated total rejection makes the learned behavior converge toward nominal execution even if the raw actor still proposes larger deviations.
+
+This is exactly why the latest result is "almost identical to MPC." It is not merely a weak improvement. It is a gate-induced collapse to nominal executed behavior.
+
+### Recommended Next Experiment
+
+The next useful experiment is not another blind rerun of the same Step 3D defaults. It is a **non-empty Step 3D ablation**:
+
+1. keep Step 2 on,
+2. keep BC off so the gate itself is isolated,
+3. relax only the full-phase gain-drift threshold in `systems/polymer/notebook_params.py` from `0.22` toward the empirically observed candidate regime around `0.39-0.41`,
+4. leave protected and ramp phases strict,
+5. rerun both scalar and structured matrix with the same compare path and generate the same figures.
+
+Success criteria:
+
+- gate pass fraction must become strictly positive in the full phase,
+- executed multiplier distance must become nonzero in the final test,
+- final-test MAE must improve materially beyond MPC, not by `1e-4` level noise,
+- output-2 MAE must not degrade silently while reward stays flat.
+
+If that relaxed full-phase gate still collapses to zero acceptance, the next conclusion should be that Step 3D should remain shadow-only for polymer until the usefulness statistic is redesigned, rather than being kept as a hard execution layer.
+
 ## Sources
 
 - [Fujimoto2018]: Addressing Function Approximation Error in Actor-Critic Methods. https://proceedings.mlr.press/v80/fujimoto18a.html

@@ -1,0 +1,5 @@
+family,variant,window,accepted_count,accepted_fraction,candidate_solve_failed_count,candidate_solve_failed_fraction,rejected_nominal_safety_count,rejected_nominal_safety_fraction,rejected_candidate_usefulness_count,rejected_candidate_usefulness_fraction,rejected_gain_drift_count,rejected_gain_drift_fraction
+Scalar matrix,Step 3D latest,full_run,0,0.0,0,0.0,61439,0.38399375,94316,0.589475,4245,0.02653125
+Scalar matrix,Step 3D latest,final_test,0,0.0,0,0.0,316,0.395,459,0.57375,25,0.03125
+Structured matrix,Step 3D latest,full_run,0,0.0,0,0.0,73218,0.4576125,83768,0.52355,3014,0.0188375
+Structured matrix,Step 3D latest,final_test,0,0.0,0,0.0,397,0.49625,385,0.48125,18,0.0225

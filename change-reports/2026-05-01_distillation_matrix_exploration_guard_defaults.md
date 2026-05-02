@@ -9,5 +9,5 @@ Updated the distillation matrix-study defaults to keep the guarded Step 2 / warm
 - The TD3 scalar-matrix noise settings remain conservative:
   - `target_policy_smoothing_noise_std = 0.01`
   - `std_start = 0.01`
-  - `std_end = 0.01`
+  - `std_end = 0.0`
 - Distillation structured matrix defaults inherit the same TD3 agent settings from the scalar matrix defaults.

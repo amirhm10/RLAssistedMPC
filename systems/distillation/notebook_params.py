@@ -502,7 +502,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "max_action": 1.0,
         "tau": 0.005,
         "std_start": 0.01,
-        "std_end": 0.01,
+        "std_end": 0.0,
         "param_noise_std_start": 0.01,
         "param_noise_std_end": 0.01,
         "std_decay_rate": 0.99995,

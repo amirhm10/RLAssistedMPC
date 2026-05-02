@@ -1,0 +1,10 @@
+# Keep the tracked directory placeholders, but ignore generated result runs.
+Polymer/Results/*
+!Polymer/Results/.gitkeep
+
+Distillation/Results/*
+!Distillation/Results/.gitkeep
+
+# Other generated result or temporary run folders.
+VanDeVusse/Results/*
+.tmp_*/

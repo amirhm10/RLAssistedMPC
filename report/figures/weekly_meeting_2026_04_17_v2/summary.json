@@ -1,0 +1,346 @@
+{
+  "methods": {
+    "polymer_horizon_dqn": {
+      "label": "Polymer DQN Horizon",
+      "system": "polymer",
+      "agent": "DDQN",
+      "run": "Polymer/Results/horizon_disturb_unified/20260407_175020/input_data.pkl",
+      "compare": "Polymer/Results/disturb_compare_horizon_unified/20260407_175031/input_data.pkl",
+      "sheet": "polymer_horizon_dqn_sheet.png",
+      "episodes": 200,
+      "rl_final": -2.5327815430043557,
+      "mpc_final": -3.842690079074064,
+      "final_gap": 1.3099085360697083,
+      "last50_gap": 1.2133189003567153,
+      "better_episodes": 196,
+      "best_rl": -2.489165884707087,
+      "best_rl_ep": 197,
+      "worst_gap": -0.011757253784688615,
+      "worst_gap_ep": 5,
+      "best_gap": 1.6258007881499057,
+      "best_gap_ep": 44,
+      "late_rl_mean": -2.621161285138026,
+      "late_mpc_mean": -3.878156620258114,
+      "top_horizons": [
+        {
+          "Hp": 9,
+          "Hc": 3,
+          "count": 5149,
+          "share_pct": 3.22
+        },
+        {
+          "Hp": 12,
+          "Hc": 6,
+          "count": 3964,
+          "share_pct": 2.48
+        },
+        {
+          "Hp": 19,
+          "Hc": 5,
+          "count": 3740,
+          "share_pct": 2.34
+        },
+        {
+          "Hp": 19,
+          "Hc": 3,
+          "count": 3648,
+          "share_pct": 2.28
+        },
+        {
+          "Hp": 19,
+          "Hc": 9,
+          "count": 3620,
+          "share_pct": 2.26
+        }
+      ],
+      "mpc_horizons": {
+        "Hp": 9,
+        "Hc": 3
+      }
+    },
+    "polymer_residual_td3": {
+      "label": "Polymer Residual",
+      "system": "polymer",
+      "agent": "TD3",
+      "run": "Polymer/Results/td3_residual_disturb/20260413_004620/input_data.pkl",
+      "compare": "Polymer/Results/disturb_compare_td3_residual/20260413_004631/input_data.pkl",
+      "sheet": "polymer_residual_td3_sheet.png",
+      "episodes": 200,
+      "rl_final": -3.818319924539602,
+      "mpc_final": -4.417364930715477,
+      "final_gap": 0.5990450061758752,
+      "last50_gap": 0.48500428540035706,
+      "better_episodes": 185,
+      "best_rl": -3.3667528860821387,
+      "best_rl_ep": 1,
+      "worst_gap": -0.6964146730134324,
+      "worst_gap_ep": 19,
+      "best_gap": 0.7043131502752993,
+      "best_gap_ep": 132,
+      "late_rl_mean": -3.9314255242652267,
+      "late_mpc_mean": -4.417371395801705,
+      "rho_log_mean": 0.686683,
+      "rho_log_last": 0.220657,
+      "projection_active_log_mean": 0.999981,
+      "projection_active_log_last": 1.0,
+      "projection_due_to_authority_log_mean": 0.949094,
+      "projection_due_to_authority_log_last": 1.0,
+      "projection_due_to_headroom_log_mean": 0.0,
+      "projection_due_to_headroom_log_last": 0.0
+    },
+    "polymer_reidentification_td3": {
+      "label": "Polymer Reidentification",
+      "system": "polymer",
+      "agent": "TD3",
+      "run": "Polymer/Results/td3_reidentification_disturb/20260415_120803/input_data.pkl",
+      "compare": "Polymer/Results/disturb_compare_td3_reidentification/20260415_120810/input_data.pkl",
+      "sheet": "polymer_reidentification_td3_sheet.png",
+      "episodes": 200,
+      "rl_final": -4.486921042169623,
+      "mpc_final": -4.417364930715477,
+      "final_gap": -0.06955611145414586,
+      "last50_gap": -0.0870598639868087,
+      "better_episodes": 10,
+      "best_rl": -3.366707415680378,
+      "best_rl_ep": 1,
+      "worst_gap": -0.13607148362016197,
+      "worst_gap_ep": 43,
+      "best_gap": 0.033851515038437086,
+      "best_gap_ep": 17,
+      "late_rl_mean": -4.497821963240586,
+      "late_mpc_mean": -4.417371395801705,
+      "eta_A_log_mean": 0.42133,
+      "eta_A_log_last": 0.108499,
+      "eta_B_log_mean": 0.410656,
+      "eta_B_log_last": 0.845637,
+      "active_A_model_delta_ratio_log_mean": 0.064513,
+      "active_A_model_delta_ratio_log_last": 0.070126,
+      "active_B_model_delta_ratio_log_mean": 0.093876,
+      "active_B_model_delta_ratio_log_last": 0.094593,
+      "theta_clipped_fraction_log_mean": 0.121843,
+      "theta_clipped_fraction_log_last": 0.0
+    },
+    "distillation_horizon_dqn": {
+      "label": "Distillation DQN Horizon",
+      "system": "distillation",
+      "agent": "DDQN",
+      "run": "Distillation/Results/distillation_horizon_disturb_fluctuation_standard_unified/20260416_192434/input_data.pkl",
+      "compare": "Distillation/Results/distillation_compare_horizon_disturb_fluctuation_standard/20260416_192443/input_data.pkl",
+      "sheet": "distillation_horizon_dqn_sheet.png",
+      "episodes": 200,
+      "rl_final": 19.432834830595958,
+      "mpc_final": 16.078753855864868,
+      "final_gap": 3.3540809747310902,
+      "last50_gap": 0.29933643716455466,
+      "better_episodes": 118,
+      "best_rl": 23.337188866090578,
+      "best_rl_ep": 131,
+      "worst_gap": -11.252662316034085,
+      "worst_gap_ep": 51,
+      "best_gap": 5.362093766495942,
+      "best_gap_ep": 131,
+      "late_rl_mean": 18.15744759768696,
+      "late_mpc_mean": 17.758457952604388,
+      "top_horizons": [
+        {
+          "Hp": 6,
+          "Hc": 3,
+          "count": 6305,
+          "share_pct": 7.88
+        },
+        {
+          "Hp": 14,
+          "Hc": 3,
+          "count": 2136,
+          "share_pct": 2.67
+        },
+        {
+          "Hp": 10,
+          "Hc": 8,
+          "count": 2124,
+          "share_pct": 2.65
+        },
+        {
+          "Hp": 10,
+          "Hc": 9,
+          "count": 2060,
+          "share_pct": 2.58
+        },
+        {
+          "Hp": 14,
+          "Hc": 4,
+          "count": 2020,
+          "share_pct": 2.52
+        }
+      ],
+      "mpc_horizons": {
+        "Hp": 6,
+        "Hc": 3
+      }
+    },
+    "distillation_dueling_horizon": {
+      "label": "Distillation Dueling Horizon",
+      "system": "distillation",
+      "agent": "Dueling DDQN",
+      "run": "Distillation/Results/distillation_dueling_horizon_disturb_fluctuation_standard_unified/20260416_192302/input_data.pkl",
+      "compare": "Distillation/Results/distillation_compare_dueling_horizon_disturb_fluctuation_standard/20260416_192310/input_data.pkl",
+      "sheet": "distillation_dueling_horizon_sheet.png",
+      "episodes": 200,
+      "rl_final": 18.913929638607545,
+      "mpc_final": 16.078753855864868,
+      "final_gap": 2.8351757827426773,
+      "last50_gap": 2.7200565870220794,
+      "better_episodes": 186,
+      "best_rl": 22.951671735665933,
+      "best_rl_ep": 171,
+      "worst_gap": -0.8078047580269114,
+      "worst_gap_ep": 106,
+      "best_gap": 5.27062896045841,
+      "best_gap_ep": 171,
+      "late_rl_mean": 20.191561722567315,
+      "late_mpc_mean": 17.758457952604388,
+      "top_horizons": [
+        {
+          "Hp": 6,
+          "Hc": 3,
+          "count": 42689,
+          "share_pct": 53.36
+        },
+        {
+          "Hp": 8,
+          "Hc": 2,
+          "count": 16212,
+          "share_pct": 20.27
+        },
+        {
+          "Hp": 13,
+          "Hc": 5,
+          "count": 12896,
+          "share_pct": 16.12
+        },
+        {
+          "Hp": 13,
+          "Hc": 6,
+          "count": 388,
+          "share_pct": 0.48
+        },
+        {
+          "Hp": 12,
+          "Hc": 10,
+          "count": 288,
+          "share_pct": 0.36
+        }
+      ],
+      "mpc_horizons": {
+        "Hp": 6,
+        "Hc": 3
+      }
+    },
+    "distillation_weights_sac": {
+      "label": "Distillation Weights",
+      "system": "distillation",
+      "agent": "SAC",
+      "run": "Distillation/Results/distillation_weights_sac_disturb_fluctuation_standard_unified/20260416_192555/input_data.pkl",
+      "compare": "Distillation/Results/distillation_compare_weights_sac_disturb_fluctuation_standard/20260416_192602/input_data.pkl",
+      "sheet": "distillation_weights_sac_sheet.png",
+      "episodes": 200,
+      "rl_final": 17.599055745139783,
+      "mpc_final": 16.078753855864868,
+      "final_gap": 1.520301889274915,
+      "last50_gap": 2.2719342048424425,
+      "better_episodes": 169,
+      "best_rl": 23.480151892289726,
+      "best_rl_ep": 115,
+      "worst_gap": -6.155485454983097,
+      "worst_gap_ep": 132,
+      "best_gap": 5.6681164511536615,
+      "best_gap_ep": 115,
+      "late_rl_mean": 20.78292537962595,
+      "late_mpc_mean": 17.758457952604388,
+      "weight_mean": [
+        1.146,
+        1.1624,
+        0.9994,
+        1.0327
+      ],
+      "weight_last": [
+        0.8368,
+        1.1004,
+        0.761,
+        1.0141
+      ]
+    },
+    "distillation_residual_sac": {
+      "label": "Distillation Residual",
+      "system": "distillation",
+      "agent": "SAC",
+      "run": "Distillation/Results/distillation_residual_sac_disturb_fluctuation_mismatch_rho_unified/20260415_191909/input_data.pkl",
+      "compare": "Distillation/Results/distillation_compare_residual_sac_disturb_fluctuation/20260415_191919/input_data.pkl",
+      "sheet": "distillation_residual_sac_sheet.png",
+      "episodes": 200,
+      "rl_final": -0.4446379342281602,
+      "mpc_final": -0.265065025842288,
+      "final_gap": -0.1795729083858722,
+      "last50_gap": -0.21729699972012737,
+      "better_episodes": 3,
+      "best_rl": -0.23927548703002688,
+      "best_rl_ep": 29,
+      "worst_gap": -0.3458004904207249,
+      "worst_gap_ep": 144,
+      "best_gap": 1.023762118856908e-06,
+      "best_gap_ep": 6,
+      "late_rl_mean": -0.49654539529920266,
+      "late_mpc_mean": -0.28234838699795434,
+      "rho_log_mean": 0.985604,
+      "rho_log_last": 1.0,
+      "projection_active_log_mean": 0.99995,
+      "projection_active_log_last": 1.0,
+      "projection_due_to_authority_log_mean": 0.94975,
+      "projection_due_to_authority_log_last": 1.0,
+      "projection_due_to_headroom_log_mean": 0.0,
+      "projection_due_to_headroom_log_last": 0.0
+    },
+    "distillation_reidentification_td3": {
+      "label": "Distillation Reidentification",
+      "system": "distillation",
+      "agent": "TD3",
+      "run": "Distillation/Results/distillation_reidentification_td3_disturb_fluctuation_mismatch_unified/20260416_113030/input_data.pkl",
+      "compare": "Distillation/Results/distillation_compare_reidentification_td3_disturb_fluctuation_mismatch/20260416_113035/input_data.pkl",
+      "sheet": "distillation_reidentification_td3_sheet.png",
+      "episodes": 200,
+      "rl_final": -0.20542254190089124,
+      "mpc_final": -0.265065025842288,
+      "final_gap": 0.05964248394139679,
+      "last50_gap": 0.025126428968819378,
+      "better_episodes": 70,
+      "best_rl": -0.20542254190089124,
+      "best_rl_ep": 200,
+      "worst_gap": -4.236600717531163,
+      "worst_gap_ep": 51,
+      "best_gap": 0.05964248394139679,
+      "best_gap_ep": 200,
+      "late_rl_mean": -0.2732391122059209,
+      "late_mpc_mean": -0.28234838699795434,
+      "eta_A_log_mean": 0.323029,
+      "eta_A_log_last": 0.385113,
+      "eta_B_log_mean": 0.355444,
+      "eta_B_log_last": 0.397592,
+      "active_A_model_delta_ratio_log_mean": 0.098572,
+      "active_A_model_delta_ratio_log_last": 0.084132,
+      "active_B_model_delta_ratio_log_mean": 0.069369,
+      "active_B_model_delta_ratio_log_last": 0.075245,
+      "theta_clipped_fraction_log_mean": 0.025835,
+      "theta_clipped_fraction_log_last": 0.0
+    }
+  },
+  "missing": {
+    "polymer_dueling_horizon": {
+      "label": "Polymer Dueling Horizon",
+      "reason": "No disturbance-mode stored run/comparison bundle exists under the expected unified result prefixes."
+    },
+    "polymer_weights": {
+      "label": "Polymer Weights",
+      "reason": "No disturbance-mode stored run/comparison bundle exists under the expected unified result prefixes."
+    }
+  }
+}

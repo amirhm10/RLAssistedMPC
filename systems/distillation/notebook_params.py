@@ -447,8 +447,9 @@ DISTILLATION_MATRIX_DEFAULTS = {
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     # Distillation scalar matrix default: keep the wide A/B search,
-    # retain the protected release cap, disable live Step 3 logic,
-    # and use the conservative Step 4G BC schedule.
+    # retain the protected Step 2 release cap, keep the post-warm-start
+    # action/actor freeze enabled, disable live Step 3 logic, and use the
+    # conservative Step 4G BC schedule.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
         enabled=True,
         lambda_bc_start=0.3,
@@ -507,7 +508,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
         "actor_freeze": 0,
-        "exploration_mode": "param_noise",
+        "exploration_mode": "gaussian",
         "loss_type": "huber",
         "param_noise_resample_interval": 4,
     },
@@ -552,8 +553,10 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     # Distillation structured matrix default: mirror the scalar live path,
-    # but keep the structured range family and reuse the conservative BC
-    # rollout without structured label weighting.
+    # including the protected Step 2 release cap, the post-warm-start
+    # action/actor freeze, and the conservative small-noise TD3 setup,
+    # while keeping the structured range family and BC rollout without
+    # structured label weighting.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
         enabled=True,
         lambda_bc_start=0.3,

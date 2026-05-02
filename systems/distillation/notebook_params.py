@@ -16,6 +16,7 @@ from .config import (
     DISTILLATION_MATRIX_ALPHA_UPPER_CAP,
     DISTILLATION_DEFAULT_MULTIPLIER_LOW,
     DISTILLATION_DEFAULT_MULTIPLIER_HIGH,
+    DISTILLATION_HORIZON_RUN_PROFILES,
     DISTILLATION_NOMINAL_CONDITIONS,
     DISTILLATION_OBSERVER_POLES,
     DISTILLATION_REIDENTIFICATION_RUN_PROFILES,
@@ -392,13 +393,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
     "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
 }
-DISTILLATION_HORIZON_STANDARD_DEFAULTS["run_profiles"] = {
-    key: dict(value) for key, value in {
-        ("nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
-        ("disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
-        ("disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
-    }.items()
-}
+DISTILLATION_HORIZON_STANDARD_DEFAULTS["run_profiles"] = deepcopy(DISTILLATION_HORIZON_RUN_PROFILES)
 
 DISTILLATION_HORIZON_DUELING_DEFAULTS = {
     "run_mode": "disturb",
@@ -451,9 +446,9 @@ DISTILLATION_MATRIX_DEFAULTS = {
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
-    # Distillation scalar matrix default: restore the wide A/B search,
-    # keep Step 1 and Step 2 active, and enable Step 4G BC while
-    # leaving Step 3 as shadow diagnostics only.
+    # Distillation scalar matrix default: keep the wide A/B search,
+    # retain the protected release cap, disable live Step 3 logic,
+    # and use the conservative Step 4G BC schedule.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
         enabled=True,
         lambda_bc_start=0.3,
@@ -478,7 +473,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "offline_multiplier_diagnostics": _copy_offline_multiplier_diagnostic_defaults(enabled=True),
         "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
-        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=True),
+        "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
         "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
@@ -556,7 +551,14 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
-    "behavioral_cloning": _copy_behavioral_cloning_defaults(enabled=False),
+    # Distillation structured matrix default: mirror the scalar live path,
+    # but keep the structured range family and reuse the conservative BC
+    # rollout without structured label weighting.
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(
+        enabled=True,
+        lambda_bc_start=0.3,
+        active_subepisodes=20,
+    ),
     "run_profiles": deepcopy(DISTILLATION_MATRIX_RUN_PROFILES),
     "post_warm_start_action_freeze_subepisodes": 5,
     "post_warm_start_actor_freeze_subepisodes": 5,
@@ -579,7 +581,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "release_protected_advisory_caps": _copy_release_protected_advisory_cap_defaults(enabled=True),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
-        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=True),
+        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=False),
         "prediction_fallback_on_solve_failure": True,  # Use the shared structured-runner fallback instead of stopping on an assisted MPC solve failure.
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition.

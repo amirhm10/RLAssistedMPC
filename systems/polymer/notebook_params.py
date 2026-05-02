@@ -528,11 +528,11 @@ POLYMER_MATRIX_DEFAULTS = {
     "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
     "post_warm_start_action_freeze_subepisodes": 2,
     "post_warm_start_actor_freeze_subepisodes": 2,
-    # Step 3D polymer scalar matrix default: keep Step 2 active, disable BC,
-    # and enable the usefulness gate so both polymer matrix families share the
-    # same usefulness-gated execution path.
+    # Step 4G polymer scalar matrix default: keep the release cap active,
+    # disable live Step 3 handoff logic, and bias the early live policy toward
+    # nominal execution during the protected rollout window.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
-        enabled=False,
+        enabled=True,
         lambda_bc_start=0.3,
         active_subepisodes=20,
     ),
@@ -551,7 +551,7 @@ POLYMER_MATRIX_DEFAULTS = {
         ),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
-        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=True),
+        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=False),
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
         "nominal_qi": 108.0,
@@ -633,10 +633,11 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
     "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
     "post_warm_start_action_freeze_subepisodes": 3,
     "post_warm_start_actor_freeze_subepisodes": 3,
-    # Step 3D polymer structured default: keep Step 2 active, disable BC,
-    # and enable the usefulness gate to mirror the distillation structured path.
+    # Step 4G polymer structured default: keep the release cap active,
+    # disable live Step 3 handoff logic, and use the weighted BC recipe that
+    # previously produced the strongest structured recovery.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
-        enabled=False,
+        enabled=True,
         lambda_bc_start=0.6,
         active_subepisodes=25,
         label_weight_overrides={
@@ -669,7 +670,7 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
         ),
         "mpc_acceptance_fallback": _copy_mpc_acceptance_fallback_defaults(enabled=False),
         "mpc_dual_cost_shadow": _copy_mpc_dual_cost_shadow_defaults(enabled=False),
-        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=True),
+        "mpc_usefulness_gate": _copy_mpc_usefulness_gate_defaults(enabled=False),
         "block_group_count": 3,  # Positive integer. Used only when block_groups is None.
         "block_groups": None,  # Optional explicit 0-based physical-state partition, e.g. [[0, 1], [2, 3], [4, 5, 6]].
         "band_offsets": [0, 1, 2],  # Non-negative offsets used in band mode. Must include 0.

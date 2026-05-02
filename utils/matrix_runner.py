@@ -228,7 +228,11 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         acceptance_cfg.get("store_executed_action_in_replay", release_store_executed_action)
     )
     dual_cost_shadow_cfg = dict(matrix_cfg.get("mpc_dual_cost_shadow", {}))
-    dual_cost_shadow_enabled = bool(dual_cost_shadow_cfg.get("enabled", False))
+    # Matrix studies now enforce Step 4G-only live handoff behavior. Keep the
+    # shadow config in the bundle for provenance, but disable it at runtime so
+    # stale notebook state cannot silently re-enable Step 3C logic.
+    dual_cost_shadow_cfg["enabled"] = False
+    dual_cost_shadow_enabled = False
     usefulness_gate_cfg = dict(matrix_cfg.get("mpc_usefulness_gate", {}))
     usefulness_gate_enabled = bool(usefulness_gate_cfg.get("enabled", False))
     usefulness_gate_store_executed_action = bool(

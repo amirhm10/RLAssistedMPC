@@ -6,6 +6,7 @@ import math
 import os
 import pickle
 import random
+import traceback
 from collections import Counter, defaultdict
 from copy import deepcopy
 from dataclasses import dataclass
@@ -1148,6 +1149,17 @@ def _build_run_record(raw_run: dict[str, Any], reward_tail_episodes: int) -> dic
     return record
 
 
+def _build_failed_run_record(method_key: str, seed: int, exc: Exception) -> dict[str, Any]:
+    return {
+        "method_key": str(method_key),
+        "method_label": METHOD_LABELS.get(str(method_key), str(method_key)),
+        "seed": int(seed),
+        "error_type": type(exc).__name__,
+        "error_message": str(exc),
+        "traceback": traceback.format_exc(),
+    }
+
+
 def _append_baseline_deltas(run_records: list[dict[str, Any]], baseline_metrics: dict[str, float]) -> None:
     for record in run_records:
         metrics = record["metrics"]
@@ -1469,6 +1481,7 @@ def _plot_method_diagnostic(record: dict[str, Any], out_dir: Path, save_pdf: boo
 def _write_markdown_outputs(
     out_dir: Path,
     run_records: list[dict[str, Any]],
+    failed_runs: list[dict[str, Any]],
     method_summary_rows: list[dict[str, Any]],
     baseline_metrics: dict[str, float],
     baseline_path: Path,
@@ -1512,6 +1525,23 @@ def _write_markdown_outputs(
         f"- Tail offset mean: {baseline_metrics['tail_offset_mean']:.4f}",
         f"- Mean |Δu|: {baseline_metrics['mean_abs_du']:.4f}",
     ]
+    if failed_runs:
+        failure_headers = ["Method", "Seed", "Error type", "Error message"]
+        failure_rows = [
+            [
+                failure["method_label"],
+                failure["seed"],
+                failure["error_type"],
+                failure["error_message"],
+            ]
+            for failure in failed_runs
+        ]
+        summary_md[6:6] = [
+            "## Failed Runs",
+            "",
+            _markdown_table(failure_headers, failure_rows),
+            "",
+        ]
     (out_dir / "polymer_five_seed_core_summary.md").write_text("\n".join(summary_md) + "\n", encoding="utf-8")
 
     appendix_headers = [
@@ -1553,6 +1583,7 @@ def run_polymer_multiseed_core_study(
     style_profile: str = "paper",
     figure_prefix: str = "polymer_five_seed_core_study",
     reward_tail_episodes: int = 20,
+    continue_on_error: bool = False,
 ) -> dict[str, Any]:
     methods = list(methods or DEFAULT_METHODS)
     seeds = [int(seed) for seed in (seeds or DEFAULT_SEEDS)]
@@ -1564,23 +1595,36 @@ def run_polymer_multiseed_core_study(
     _set_plot_style(style_profile)
 
     raw_runs = []
+    failed_runs = []
     for method_key in methods:
         if method_key not in METHOD_SPECS:
             raise KeyError(f"Unsupported method: {method_key}")
         for seed in seeds:
-            raw_runs.append(
-                _run_method(
-                    method_key,
-                    seed,
-                    repo_root,
-                    result_dir,
-                    data_dir_override,
-                    style_profile=style_profile,
-                    save_pdf=save_pdf,
+            try:
+                raw_runs.append(
+                    _run_method(
+                        method_key,
+                        seed,
+                        repo_root,
+                        result_dir,
+                        data_dir_override,
+                        style_profile=style_profile,
+                        save_pdf=save_pdf,
+                    )
                 )
-            )
+            except Exception as exc:
+                failure = _build_failed_run_record(method_key, seed, exc)
+                failed_runs.append(failure)
+                if not continue_on_error:
+                    raise
 
     if not raw_runs:
+        if failed_runs:
+            failed_path = out_dir / "polymer_five_seed_failed_runs.json"
+            _write_json(failed_path, failed_runs)
+            raise RuntimeError(
+                f"No runs completed successfully. Failure details were written to {failed_path}."
+            )
         raise ValueError("No runs were executed.")
 
     reference_bundle = raw_runs[0]["bundle"]
@@ -1612,6 +1656,7 @@ def run_polymer_multiseed_core_study(
 
     _write_csv(out_dir / "polymer_five_seed_core_flat_summary.csv", flat_rows)
     _write_csv(out_dir / "polymer_five_seed_core_slide_metrics.csv", slide_metric_rows)
+    _write_csv(out_dir / "polymer_five_seed_failed_runs.csv", failed_runs)
     _write_json(
         out_dir / "polymer_five_seed_manifest.json",
         {
@@ -1620,11 +1665,13 @@ def run_polymer_multiseed_core_study(
             "baseline_path": str(baseline_path),
             "output_dir": str(out_dir),
             "run_records": run_records,
+            "failed_runs": failed_runs,
             "method_summary_rows": method_summary_rows,
             "baseline_metrics": baseline_metrics,
+            "continue_on_error": bool(continue_on_error),
         },
     )
-    _write_markdown_outputs(out_dir, run_records, method_summary_rows, baseline_metrics, baseline_path)
+    _write_markdown_outputs(out_dir, run_records, failed_runs, method_summary_rows, baseline_metrics, baseline_path)
 
     _plot_study_design_figure(out_dir, methods, seeds, baseline_path, save_pdf)
     _plot_reward_summary(run_records, out_dir, save_pdf)
@@ -1636,19 +1683,24 @@ def run_polymer_multiseed_core_study(
     _plot_variability_summary(method_summary_rows, out_dir, save_pdf)
 
     for method_key in methods:
-        representative = _representative_record([record for record in run_records if record["method_key"] == method_key])
+        method_records = [record for record in run_records if record["method_key"] == method_key]
+        if not method_records:
+            continue
+        representative = _representative_record(method_records)
         _plot_method_diagnostic(representative, out_dir, save_pdf)
 
     return {
         "output_dir": str(out_dir),
         "baseline_path": str(baseline_path),
         "run_records": run_records,
+        "failed_runs": failed_runs,
         "method_summary_rows": method_summary_rows,
         "baseline_metrics": baseline_metrics,
         "flat_summary_csv": str(out_dir / "polymer_five_seed_core_flat_summary.csv"),
         "slide_metrics_csv": str(out_dir / "polymer_five_seed_core_slide_metrics.csv"),
         "summary_markdown": str(out_dir / "polymer_five_seed_core_summary.md"),
         "manifest_json": str(out_dir / "polymer_five_seed_manifest.json"),
+        "failed_runs_csv": str(out_dir / "polymer_five_seed_failed_runs.csv"),
     }
 
 

@@ -46,6 +46,83 @@ def run_mpc_acceptance_gate(
     relative_tolerance = float(cfg.get("relative_tolerance", 0.0))
     absolute_tolerance = float(cfg.get("absolute_tolerance", 1e-8))
 
+    if not enabled:
+        A_candidate = np.asarray(A_candidate, float)
+        B_candidate = np.asarray(B_candidate, float)
+        A_nominal = np.asarray(A_nominal, float)
+        B_nominal = np.asarray(B_nominal, float)
+        candidate_model_finite = bool(np.all(np.isfinite(A_candidate)) and np.all(np.isfinite(B_candidate)))
+        candidate_sol = None
+        candidate_solve_failed = False
+
+        if candidate_model_finite:
+            try:
+                mpc_obj.A = A_candidate
+                mpc_obj.B = B_candidate
+                candidate_sol = solve_fn(
+                    mpc_obj=mpc_obj,
+                    y_sp=y_sp,
+                    u_prev_dev=u_prev_dev,
+                    x0_model=x0_model,
+                    initial_guess=initial_guess,
+                    bounds=bounds,
+                    step_idx=step_idx,
+                )
+            except RuntimeError:
+                candidate_solve_failed = True
+                if not fallback_on_candidate_solve_failure:
+                    raise
+        else:
+            candidate_solve_failed = True
+            if not fallback_on_candidate_solve_failure:
+                raise RuntimeError(f"Candidate MPC model became non-finite at step {step_idx}.")
+
+        if not candidate_solve_failed and candidate_sol is not None:
+            mpc_obj.A = A_candidate
+            mpc_obj.B = B_candidate
+            return {
+                "sol": candidate_sol,
+                "accepted": True,
+                "fallback_active": False,
+                "reason_code": ACCEPTANCE_REASON_DISABLED,
+                "candidate_cost_on_nominal": np.nan,
+                "candidate_cost_native": _safe_fun(candidate_sol),
+                "nominal_cost": np.nan,
+                "cost_margin": np.nan,
+                "threshold": np.nan,
+            }
+
+        try:
+            mpc_obj.A = A_nominal
+            mpc_obj.B = B_nominal
+            nominal_sol = solve_fn(
+                mpc_obj=mpc_obj,
+                y_sp=y_sp,
+                u_prev_dev=u_prev_dev,
+                x0_model=x0_model,
+                initial_guess=initial_guess,
+                bounds=bounds,
+                step_idx=step_idx,
+            )
+        except RuntimeError as fallback_exc:
+            raise RuntimeError(
+                f"Candidate MPC solve failed at step {step_idx}, and nominal fallback also failed: {fallback_exc}"
+            ) from fallback_exc
+
+        mpc_obj.A = A_nominal
+        mpc_obj.B = B_nominal
+        return {
+            "sol": nominal_sol,
+            "accepted": False,
+            "fallback_active": True,
+            "reason_code": ACCEPTANCE_REASON_CANDIDATE_SOLVE_FAILED,
+            "candidate_cost_on_nominal": np.nan,
+            "candidate_cost_native": np.nan,
+            "nominal_cost": _safe_fun(nominal_sol),
+            "cost_margin": np.nan,
+            "threshold": np.nan,
+        }
+
     core = _evaluate_dual_cost_core(
         mpc_obj=mpc_obj,
         solve_fn=solve_fn,
@@ -65,21 +142,6 @@ def run_mpc_acceptance_gate(
     nominal_sol = core["nominal_sol"]
     nominal_cost = core["nominal_cost"]
     candidate_solve_failed = bool(core["candidate_solve_failed"])
-
-    if not enabled:
-        mpc_obj.A = np.asarray(A_candidate, float)
-        mpc_obj.B = np.asarray(B_candidate, float)
-        return {
-            "sol": candidate_sol,
-            "accepted": True,
-            "fallback_active": False,
-            "reason_code": ACCEPTANCE_REASON_DISABLED,
-            "candidate_cost_on_nominal": np.nan,
-            "candidate_cost_native": float(core["candidate_cost_native"]),
-            "nominal_cost": np.nan,
-            "cost_margin": np.nan,
-            "threshold": np.nan,
-        }
 
     if candidate_solve_failed:
         mpc_obj.A = np.asarray(A_nominal, float)

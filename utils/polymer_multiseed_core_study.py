@@ -26,6 +26,8 @@ from utils.combined_runner import run_combined_supervisor
 from utils.helpers import apply_min_max, build_horizon_recipes
 from utils.horizon_runner_dueling import run_dueling_dqn_mpc_horizon_supervisor
 from utils.matrix_runner import run_matrix_multiplier_supervisor
+from utils.multiplier_release_schedule import extract_suggested_bounds_from_diagnostic
+from utils.multiplier_sensitivity import run_scalar_matrix_sensitivity
 from utils.notebook_setup import prepare_polymer_notebook_env
 from utils.plotting import compare_mpc_rl_from_dirs, plot_combined_results, plot_horizon_results, plot_matrix_multiplier_results, plot_residual_results, plot_weight_multiplier_results
 from utils.plotting_core import (
@@ -336,6 +338,51 @@ def _build_common_system(nb: dict[str, Any], repo_root: Path, data_dir_override:
         "reward_fn": reward_fn,
         "reward_params": reward_params,
     }
+
+
+def _inject_scalar_release_advisory_bounds(
+    release_cfg: dict[str, Any],
+    *,
+    offline_diag_cfg: dict[str, Any] | None,
+    common: dict[str, Any],
+    predict_h: int,
+    method_family: str,
+    low_bounds: np.ndarray,
+    high_bounds: np.ndarray,
+) -> dict[str, Any]:
+    release_cfg = dict(release_cfg)
+    if not bool(release_cfg.get("enabled", False)):
+        return release_cfg
+    if not bool(release_cfg.get("use_offline_diagnostic_bounds", True)):
+        return release_cfg
+    if release_cfg.get("advisory_bounds") is not None:
+        return release_cfg
+
+    diag_cfg = dict(offline_diag_cfg or {})
+    if not bool(diag_cfg.get("enabled", False)):
+        return release_cfg
+
+    diagnostic_result = run_scalar_matrix_sensitivity(
+        common["A_aug"],
+        common["B_aug"],
+        common["C_aug"],
+        np.asarray(low_bounds, float),
+        np.asarray(high_bounds, float),
+        int(predict_h),
+        n_outputs=common["n_outputs"],
+        epsilon_log=float(diag_cfg.get("epsilon_log", 0.02)),
+        n_random_samples=int(diag_cfg.get("n_random_samples", 2_000)),
+        seed=int(diag_cfg.get("seed", 42)),
+        rho_target=float(diag_cfg.get("rho_target", 0.995)),
+        gain_threshold=float(diag_cfg.get("gain_threshold", 0.25)),
+        system_name="polymer",
+        method_family=method_family,
+    )
+    release_cfg["advisory_bounds"] = extract_suggested_bounds_from_diagnostic(
+        diagnostic_result,
+        labels=["alpha"] + [f"B_col_{idx + 1}" for idx in range(common["n_inputs"])],
+    )
+    return release_cfg
 
 
 def _build_td3_agent(cfg: dict[str, Any], state_dim: int, action_dim: int, set_points_len: int, device: torch.device) -> TD3Agent:
@@ -682,7 +729,15 @@ def _prepare_continuous_run(
         run_cfg = dict(base_cfg)
         run_cfg["low_coef"] = ctrl["low_coef"].copy()
         run_cfg["high_coef"] = ctrl["high_coef"].copy()
-        run_cfg["release_protected_advisory_caps"] = dict(ctrl["release_protected_advisory_caps"])
+        run_cfg["release_protected_advisory_caps"] = _inject_scalar_release_advisory_bounds(
+            dict(ctrl["release_protected_advisory_caps"]),
+            offline_diag_cfg=ctrl.get("offline_multiplier_diagnostics"),
+            common=common,
+            predict_h=int(ctrl["predict_h"]),
+            method_family="matrix",
+            low_bounds=run_cfg["low_coef"],
+            high_bounds=run_cfg["high_coef"],
+        )
         run_cfg["behavioral_cloning"] = dict(nb["behavioral_cloning"])
         run_cfg["mpc_acceptance_fallback"] = dict(ctrl["mpc_acceptance_fallback"])
         run_cfg["mpc_dual_cost_shadow"] = dict(ctrl["mpc_dual_cost_shadow"])
@@ -928,7 +983,15 @@ def _prepare_combined_run(
             "observer_update_alignment": ctrl["observer_update_alignment"],
             "low_coef": np.asarray(ctrl["model_low"], float).copy(),
             "high_coef": np.asarray(ctrl["model_high"], float).copy(),
-            "release_protected_advisory_caps": dict(ctrl["release_protected_advisory_caps"]),
+            "release_protected_advisory_caps": _inject_scalar_release_advisory_bounds(
+                dict(ctrl["release_protected_advisory_caps"]),
+                offline_diag_cfg=ctrl.get("offline_multiplier_diagnostics"),
+                common=common,
+                predict_h=int(ctrl["predict_h"]),
+                method_family="combined_matrix",
+                low_bounds=np.asarray(ctrl["model_low"], float),
+                high_bounds=np.asarray(ctrl["model_high"], float),
+            ),
         },
         "weight_cfg": {
             "enabled": True,

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import concurrent.futures
 import csv
 import json
 import math
+import multiprocessing
 import os
 import pickle
 import random
@@ -46,7 +48,7 @@ from utils.state_features import get_rl_state_dim
 from utils.weights_runner import run_weight_multiplier_supervisor
 
 
-DEFAULT_SEEDS = [7, 11, 23, 37, 101]
+DEFAULT_SEEDS = [7, 11, 23]
 DEFAULT_METHODS = ["horizon_dueling", "matrix", "weights", "residual", "combined"]
 METHOD_LABELS = {
     "horizon_dueling": "Dueling DQN Horizon",
@@ -85,6 +87,8 @@ def default_study_config() -> dict[str, Any]:
     return {
         "methods": list(DEFAULT_METHODS),
         "seeds": list(DEFAULT_SEEDS),
+        "parallel_methods": True,
+        "max_method_workers": None,
         "run_mode": "disturb",
         "state_mode": "mismatch",
         "save_pdf": False,
@@ -1154,10 +1158,97 @@ def _build_failed_run_record(method_key: str, seed: int, exc: Exception) -> dict
         "method_key": str(method_key),
         "method_label": METHOD_LABELS.get(str(method_key), str(method_key)),
         "seed": int(seed),
+        "failure_scope": "seed",
         "error_type": type(exc).__name__,
         "error_message": str(exc),
         "traceback": traceback.format_exc(),
     }
+
+
+def _build_failed_method_record(method_key: str, seeds: list[int], exc: Exception) -> dict[str, Any]:
+    return {
+        "method_key": str(method_key),
+        "method_label": METHOD_LABELS.get(str(method_key), str(method_key)),
+        "seed": "method_batch:" + ",".join(str(int(seed)) for seed in seeds),
+        "failure_scope": "method",
+        "error_type": type(exc).__name__,
+        "error_message": str(exc),
+        "traceback": traceback.format_exc(),
+    }
+
+
+def _method_sort_index(method_key: str) -> int:
+    try:
+        return DEFAULT_METHODS.index(str(method_key))
+    except ValueError:
+        return len(DEFAULT_METHODS)
+
+
+def _seed_sort_key(seed_value: Any) -> tuple[int, Any]:
+    try:
+        return (0, int(seed_value))
+    except (TypeError, ValueError):
+        return (1, str(seed_value))
+
+
+def _run_method_group(
+    method_key: str,
+    seeds: list[int],
+    repo_root: Path,
+    result_dir: Path,
+    data_dir_override: str | None,
+    *,
+    style_profile: str,
+    save_pdf: bool,
+    continue_on_error: bool,
+) -> dict[str, Any]:
+    raw_runs = []
+    failed_runs = []
+    if method_key not in METHOD_SPECS:
+        raise KeyError(f"Unsupported method: {method_key}")
+    for seed in seeds:
+        try:
+            raw_runs.append(
+                _run_method(
+                    method_key,
+                    seed,
+                    repo_root,
+                    result_dir,
+                    data_dir_override,
+                    style_profile=style_profile,
+                    save_pdf=save_pdf,
+                )
+            )
+        except Exception as exc:
+            failed_runs.append(_build_failed_run_record(method_key, seed, exc))
+            if not continue_on_error:
+                raise
+    return {"method_key": str(method_key), "raw_runs": raw_runs, "failed_runs": failed_runs}
+
+
+def _run_method_group_worker(
+    method_key: str,
+    seeds: list[int],
+    repo_root: str,
+    result_dir: str,
+    data_dir_override: str | None,
+    *,
+    style_profile: str,
+    save_pdf: bool,
+    continue_on_error: bool,
+) -> dict[str, Any]:
+    repo_root_path = Path(repo_root)
+    os.chdir(repo_root_path)
+    return _run_method_group(
+        method_key,
+        [int(seed) for seed in seeds],
+        repo_root_path,
+        Path(result_dir),
+        data_dir_override,
+        style_profile=style_profile,
+        save_pdf=save_pdf,
+        continue_on_error=continue_on_error,
+    )
 
 
 def _append_baseline_deltas(run_records: list[dict[str, Any]], baseline_metrics: dict[str, float]) -> None:
@@ -1226,6 +1317,10 @@ def _build_method_color_map(method_keys: list[str]) -> dict[str, str]:
     return {key: palette[idx % len(palette)] for idx, key in enumerate(method_keys)}
 
 
+def _seed_count_label(seeds: list[int]) -> str:
+    return f"{len(seeds)}-seed"
+
+
 def _plot_study_design_figure(out_dir: Path, methods: list[str], seeds: list[int], baseline_path: Path, save_pdf: bool) -> None:
     fig, ax = plt.subplots(figsize=(11.0, 2.8 + 0.35 * len(methods)))
     ax.axis("off")
@@ -1247,7 +1342,7 @@ def _plot_study_design_figure(out_dir: Path, methods: list[str], seeds: list[int
     table.auto_set_font_size(False)
     table.set_fontsize(10)
     table.scale(1.0, 1.35)
-    ax.set_title(f"Polymer five-seed core study\nBaseline reference: {baseline_path.name}", fontweight="bold")
+    ax.set_title(f"Polymer {_seed_count_label(seeds)} core study\nBaseline reference: {baseline_path.name}", fontweight="bold")
     _save_fig(fig, os.fspath(out_dir), "fig_study_design_table", save_pdf=save_pdf)
 
 
@@ -1270,7 +1365,7 @@ def _plot_reward_summary(run_records: list[dict[str, Any]], out_dir: Path, save_
         ax.fill_between(x, mean - std, mean + std, color=color, alpha=0.16)
     ax.set_xlabel("Episode")
     ax.set_ylabel("Average reward")
-    ax.set_title("Mean +/- std reward curves across five seeds", fontweight="bold")
+    ax.set_title(f"Mean +/- std reward curves across {len({record['seed'] for record in run_records})} seeds", fontweight="bold")
     ax.legend(loc="best")
     _save_fig(fig, os.fspath(out_dir), "fig_reward_mean_std_by_method", save_pdf=save_pdf)
 
@@ -1584,6 +1679,8 @@ def run_polymer_multiseed_core_study(
     figure_prefix: str = "polymer_five_seed_core_study",
     reward_tail_episodes: int = 20,
     continue_on_error: bool = False,
+    parallel_methods: bool = False,
+    max_method_workers: int | None = None,
 ) -> dict[str, Any]:
     methods = list(methods or DEFAULT_METHODS)
     seeds = [int(seed) for seed in (seeds or DEFAULT_SEEDS)]
@@ -1599,24 +1696,59 @@ def run_polymer_multiseed_core_study(
     for method_key in methods:
         if method_key not in METHOD_SPECS:
             raise KeyError(f"Unsupported method: {method_key}")
-        for seed in seeds:
+
+    method_workers = max(1, min(len(methods), int(max_method_workers) if max_method_workers is not None else len(methods)))
+    if parallel_methods and len(methods) > 1:
+        mp_context = multiprocessing.get_context("spawn")
+        with concurrent.futures.ProcessPoolExecutor(max_workers=method_workers, mp_context=mp_context) as executor:
+            future_to_method = {
+                executor.submit(
+                    _run_method_group_worker,
+                    method_key,
+                    seeds,
+                    os.fspath(repo_root),
+                    os.fspath(result_dir),
+                    data_dir_override,
+                    style_profile=style_profile,
+                    save_pdf=save_pdf,
+                    continue_on_error=continue_on_error,
+                ): method_key
+                for method_key in methods
+            }
+            for future in concurrent.futures.as_completed(future_to_method):
+                method_key = future_to_method[future]
+                try:
+                    batch_result = future.result()
+                except Exception as exc:
+                    failed_runs.append(_build_failed_method_record(method_key, seeds, exc))
+                    if not continue_on_error:
+                        raise
+                    continue
+                raw_runs.extend(batch_result["raw_runs"])
+                failed_runs.extend(batch_result["failed_runs"])
+    else:
+        for method_key in methods:
             try:
-                raw_runs.append(
-                    _run_method(
-                        method_key,
-                        seed,
-                        repo_root,
-                        result_dir,
-                        data_dir_override,
-                        style_profile=style_profile,
-                        save_pdf=save_pdf,
-                    )
+                batch_result = _run_method_group(
+                    method_key,
+                    seeds,
+                    repo_root,
+                    result_dir,
+                    data_dir_override,
+                    style_profile=style_profile,
+                    save_pdf=save_pdf,
+                    continue_on_error=continue_on_error,
                 )
             except Exception as exc:
-                failure = _build_failed_run_record(method_key, seed, exc)
-                failed_runs.append(failure)
+                failed_runs.append(_build_failed_method_record(method_key, seeds, exc))
                 if not continue_on_error:
                     raise
+                continue
+            raw_runs.extend(batch_result["raw_runs"])
+            failed_runs.extend(batch_result["failed_runs"])
+
+    raw_runs.sort(key=lambda row: (_method_sort_index(row["method_key"]), _seed_sort_key(row["seed"])))
+    failed_runs.sort(key=lambda row: (_method_sort_index(row["method_key"]), _seed_sort_key(row["seed"])))
 
     if not raw_runs:
         if failed_runs:
@@ -1669,6 +1801,8 @@ def run_polymer_multiseed_core_study(
             "method_summary_rows": method_summary_rows,
             "baseline_metrics": baseline_metrics,
             "continue_on_error": bool(continue_on_error),
+            "parallel_methods": bool(parallel_methods),
+            "max_method_workers": int(method_workers),
         },
     )
     _write_markdown_outputs(out_dir, run_records, failed_runs, method_summary_rows, baseline_metrics, baseline_path)
@@ -1692,6 +1826,10 @@ def run_polymer_multiseed_core_study(
     return {
         "output_dir": str(out_dir),
         "baseline_path": str(baseline_path),
+        "methods": methods,
+        "seeds": seeds,
+        "parallel_methods": bool(parallel_methods),
+        "max_method_workers": int(method_workers),
         "run_records": run_records,
         "failed_runs": failed_runs,
         "method_summary_rows": method_summary_rows,

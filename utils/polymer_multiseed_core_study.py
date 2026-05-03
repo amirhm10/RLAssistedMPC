@@ -88,7 +88,9 @@ def default_study_config() -> dict[str, Any]:
         "methods": list(DEFAULT_METHODS),
         "seeds": list(DEFAULT_SEEDS),
         "parallel_methods": True,
+        "parallel_seeds": True,
         "max_method_workers": None,
+        "max_run_workers": None,
         "run_mode": "disturb",
         "state_mode": "mismatch",
         "save_pdf": False,
@@ -1251,6 +1253,37 @@ def _run_method_group_worker(
     )
 
 
+def _run_single_run_worker(
+    method_key: str,
+    seed: int,
+    repo_root: str,
+    result_dir: str,
+    data_dir_override: str | None,
+    *,
+    style_profile: str,
+    save_pdf: bool,
+) -> dict[str, Any]:
+    repo_root_path = Path(repo_root)
+    os.chdir(repo_root_path)
+    return _run_method(
+        method_key,
+        int(seed),
+        repo_root_path,
+        Path(result_dir),
+        data_dir_override,
+        style_profile=style_profile,
+        save_pdf=save_pdf,
+    )
+
+
+def _resolve_worker_count(task_count: int, configured_workers: int | None) -> int:
+    task_count = max(1, int(task_count))
+    if configured_workers is not None:
+        return max(1, min(task_count, int(configured_workers)))
+    cpu_count = os.cpu_count() or task_count
+    return max(1, min(task_count, int(cpu_count)))
+
+
 def _append_baseline_deltas(run_records: list[dict[str, Any]], baseline_metrics: dict[str, float]) -> None:
     for record in run_records:
         metrics = record["metrics"]
@@ -1680,7 +1713,9 @@ def run_polymer_multiseed_core_study(
     reward_tail_episodes: int = 20,
     continue_on_error: bool = False,
     parallel_methods: bool = False,
+    parallel_seeds: bool = False,
     max_method_workers: int | None = None,
+    max_run_workers: int | None = None,
 ) -> dict[str, Any]:
     methods = list(methods or DEFAULT_METHODS)
     seeds = [int(seed) for seed in (seeds or DEFAULT_SEEDS)]
@@ -1693,14 +1728,45 @@ def run_polymer_multiseed_core_study(
 
     raw_runs = []
     failed_runs = []
+    submitted_task_count = 0
+    parallel_worker_count = 1
     for method_key in methods:
         if method_key not in METHOD_SPECS:
             raise KeyError(f"Unsupported method: {method_key}")
 
-    method_workers = max(1, min(len(methods), int(max_method_workers) if max_method_workers is not None else len(methods)))
-    if parallel_methods and len(methods) > 1:
+    if parallel_methods and parallel_seeds and len(methods) * len(seeds) > 1:
+        submitted_task_count = len(methods) * len(seeds)
+        parallel_worker_count = _resolve_worker_count(submitted_task_count, max_run_workers)
         mp_context = multiprocessing.get_context("spawn")
-        with concurrent.futures.ProcessPoolExecutor(max_workers=method_workers, mp_context=mp_context) as executor:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=parallel_worker_count, mp_context=mp_context) as executor:
+            future_to_task = {
+                executor.submit(
+                    _run_single_run_worker,
+                    method_key,
+                    seed,
+                    os.fspath(repo_root),
+                    os.fspath(result_dir),
+                    data_dir_override,
+                    style_profile=style_profile,
+                    save_pdf=save_pdf,
+                ): (method_key, int(seed))
+                for method_key in methods
+                for seed in seeds
+            }
+            for future in concurrent.futures.as_completed(future_to_task):
+                method_key, seed = future_to_task[future]
+                try:
+                    raw_runs.append(future.result())
+                except Exception as exc:
+                    failed_runs.append(_build_failed_run_record(method_key, seed, exc))
+                    if not continue_on_error:
+                        raise
+                    continue
+    elif parallel_methods and len(methods) > 1:
+        submitted_task_count = len(methods)
+        parallel_worker_count = _resolve_worker_count(submitted_task_count, max_method_workers)
+        mp_context = multiprocessing.get_context("spawn")
+        with concurrent.futures.ProcessPoolExecutor(max_workers=parallel_worker_count, mp_context=mp_context) as executor:
             future_to_method = {
                 executor.submit(
                     _run_method_group_worker,
@@ -1726,7 +1792,36 @@ def run_polymer_multiseed_core_study(
                     continue
                 raw_runs.extend(batch_result["raw_runs"])
                 failed_runs.extend(batch_result["failed_runs"])
+    elif parallel_seeds and len(seeds) > 1:
+        submitted_task_count = len(seeds) * len(methods)
+        parallel_worker_count = _resolve_worker_count(len(seeds), max_run_workers)
+        mp_context = multiprocessing.get_context("spawn")
+        for method_key in methods:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=parallel_worker_count, mp_context=mp_context) as executor:
+                future_to_seed = {
+                    executor.submit(
+                        _run_single_run_worker,
+                        method_key,
+                        seed,
+                        os.fspath(repo_root),
+                        os.fspath(result_dir),
+                        data_dir_override,
+                        style_profile=style_profile,
+                        save_pdf=save_pdf,
+                    ): int(seed)
+                    for seed in seeds
+                }
+                for future in concurrent.futures.as_completed(future_to_seed):
+                    seed = future_to_seed[future]
+                    try:
+                        raw_runs.append(future.result())
+                    except Exception as exc:
+                        failed_runs.append(_build_failed_run_record(method_key, seed, exc))
+                        if not continue_on_error:
+                            raise
+                        continue
     else:
+        submitted_task_count = len(methods) * len(seeds)
         for method_key in methods:
             try:
                 batch_result = _run_method_group(
@@ -1802,7 +1897,11 @@ def run_polymer_multiseed_core_study(
             "baseline_metrics": baseline_metrics,
             "continue_on_error": bool(continue_on_error),
             "parallel_methods": bool(parallel_methods),
-            "max_method_workers": int(method_workers),
+            "parallel_seeds": bool(parallel_seeds),
+            "max_method_workers": None if max_method_workers is None else int(max_method_workers),
+            "max_run_workers": None if max_run_workers is None else int(max_run_workers),
+            "parallel_worker_count": int(parallel_worker_count),
+            "submitted_task_count": int(submitted_task_count),
         },
     )
     _write_markdown_outputs(out_dir, run_records, failed_runs, method_summary_rows, baseline_metrics, baseline_path)
@@ -1829,7 +1928,11 @@ def run_polymer_multiseed_core_study(
         "methods": methods,
         "seeds": seeds,
         "parallel_methods": bool(parallel_methods),
-        "max_method_workers": int(method_workers),
+        "parallel_seeds": bool(parallel_seeds),
+        "max_method_workers": None if max_method_workers is None else int(max_method_workers),
+        "max_run_workers": None if max_run_workers is None else int(max_run_workers),
+        "parallel_worker_count": int(parallel_worker_count),
+        "submitted_task_count": int(submitted_task_count),
         "run_records": run_records,
         "failed_runs": failed_runs,
         "method_summary_rows": method_summary_rows,

@@ -29,6 +29,11 @@ Restructured the `StatsControl2026` Project 2 section into two introduction slid
   - exclude episode 1 on both RL and MPC traces
   - overlay the saved baseline MPC reward from `Polymer/Data/mpc_results_dist.pickle`
   - preserve the existing method mean plus/minus standard deviation shading
+- Revised Slides 16 and 17 after code and report review so that:
+  - Slide 16 is now a general Project 2 overview in bullet form rather than a repeat of control-setting details
+  - Slide 16 explicitly notes that the replay workflow and reward function are reused from Project 1
+  - Slide 17 now focuses on the actual method formulation: shared state, mismatch augmentation, shared reward/replay tuple, supervisory action mappings, and the common rollout algorithm
+  - Slide 17 cites the active implementation surfaces used to reconstruct the method (`state_features.py`, `rewards.py`, `agent_step_runtime.py`, and the single-agent runners)
 
 ## Validation
 

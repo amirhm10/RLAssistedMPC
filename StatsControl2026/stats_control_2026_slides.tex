@@ -1002,7 +1002,7 @@ Published in \textit{Industrial \& Engineering Chemistry Research (I\&ECR)}.
 \begin{frame}
 \setbeamertemplate{blocks}[default]
 \setbeamercolor{block body}{fg=black,bg=lightgray}
-\frametitle{\large \textbf{Project 2 keeps MPC in charge and learns only supervisory adaptation}}
+\frametitle{\large \textbf{Project 2: RL supervises MPC instead of replacing it}}
 \scriptsize
 \vspace{-0.30cm}
 
@@ -1010,40 +1010,25 @@ Published in \textit{Industrial \& Engineering Chemistry Research (I\&ECR)}.
 
 \begin{column}{0.44\textwidth}
 
-\begin{block}{Control settings}
+\begin{block}{Core idea}
 \begin{itemize}\justifying
-  \setlength{\itemsep}{0.25ex}
-  \item Polymer CSTR: \(y=[\eta,\;T]^\top,\; u=[Q_c,\;Q_m]^\top\)
-  \item Aspen \(C_2\) splitter: \(y=[x_{24},\;T_{85}]^\top,\; u=[L,\;Q_R]^\top\)
+  \setlength{\itemsep}{0.35ex}
+  \item Project 2 keeps the same offset-free MPC backbone from Project 1.
+  \item RL does not become the low-level controller; it only chooses supervisory MPC parameters online.
+  \item The plant still receives the first move from the MPC optimizer, so constraints and receding-horizon structure stay intact.
+  \item The learned supervisory variable can be the horizon, model, penalties, residual correction, or later a combined action.
 \end{itemize}
 \end{block}
 
 \vspace{0.02cm}
 
-\begin{block}{RL-assisted MPC idea}
-\justifying
-The nominal controller remains offset-free MPC:
-\[
-J_{\mathrm{MPC}}=\sum_{i=1}^{N_p}\|y_{k+i}-y_{k+i}^{sp}\|_Q^2
-+ \sum_{i=0}^{N_c-1}\|\Delta u_{k+i}\|_R^2.
-\]
-
-RL does not send plant inputs directly. It chooses a supervisory action
-\[
-a_k=\pi_\phi(s_k), \qquad
-\theta_k \in \{\alpha_k,\beta_k,q_k,r_k,N_{p,k},N_{c,k},\Delta u_k^{res}\},
-\]
-and MPC still solves the constrained move using the updated knob set \(\theta_k\).
-\end{block}
-
-\vspace{0.02cm}
-
-\begin{block}{Training signal}
-\justifying
-The reward penalizes tracking error, move size, and any off-spec behavior, for example
-\[
-r_k=-e_k^\top Q_r e_k-\Delta u_k^\top R_r \Delta u_k-\rho_{\mathrm{viol}}\xi_k.
-\]
+\begin{block}{What is intentionally reused}
+\begin{itemize}\justifying
+  \setlength{\itemsep}{0.35ex}
+  \item The replay-buffer workflow is the same off-policy transition storage used in Project 1.
+  \item The reward function is also the same Project 1 shaped reward, so the comparison isolates \emph{what MPC knob is adapted}.
+  \item The question is therefore structural: which supervisory degree of freedom is most useful to learn around MPC?
+\end{itemize}
 \end{block}
 
 \end{column}
@@ -1054,20 +1039,20 @@ r_k=-e_k^\top Q_r e_k-\Delta u_k^\top R_r \Delta u_k-\rho_{\mathrm{viol}}\xi_k.
 
 \includegraphics[
   width=\linewidth,
-  height=0.58\textheight,
+  height=0.60\textheight,
   keepaspectratio,
   trim=6 4 6 4,
   clip
 ]{../MACC2026/RLAssistedDiagram.png}
 
 \vspace{0.02cm}
-{\tiny \textbf{Figure:} RL adapts model, weights, horizon, and residual correction around the MPC optimizer instead of replacing it.}
+{\tiny \textbf{Figure:} the policy updates supervisory MPC parameters while the optimizer still computes the applied move.}
 
 \end{column}
 
 \end{columns}
 
-\takeawaybox{Project 2 asks which MPC design variable should learn online, not whether MPC should be discarded.}
+\takeawaybox{Project 2 asks which MPC design variable should adapt online, while keeping the same MPC backbone, replay structure, and reward used in Project 1.}
 
 \end{frame}
 
@@ -1075,84 +1060,87 @@ r_k=-e_k^\top Q_r e_k-\Delta u_k^\top R_r \Delta u_k-\rho_{\mathrm{viol}}\xi_k.
 \begin{frame}
 \setbeamertemplate{blocks}[default]
 \setbeamercolor{block body}{fg=black,bg=lightgray}
-\frametitle{\large \textbf{Project 2 studies four supervisory agents around the same polymer OF-MPC loop}}
+\frametitle{\large \textbf{Project 2 method: shared state, shared reward, different supervisory actions}}
 \scriptsize
 \vspace{-0.32cm}
 
 \begin{columns}[T,onlytextwidth]
 
-\begin{column}{0.44\textwidth}
+\begin{column}{0.49\textwidth}
 
-\begin{block}{Agent families}
+\begin{block}{Shared RL state and reward}
 \justifying
 \[
 \begin{aligned}
-\text{Horizon:} \quad & a_k \in \mathcal{H}, \\
-\text{Matrix:} \quad & (A_k,B_k)=\mathcal{M}(a_k;A_0,B_0), \\
-\text{Weights:} \quad & (Q_k,R_k)=\mathcal{W}(a_k;Q_0,R_0), \\
-\text{Residual:} \quad & u_k=u_k^{\mathrm{MPC}}+\Delta u_k^{\mathrm{res}}.
+\bar{s}_k &= \big[\hat{x}^{aug}_k,\; y_k^{sp},\; u_{k-1}\big], \\
+s_k &= 
+\begin{cases}
+\bar{s}_k, & \text{standard state},\\
+\big[\bar{s}_k,\nu_k,\varepsilon_k,\rho_k\big], & \text{mismatch state},
+\end{cases} \\
+\nu_k &= T\!\left(\dfrac{y_k-\hat{y}_k}{\sigma_\nu}\right), \qquad
+\varepsilon_k = T\!\left(\dfrac{y_k-y_k^{sp}}{\sigma_\varepsilon}\right).
 \end{aligned}
+\]
+\[
+r_k = r_{\mathrm{Proj1}}(e_k,\Delta u_k,y_k^{sp}),
+\]
+with the same Project 1 shaped reward and the same replay tuple
+\[
+\big(s_k,a_k,r_k,s_{k+1}\big).
 \]
 \end{block}
 
 \vspace{0.02cm}
 
-\begin{block}{Shared study setup}
-\begin{itemize}\justifying
-  \setlength{\itemsep}{0.25ex}
-  \item Polymer notebook entrypoint: \texttt{polymer\_five\_seed\_core\_study.ipynb}
-  \item Current exported multiseed run uses seeds 007, 011, and 023
-  \item Baseline reference: fixed offset-free MPC with \(\mathrm{RMSE}=0.3795\) and \(\mathrm{IAE}=13193.6\)
-  \item The combined multi-agent export directory exists, but its slide-ready aggregate is still incomplete
-\end{itemize}
-\end{block}
-
-\vspace{0.02cm}
-
-\begin{block}{Current ranking from the latest polymer notebook run}
+\begin{block}{Supervisory action map}
 \justifying
-Horizon and weight adaptation give the clearest closed-loop gains over fixed MPC in the current exported run. Matrix and residual adaptation still improve some physical behavior, but their average reward and RMSE gains are smaller in this first pass.
+\[
+\begin{aligned}
+\text{Horizon:}\quad & a_k \in \mathcal{H}, \qquad \theta_k=(N_{p,k},N_{c,k}), \\
+\text{Matrix:}\quad & a_k \mapsto (\alpha_k,\beta_{1,k},\beta_{2,k}), \\
+& A_k=\alpha_k A_0,\;\; B_k=B_0\,\mathrm{diag}(\beta_{1,k},\beta_{2,k}), \\
+\text{Weights:}\quad & a_k \mapsto (\lambda_{Q1,k},\lambda_{Q2,k},\lambda_{R1,k},\lambda_{R2,k}), \\
+& Q_k=\mathrm{diag}(\lambda_{Q1,k},\lambda_{Q2,k})Q_0,\;\;
+R_k=\mathrm{diag}(\lambda_{R1,k},\lambda_{R2,k})R_0, \\
+\text{Residual:}\quad & a_k \mapsto \Delta u_k^{res}, \qquad
+u_k=\mathrm{sat}\!\left(u_k^{MPC}+\rho_k\Delta u_k^{res}\right).
+\end{aligned}
+\]
 \end{block}
 
 \end{column}
 
-\begin{column}{0.54\textwidth}
+\begin{column}{0.49\textwidth}
 
-\begin{block}{Latest multiseed polymer summary}
-\centering
-\tiny
-Source: latest completed exports from \texttt{report/figures/polymer\_five\_seed\_core\_study\_*}
-
-\vspace{0.04cm}
-\renewcommand{\arraystretch}{1.10}
-\begin{tabular}{lcccc}
-\textbf{Method} & \textbf{Reward} & \textbf{RMSE} & \textbf{IAE} & \(\boldsymbol{\Delta}\)\textbf{RMSE} \\
-\hline
-Horizon & \(-2.60\) & \(0.293\) & 7499.8 & \(-0.087\) \\
-Weights & \(-2.77\) & \(0.334\) & 10231.9 & \(-0.046\) \\
-Residual & \(-3.84\) & \(0.368\) & 12507.0 & \(-0.011\) \\
-Matrix & \(-3.63\) & \(0.374\) & 13721.5 & \(-0.006\) \\
-\end{tabular}
+\begin{block}{Shared rollout algorithm}
+\begin{enumerate}\justifying
+  \setlength{\itemsep}{0.25ex}
+  \item Update the observer and build \(s_k\) from the augmented estimate, setpoint, previous input, and mismatch features if enabled.
+  \item During warm start use the nominal supervisory action; afterwards evaluate the RL policy every decision interval.
+  \item Map the policy output into \(\theta_k\): horizons, model multipliers, weight multipliers, or residual correction.
+  \item Solve MPC with \(\theta_k\) and apply only the first move; for the residual method, correct that move before plant actuation.
+  \item Compute \(r_k\), append \((s_k,a_k,r_k,s_{k+1})\) to replay, and update the off-policy agent.
+\end{enumerate}
 \end{block}
 
-\vspace{0.01cm}
-\centering
-\includegraphics[
-  width=\linewidth,
-  height=0.30\textheight,
-  keepaspectratio,
-  trim=10 10 10 10,
-  clip
-]{../report/figures/polymer_five_seed_core_study_horizon_dueling/20260503_151836/fig_last_episode_outputs_by_method.png}
+\vspace{0.02cm}
 
-\vspace{0.01cm}
-{\tiny \textbf{Representative last-episode view:} the horizon agent is currently the strongest single-agent result and improves both polymer outputs against fixed MPC.}
+\begin{block}{Code path used for this slide}
+\begin{itemize}\justifying
+  \setlength{\itemsep}{0.25ex}
+  \item State construction: \texttt{utils/state\_features.py}
+  \item Reward construction: \texttt{utils/rewards.py}
+  \item Shared push/train logic: \texttt{utils/agent\_step\_runtime.py}
+  \item Method runners: \texttt{horizon\_runner\_dueling.py}, \texttt{matrix\_runner.py}, \texttt{weights\_runner.py}, \texttt{residual\_runner.py}
+\end{itemize}
+\end{block}
 
 \end{column}
 
 \end{columns}
 
-\takeawaybox{The same OF-MPC backbone is reused in every slide that follows; only the supervisory decision variable changes from one RL agent to another.}
+\takeawaybox{All Project 2 agents share the same state, reward, replay, and MPC backbone; only the action-to-parameter map changes from one supervisory method to another.}
 
 \end{frame}
 

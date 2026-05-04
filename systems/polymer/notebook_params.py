@@ -539,6 +539,7 @@ POLYMER_MATRIX_DEFAULTS = {
     "controller": {
         "predict_h": 9,
         "cont_h": 3,
+        "decision_interval": 1,
         "Q1_penalty": 5.0,
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
@@ -652,6 +653,7 @@ POLYMER_STRUCTURED_MATRIX_DEFAULTS = {
     "controller": {
         "predict_h": 9,
         "cont_h": 3,
+        "decision_interval": 1,
         "Q1_penalty": 5.0,
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,

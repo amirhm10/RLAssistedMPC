@@ -145,6 +145,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     low_coef = np.asarray(matrix_cfg["low_coef"], float)
     high_coef = np.asarray(matrix_cfg["high_coef"], float)
     action_dim = int(low_coef.size)
+    decision_interval = int(max(1, matrix_cfg.get("decision_interval", 1)))
     n_inputs = int(B_aug.shape[1])
     matrix_baseline_raw = _map_from_bounds(np.ones(action_dim, dtype=float), low_coef, high_coef)
 
@@ -279,6 +280,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     release_ramp_fraction_log = np.zeros(nFE)
     release_policy_action_raw_log = np.zeros((nFE, action_dim))
     release_executed_action_raw_log = np.zeros((nFE, action_dim))
+    action_decision_log = np.zeros(nFE, dtype=int)
+    action_source_log = np.zeros(nFE, dtype=int)
     acceptance_active_log = np.zeros(nFE, dtype=int)
     acceptance_accepted_log = np.ones(nFE, dtype=int)
     acceptance_fallback_active_log = np.zeros(nFE, dtype=int)
@@ -336,6 +339,8 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     B_est = B_base.copy()
     L_nom = compute_observer_gain(A_est, C_aug, poles)
     test = False
+    last_action = None
+    last_action_test = None
     nonfinite_matrix_action_count = 0
 
     cont_h = int(matrix_cfg.get("cont_h", 1))
@@ -398,6 +403,9 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
             state=current_rl_state,
             step=i,
             warm_start_step=warm_start_step,
+            decision_interval=decision_interval,
+            last_action=last_action,
+            last_action_test=last_action_test,
             test=test,
             baseline_action=matrix_baseline_raw,
             phase1=phase1,
@@ -405,6 +413,10 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
             nonfinite_fallback=True,
         )
         action = action_decision.action
+        last_action = action_decision.last_action
+        last_action_test = action_decision.last_action_test
+        action_decision_log[i] = int(action_decision.decision_taken)
+        action_source_log[i] = int(action_decision.source)
         policy_action = action_decision.policy_action
         policy_action_for_log = np.asarray(
             policy_action if policy_action is not None else action,
@@ -414,8 +426,12 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         if not np.all(np.isfinite(action)):
             action = matrix_baseline_raw.copy()
             nonfinite_matrix_action_count += 1
+            last_action = None
+            last_action_test = None
         elif action_decision.nonfinite_fallback_used:
             nonfinite_matrix_action_count += 1
+            last_action = None
+            last_action_test = None
 
         if phase1 is not None:
             policy_action_raw_log[i, :] = np.asarray(
@@ -777,6 +793,9 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "nFE": int(nFE),
         "delta_t": float(system.delta_t),
         "time_in_sub_episodes": int(time_in_sub_episodes),
+        "decision_interval": int(decision_interval),
+        "action_decision_log": action_decision_log,
+        "action_source_log": action_source_log,
         "y": y_system,
         "u": u_rl,
         "avg_rewards": np.asarray(avg_rewards, float),

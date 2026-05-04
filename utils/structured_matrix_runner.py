@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.optimize as spo
 
+from utils.agent_step_runtime import select_continuous_action
 from utils.helpers import (
     apply_min_max,
     build_polymer_disturbance_schedule,
@@ -34,7 +35,6 @@ from utils.phase1_hidden_release import (
     build_phase1_schedule,
     init_phase1_train_traces,
     record_phase1_train_step,
-    resolve_phase1_action_source,
 )
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.state_features import (
@@ -218,6 +218,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
 
     update_family = str(structured_spec["update_family"]).lower()
     action_dim = int(structured_spec["action_dim"])
+    decision_interval = int(max(1, structured_cfg.get("decision_interval", 1)))
     a_dim = int(structured_spec["a_dim"])
     b_dim = int(structured_spec["b_dim"])
     low_bounds = np.asarray(structured_spec["low_bounds"], float)
@@ -348,6 +349,8 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     raw_action_log = np.zeros((nFE, action_dim))
     candidate_action_log = np.zeros((nFE, action_dim))
     effective_action_log = np.zeros((nFE, action_dim))
+    action_decision_log = np.zeros(nFE, dtype=int)
+    action_source_log = np.zeros(nFE, dtype=int)
     mapped_multiplier_log = np.zeros((nFE, action_dim))
     candidate_multiplier_log = np.zeros((nFE, action_dim))
     effective_multiplier_log = np.zeros((nFE, action_dim))
@@ -435,6 +438,8 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     B_est = B_base.copy()
     L_nom = compute_observer_gain(A_est, C_aug, poles)
     test = False
+    last_action = None
+    last_action_test = None
     nonfinite_action_count = 0
     structured_update_fallback_count = 0
     structured_prediction_fallback_count = 0
@@ -503,27 +508,36 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
-        phase1_hidden_active = bool(phase1 is not None and phase1["enabled"] and phase1["hidden_window_active_log"][i])
-        policy_action = None
-        if i > warm_start_step:
-            if phase1 is not None:
-                policy_action = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
-                if not np.all(np.isfinite(policy_action)):
-                    policy_action = structured_baseline_raw.copy()
-            if phase1_hidden_active:
-                action = structured_baseline_raw.copy()
-            elif not test:
-                action = np.asarray(agent.take_action(current_rl_state, explore=True), float).reshape(-1)
-            else:
-                action = policy_action.copy() if policy_action is not None else np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
-        else:
-            action = structured_baseline_raw.copy()
-            if phase1 is not None:
-                policy_action = structured_baseline_raw.copy()
+        action_decision = select_continuous_action(
+            agent=agent,
+            state=current_rl_state,
+            step=i,
+            warm_start_step=warm_start_step,
+            decision_interval=decision_interval,
+            last_action=last_action,
+            last_action_test=last_action_test,
+            test=test,
+            baseline_action=structured_baseline_raw,
+            phase1=phase1,
+            action_dim=action_dim,
+            nonfinite_fallback=True,
+        )
+        action = action_decision.action
+        last_action = action_decision.last_action
+        last_action_test = action_decision.last_action_test
+        action_decision_log[i] = int(action_decision.decision_taken)
+        action_source_log[i] = int(action_decision.source)
+        policy_action = action_decision.policy_action
 
         if not np.all(np.isfinite(action)):
             action = structured_baseline_raw.copy()
             nonfinite_action_count += 1
+            last_action = None
+            last_action_test = None
+        elif action_decision.nonfinite_fallback_used:
+            nonfinite_action_count += 1
+            last_action = None
+            last_action_test = None
 
         try:
             mapped = map_normalized_action_to_multipliers(action, low_bounds, high_bounds)
@@ -546,6 +560,8 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
             )
         except Exception:
             action = structured_baseline_raw.copy()
+            last_action = None
+            last_action_test = None
             mapped = np.ones(action_dim, dtype=float)
             release_trace = clip_multipliers_to_release_bounds(mapped, release_schedule, i)
             effective_mapped_for_update = np.ones(action_dim, dtype=float)
@@ -767,14 +783,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
                 float,
             ).reshape(-1)
             executed_action_raw_log[i, :] = np.asarray(effective_action, float).reshape(-1)
-            phase1_action_source_log[i] = int(
-                resolve_phase1_action_source(
-                    i,
-                    warm_start_step,
-                    phase1_hidden_active,
-                    test,
-                )
-            )
+            phase1_action_source_log[i] = int(action_decision.source)
         effective_multiplier_log[i, :] = effective_mapped
         effective_theta_a_log[i, :] = effective_mapped[:a_dim]
         effective_theta_b_log[i, :] = effective_mapped[a_dim:]
@@ -985,6 +994,9 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "nFE": int(nFE),
         "delta_t": float(system.delta_t),
         "time_in_sub_episodes": int(time_in_sub_episodes),
+        "decision_interval": int(decision_interval),
+        "action_decision_log": action_decision_log,
+        "action_source_log": action_source_log,
         "y": y_system,
         "u": u_rl,
         "avg_rewards": np.asarray(avg_rewards, float),

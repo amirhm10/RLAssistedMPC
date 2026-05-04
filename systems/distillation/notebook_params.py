@@ -461,6 +461,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
     "controller": {
         "predict_h": 6,
         "cont_h": 3,
+        "decision_interval": 20,
         "Q1_penalty": 1.0,
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
@@ -568,6 +569,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
     "controller": {
         "predict_h": 6,
         "cont_h": 3,
+        "decision_interval": 20,
         "Q1_penalty": 1.0,
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,

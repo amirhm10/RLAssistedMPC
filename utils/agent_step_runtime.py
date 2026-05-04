@@ -2,7 +2,11 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from utils.phase1_hidden_release import record_phase1_train_step, resolve_phase1_action_source
+from utils.phase1_hidden_release import (
+    ACTION_SOURCE_HELD_INTERVAL,
+    record_phase1_train_step,
+    resolve_phase1_action_source,
+)
 
 
 @dataclass
@@ -16,6 +20,9 @@ class HorizonStepDecision:
 @dataclass
 class ContinuousStepDecision:
     action: np.ndarray
+    last_action: np.ndarray | None
+    last_action_test: bool | None
+    decision_taken: int
     policy_action: np.ndarray | None
     source: int
     phase1_hidden_active: bool
@@ -104,6 +111,10 @@ def select_continuous_action(
     state,
     step: int,
     warm_start_step: int,
+    decision_interval: int = 1,
+    last_action=None,
+    last_action_test: bool | None = None,
+    first_live_action_step: int | None = None,
     test: bool,
     baseline_action,
     phase1=None,
@@ -119,23 +130,67 @@ def select_continuous_action(
     )
     policy_action = None
 
+    decision_interval = int(max(1, decision_interval))
+    first_live = (
+        int(first_live_action_step)
+        if first_live_action_step is not None
+        else int(phase1.get("first_live_action_step", int(warm_start_step) + 1))
+        if phase1 is not None
+        else int(warm_start_step) + 1
+    )
+    last = None if last_action is None else np.asarray(last_action, float).reshape(-1)
+    decision_taken = 0
+    held_action_available = (
+        last is not None
+        and last.size == baseline.size
+        and np.all(np.isfinite(last))
+        and last_action_test is not None
+        and bool(last_action_test) == bool(test)
+    )
+
     if step > warm_start_step:
-        if phase1 is not None:
+        live_offset = max(0, int(step) - first_live)
+        should_decide = (live_offset % decision_interval == 0) or not held_action_available
+        if hidden_active and phase1 is not None:
             policy_action = np.asarray(agent.act_eval(state), float).reshape(-1)
             if not np.all(np.isfinite(policy_action)):
                 policy_action = baseline.copy()
         if hidden_active:
             action = baseline.copy()
+            last = None
+            last_action_test = None
         elif not test:
-            action = np.asarray(agent.take_action(state, explore=True), float).reshape(-1)
+            if should_decide:
+                if phase1 is not None:
+                    policy_action = np.asarray(agent.act_eval(state), float).reshape(-1)
+                    if not np.all(np.isfinite(policy_action)):
+                        policy_action = baseline.copy()
+                action = np.asarray(agent.take_action(state, explore=True), float).reshape(-1)
+                decision_taken = 1
+                last = action.copy()
+                last_action_test = False
+            else:
+                action = last.copy()
         else:
-            action = (
-                policy_action.copy()
-                if policy_action is not None
-                else np.asarray(agent.act_eval(state), float).reshape(-1)
-            )
+            if should_decide:
+                if policy_action is None:
+                    policy_action = np.asarray(agent.act_eval(state), float).reshape(-1)
+                    if not np.all(np.isfinite(policy_action)):
+                        policy_action = baseline.copy()
+                action = (
+                    policy_action.copy()
+                    if policy_action is not None
+                    else np.asarray(agent.act_eval(state), float).reshape(-1)
+                )
+                decision_taken = 1
+                last = action.copy()
+                last_action_test = True
+            else:
+                action = last.copy()
     else:
         action = baseline.copy()
+        last = None
+        last_action_test = None
         if phase1 is not None:
             policy_action = baseline.copy()
 
@@ -144,11 +199,19 @@ def select_continuous_action(
     nonfinite_fallback_used = False
     if nonfinite_fallback and not np.all(np.isfinite(action)):
         action = baseline.copy()
+        last = None
+        last_action_test = None
+        decision_taken = 0
         nonfinite_fallback_used = True
 
     source = resolve_phase1_action_source(step, warm_start_step, hidden_active, test)
+    if source in {2, 3} and not decision_taken:
+        source = ACTION_SOURCE_HELD_INTERVAL
     return ContinuousStepDecision(
         action=np.asarray(action, float).reshape(-1),
+        last_action=None if last is None else np.asarray(last, float).reshape(-1),
+        last_action_test=last_action_test,
+        decision_taken=int(decision_taken),
         policy_action=policy_action,
         source=int(source),
         phase1_hidden_active=hidden_active,

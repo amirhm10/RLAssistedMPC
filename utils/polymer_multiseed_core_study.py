@@ -718,6 +718,7 @@ def _prepare_continuous_run(
         "test_cycle": test_cycle,
         "predict_h": int(ctrl["predict_h"]),
         "cont_h": int(ctrl["cont_h"]),
+        "decision_interval": int(ctrl["decision_interval"]),
         "use_shifted_mpc_warm_start": bool(ctrl["use_shifted_mpc_warm_start"]),
         "nominal_qi": float(ctrl["nominal_qi"]),
         "nominal_qs": float(ctrl["nominal_qs"]),

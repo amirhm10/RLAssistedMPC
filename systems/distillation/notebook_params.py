@@ -462,6 +462,7 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "predict_h": 6,
         "cont_h": 3,
         "decision_interval": 20,
+        "recalculate_observer_on_matrix_change": True,  # Recompute pole placement only when the executed matrix action changes.
         "Q1_penalty": 1.0,
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
@@ -570,6 +571,7 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
         "predict_h": 6,
         "cont_h": 3,
         "decision_interval": 20,
+        "recalculate_observer_on_matrix_change": True,  # Recompute pole placement only when the executed structured matrix action changes.
         "Q1_penalty": 1.0,
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,

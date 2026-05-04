@@ -18,7 +18,7 @@ from utils.helpers import (
     shift_control_sequence,
     step_system_with_disturbance,
 )
-from utils.observer import compute_observer_gain
+from utils.observer import compute_observer_gain, maybe_refresh_observer_model
 from utils.observation_conditioning import update_observer_state
 from utils.mpc_acceptance_gate import (
     run_mpc_acceptance_gate,
@@ -332,12 +332,17 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
     B_model_delta_ratio_log = np.zeros(nFE)
     candidate_A_model_delta_ratio_log = np.zeros(nFE)
     candidate_B_model_delta_ratio_log = np.zeros(nFE)
+    observer_A_model_delta_ratio_log = np.zeros(nFE)
+    observer_B_model_delta_ratio_log = np.zeros(nFE)
+    observer_recalc_event_log = np.zeros(nFE, dtype=int)
+    observer_recalc_success_log = np.zeros(nFE, dtype=int)
+    observer_recalc_fallback_count = 0
 
     A_base = np.asarray(mpc_obj.A, float).copy()
     B_base = np.asarray(mpc_obj.B, float).copy()
     A_est = A_base.copy()
     B_est = B_base.copy()
-    L_nom = compute_observer_gain(A_est, C_aug, poles)
+    L_est = compute_observer_gain(A_est, C_aug, poles)
     test = False
     last_action = None
     last_action_test = None
@@ -664,11 +669,31 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         delta_y = y_current_scaled - y_sp[i, :]
         delta_y_storage[i, :] = delta_y
 
+        observer_refresh = maybe_refresh_observer_model(
+            enabled=recalculate_observer_requested,
+            A_candidate=A_executed,
+            B_candidate=B_executed,
+            A_current=A_est,
+            B_current=B_est,
+            L_current=L_est,
+            C=C_aug,
+            poles=poles,
+        )
+        A_est = np.asarray(observer_refresh["A"], float)
+        B_est = np.asarray(observer_refresh["B"], float)
+        L_est = np.asarray(observer_refresh["L"], float)
+        observer_recalc_event_log[i] = int(observer_refresh["event"])
+        observer_recalc_success_log[i] = int(observer_refresh["success"])
+        if observer_refresh["event"] and not observer_refresh["success"]:
+            observer_recalc_fallback_count += 1
+        observer_A_model_delta_ratio_log[i] = _relative_fro(A_est[:n_phys, :n_phys], A_base[:n_phys, :n_phys])
+        observer_B_model_delta_ratio_log[i] = _relative_fro(B_est[:n_phys, :], B_base[:n_phys, :])
+
         xhatdhat[:, i + 1], yhat[:, i], observer_update_alignment = update_observer_state(
             A=A_est,
             B=B_est,
             C=C_aug,
-            L=L_nom,
+            L=L_est,
             x_prev=xhatdhat[:, i],
             u_dev=(u_mpc[i, :] - ss_scaled_inputs),
             y_prev_scaled=y_prev_scaled,
@@ -878,6 +903,11 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "active_B_model_delta_ratio_log": B_model_delta_ratio_log,
         "candidate_A_model_delta_ratio_log": candidate_A_model_delta_ratio_log,
         "candidate_B_model_delta_ratio_log": candidate_B_model_delta_ratio_log,
+        "observer_A_model_delta_ratio_log": observer_A_model_delta_ratio_log,
+        "observer_B_model_delta_ratio_log": observer_B_model_delta_ratio_log,
+        "observer_recalc_event_log": observer_recalc_event_log,
+        "observer_recalc_success_log": observer_recalc_success_log,
+        "observer_recalc_fallback_count": int(observer_recalc_fallback_count),
         "low_coef": low_coef,
         "high_coef": high_coef,
         "test_train_dict": test_train_dict,
@@ -886,7 +916,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "warm_start_step": int(warm_start_step),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "recalculate_observer_on_matrix_change": recalculate_observer_requested,
-        "recalculate_observer_on_matrix_change_ignored": True,
+        "recalculate_observer_on_matrix_change_ignored": False,
         "nonfinite_matrix_action_count": int(nonfinite_matrix_action_count),
         "n_step": int(getattr(agent, "n_step", 1)),
         "multistep_mode": str(getattr(agent, "multistep_mode", "one_step")),
@@ -913,7 +943,9 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         )
         if "predict_h" in matrix_cfg and "cont_h" in matrix_cfg
         else None,
-        "estimator_mode": "fixed_nominal",
+        "estimator_mode": (
+            "refresh_on_executed_matrix_action" if recalculate_observer_requested else "fixed_nominal"
+        ),
         "prediction_model_mode": "rl_assisted",
     }
 

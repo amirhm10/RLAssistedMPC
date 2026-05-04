@@ -18,7 +18,7 @@ from utils.behavioral_cloning import (
     record_behavioral_cloning_step,
     resolve_behavioral_cloning_context,
 )
-from utils.observer import compute_observer_gain
+from utils.observer import compute_observer_gain, maybe_refresh_observer_model
 from utils.observation_conditioning import update_observer_state
 from utils.mpc_acceptance_gate import (
     run_mpc_acceptance_gate,
@@ -419,6 +419,10 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_scale_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
+    observer_A_fro_ratio_log = np.zeros(nFE)
+    observer_B_fro_ratio_log = np.zeros(nFE)
+    observer_recalc_event_log = np.zeros(nFE, dtype=int)
+    observer_recalc_success_log = np.zeros(nFE, dtype=int)
 
     update_builder = build_block_scaled_model if update_family == "block" else build_band_scaled_model
     update_cfg = structured_spec["block_cfg"] if update_family == "block" else structured_spec["band_cfg"]
@@ -436,13 +440,14 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
     )
     A_est = A_base.copy()
     B_est = B_base.copy()
-    L_nom = compute_observer_gain(A_est, C_aug, poles)
+    L_est = compute_observer_gain(A_est, C_aug, poles)
     test = False
     last_action = None
     last_action_test = None
     nonfinite_action_count = 0
     structured_update_fallback_count = 0
     structured_prediction_fallback_count = 0
+    observer_recalc_fallback_count = 0
     saturation_threshold = float(structured_cfg.get("action_saturation_threshold", 0.98))
     near_bound_tolerance = float(structured_cfg.get("near_bound_relative_tolerance", 0.05))
 
@@ -857,11 +862,35 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         delta_y = y_current_scaled - y_sp[i, :]
         delta_y_storage[i, :] = delta_y
 
+        observer_refresh = maybe_refresh_observer_model(
+            enabled=recalculate_observer_requested,
+            A_candidate=np.asarray(prediction_payload["A_aug"], float),
+            B_candidate=np.asarray(prediction_payload["B_aug"], float),
+            A_current=A_est,
+            B_current=B_est,
+            L_current=L_est,
+            C=C_aug,
+            poles=poles,
+        )
+        A_est = np.asarray(observer_refresh["A"], float)
+        B_est = np.asarray(observer_refresh["B"], float)
+        L_est = np.asarray(observer_refresh["L"], float)
+        observer_recalc_event_log[i] = int(observer_refresh["event"])
+        observer_recalc_success_log[i] = int(observer_refresh["success"])
+        if observer_refresh["event"] and not observer_refresh["success"]:
+            observer_recalc_fallback_count += 1
+        observer_A_fro_ratio_log[i] = float(
+            np.linalg.norm(A_est - A_base, ord="fro") / max(np.linalg.norm(A_base, ord="fro"), 1e-12)
+        )
+        observer_B_fro_ratio_log[i] = float(
+            np.linalg.norm(B_est - B_base, ord="fro") / max(np.linalg.norm(B_base, ord="fro"), 1e-12)
+        )
+
         xhatdhat[:, i + 1], yhat[:, i], observer_update_alignment = update_observer_state(
             A=A_est,
             B=B_est,
             C=C_aug,
-            L=L_nom,
+            L=L_est,
             x_prev=xhatdhat[:, i],
             u_dev=(u_mpc[i, :] - ss_scaled_inputs),
             y_prev_scaled=y_prev_scaled,
@@ -1013,12 +1042,17 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "warm_start_step": int(warm_start_step),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "recalculate_observer_on_matrix_change": recalculate_observer_requested,
-        "recalculate_observer_on_matrix_change_ignored": True,
+        "recalculate_observer_on_matrix_change_ignored": False,
         "log_spectral_radius": log_spectral_radius,
         "prediction_fallback_on_solve_failure": prediction_fallback_on_solve_failure,
         "nonfinite_matrix_action_count": int(nonfinite_action_count),
         "structured_update_fallback_count": int(structured_update_fallback_count),
         "structured_prediction_fallback_count": int(structured_prediction_fallback_count),
+        "observer_recalc_event_log": observer_recalc_event_log,
+        "observer_recalc_success_log": observer_recalc_success_log,
+        "observer_recalc_fallback_count": int(observer_recalc_fallback_count),
+        "observer_A_fro_ratio_log": observer_A_fro_ratio_log,
+        "observer_B_fro_ratio_log": observer_B_fro_ratio_log,
         "n_step": int(getattr(agent, "n_step", 1)),
         "multistep_mode": str(getattr(agent, "multistep_mode", "one_step")),
         "lambda_value": getattr(agent, "lambda_value", None),
@@ -1061,6 +1095,9 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "structured_spec_refreshed": bool(structured_spec_refreshed),
         "block_cfg": structured_spec["block_cfg"],
         "band_cfg": structured_spec["band_cfg"],
+        "estimator_mode": (
+            "refresh_on_executed_matrix_action" if recalculate_observer_requested else "fixed_nominal"
+        ),
         "raw_action_log": raw_action_log,
         "candidate_action_log": candidate_action_log,
         "effective_action_log": effective_action_log,
@@ -1146,7 +1183,6 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "episode_avg_near_bound": np.asarray(episode_avg_near_bound, float),
         "episode_avg_A_model_delta_ratio": np.asarray(episode_avg_A_ratio, float),
         "episode_avg_B_model_delta_ratio": np.asarray(episode_avg_B_ratio, float),
-        "estimator_mode": "fixed_nominal",
         "prediction_model_mode": "rl_assisted",
     }
 

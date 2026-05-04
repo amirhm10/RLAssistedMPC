@@ -1463,33 +1463,134 @@ The mean IAE is \(12507.0\), so the residual improvement over fixed MPC is prese
 \begin{frame}
 \setbeamertemplate{blocks}[default]
 \setbeamercolor{block body}{fg=black,bg=lightgray}
-\frametitle{\large \textbf{Combined Agent: placeholder for the joint horizon-model-weight-residual supervisor}}
-\scriptsize
-\vspace{-0.30cm}
+\frametitle{\large \textbf{Combined Agent: four RL supervisors coordinate one disturbance-mode MPC loop}}
+\tiny
+\vspace{-0.32cm}
 
-\begin{block}{Planned slide}
+\begin{columns}[T,onlytextwidth]
+
+\begin{column}{0.39\textwidth}
+\begin{block}{Method}
+\justifying
+The combined supervisor runs four branch-specific agents around the same disturbance-mode MPC loop:
+\[
+a_k = \big(a_k^{H},a_k^{M},a_k^{W},a_k^{R}\big).
+\]
+Their actions are mapped as
+\[
+\begin{aligned}
+(N_{p,k},N_{c,k}) &= \mathcal{H}(a_k^{H}), \\
+(A_k,B_k) &= \mathcal{M}(a_k^{M};A_0,B_0), \\
+(Q_k,R_k) &= \mathcal{W}(a_k^{W};Q_0,R_0), \\
+u_k &= \Pi_{\mathcal U}\!\left(u_k^{MPC}+\rho_k\Delta u_k^{res}(a_k^{R})\right).
+\end{aligned}
+\]
+\end{block}
+
+\vspace{0.02cm}
+
+\begin{block}{Interpretation}
 \begin{itemize}\justifying
-  \setlength{\itemsep}{0.35ex}
-  \item This slot is reserved for the combined supervisor that coordinates horizon selection, model adaptation, weight adaptation, and residual correction.
-  \item The final version will follow the same format as the single-agent slides:
-  left column for the method and equations, right column for reward curves and last-episode evaluation against MPC.
-  \item The aggregate combined multiseed export was still incomplete during this slide pass, so results are intentionally deferred.
+  \setlength{\itemsep}{0.20ex}
+  \item Horizon changes look-ahead.
+  \item Matrix changes the internal model.
+  \item Weights retune aggressiveness.
+  \item Residual corrects the final move after MPC solves.
 \end{itemize}
 \end{block}
 
-\vspace{0.04cm}
+\vspace{0.02cm}
 
-\begin{block}{Target formulation}
+\begin{block}{Latest polymer result}
 \justifying
+Current multiseed mean:
 \[
-a_k = \big(a_k^{H},a_k^{M},a_k^{W},a_k^{R}\big),
-\qquad
-\theta_k = \big(N_{p,k},N_{c,k},A_k,B_k,Q_k,R_k,\Delta u_k^{res}\big),
+\bar{R}_{\mathrm{final}}=-2.10\pm 0.06,\quad
+\overline{\mathrm{RMSE}}=0.279\pm 0.008.
 \]
-with MPC still solving the constrained move after the combined supervisory update.
+The mean IAE is \(8384.5\), and the final reward is \(52.5\%\) better than disturbance MPC.
+\end{block}
+\end{column}
+
+\begin{column}{0.58\textwidth}
+\centering
+\includegraphics[
+  width=\linewidth,
+  height=0.17\textheight,
+  keepaspectratio,
+  trim=10 10 10 10,
+  clip
+]{figures/polymer_combined_reward.png}
+
+\vspace{0.01cm}
+{\tiny \textbf{Reward across seeds, disturbance compare mode:} the combined policy reaches the best final reward.}
+
+\vspace{0.02cm}
+\includegraphics[
+  width=\linewidth,
+  height=0.27\textheight,
+  keepaspectratio,
+  trim=10 10 10 10,
+  clip
+]{figures/polymer_combined_last_episode.png}
+
+\vspace{0.01cm}
+{\tiny \textbf{Last-episode evaluation vs disturbance MPC:} both outputs improve while MPC remains central.}
+\end{column}
+
+\end{columns}
+
+\takeawaybox{The combined supervisor is currently the strongest aggregate performer because it coordinates four interpretable MPC adaptations inside the same disturbance-mode experiment.}
+
+\end{frame}
+
+%============================= Slide 23 ============================
+\begin{frame}
+\setbeamertemplate{blocks}[default]
+\setbeamercolor{block body}{fg=black,bg=lightgray}
+\frametitle{\large \textbf{Disturbance-mode polymer summary versus the same MPC baseline}}
+\tiny
+\vspace{-0.30cm}
+
+\begin{block}{Baseline and counting rule}
+\justifying
+All metrics and reward comparisons use the same disturbance baseline
+\[
+\texttt{Polymer/Data/mpc\_results\_dist.pickle},
+\]
+with \(\overline{\mathrm{RMSE}}=0.3795\) and \(\overline{\mathrm{IAE}}=13193.6\). `Win episodes' counts episodes \(2{:}200\) where
+\[
+\bar{R}^{RL}_{ep} > \bar{R}^{MPC}_{ep}
+\]
+across the three saved seeds, so each method is scored out of \(597\).
 \end{block}
 
-\takeawaybox{Combined control is the natural final Project 2 slide, but it should be filled only after the multiseed aggregate is complete and checked.}
+\vspace{0.02cm}
+
+\begin{block}{Summary table}
+\centering
+\tiny
+\renewcommand{\arraystretch}{1.10}
+\begin{tabular}{lccccc}
+\textbf{Method} & \textbf{Final reward} & \(\boldsymbol{\%}\)\textbf{Reward} & \(\boldsymbol{\Delta}\)\textbf{RMSE} & \(\boldsymbol{\Delta}\)\textbf{IAE} & \textbf{Win eps} \\
+\hline
+Horizon & \(-2.60\) & \(+41.2\%\) & \(+0.087\) & \(+5693.8\) & \(587/597\) \\
+Matrix & \(-3.63\) & \(+17.8\%\) & \(+0.006\) & \(-527.9\) & \(535/597\) \\
+Weights & \(-2.77\) & \(+37.3\%\) & \(+0.046\) & \(+2961.6\) & \(567/597\) \\
+Residual & \(-3.84\) & \(+13.1\%\) & \(+0.011\) & \(+686.6\) & \(545/597\) \\
+Combined & \(-2.10\) & \(+52.5\%\) & \(+0.101\) & \(+4809.0\) & \(559/597\) \\
+\end{tabular}
+\end{block}
+
+\vspace{0.02cm}
+
+\vspace{0.02cm}
+\justifying
+Positive \(\Delta\) values mean improvement over disturbance MPC.
+Combined is best on final reward, RMSE gain, and IAE reduction.
+Horizon wins the most episode-level reward comparisons against MPC.
+
+\takeawaybox{The disturbance-mode study says two things at once: combined is the best final controller, while horizon is the most consistently better-than-MPC learner across episodes.}
 
 \end{frame}
 

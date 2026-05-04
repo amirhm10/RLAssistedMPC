@@ -24,7 +24,8 @@ Restructured the `StatsControl2026` Project 2 section into two introduction slid
   - left column: method explanation with math and interpretation
   - right column: latest reward-learning curve and last-episode MPC comparison figure
 - Used the latest completed polymer multiseed exports from May 3, 2026 for horizon, matrix, weights, and residual.
-- Confirmed that the combined multiseed aggregate export directory exists but is still empty, so combined was not added to this pass.
+- Replaced the old combined placeholder with a real combined-agent slide using the latest completed polymer multiseed export from `report/figures/polymer_five_seed_core_study_combined/20260503_185939`.
+- Added a final disturbance-mode summary slide that compares all five agent families against the same disturbance MPC baseline and includes per-method episode win counts against MPC.
 - Updated the multiseed reward summary figure so the slide-facing reward plots:
   - exclude episode 1 on both RL and MPC traces
   - overlay the saved baseline MPC reward from `Polymer/Data/mpc_results_dist.pickle`
@@ -34,13 +35,18 @@ Restructured the `StatsControl2026` Project 2 section into two introduction slid
   - Slide 16 explicitly notes that the replay workflow and reward function are reused from Project 1
   - Slide 17 now focuses on the actual method formulation: shared state, mismatch augmentation, shared reward/replay tuple, supervisory action mappings, and the common rollout algorithm
   - Slide 17 cites the active implementation surfaces used to reconstruct the method (`state_features.py`, `rewards.py`, `agent_step_runtime.py`, and the single-agent runners)
-- Added a final placeholder slide for the combined agent so the deck already reserves space for the joint horizon-model-weight-residual supervisor once the multiseed aggregate is ready.
+- Added two closing Project 2 slides:
+  - a combined-agent slide with the latest reward and last-episode disturbance-mode results
+  - a disturbance-baseline summary table across horizon, matrix, weights, residual, and combined
+- Verified from the saved compare bundles that every method on the new summary slide uses `compare_mode = disturb`.
+- Counted `win episodes` as the number of episodes `2:200` for which the RL-assisted average episode reward exceeded the disturbance MPC reward, aggregated across the three saved seeds.
+- Added a final-reward percentage-improvement column relative to the same disturbance MPC reward baseline and surfaced the combined agent's `+52.5%` final reward improvement directly on its method slide.
 - Localized every figure used by the deck into `StatsControl2026/figures/` and updated the slide source to use only local figure paths.
 - Cleaned the `StatsControl2026/` root so it now contains only the slide source, rendered PDF, and the organized `figures/` directory.
 
 ## Validation
 
 - Regenerated the four slide-facing polymer reward summary figures from their saved multiseed manifests and the existing baseline MPC pickle.
-- Rebuilt `StatsControl2026/stats_control_2026_slides.pdf` locally with MiKTeX `pdflatex`; the deck compiled successfully to 22 pages.
+- Rebuilt `StatsControl2026/stats_control_2026_slides.pdf` locally with MiKTeX `pdflatex`; the deck compiled successfully to 23 pages.
 - The rebuild still reports several overfull box warnings on the dense Project 2 frames, but there are no LaTeX errors preventing PDF generation.
 - Removed the generated LaTeX scratch files from `StatsControl2026/` after the successful build to keep the folder tidy.

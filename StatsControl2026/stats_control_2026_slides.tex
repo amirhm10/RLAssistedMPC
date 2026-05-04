@@ -1075,21 +1075,21 @@ r_k=-e_k^\top Q_r e_k-\Delta u_k^\top R_r \Delta u_k-\rho_{\mathrm{viol}}\xi_k.
 \begin{frame}
 \setbeamertemplate{blocks}[default]
 \setbeamercolor{block body}{fg=black,bg=lightgray}
-\frametitle{\large \textbf{The completed single-agent polymer study already shows which MPC knobs help most}}
+\frametitle{\large \textbf{Project 2 studies four supervisory agents around the same polymer OF-MPC loop}}
 \scriptsize
 \vspace{-0.32cm}
 
 \begin{columns}[T,onlytextwidth]
 
-\begin{column}{0.43\textwidth}
+\begin{column}{0.44\textwidth}
 
-\begin{block}{Completed supervisory families}
+\begin{block}{Agent families}
 \justifying
 \[
 \begin{aligned}
-\text{Horizon:} \quad & a_k \in \mathcal{H}=\{(N_p,N_c)^{(j)}\}_{j=1}^{m}, \\
-\text{Matrix:} \quad & A_k=\alpha_k A_0,\;\; B_k=B_0\operatorname{diag}(\beta_{1,k},\beta_{2,k}), \\
-\text{Weights:} \quad & Q_k=\operatorname{diag}(q_k)Q_0,\;\; R_k=\operatorname{diag}(r_k)R_0, \\
+\text{Horizon:} \quad & a_k \in \mathcal{H}, \\
+\text{Matrix:} \quad & (A_k,B_k)=\mathcal{M}(a_k;A_0,B_0), \\
+\text{Weights:} \quad & (Q_k,R_k)=\mathcal{W}(a_k;Q_0,R_0), \\
 \text{Residual:} \quad & u_k=u_k^{\mathrm{MPC}}+\Delta u_k^{\mathrm{res}}.
 \end{aligned}
 \]
@@ -1097,47 +1097,127 @@ r_k=-e_k^\top Q_r e_k-\Delta u_k^\top R_r \Delta u_k-\rho_{\mathrm{viol}}\xi_k.
 
 \vspace{0.02cm}
 
-\begin{block}{Interpretation}
+\begin{block}{Shared study setup}
 \begin{itemize}\justifying
   \setlength{\itemsep}{0.25ex}
-  \item Horizon learning changes look-ahead and move freedom.
-  \item Matrix learning changes the prediction model seen by MPC.
-  \item Weight learning changes aggressiveness versus move suppression.
-  \item Residual learning adds a local correction around nominal MPC.
-  \item The combined multi-agent version composes all four ideas, but that run is still in progress.
+  \item Polymer notebook entrypoint: \texttt{polymer\_five\_seed\_core\_study.ipynb}
+  \item Current exported multiseed run uses seeds 007, 011, and 023
+  \item Baseline reference: fixed offset-free MPC with \(\mathrm{RMSE}=0.3795\) and \(\mathrm{IAE}=13193.6\)
+  \item The combined multi-agent export directory exists, but its slide-ready aggregate is still incomplete
 \end{itemize}
 \end{block}
 
 \vspace{0.02cm}
 
-\begin{block}{Current message}
+\begin{block}{Current ranking from the latest polymer notebook run}
 \justifying
-Using the completed May 3, 2026 polymer three-seed summaries, horizon and weight supervision already beat fixed MPC clearly, while residual and matrix adaptation remain closer to baseline in this first comparison pass.
+Horizon and weight adaptation give the clearest closed-loop gains over fixed MPC in the current exported run. Matrix and residual adaptation still improve some physical behavior, but their average reward and RMSE gains are smaller in this first pass.
 \end{block}
 
 \end{column}
 
 \begin{column}{0.54\textwidth}
 
-\begin{block}{Polymer three-seed snapshot before combined}
+\begin{block}{Latest multiseed polymer summary}
 \centering
 \tiny
-Baseline MPC: \(\mathrm{RMSE}=0.3795,\; \mathrm{IAE}=13193.6\)
+Source: latest completed exports from \texttt{report/figures/polymer\_five\_seed\_core\_study\_*}
 
 \vspace{0.04cm}
 \renewcommand{\arraystretch}{1.10}
-\begin{tabular}{lccc}
-\textbf{Method} & \textbf{Final reward} & \textbf{RMSE} & \(\boldsymbol{\Delta}\)\textbf{RMSE} \\
+\begin{tabular}{lcccc}
+\textbf{Method} & \textbf{Reward} & \textbf{RMSE} & \textbf{IAE} & \(\boldsymbol{\Delta}\)\textbf{RMSE} \\
 \hline
-Horizon & \(-2.60 \pm 0.05\) & \(0.293 \pm 0.001\) & \(-0.087\) \\
-Weights & \(-2.77 \pm 0.06\) & \(0.334 \pm 0.007\) & \(-0.046\) \\
-Residual & \(-3.84 \pm 0.04\) & \(0.368 \pm 0.003\) & \(-0.011\) \\
-Matrix & \(-3.63 \pm 0.04\) & \(0.374 \pm 0.003\) & \(-0.006\) \\
+Horizon & \(-2.60\) & \(0.293\) & 7499.8 & \(-0.087\) \\
+Weights & \(-2.77\) & \(0.334\) & 10231.9 & \(-0.046\) \\
+Residual & \(-3.84\) & \(0.368\) & 12507.0 & \(-0.011\) \\
+Matrix & \(-3.63\) & \(0.374\) & 13721.5 & \(-0.006\) \\
 \end{tabular}
 \end{block}
 
 \vspace{0.01cm}
 \centering
+\includegraphics[
+  width=\linewidth,
+  height=0.30\textheight,
+  keepaspectratio,
+  trim=10 10 10 10,
+  clip
+]{../report/figures/polymer_five_seed_core_study_horizon_dueling/20260503_151836/fig_last_episode_outputs_by_method.png}
+
+\vspace{0.01cm}
+{\tiny \textbf{Representative last-episode view:} the horizon agent is currently the strongest single-agent result and improves both polymer outputs against fixed MPC.}
+
+\end{column}
+
+\end{columns}
+
+\takeawaybox{The same OF-MPC backbone is reused in every slide that follows; only the supervisory decision variable changes from one RL agent to another.}
+
+\end{frame}
+
+%============================= Slide 18 ============================
+\begin{frame}
+\setbeamertemplate{blocks}[default]
+\setbeamercolor{block body}{fg=black,bg=lightgray}
+\frametitle{\large \textbf{Horizon Agent: RL chooses the prediction horizon instead of fixed look-ahead}}
+\scriptsize
+\vspace{-0.32cm}
+
+\begin{columns}[T,onlytextwidth]
+
+\begin{column}{0.39\textwidth}
+\begin{block}{Method}
+\justifying
+The horizon agent uses dueling DQN because the supervisory action is discrete:
+\[
+a_k \in \mathcal{H}=\{(N_p,N_c)^{(1)},\ldots,(N_p,N_c)^{(m)}\}.
+\]
+The network estimates
+\[
+Q(s_k,a)=V(s_k)+A(s_k,a)-\frac{1}{|\mathcal{H}|}\sum_{a'}A(s_k,a'),
+\]
+then MPC solves with the selected \((N_p,N_c)\).
+\end{block}
+
+\vspace{0.02cm}
+
+\begin{block}{Interpretation}
+\begin{itemize}\justifying
+  \setlength{\itemsep}{0.20ex}
+  \item Shorter horizons react faster when the state is near a disturbance or setpoint switch.
+  \item Longer horizons preserve anticipation when the process is close to nominal.
+  \item This agent changes optimization look-ahead without touching the model or plant input map.
+\end{itemize}
+\end{block}
+
+\vspace{0.02cm}
+
+\begin{block}{Latest polymer result}
+\justifying
+Current multiseed mean:
+\[
+\bar{R}_{\mathrm{final}}=-2.60\pm 0.05,\quad
+\overline{\mathrm{RMSE}}=0.293\pm 0.001.
+\]
+Against baseline MPC, the mean RMSE drops by \(0.087\) and the mean IAE drops to \(7499.8\).
+\end{block}
+\end{column}
+
+\begin{column}{0.58\textwidth}
+\centering
+\includegraphics[
+  width=\linewidth,
+  height=0.20\textheight,
+  keepaspectratio,
+  trim=10 10 10 10,
+  clip
+]{../report/figures/polymer_five_seed_core_study_horizon_dueling/20260503_151836/fig_reward_mean_std_by_method.png}
+
+\vspace{0.01cm}
+{\tiny \textbf{Reward across seeds:} the horizon policy learns steadily and finishes well above the fixed-MPC reward line.}
+
+\vspace{0.02cm}
 \includegraphics[
   width=\linewidth,
   height=0.31\textheight,
@@ -1147,13 +1227,247 @@ Matrix & \(-3.63 \pm 0.04\) & \(0.374 \pm 0.003\) & \(-0.006\) \\
 ]{../report/figures/polymer_five_seed_core_study_horizon_dueling/20260503_151836/fig_last_episode_outputs_by_method.png}
 
 \vspace{0.01cm}
-{\tiny \textbf{Representative last-episode evaluation:} the best completed single-agent family, dueling-horizon supervision, improves both polymer outputs against fixed MPC in the final evaluation episode.}
-
+{\tiny \textbf{Last-episode evaluation:} both viscosity and temperature settle closer to the setpoint with smaller late oscillation than fixed MPC.}
 \end{column}
 
 \end{columns}
 
-\takeawaybox{Before the combined agent finishes, the completed polymer study already suggests that adaptive horizons and adaptive weights are the strongest current supervisory directions.}
+\takeawaybox{Adaptive horizon selection is the strongest current single-agent polymer result in both reward and tracking metrics.}
+
+\end{frame}
+
+%============================= Slide 19 ============================
+\begin{frame}
+\setbeamertemplate{blocks}[default]
+\setbeamercolor{block body}{fg=black,bg=lightgray}
+\frametitle{\large \textbf{Matrix Agent: RL perturbs the internal MPC model used for prediction}}
+\scriptsize
+\vspace{-0.32cm}
+
+\begin{columns}[T,onlytextwidth]
+
+\begin{column}{0.39\textwidth}
+\begin{block}{Method}
+\justifying
+The matrix agent keeps the optimizer fixed but changes the linear prediction model:
+\[
+A_k=\alpha_k A_0,\qquad
+B_k=B_0\operatorname{diag}(\beta_{1,k},\beta_{2,k}).
+\]
+TD3 outputs a continuous action \(a_k=[\alpha_k,\beta_{1,k},\beta_{2,k}]^\top\), and MPC computes the move using \((A_k,B_k)\).
+\end{block}
+
+\vspace{0.02cm}
+
+\begin{block}{Interpretation}
+\begin{itemize}\justifying
+  \setlength{\itemsep}{0.20ex}
+  \item \(\alpha_k\) changes the effective process memory and speed.
+  \item \(\beta_{i,k}\) change the predicted input gains seen by MPC.
+  \item This is powerful when model mismatch dominates, but it is also the easiest supervisory family to overtune.
+\end{itemize}
+\end{block}
+
+\vspace{0.02cm}
+
+\begin{block}{Latest polymer result}
+\justifying
+Current multiseed mean:
+\[
+\bar{R}_{\mathrm{final}}=-3.63\pm 0.04,\quad
+\overline{\mathrm{RMSE}}=0.374\pm 0.003.
+\]
+That is only a small RMSE improvement over baseline MPC, and the mean IAE rises to \(13721.5\).
+\end{block}
+\end{column}
+
+\begin{column}{0.58\textwidth}
+\centering
+\includegraphics[
+  width=\linewidth,
+  height=0.20\textheight,
+  keepaspectratio,
+  trim=10 10 10 10,
+  clip
+]{../report/figures/polymer_five_seed_core_study_matrix/20260503_170045/fig_reward_mean_std_by_method.png}
+
+\vspace{0.01cm}
+{\tiny \textbf{Reward across seeds:} learning improves from the early unstable region, but the converged reward remains far below the horizon and weight agents.}
+
+\vspace{0.02cm}
+\includegraphics[
+  width=\linewidth,
+  height=0.31\textheight,
+  keepaspectratio,
+  trim=10 10 10 10,
+  clip
+]{../report/figures/polymer_five_seed_core_study_matrix/20260503_170045/fig_last_episode_outputs_by_method.png}
+
+\vspace{0.01cm}
+{\tiny \textbf{Last-episode evaluation:} the matrix agent matches the main setpoint transitions reasonably well, but the aggregate advantage over baseline is limited in this run.}
+\end{column}
+
+\end{columns}
+
+\takeawaybox{Model adaptation is interpretable and promising, but the latest polymer run shows it is not yet the most reliable supervisory knob.}
+
+\end{frame}
+
+%============================= Slide 20 ============================
+\begin{frame}
+\setbeamertemplate{blocks}[default]
+\setbeamercolor{block body}{fg=black,bg=lightgray}
+\frametitle{\large \textbf{Weight Agent: RL retunes the MPC cost to trade off speed and smoothness online}}
+\scriptsize
+\vspace{-0.32cm}
+
+\begin{columns}[T,onlytextwidth]
+
+\begin{column}{0.39\textwidth}
+\begin{block}{Method}
+\justifying
+The weight agent leaves the model fixed and changes the objective:
+\[
+J_k=\sum_{i=1}^{N_p}\|y_{k+i}-y_{k+i}^{sp}\|_{Q_k}^2
++\sum_{i=0}^{N_c-1}\|\Delta u_{k+i}\|_{R_k}^2.
+\]
+TD3 outputs positive multipliers such that
+\[
+Q_k=\operatorname{diag}(q_k)Q_0,\qquad
+R_k=\operatorname{diag}(r_k)R_0.
+\]
+\end{block}
+
+\vspace{0.02cm}
+
+\begin{block}{Interpretation}
+\begin{itemize}\justifying
+  \setlength{\itemsep}{0.20ex}
+  \item Larger \(q_k\) make MPC chase output error more aggressively.
+  \item Larger \(r_k\) penalize input movement and produce smoother actions.
+  \item Because the prediction model stays nominal, this is the safest adaptive family to interpret physically.
+\end{itemize}
+\end{block}
+
+\vspace{0.02cm}
+
+\begin{block}{Latest polymer result}
+\justifying
+Current multiseed mean:
+\[
+\bar{R}_{\mathrm{final}}=-2.77\pm 0.06,\quad
+\overline{\mathrm{RMSE}}=0.334\pm 0.007.
+\]
+The mean IAE drops to \(10231.9\), making this the second-best current single-agent result after horizon adaptation.
+\end{block}
+\end{column}
+
+\begin{column}{0.58\textwidth}
+\centering
+\includegraphics[
+  width=\linewidth,
+  height=0.20\textheight,
+  keepaspectratio,
+  trim=10 10 10 10,
+  clip
+]{../report/figures/polymer_five_seed_core_study_weights/20260503_173957/fig_reward_mean_std_by_method.png}
+
+\vspace{0.01cm}
+{\tiny \textbf{Reward across seeds:} the weight agent climbs steadily and stabilizes near the horizon agent, though with a slightly wider spread.}
+
+\vspace{0.02cm}
+\includegraphics[
+  width=\linewidth,
+  height=0.31\textheight,
+  keepaspectratio,
+  trim=10 10 10 10,
+  clip
+]{../report/figures/polymer_five_seed_core_study_weights/20260503_173957/fig_last_episode_outputs_by_method.png}
+
+\vspace{0.01cm}
+{\tiny \textbf{Last-episode evaluation:} output tracking improves against baseline MPC while keeping the response smoother than aggressive model adaptation.}
+\end{column}
+
+\end{columns}
+
+\takeawaybox{Online weight retuning is currently the best compromise between improvement, smooth behavior, and interpretability.}
+
+\end{frame}
+
+%============================= Slide 21 ============================
+\begin{frame}
+\setbeamertemplate{blocks}[default]
+\setbeamercolor{block body}{fg=black,bg=lightgray}
+\frametitle{\large \textbf{Residual Agent: RL adds a correction around the nominal MPC move}}
+\scriptsize
+\vspace{-0.32cm}
+
+\begin{columns}[T,onlytextwidth]
+
+\begin{column}{0.39\textwidth}
+\begin{block}{Method}
+\justifying
+The residual agent preserves nominal MPC and learns only an additive correction:
+\[
+u_k=u_k^{\mathrm{MPC}}+\Delta u_k^{\mathrm{res}},
+\]
+with \(\Delta u_k^{\mathrm{res}}=\pi_\phi(s_k)\) from TD3.
+The executed move is still clipped or projected to the admissible input set before it reaches the plant.
+\end{block}
+
+\vspace{0.02cm}
+
+\begin{block}{Interpretation}
+\begin{itemize}\justifying
+  \setlength{\itemsep}{0.20ex}
+  \item MPC keeps the stabilizing nominal policy in the loop.
+  \item RL is responsible only for local correction of mismatch or missed transient behavior.
+  \item This family is attractive when we want adaptation without changing the internal optimization model.
+\end{itemize}
+\end{block}
+
+\vspace{0.02cm}
+
+\begin{block}{Latest polymer result}
+\justifying
+Current multiseed mean:
+\[
+\bar{R}_{\mathrm{final}}=-3.84\pm 0.04,\quad
+\overline{\mathrm{RMSE}}=0.368\pm 0.003.
+\]
+The mean IAE is \(12507.0\), so the residual improvement over fixed MPC is present but modest in the current exported run.
+\end{block}
+\end{column}
+
+\begin{column}{0.58\textwidth}
+\centering
+\includegraphics[
+  width=\linewidth,
+  height=0.20\textheight,
+  keepaspectratio,
+  trim=10 10 10 10,
+  clip
+]{../report/figures/polymer_five_seed_core_study_residual/20260503_181944/fig_reward_mean_std_by_method.png}
+
+\vspace{0.01cm}
+{\tiny \textbf{Reward across seeds:} the residual policy improves from its initial low-reward region, but the final average remains below the horizon and weight agents.}
+
+\vspace{0.02cm}
+\includegraphics[
+  width=\linewidth,
+  height=0.31\textheight,
+  keepaspectratio,
+  trim=10 10 10 10,
+  clip
+]{../report/figures/polymer_five_seed_core_study_residual/20260503_181944/fig_last_episode_outputs_by_method.png}
+
+\vspace{0.01cm}
+{\tiny \textbf{Last-episode evaluation:} the residual action gives a good nominal transient, but the aggregate benefit is smaller than the best supervisory families in this notebook run.}
+\end{column}
+
+\end{columns}
+
+\takeawaybox{Residual correction remains useful because it keeps MPC central, but its current polymer gains are weaker than adaptive horizon or adaptive weight tuning.}
 
 \end{frame}
 

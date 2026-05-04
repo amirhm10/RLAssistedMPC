@@ -1379,18 +1379,30 @@ def _plot_study_design_figure(out_dir: Path, methods: list[str], seeds: list[int
     _save_fig(fig, os.fspath(out_dir), "fig_study_design_table", save_pdf=save_pdf)
 
 
-def _plot_reward_summary(run_records: list[dict[str, Any]], out_dir: Path, save_pdf: bool) -> None:
+def _plot_reward_summary(run_records: list[dict[str, Any]], baseline_bundle: dict[str, Any], out_dir: Path, save_pdf: bool) -> None:
     method_groups: dict[str, list[np.ndarray]] = defaultdict(list)
     for record in run_records:
         method_groups[record["method_key"]].append(np.asarray(record["diagnostics"]["avg_rewards"], float))
     colors = _build_method_color_map(list(method_groups.keys()))
     fig, ax = plt.subplots(figsize=(10.0, 5.8))
+    baseline_rewards = np.asarray(baseline_bundle.get("avg_rewards", []), float).reshape(-1)
+    if baseline_rewards.size > 1:
+        ax.plot(
+            np.arange(2, baseline_rewards.size + 1),
+            baseline_rewards[1:],
+            color="black",
+            linestyle="--",
+            linewidth=2.2,
+            label="Baseline MPC",
+        )
     for method_key, curves in method_groups.items():
         min_len = min(len(curve) for curve in curves if len(curve))
-        if min_len <= 0:
+        # Skip episode 1 in the slide-ready reward figure because its warm-start
+        # behavior dominates the y-scale and obscures the learned trend.
+        if min_len <= 1:
             continue
-        stacked = np.stack([curve[:min_len] for curve in curves], axis=0)
-        x = np.arange(1, min_len + 1)
+        stacked = np.stack([curve[1:min_len] for curve in curves], axis=0)
+        x = np.arange(2, min_len + 1)
         mean = np.mean(stacked, axis=0)
         std = np.std(stacked, axis=0)
         color = colors[method_key]
@@ -1907,7 +1919,7 @@ def run_polymer_multiseed_core_study(
     _write_markdown_outputs(out_dir, run_records, failed_runs, method_summary_rows, baseline_metrics, baseline_path)
 
     _plot_study_design_figure(out_dir, methods, seeds, baseline_path, save_pdf)
-    _plot_reward_summary(run_records, out_dir, save_pdf)
+    _plot_reward_summary(run_records, baseline_bundle, out_dir, save_pdf)
     _plot_final_reward_boxplot(run_records, out_dir, save_pdf)
     _plot_last_episode_outputs(run_records, baseline_bundle, out_dir, save_pdf)
     _plot_baseline_delta_panel(method_summary_rows, out_dir, save_pdf)

@@ -1459,4 +1459,38 @@ The mean IAE is \(12507.0\), so the residual improvement over fixed MPC is prese
 
 \end{frame}
 
+%============================= Slide 22 ============================
+\begin{frame}
+\setbeamertemplate{blocks}[default]
+\setbeamercolor{block body}{fg=black,bg=lightgray}
+\frametitle{\large \textbf{Combined Agent: placeholder for the joint horizon-model-weight-residual supervisor}}
+\scriptsize
+\vspace{-0.30cm}
+
+\begin{block}{Planned slide}
+\begin{itemize}\justifying
+  \setlength{\itemsep}{0.35ex}
+  \item This slot is reserved for the combined supervisor that coordinates horizon selection, model adaptation, weight adaptation, and residual correction.
+  \item The final version will follow the same format as the single-agent slides:
+  left column for the method and equations, right column for reward curves and last-episode evaluation against MPC.
+  \item The aggregate combined multiseed export was still incomplete during this slide pass, so results are intentionally deferred.
+\end{itemize}
+\end{block}
+
+\vspace{0.04cm}
+
+\begin{block}{Target formulation}
+\justifying
+\[
+a_k = \big(a_k^{H},a_k^{M},a_k^{W},a_k^{R}\big),
+\qquad
+\theta_k = \big(N_{p,k},N_{c,k},A_k,B_k,Q_k,R_k,\Delta u_k^{res}\big),
+\]
+with MPC still solving the constrained move after the combined supervisory update.
+\end{block}
+
+\takeawaybox{Combined control is the natural final Project 2 slide, but it should be filled only after the multiseed aggregate is complete and checked.}
+
+\end{frame}
+
 \end{document}

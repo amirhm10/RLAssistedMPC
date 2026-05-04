@@ -34,9 +34,10 @@ Restructured the `StatsControl2026` Project 2 section into two introduction slid
   - Slide 16 explicitly notes that the replay workflow and reward function are reused from Project 1
   - Slide 17 now focuses on the actual method formulation: shared state, mismatch augmentation, shared reward/replay tuple, supervisory action mappings, and the common rollout algorithm
   - Slide 17 cites the active implementation surfaces used to reconstruct the method (`state_features.py`, `rewards.py`, `agent_step_runtime.py`, and the single-agent runners)
+- Added a final placeholder slide for the combined agent so the deck already reserves space for the joint horizon-model-weight-residual supervisor once the multiseed aggregate is ready.
 
 ## Validation
 
 - Regenerated the four slide-facing polymer reward summary figures from their saved multiseed manifests and the existing baseline MPC pickle.
-- Rebuilt `StatsControl2026/stats_control_2026_slides.pdf` locally with MiKTeX `pdflatex`; the deck compiled successfully to 21 pages.
+- Rebuilt `StatsControl2026/stats_control_2026_slides.pdf` locally with MiKTeX `pdflatex`; the deck compiled successfully to 22 pages.
 - The rebuild still reports several overfull box warnings on the dense Project 2 frames, but there are no LaTeX errors preventing PDF generation.

@@ -1562,7 +1562,7 @@ with \(\overline{\mathrm{RMSE}}=0.3795\) and \(\overline{\mathrm{IAE}}=13193.6\)
 \[
 \bar{R}^{RL}_{ep} > \bar{R}^{MPC}_{ep}
 \]
-across the three saved seeds, so each method is scored out of \(597\).
+across the three saved seeds, reported here as the percentage of the \(597\) disturbance-mode comparisons won by RL.
 \end{block}
 
 \vspace{0.02cm}
@@ -1572,13 +1572,13 @@ across the three saved seeds, so each method is scored out of \(597\).
 \tiny
 \renewcommand{\arraystretch}{1.10}
 \begin{tabular}{lccccc}
-\textbf{Method} & \textbf{Final reward} & \(\boldsymbol{\%}\)\textbf{Reward} & \(\boldsymbol{\Delta}\)\textbf{RMSE} & \(\boldsymbol{\Delta}\)\textbf{IAE} & \textbf{Win eps} \\
+\textbf{Method} & \textbf{Final reward} & \(\boldsymbol{\%}\)\textbf{Reward} & \(\boldsymbol{\Delta}\)\textbf{RMSE} & \(\boldsymbol{\Delta}\)\textbf{IAE} & \textbf{Win rate} \\
 \hline
-Horizon & \(-2.60\) & \(+41.2\%\) & \(+0.087\) & \(+5693.8\) & \(587/597\) \\
-Matrix & \(-3.63\) & \(+17.8\%\) & \(+0.006\) & \(-527.9\) & \(535/597\) \\
-Weights & \(-2.77\) & \(+37.3\%\) & \(+0.046\) & \(+2961.6\) & \(567/597\) \\
-Residual & \(-3.84\) & \(+13.1\%\) & \(+0.011\) & \(+686.6\) & \(545/597\) \\
-Combined & \(-2.10\) & \(+52.5\%\) & \(+0.101\) & \(+4809.0\) & \(559/597\) \\
+Horizon & \(-2.60\) & \(+41.2\%\) & \(+0.087\) & \(+5693.8\) & \(98.3\%\) \\
+Matrix & \(-3.63\) & \(+17.8\%\) & \(+0.006\) & \(-527.9\) & \(89.6\%\) \\
+Weights & \(-2.77\) & \(+37.3\%\) & \(+0.046\) & \(+2961.6\) & \(95.0\%\) \\
+Residual & \(-3.84\) & \(+13.1\%\) & \(+0.011\) & \(+686.6\) & \(91.3\%\) \\
+Combined & \(-2.10\) & \(+52.5\%\) & \(+0.101\) & \(+4809.0\) & \(93.6\%\) \\
 \end{tabular}
 \end{block}
 

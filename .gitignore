@@ -8,3 +8,10 @@ Distillation/Results/*
 # Other generated result or temporary run folders.
 VanDeVusse/Results/*
 .tmp_*/
+
+# Python cache artifacts.
+__pycache__/
+*.py[cod]
+
+# Generated report assets from the polymer five-seed study should stay local.
+report/figures/polymer_five_seed_core_study*/

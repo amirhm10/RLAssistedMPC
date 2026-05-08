@@ -2,7 +2,7 @@
 
 ## Objective
 
-This note tracks the polymer-only prototype for prediction-error-validated Markov-parameter correction of offset-free MPC. The prototype keeps the existing observer and nonlinear polymer plant workflow unchanged, and tests whether finite-horizon input-output Markov corrections reduce recent plant prediction error before they are allowed to affect the MPC action.
+This note tracks the polymer-only TD3-assisted prototype for prediction-error-validated Markov-parameter correction of offset-free MPC. The prototype keeps the existing nonlinear polymer plant, nominal observer, scaling, disturbance schedule, and standard comparison plotting workflow unchanged. It tests whether finite-horizon input-output Markov corrections can reduce recent plant prediction error before they are allowed to affect the MPC action, while TD3 learns to propose bounded correction coordinates after the warm-start period.
 
 ## Files inspected
 
@@ -49,6 +49,36 @@ $$ M_i(z_k)=M_{i,0}+\sum_{j=1}^r z_{j,k}M_{i,j}^{\mathrm{basis}}. $$
 The prediction-error score is:
 
 $$ S_{\mathrm{pred}}(z)=\sum_\tau \left(\|W_y(Y_\tau^{\mathrm{meas}}-Y_\tau^0)\|_2^2-\|W_y(Y_\tau^{\mathrm{meas}}-Y_\tau^z)\|_2^2\right)-\lambda_z\|z\|_2^2. $$
+
+## Step-by-step algorithm
+
+1. Load the existing polymer unified configuration. The default case is disturbed polymer with `n_tests=200`, `set_points_len=400`, `warm_start=10`, `predict_h=9`, `cont_h=3`, and the existing MPC penalties. The TD3 hyperparameters come from `POLYMER_MATRIX_DEFAULTS["td3_agent"]`.
+
+2. Load the identified polymer model, scaling data, input bounds, steady states, observer poles, and canonical baseline MPC result path through the existing polymer helper layer. The nonlinear plant rollout still uses `PolymerCSTR`.
+
+3. Build the offset-free augmented model and the lifted Markov representation. The code computes nominal Markov blocks $M_{i,0}=C_aA_a^{i-1}B_a$ and then builds the Toeplitz prediction matrix $G_0(P,M)$ using the same absolute scaled input-deviation convention as `MpcSolverGeneral`.
+
+4. Validate the lifted prediction implementation before any live correction is allowed. A random input sequence is simulated both with the state-space recursion and with the lifted Toeplitz form. Live Markov correction is permitted only if the maximum absolute difference is below `1e-8`.
+
+5. Run a nominal closed-loop rollout. At every time step, nominal MPC solves with $G_0$, the nonlinear polymer plant advances, the nominal observer updates, and the resulting trajectory becomes the history used by shadow scoring and LS diagnostics.
+
+6. Score shadow Markov candidates without applying them. Candidate $z$ values are evaluated only on already observed windows, so future plant measurements are not used. This step estimates whether any Markov basis direction would have improved recent finite-horizon prediction error.
+
+7. Fit the constrained LS teacher. The LS problem searches for a bounded $z_{\mathrm{LS}}$ that reduces recent prediction error while paying the regularization penalty $\lambda_z\|z\|_2^2$. The LS candidate is accepted only if its prediction score is positive enough and its lifted gain drift remains below the configured limit.
+
+8. Build the TD3 Markov state for the live rollout. The state vector concatenates the nominal observer state, current tracking error, innovation, previous input deviation, previous executed correction $z$, current accepted LS teacher correction, LS prediction score, and LS gain drift.
+
+9. Select a bounded TD3 correction action. During warm start, the baseline action is the LS teacher action. After `warm_start_step`, TD3 proposes a raw action in $[-1,1]^r$, which is mapped to the Markov correction by $z_{\mathrm{TD3}}=z_{\mathrm{bound}}a_{\mathrm{TD3}}$.
+
+10. Safety-filter the TD3 proposal. The runner solves corrected MPC with the TD3-corrected lifted matrix and accepts it only when the nominal solve succeeds, the corrected solve succeeds, the prediction score exceeds `s_pred_min`, gain drift is below `gain_drift_max`, and the loose nominal-cost guard passes.
+
+11. Fall back in a fixed order if TD3 is not accepted. If TD3 fails the filter, the controller tries the accepted LS correction. If LS is unavailable or fails, the controller applies nominal MPC. The replay action is the executed action, not merely the requested TD3 action.
+
+12. Advance the nonlinear plant and update replay. The selected first input move is applied to `PolymerCSTR`, the nominal observer updates, the existing closed-loop reward convention is computed, and the transition is pushed to TD3 replay on train steps. TD3 training starts only after the configured warm-start boundary.
+
+13. Save artifacts in the polymer result tree. The run writes `input_data.pkl`, summary tables, verification tables, Markov diagnostic figures, RL diagnostic logs, and the TD3 checkpoint under `Polymer/Results/polymer_markov_corrected_mpc/<timestamp>/`. Standard MPC comparison plots are generated with `compare_mpc_rl_from_dirs()` under `Polymer/Results/polymer_markov_compare_disturb/<timestamp>/`.
+
+14. Interpret results conservatively. The method is not considered successful from prediction score alone. A successful full run must pass lifted equivalence, show meaningful prediction-error improvement, avoid material output-MAE degradation, avoid excessive input movement, and produce acceptable reward relative to nominal MPC.
 
 ## Phase 1: lifted-prediction equivalence validation
 

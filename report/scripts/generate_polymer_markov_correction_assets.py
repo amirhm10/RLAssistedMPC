@@ -617,7 +617,7 @@ def initialize_history(nFE, nx, ny, nu, z_dim, rl_state_dim=0):
     }
 
 
-def run_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_markov):
+def run_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_markov, print_progress=False):
     P = int(config["predict_h"])
     M = int(config["cont_h"])
     A = ctx["A_aug"]
@@ -642,6 +642,7 @@ def run_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_markov):
     last_raw_action = None
     last_action_test = None
     pending_transition = None
+    avg_rewards = []
 
     def evaluate_markov_candidate(z_candidate, u_prev_dev, x_model, x_init_candidate, nominal_cost):
         mz_candidate = apply_markov_correction(m_blocks, basis_blocks, z_candidate)
@@ -940,6 +941,34 @@ def run_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_markov):
                 "test": bool(test_flags[step]),
             }
 
+        if step in ctx["sub_episode_changes"]:
+            start = max(0, step - int(ctx["time_in_sub_episodes"]) + 1)
+            stop = step + 1
+            avg_reward = float(np.mean(history["rewards"][start:stop]))
+            avg_rewards.append(avg_reward)
+            if print_progress:
+                accepted_fraction = float(np.mean(history["accepted_log"][start:stop]))
+                td3_accepted_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 2))
+                ls_fallback_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 3))
+                nominal_fallback_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 4))
+                mean_z = np.mean(history["z_executed_log"][start:stop, :], axis=0)
+                print(
+                    "Sub_Episode:",
+                    ctx["sub_episode_changes"][step],
+                    "| avg. reward:",
+                    avg_reward,
+                    "| accepted:",
+                    accepted_fraction,
+                    "| TD3 accepted:",
+                    td3_accepted_fraction,
+                    "| LS fallback:",
+                    ls_fallback_fraction,
+                    "| nominal fallback:",
+                    nominal_fallback_fraction,
+                    "| avg z:",
+                    mean_z,
+                )
+
         if config["use_shifted_mpc_warm_start"]:
             U_mat = U_exec.reshape(M, nu)
             x_init = np.vstack([U_mat[1:, :], U_mat[-1:, :]]).reshape(-1)
@@ -971,7 +1000,11 @@ def run_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_markov):
             if train_meta.get("bc_loss") is not None:
                 history["rl_bc_loss_log"][pending_step] = float(train_meta["bc_loss"])
 
-    history["avg_rewards"] = avg_by_episode(history["rewards"], ctx["sub_episode_changes"], ctx["time_in_sub_episodes"])
+    history["avg_rewards"] = (
+        np.asarray(avg_rewards, float)
+        if avg_rewards
+        else avg_by_episode(history["rewards"], ctx["sub_episode_changes"], ctx["time_in_sub_episodes"])
+    )
     history["_rl_agent"] = rl_agent
     history["rl_state_dim"] = int(rl_state_dim)
     history["rl_action_dim"] = int(z_dim)
@@ -1290,6 +1323,47 @@ def summarize_metrics(ctx, nominal, markov, shadow, phase1_metrics):
     return summary, verification
 
 
+def make_episode_reward_table(ctx, nominal, markov):
+    rows = []
+    nominal_episode_rewards = np.asarray(nominal["avg_rewards"], float).reshape(-1)
+    markov_episode_rewards = np.asarray(markov["avg_rewards"], float).reshape(-1)
+    completed = sorted((int(end_step), int(ep)) for end_step, ep in ctx["sub_episode_changes"].items())
+    for idx, (end_step, ep) in enumerate(completed):
+        if idx >= nominal_episode_rewards.size or idx >= markov_episode_rewards.size:
+            continue
+        rows.append(
+            {
+                "episode": ep,
+                "complete_episode": True,
+                "start_step": max(0, end_step - int(ctx["time_in_sub_episodes"]) + 1),
+                "end_step": end_step,
+                "nominal_mpc_avg_reward": nominal_episode_rewards[idx],
+                "markov_td3_avg_reward": markov_episode_rewards[idx],
+                "markov_minus_nominal": markov_episode_rewards[idx] - nominal_episode_rewards[idx],
+            }
+        )
+
+    last_complete = completed[-1][0] if completed else -1
+    if int(ctx["nFE"]) > last_complete + 1:
+        start = last_complete + 1
+        stop = int(ctx["nFE"])
+        nominal_partial = float(np.mean(nominal["rewards"][start:stop])) if stop > start else np.nan
+        markov_partial = float(np.mean(markov["rewards"][start:stop])) if stop > start else np.nan
+        rows.append(
+            {
+                "episode": (completed[-1][1] + 1) if completed else 1,
+                "complete_episode": False,
+                "start_step": start,
+                "end_step": stop - 1,
+                "nominal_mpc_avg_reward": nominal_partial,
+                "markov_td3_avg_reward": markov_partial,
+                "markov_minus_nominal": markov_partial - nominal_partial,
+            }
+        )
+
+    return pd.DataFrame(rows)
+
+
 def make_bundle(config, ctx, nominal, markov, shadow, phase1_metrics, summary, figures, m_blocks, basis_labels):
     return {
         "method": "prediction_error_validated_markov_correction",
@@ -1305,6 +1379,7 @@ def make_bundle(config, ctx, nominal, markov, shadow, phase1_metrics, summary, f
         "basis_labels": basis_labels,
         "phase1_metrics": phase1_metrics,
         "summary_metrics": summary,
+        "episode_average_rewards": make_episode_reward_table(ctx, nominal, markov),
         "z_log": markov["z_log"],
         "z_proposed_log": markov["z_proposed_log"],
         "z_executed_log": markov["z_executed_log"],
@@ -1542,22 +1617,24 @@ def run_polymer_markov_correction(overrides=None):
     Wy = np.eye(P * ctx["C_aug"].shape[0])
 
     phase1_metrics = phase1_equivalence(config, ctx, G0, fig_dir)
-    nominal = run_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, use_markov=False)
+    nominal = run_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, use_markov=False, print_progress=False)
     shadow = run_shadow_and_ls(config, ctx, nominal, m_blocks, basis_blocks, G0, Wy)
     can_run_live = bool(config["run_live_corrected_mpc"]) and phase1_metrics["max_abs_error"] < 1.0e-8
-    markov = run_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, use_markov=can_run_live)
+    markov = run_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, use_markov=can_run_live, print_progress=True)
 
     figures = [str(fig_dir / "phase1_lifted_equivalence.png")] if config["make_plots"] else []
     if config["make_plots"]:
         figures.extend(plot_phase_outputs(config, ctx, nominal, markov, shadow, basis_labels, fig_dir))
 
     summary, verification = summarize_metrics(ctx, nominal, markov, shadow, phase1_metrics)
+    episode_rewards = make_episode_reward_table(ctx, nominal, markov)
     result_path = None
     comparison_dir = None
     if config["save_outputs"]:
         if config.get("rl_save_agent_checkpoint", True) and markov.get("_rl_agent") is not None:
             markov["rl_agent_checkpoint_path"] = markov["_rl_agent"].save(str(result_dir), prefix="td3_markov_agent")
         pd.DataFrame([summary]).to_csv(result_dir / "summary_metrics.csv", index=False)
+        episode_rewards.to_csv(result_dir / "episode_average_rewards.csv", index=False)
         pd.DataFrame(
             {
                 "best_s_pred": shadow["best_s_pred"],
@@ -1646,13 +1723,19 @@ def run_polymer_markov_correction(overrides=None):
         comparison_dir,
     )
 
+    print("RL result directory:", result_dir)
+    print("Comparison directory:", comparison_dir)
+    print("\nVerification:")
     print(verification.to_string(index=False))
+    print("\nEpisode average rewards:")
+    print(episode_rewards.to_string(index=False))
     return {
         "config": config,
         "context": ctx,
         "phase1_metrics": phase1_metrics,
         "summary": summary,
         "verification": verification,
+        "episode_reward_table": episode_rewards,
         "figure_dir": fig_dir,
         "result_dir": result_dir,
         "comparison_dir": comparison_dir,

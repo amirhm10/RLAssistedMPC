@@ -34,7 +34,7 @@ from utils.helpers import (
     generate_setpoints_training_rl_gradually,
     reverse_min_max,
 )
-from utils.plotting import plot_baseline_mpc_results
+from utils.plotting import compare_mpc_rl_from_dirs
 
 
 def build_config(overrides=None):
@@ -334,6 +334,25 @@ def legacy_mpc_reward(delta_y, delta_u, y_sp, Q_out, R_in):
     return float(reward)
 
 
+def make_compare_reward_fn(ctx):
+    def reward_fn(e_scaled, du_scaled, y_sp_phys=None):
+        if y_sp_phys is None:
+            y_sp_scaled_dev = np.zeros(ctx["C_aug"].shape[0], dtype=float)
+        else:
+            n_inputs = ctx["B_aug"].shape[1]
+            y_sp_scaled_dev = (
+                apply_min_max(
+                    np.asarray(y_sp_phys, float),
+                    ctx["system_data"]["data_min"][n_inputs:],
+                    ctx["system_data"]["data_max"][n_inputs:],
+                )
+                - ctx["y_ss_scaled"]
+            )
+        return legacy_mpc_reward(e_scaled, du_scaled, y_sp_scaled_dev, ctx["Q_out"], ctx["R_in"])
+
+    return reward_fn
+
+
 def avg_by_episode(rewards, sub_episode_changes, time_in_sub_episodes):
     avg = []
     for idx in sorted(sub_episode_changes):
@@ -444,6 +463,7 @@ def build_context(config):
         "ha": np.asarray(ha, float),
         "disturbance_schedule": build_polymer_disturbance_schedule(qi, qs, ha),
         "baseline_path": canonical_baseline_path(REPO_ROOT, run_mode),
+        "result_base": resolve_polymer_result_dir(REPO_ROOT),
         "result_root": resolve_polymer_result_dir(REPO_ROOT) / "polymer_markov_corrected_mpc",
     }
 
@@ -959,7 +979,7 @@ def make_bundle(config, ctx, nominal, markov, shadow, phase1_metrics, summary, f
     }
 
 
-def write_report(report_path, config, ctx, phase1_metrics, summary, verification, figures, result_path):
+def write_report(report_path, config, ctx, phase1_metrics, summary, verification, figures, result_path, comparison_dir=None):
     figure_lines = "\n".join(f"- `{Path(path).as_posix()}`" for path in figures)
     verification_md = dataframe_to_markdown(verification)
     text = f"""# Polymer Markov Correction Progress
@@ -1042,6 +1062,8 @@ The notebook stores requested and executed $z$, fallback status, prediction scor
 
 Result bundle: `{Path(result_path).as_posix() if result_path else "not saved"}`
 
+Comparison directory: `{Path(comparison_dir).as_posix() if comparison_dir else "not generated"}`
+
 ## Figures
 
 {figure_lines if figure_lines else "- Figures were not generated in this run."}
@@ -1089,11 +1111,10 @@ def run_polymer_markov_correction(overrides=None):
     config = build_config(overrides)
     ctx = build_context(config)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    fig_dir = REPO_ROOT / "report" / "figures" / f"polymer_markov_correction_{datetime.now().strftime('%Y%m%d')}"
     result_dir = ctx["result_root"] / timestamp
-    if config["save_outputs"]:
+    fig_dir = result_dir
+    if config["save_outputs"] or config["make_plots"]:
         result_dir.mkdir(parents=True, exist_ok=True)
-        fig_dir.mkdir(parents=True, exist_ok=True)
 
     P = int(config["predict_h"])
     M = int(config["cont_h"])
@@ -1114,8 +1135,9 @@ def run_polymer_markov_correction(overrides=None):
 
     summary, verification = summarize_metrics(ctx, nominal, markov, shadow, phase1_metrics)
     result_path = None
+    comparison_dir = None
     if config["save_outputs"]:
-        pd.DataFrame([summary]).to_csv(fig_dir / "summary_metrics.csv", index=False)
+        pd.DataFrame([summary]).to_csv(result_dir / "summary_metrics.csv", index=False)
         pd.DataFrame(
             {
                 "best_s_pred": shadow["best_s_pred"],
@@ -1123,7 +1145,7 @@ def run_polymer_markov_correction(overrides=None):
                 "best_gain_drift": shadow["best_gain_drift"],
                 "ls_gain_drift": shadow["ls_gain_drift"],
             }
-        ).to_csv(fig_dir / "prediction_score_summary.csv", index=False)
+        ).to_csv(result_dir / "prediction_score_summary.csv", index=False)
         pd.DataFrame(
             {
                 "ls_accepted": shadow["ls_accepted"],
@@ -1131,8 +1153,8 @@ def run_polymer_markov_correction(overrides=None):
                 "live_fallback": markov["fallback_log"],
                 "live_gain_drift": markov["gain_drift_log"],
             }
-        ).to_csv(fig_dir / "acceptance_summary.csv", index=False)
-        verification.to_csv(fig_dir / "verification_table.csv", index=False)
+        ).to_csv(result_dir / "acceptance_summary.csv", index=False)
+        verification.to_csv(result_dir / "verification_table.csv", index=False)
 
         bundle = make_bundle(config, ctx, nominal, markov, shadow, phase1_metrics, summary, figures, m_blocks, basis_labels)
         result_path = result_dir / "input_data.pkl"
@@ -1141,35 +1163,34 @@ def run_polymer_markov_correction(overrides=None):
         with open(result_dir / "summary_metrics.json", "w", encoding="utf-8") as handle:
             json.dump(summary, handle, indent=2)
 
-        try:
-            baseline_bundle = {
-                "y": nominal["y_phys"],
-                "u": nominal["u_phys_log"],
-                "avg_rewards": nominal["avg_rewards"],
-                "rewards_step": nominal["rewards"],
-                "delta_y_storage": nominal["y_scaled_dev"][1 : ctx["nFE"] + 1, :] - ctx["y_sp"][: ctx["nFE"], :],
-                "delta_u_storage": nominal["du_log"],
-                "y_sp": ctx["y_sp"],
-                "steady_states": ctx["steady_states"],
-                "data_min": ctx["system_data"]["data_min"],
-                "data_max": ctx["system_data"]["data_max"],
-                "nFE": ctx["nFE"],
-                "delta_t": ctx["delta_t"],
-                "time_in_sub_episodes": ctx["time_in_sub_episodes"],
-                "test_train_dict": ctx["test_train_dict"],
-            }
-            plot_baseline_mpc_results(
-                baseline_bundle,
-                {
-                    "directory": str(fig_dir),
-                    "prefix_name": "existing_plotter_nominal_baseline",
-                    "start_episode": int(config["plot_start_episode"]),
-                    "save_pdf": bool(config["save_pdf"]),
-                    "style_profile": str(config["style_profile"]),
-                },
-            )
-        except Exception as exc:
-            print(f"Existing baseline plotting helper skipped: {exc}")
+        if config["make_plots"]:
+            baseline_path = Path(ctx["baseline_path"])
+            if baseline_path.exists():
+                try:
+                    comparison_dir = Path(
+                        compare_mpc_rl_from_dirs(
+                            rl_dir=result_dir,
+                            mpc_path_or_dir=baseline_path,
+                            reward_fn=make_compare_reward_fn(ctx),
+                            directory=ctx["result_base"],
+                            prefix_name=f"polymer_markov_compare_{ctx['run_mode']}",
+                            compare_mode=ctx["run_mode"],
+                            start_episode=int(config["plot_start_episode"]),
+                            n_inputs=ctx["B_aug"].shape[1],
+                            save_pdf=bool(config["save_pdf"]),
+                            style_profile=str(config["style_profile"]),
+                        )
+                    )
+                    comparison_figures = [str(path) for path in sorted(comparison_dir.glob("*.png"))]
+                    figures.extend(comparison_figures)
+                    bundle["figures"] = list(figures)
+                    bundle["comparison_dir"] = str(comparison_dir)
+                    with open(result_path, "wb") as handle:
+                        pickle.dump(bundle, handle)
+                except Exception as exc:
+                    print(f"Existing MPC comparison plotting helper skipped: {exc}")
+            else:
+                print(f"Existing MPC comparison plotting helper skipped: baseline not found at {baseline_path}")
 
     write_report(
         REPO_ROOT / "report" / "polymer_markov_correction_progress.md",
@@ -1180,6 +1201,7 @@ def run_polymer_markov_correction(overrides=None):
         verification,
         figures,
         result_path,
+        comparison_dir,
     )
 
     print(verification.to_string(index=False))
@@ -1190,6 +1212,8 @@ def run_polymer_markov_correction(overrides=None):
         "summary": summary,
         "verification": verification,
         "figure_dir": fig_dir,
+        "result_dir": result_dir,
+        "comparison_dir": comparison_dir,
         "figures": figures,
         "result_path": result_path,
         "report_path": REPO_ROOT / "report" / "polymer_markov_correction_progress.md",

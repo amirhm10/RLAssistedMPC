@@ -84,20 +84,26 @@ The notebook stores requested and executed $z$, fallback status, prediction scor
 | Output MAE delta                    | 0.00015205034328885647 | True |
 | Input movement delta                | 0.001539019552175308   | True |
 
-Result bundle: `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260505_074556/input_data.pkl`
+Result bundle: `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260508_115807/input_data.pkl`
+
+Comparison directory: `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260508_115809`
 
 ## Figures
 
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/report/figures/polymer_markov_correction_20260505/phase1_lifted_equivalence.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/report/figures/polymer_markov_correction_20260505/phase2_prediction_score_trace.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/report/figures/polymer_markov_correction_20260505/phase2_candidate_selection_histogram.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/report/figures/polymer_markov_correction_20260505/phase3_z_trace.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/report/figures/polymer_markov_correction_20260505/phase3_prediction_error_improvement.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/report/figures/polymer_markov_correction_20260505/phase4_outputs_compare.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/report/figures/polymer_markov_correction_20260505/phase4_inputs_compare.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/report/figures/polymer_markov_correction_20260505/phase4_reward_compare.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/report/figures/polymer_markov_correction_20260505/phase4_acceptance_and_gain_drift.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/report/figures/polymer_markov_correction_20260505/phase4_prediction_improvement_vs_reward.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260508_115807/phase1_lifted_equivalence.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260508_115807/phase2_prediction_score_trace.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260508_115807/phase2_candidate_selection_histogram.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260508_115807/phase3_z_trace.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260508_115807/phase3_prediction_error_improvement.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260508_115807/phase4_outputs_compare.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260508_115807/phase4_inputs_compare.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260508_115807/phase4_reward_compare.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260508_115807/phase4_acceptance_and_gain_drift.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260508_115807/phase4_prediction_improvement_vs_reward.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260508_115809/compare_inputs_last_episode.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260508_115809/compare_outputs_full.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260508_115809/compare_outputs_last_episode.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260508_115809/compare_rewards.png`
 
 ## Bugs, inconsistencies, or risks found
 

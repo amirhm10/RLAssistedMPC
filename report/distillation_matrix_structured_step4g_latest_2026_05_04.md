@@ -1,20 +1,28 @@
-# Distillation Matrix And Structured-Matrix Step 4G Review
+# Distillation Matrix And Structured-Matrix Step 4G Review With May 8 Follow-Up
 
-Date: 2026-05-04
+Original stage note: 2026-05-04  
+Follow-up update: 2026-05-08
 
 ## Objective
 
-This report analyzes the latest saved TD3 matrix-family runs for the distillation column under disturbance fluctuation:
+This note extends the earlier Step 4G distillation matrix-family review with the newest saved TD3 disturbance runs:
 
-- Scalar matrix run: `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260503_062605`
-- Structured matrix run: `Distillation/Results/distillation_structured_matrix_td3_disturb_fluctuation_mismatch_unified/20260503_083936`
-- Disturbance MPC baseline: `Distillation/Data/mpc_results_disturb_fluctuation.pickle`
+- previous scalar matrix run: `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260503_062605`
+- latest scalar matrix run: `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260508_015834`
+- previous structured matrix run: `Distillation/Results/distillation_structured_matrix_td3_disturb_fluctuation_mismatch_unified/20260503_083936`
+- latest structured matrix run: `Distillation/Results/distillation_structured_matrix_td3_disturb_fluctuation_mismatch_unified/20260508_005027`
+- disturbance MPC baseline: `Distillation/Data/mpc_results_disturb_fluctuation.pickle`
 
-Both runs are the Step 4G handoff variant: behavioral cloning is active and the Step 2 release-protected advisory cap is active. The Step 3D usefulness gate and Step 3C shadow logic are disabled in the saved bundles, so the live protection is Step 2 plus the Step 4G behavioral-cloning handoff, not cost-gated MPC fallback.
+The update answers four questions:
 
-The generated analysis assets are in:
+1. Did the May 8 `decision_interval = 20` change rescue the distillation matrix family?
+2. Why does distillation still fail while the polymer matrix family can succeed?
+3. What do the latest figures and exploratory statistics say about the failure mechanism?
+4. Would the Markov-correction idea currently under development be a good next direction?
 
-`report/figures/distillation_matrix_structured_step4g_20260504/`
+New follow-up assets are under:
+
+`report/figures/distillation_matrix_structured_followup_20260508/`
 
 ## Method Reconstruction
 
@@ -22,183 +30,213 @@ The distillation case tracks tray-24 ethane composition and tray-85 temperature:
 
 $$ y_t = [x_{24,\mathrm{C_2H_6}},\; T_{85}]^\top, \qquad u_t = [\mathrm{reflux},\; \mathrm{reboiler}]^\top. $$
 
-The nominal offset-free MPC uses the augmented identified model and solves the usual quadratic tracking/move-suppression problem over fixed horizons:
+The baseline offset-free MPC solves the standard quadratic tracking and move-suppression problem on the identified augmented model:
 
 $$ \min_{U_t} \sum_{k=0}^{H_p-1} \|y_{t+k|t}-y^{\mathrm{sp}}_{t+k}\|_Q^2 + \|\Delta u_{t+k|t}\|_R^2. $$
 
-The scalar matrix supervisor changes the prediction model, not the plant input directly:
+The scalar matrix supervisor changes the prediction model through one `A` multiplier and one multiplier for each `B` column:
 
 $$ A_t^{\mathrm{MPC}}[:n_x,:n_x] = \alpha_t A_0[:n_x,:n_x], \qquad B_t^{\mathrm{MPC}}[:n_x,j] = \delta_{j,t} B_0[:n_x,j]. $$
 
-The structured matrix supervisor uses a block-lite model update. The action is:
+The structured matrix supervisor uses grouped multipliers:
 
-$$ a_t = [\theta_{A,1}, \theta_{A,2}, \theta_{A,3}, \theta_{A,\mathrm{off}}, \theta_{B,1}, \theta_{B,2}], $$
+$$ a_t = [\theta_{A,1}, \theta_{A,2}, \theta_{A,3}, \theta_{A,\mathrm{off}}, \theta_{B,1}, \theta_{B,2}]. $$
 
-where diagonal physical-state blocks are scaled separately, off-block couplings share one multiplier, and each input column of `B` has its own multiplier.
+Both latest runs use the relative-band reward:
 
-The reward is the relative-band reward used by the distillation notebooks:
+$$ r_t = -(\mathrm{err}_{\mathrm{eff}} + \mathrm{move} + \mathrm{lin}_{\mathrm{out}} + \mathrm{lin}_{\mathrm{in}}) + \mathrm{bonus}, $$
 
-$$ r_t = -(\mathrm{err}_{\mathrm{eff}} + \mathrm{move} + \mathrm{lin}_{\mathrm{out}} + \mathrm{lin}_{\mathrm{in}}) + \mathrm{bonus}. $$
+with setpoint-dependent scaled bands:
 
-The active reward bands are defined in physical output units from:
+$$ b_i^{\mathrm{scaled}}(y^{\mathrm{sp}}) = \frac{\max(k_{\mathrm{rel},i}|y_i^{\mathrm{sp}}|,\; b_{\mathrm{floor},i})}{y_i^{\max} - y_i^{\min}}. $$
 
-$$ b(y^{\mathrm{sp}}) = \max(k_{\mathrm{rel}} \odot |y^{\mathrm{sp}}|,\; b_{\mathrm{floor}}). $$
+The May 8 follow-up preserved Step 2 release protection, Step 4G behavioral cloning, and observer refresh on executed matrix changes. The main new runtime difference versus the May 3 report is:
+
+$$ \texttt{decision\_interval}: 1 \rightarrow 20. $$
 
 ## Run Configuration Check
 
-| Item | Scalar matrix | Structured matrix |
-|---|---:|---:|
-| Episodes | 200 | 200 |
-| Steps per episode | 400 | 400 |
-| Warm-start episodes | 10 | 10 |
-| Hidden action-freeze episodes | 5 | 5 |
-| First live action episode | 16 | 16 |
-| Step 2 release guard | active | active |
-| Step 4G behavioral cloning | active | active |
-| Step 3D usefulness gate | off | off |
-| Nonfinite action count | 0 | 0 |
-| Solver/update fallback count | 0 | 0 |
-| Saved-run decision interval | 1 | 1 |
+| Item | Scalar May 3 | Scalar May 8 | Structured May 3 | Structured May 8 |
+| --- | ---: | ---: | ---: | ---: |
+| Episodes | 200 | 200 | 200 | 200 |
+| Steps per episode | 400 | 400 | 400 | 400 |
+| Warm start episodes | 10 | 10 | 10 | 10 |
+| First live episode | 16 | 16 | 16 | 16 |
+| Decision interval | 1 | 20 | 1 | 20 |
+| Step 2 release guard | on | on | on | on |
+| Step 4G behavioral cloning | on | on | on | on |
+| Step 3D usefulness gate | off | off | off | off |
+| Observer refresh on executed model | not logged in old bundle | on | not logged in old bundle | on |
 
-Important note: these saved runs were completed before the May 4 decision-interval change. They use per-step continuous action selection (`decision_interval = 1`). Future distillation matrix and structured-matrix runs now default to `decision_interval = 20`.
+The intended May 4 hypothesis was that slower model switching might stabilize the distillation family. The May 8 saved runs are the direct test of that hypothesis.
 
-## Reward Results
+## Follow-Up Result: `decision_interval = 20` Did Not Rescue Distillation
 
-![Reward comparison](figures/distillation_matrix_structured_step4g_20260504/fig_reward_comparison.png)
+| Metric | Scalar May 3 | Scalar May 8 | Structured May 3 | Structured May 8 | Disturbance MPC |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Final reward delta vs MPC | -90.15 | -147.94 | -5.14 | -32.60 | 0 |
+| Tail-10 reward delta vs MPC | -53.54 | -112.94 | -26.96 | -52.61 | 0 |
+| Post-live mean reward delta | -29.89 | -126.41 | -68.67 | -86.01 | 0 |
+| Post-live win rate | 0.54% | 0.00% | 0.00% | 0.00% | reference |
+| Tail-10 output-2 MAE | 1.129 | 1.115 | 0.822 | 0.999 | 0.192 |
+| Tail-10 mean input movement | 615.0 | 449.5 | 425.2 | 430.9 | 67.8 |
 
-| Metric | Scalar matrix | Structured matrix | Disturbance MPC reference |
-|---|---:|---:|---:|
-| Final episode reward | -74.07 | 10.94 | 16.08 |
-| Final reward delta vs MPC | -90.15 | -5.14 | 0 |
-| Final reward percent vs MPC | -560.7% | -31.9% | 0% |
-| Post-live mean reward delta | -29.89 | -68.67 | 0 |
-| Post-live win rate vs MPC | 0.54% | 0.00% | 100% reference |
-| Final 10 episode mean reward delta | -53.54 | -26.96 | 0 |
-| Worst episode reward delta | -226.76 | -493.44 | 0 |
+![Distillation reward delta follow-up](figures/distillation_matrix_structured_followup_20260508/fig_distillation_reward_delta_old_vs_new.png)
 
-The scalar matrix run is not just slightly below MPC; it becomes unstable late in training/evaluation. Its final episode is much worse than the disturbance MPC baseline, and the final ten episodes are also poor.
+The slower `decision_interval = 20` update did change the episode-by-episode shape, but it did not improve the sign of the result.
 
-The structured run is more nuanced. It also loses to MPC overall and never beats MPC episode-wise in the post-live window, but it recovers substantially by the final episode. The final reward gap is only `-5.14`, compared with `-90.15` for the scalar run. That recovery is visible in the reward plot, but it is not enough to claim an improvement.
+- Scalar matrix became worse by reward, with tail-10 reward delta degrading from `-53.54` to `-112.94`.
+- Structured matrix also became worse by reward, with tail-10 reward delta degrading from `-26.96` to `-52.61`.
+- Scalar input movement dropped relative to May 3, but only from an already unacceptable level to another unacceptable level. It is still about `6.6x` the MPC tail-10 movement.
+- Structured clipping dropped sharply, but that did not translate into better control. The tail-10 output-2 MAE still rose to `0.999`, versus `0.192` for MPC.
 
-## Tracking And Input Movement
+The earlier recommendation to try slower updates was scientifically reasonable, but the saved follow-up bundle now falsifies it as the main rescue mechanism.
 
-![Tracking and input metrics](figures/distillation_matrix_structured_step4g_20260504/fig_tracking_input_metrics.png)
+## Latest Distillation Outcome
 
-| Metric | Scalar matrix | Structured matrix | Disturbance MPC |
-|---|---:|---:|---:|
-| Post-live scaled RMSE | 0.0308 | 0.0476 | 0.0156 |
-| Final 10 scaled RMSE | 0.0524 | 0.0314 | 0.0162 |
-| Post-live scaled IAE / episode | 18.49 | 33.26 | 5.31 |
-| Final 10 scaled IAE / episode | 30.35 | 20.18 | 5.49 |
-| Post-live input movement / episode | 19.38 | 27.23 | 3.28 |
-| Final 10 input movement / episode | 21.69 | 20.84 | 3.41 |
+![Latest distillation dashboard](figures/distillation_matrix_structured_followup_20260508/fig_distillation_latest_dashboard.png)
 
-![Final episode outputs](figures/distillation_matrix_structured_step4g_20260504/fig_final_episode_outputs.png)
+The latest distillation runs are not subtle near-misses. Both are decisively worse than the disturbance MPC baseline on reward, temperature tracking, and input movement.
 
-The tracking metrics agree with the reward comparison. The RL-assisted matrix variants move the inputs about 6 to 8 times more than MPC while also tracking worse. This is not a reward-only artifact.
+Exploratory post-live statistics, computed on episodes 16-200 with episode-wise bootstrap intervals, are:
 
-Final episode physical mean absolute errors:
+| Run | Post-live reward delta mean [95% CI] | Post-live output-2 MAE delta [95% CI] | Post-live move delta [95% CI] | Reward wins / losses |
+| --- | --- | --- | --- | --- |
+| Distillation scalar latest | `-126.41 [-139.28, -115.70]` | `0.935 [0.908, 0.963]` | `366.79 [354.42, 379.66]` | `0 / 185` |
+| Distillation structured latest | `-86.01 [-109.13, -69.56]` | `0.745 [0.702, 0.791]` | `298.16 [280.12, 320.02]` | `0 / 185` |
 
-| Output | Scalar matrix | Structured matrix | Disturbance MPC |
-|---|---:|---:|---:|
-| Tray-24 ethane composition | 0.01668 | 0.00268 | 0.00151 |
-| Tray-85 temperature | 1.947 K | 0.275 K | 0.179 K |
+These are exploratory rather than formal independent-sample tests, because the episodes come from one sequential training run. Still, the effect direction is not ambiguous.
 
-The structured method is much closer to MPC in the final episode than the scalar method. However, the full post-live trajectory has large excursions, with maximum post-live structured errors of `0.443` in composition and `13.66 K` in temperature. The final recovery should therefore be treated as a late recovery from earlier bad behavior, not as a stable win.
+## Why Distillation Failed While Polymer Worked
 
-## Multiplier Behavior
+The cross-system comparison should be stated carefully. The polymer scalar matrix family is genuinely successful in the latest run. The polymer structured family is mixed but still reward-positive. Distillation has no corresponding win.
 
-![Multiplier activity](figures/distillation_matrix_structured_step4g_20260504/fig_multiplier_activity.png)
+| Latest run | Post-live reward delta mean [95% CI] | Tail-10 output-2 MAE | Tail-10 move mean |
+| --- | --- | --- | --- |
+| Distillation scalar | `-126.41 [-139.28, -115.70]` | `1.115` vs MPC `0.192` | `449.5` vs MPC `67.8` |
+| Distillation structured | `-86.01 [-109.13, -69.56]` | `0.999` vs MPC `0.192` | `430.9` vs MPC `67.8` |
+| Polymer scalar | `0.536 [0.482, 0.584]` | `0.218` vs MPC `0.265` | `0.691` vs MPC `0.715` |
+| Polymer structured | `0.366 [0.295, 0.432]` | `0.278` vs MPC `0.265` | `0.906` vs MPC `0.715` |
 
-Scalar matrix post-live executed multipliers:
+![Cross-system effect summary](figures/distillation_matrix_structured_followup_20260508/fig_cross_system_effects.png)
 
-| Quantity | Mean | Min/Max or final-window mean |
-|---|---:|---:|
-| `alpha` post-live mean | 0.979 | min 0.750, max 1.1929 |
-| `B_col_1` post-live mean | 0.991 | final 10 mean 1.101 |
-| `B_col_2` post-live mean | 1.054 | final 10 mean 0.958 |
+The main technical reasons are:
 
-Structured matrix post-live executed multiplier means:
+### 1. Distillation reward geometry is much more output-1 biased
 
-| Quantity | Post-live mean | Final 10 mean |
-|---|---:|---:|
-| `A_block_1` | 1.011 | 1.018 |
-| `A_block_2` | 1.013 | 0.976 |
-| `A_block_3` | 0.991 | 1.065 |
-| `A_off` | 1.011 | 1.040 |
-| `B_col_1` | 1.032 | 0.960 |
-| `B_col_2` | 1.028 | 1.084 |
+The reward operates on scaled bands, not raw physical bands. When that scaling is respected, the asymmetry is much stronger in distillation than in polymer.
 
-Step 2 release clipping was not the dominant event: the scalar run has mean post-live clip fraction `0.003`, and the structured run has mean post-live clip fraction `0.024`. The release guard is active for about `24.3%` of post-live steps, but most executed actions remain inside the protected bounds.
+| System / setpoint | Edge-slope ratio out1/out2 | Bonus ratio out1/out2 | Current `Q1` | Edge-equalized `Q1` | Bonus-equalized `Q1` |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Polymer SP1 | 2.82 | 1.38 | 518 | 184 | 375 |
+| Polymer SP2 | 2.15 | 0.80 | 518 | 241 | 645 |
+| Distillation SP1 | 6.98 | 1.98 | 37000 | 5300 | 18725 |
+| Distillation SP2 | 16.47 | 11.00 | 37000 | 2247 | 3365 |
 
-The structured action still spends substantial time near action limits: mean action saturation is `13.8%` and mean near-bound fraction is `23.1%`. That points to the learned policy leaning on model distortion authority even when Step 2 clips only a small fraction of coordinates.
+![Cross-system reward geometry](figures/distillation_matrix_structured_followup_20260508/fig_cross_system_reward_geometry.png)
 
-## Interpretation
+So even before discussing learning, the distillation reward still encourages the policy to care much more about the composition output than the temperature output. That does not fully explain the failure, because both outputs degrade in the latest runs, but it does explain why severe temperature damage can coexist with a still-attempted RL policy.
 
-The Step 4G behavioral-cloning schedule and Step 2 release caps reduce obvious numerical failures, but they do not make the distillation matrix-family policy competitive with disturbance MPC in these runs.
+### 2. In distillation, more model motion is not paying back in temperature control
 
-The strongest evidence is:
+For the latest distillation runs, larger mean B-side drift correlates with worse temperature error, not better:
 
-- There are no nonfinite actions and no structured prediction fallback events, so the poor result is not explained by solver crashes.
-- Reward, scaled tracking error, physical output error, and input movement all point in the same direction: the RL-assisted model update is worse than MPC after live release.
-- The structured supervisor is less damaging at the end than scalar matrix, but it still underperforms the MPC final episode and has large earlier excursions.
-- Step 2 caps constrain the most extreme advisory actions, but the allowed model multipliers are still broad enough to harm MPC prediction quality.
+- scalar latest: `corr(out2 MAE, B drift) = 0.70`
+- structured latest: `corr(out2 MAE, B drift) = 0.33`
 
-Scientifically, the current saved result should be reported as: "Step 4G plus Step 2 stabilized execution enough to complete the rollout, but did not produce a controller improvement over disturbance MPC. Structured matrix updates are a better direction than scalar matrix updates, because they recover late and avoid solver failures, but they still require slower action updates and/or tighter authority before another full distillation run is defensible."
+Observer refresh activity also trends the wrong way in the latest distillation runs:
+
+- scalar latest: `corr(out2 MAE, observer refresh rate) = 0.26`
+- structured latest: `corr(out2 MAE, observer refresh rate) = 0.49`
+
+![Adaptation diagnostics](figures/distillation_matrix_structured_followup_20260508/fig_adaptation_diagnostics.png)
+
+That is the opposite of the polymer scalar story. In the latest polymer scalar run, the B-side authority stays in a similar magnitude range, but the post-live reward delta is positive and the output-2 MAE is slightly better than baseline. In other words, polymer is getting useful predictive leverage from the multiplier family, while distillation is mostly injecting prediction-model motion that the closed loop cannot convert into better tracking.
+
+### 3. Distillation structured control spends a lot of time at the authority boundary
+
+For the latest distillation structured run:
+
+- mean action saturation fraction is `0.509`
+- mean near-bound fraction is `0.625`
+- mean B-side model-delta ratio is `0.204`
+
+This means the structured policy is often leaning on the edge of the allowed authority set, even though the Step 2 clipping fraction is low. The practical issue is not only hard clipping. It is that the learned policy spends much of its time in a high-authority regime whose induced model is still not useful for the actual plant-response correction needed by distillation.
+
+### 4. Slower switching was not the missing ingredient
+
+The May 8 follow-up directly tested the strongest prior hypothesis. Because the saved `decision_interval = 20` runs remain decisively negative, the dominant failure is not simply "the model changed too fast."
+
+The more credible interpretation is:
+
+- the distillation multiplier family is too blunt relative to the actual prediction mismatch,
+- the reward still under-protects temperature relative to composition,
+- and the observer-refresh plus model-refresh combination is not creating a helpful adaptive loop.
+
+## Will The Current Markov-Correction Idea Help?
+
+Probably yes as a better direction than direct distillation matrix multipliers, but only partially. It is not a complete fix by itself.
+
+The current polymer Markov prototype changes lifted finite-horizon prediction blocks and accepts them only when recent measured-vs-predicted error improves:
+
+$$ M_i(z_k)=M_{i,0}+\sum_{j=1}^r z_{j,k}M_{i,j}^{\mathrm{basis}}, $$
+
+with acceptance driven by a prediction-improvement score of the form
+
+$$ S_{\mathrm{pred}}(z)=\|Y^{\mathrm{meas}}-Y^0\|_2^2-\|Y^{\mathrm{meas}}-Y^z\|_2^2-\lambda_z\|z\|_2^2. $$
+
+That addresses several of the current distillation failure modes more directly than global `A/B` multipliers:
+
+| Distillation failure mode | Would Markov help? | Why |
+| --- | --- | --- |
+| Global `A/B` updates are too blunt | likely yes | Markov correction can target the horizon-local prediction defect instead of reshaping the full state-space model |
+| Observer refresh appears coupled to worse output-2 MAE | likely yes | the first distillation Markov test can keep the observer nominal and only correct the lifted prediction model |
+| High-authority structured action lives near the bounds | likely yes | prediction-error acceptance gives a data-driven gate instead of trusting authority magnitude alone |
+| Reward still underweights temperature protection | no | Markov does not repair reward geometry by itself |
+| Large input movement penalty mismatch | partial | Markov can reduce harmful model motion, but the control objective still needs correct output balance |
+
+So the right conclusion is not "Markov will fix distillation." The right conclusion is:
+
+1. Markov correction is a scientifically better next adaptation surface than the current distillation matrix family because it targets prediction error directly.
+2. It should be tested with a nominal observer first, not with immediate observer refresh on every accepted correction.
+3. It still needs a reward or evaluation design that explicitly protects the temperature output. Otherwise the same asymmetry can reappear on a different adaptation surface.
 
 ## Recommended Next Experiment
 
-The next run should use the May 4 decision-interval change:
+The next defensible distillation experiment is not another wider matrix run. It is a conservative distillation Markov pilot with the following rules:
 
-- Distillation scalar matrix: `decision_interval = 20`
-- Distillation structured matrix: `decision_interval = 20`
+1. Reuse the distillation baseline and mismatch-state infrastructure, but keep the observer nominal in the first pilot.
+2. Build a very low-dimensional Markov basis, preferably B-side dominant or output-2-targeted first, not a large unconstrained basis.
+3. Accept live corrections only when a recent prediction-error score improves and a loose nominal-cost guard still passes.
+4. Re-run the reward geometry ablation at the same time, lowering distillation `Q1` toward the edge-equalized range before judging the method purely by reward.
+5. Compare against disturbance MPC with the same three core metrics used here: reward delta, output-2 MAE, and input movement.
 
-This should test whether the main failure mode is high-frequency model switching. The current runs changed the prediction model every MPC step after live release. Holding the model update for 20 steps keeps the plant, replay buffer, and training active at every step, but prevents the MPC prediction model from being reshaped at every sample.
+The acceptance bar should be:
 
-I would prioritize structured matrix first, because it has the better final recovery and no structured fallback events. I would also keep Step 2 and Step 4G active, and add one diagnostic plot for held-action intervals:
-
-$$ \Delta a_t = \|a_t - a_{t-1}\|_2, \qquad \Delta \theta_t = \|\theta_t - \theta_{t-1}\|_2. $$
-
-The acceptance criterion for the next run should be stricter than "finishes the rollout":
-
-- final episode reward at least matches MPC within 5%
-- final 10 episode mean reward no worse than MPC by more than 10%
-- post-live win rate above 25% before considering wider authority
-- final episode temperature MAE below 0.25 K
-- final episode composition MAE below 0.0025
-
-## Figure Index
-
-- New reward comparison: `report/figures/distillation_matrix_structured_step4g_20260504/fig_reward_comparison.png`
-- New tracking/input summary: `report/figures/distillation_matrix_structured_step4g_20260504/fig_tracking_input_metrics.png`
-- New final-episode output overlay: `report/figures/distillation_matrix_structured_step4g_20260504/fig_final_episode_outputs.png`
-- New multiplier activity plot: `report/figures/distillation_matrix_structured_step4g_20260504/fig_multiplier_activity.png`
-- Original scalar comparison reward plot copied as: `matrix_compare_rewards_original.png`
-- Original structured comparison reward plot copied as: `structured_compare_rewards_original.png`
+- post-live reward delta mean at least above `-10`
+- post-live win rate above `25%`
+- tail-10 output-2 MAE below `0.30`
+- tail-10 mean input movement below `2x` the MPC baseline
 
 ## Files Inspected
 
-- `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260503_062605/input_data.pkl`
-- `Distillation/Results/distillation_structured_matrix_td3_disturb_fluctuation_mismatch_unified/20260503_083936/input_data.pkl`
-- `Distillation/Results/distillation_compare_matrix_td3_disturb_fluctuation_mismatch/20260503_062617/input_data.pkl`
-- `Distillation/Results/distillation_compare_structured_matrix_td3_disturb_fluctuation_mismatch/20260503_083950/input_data.pkl`
-- `Distillation/Data/mpc_results_disturb_fluctuation.pickle`
-- `distillation_RL_assisted_MPC_matrices_unified.ipynb`
-- `distillation_RL_assisted_MPC_structured_matrices_unified.ipynb`
-- `systems/distillation/notebook_params.py`
-- `systems/distillation/config.py`
+- `report/distillation_matrix_structured_step4g_latest_2026_05_04.md`
+- `report/polymer_wide_range_matrix_structured_report.md`
+- `report/polymer_markov_correction_progress.md`
+- `report/scripts/generate_distillation_matrix_family_failure_analysis.py`
+- `report/scripts/generate_distillation_matrix_deep_review_assets.py`
+- `report/scripts/generate_distillation_matrix_structured_followup_assets.py`
 - `utils/matrix_runner.py`
 - `utils/structured_matrix_runner.py`
-- `utils/structured_model_update.py`
 - `utils/rewards.py`
+- `systems/distillation/config.py`
+- `systems/distillation/notebook_params.py`
+- `systems/polymer/notebook_params.py`
+- latest and prior distillation matrix-family result bundles under `Distillation/Results/...`
+- latest polymer matrix-family reference bundles under `Polymer/Results/...`
 
 ## Files Changed
 
 - `report/distillation_matrix_structured_step4g_latest_2026_05_04.md`
-- `report/figures/distillation_matrix_structured_step4g_20260504/metrics_summary.csv`
-- `report/figures/distillation_matrix_structured_step4g_20260504/metrics_summary.json`
-- `report/figures/distillation_matrix_structured_step4g_20260504/fig_reward_comparison.png`
-- `report/figures/distillation_matrix_structured_step4g_20260504/fig_tracking_input_metrics.png`
-- `report/figures/distillation_matrix_structured_step4g_20260504/fig_final_episode_outputs.png`
-- `report/figures/distillation_matrix_structured_step4g_20260504/fig_multiplier_activity.png`
-- copied original comparison/action figures under `report/figures/distillation_matrix_structured_step4g_20260504/`
+- `report/scripts/generate_distillation_matrix_structured_followup_assets.py`
+- `report/figures/distillation_matrix_structured_followup_20260508/`

@@ -342,6 +342,190 @@ The stronger explanation is:
 4. Re-score all candidate runs with the same unified reward and compare only against the canonical baseline pickle.
 5. Keep reporting full-run and last-20 metrics together. The prototype looked good at the end while still being worse on the full run under its own metric.
 
+## Follow-up: prototype-reward unified rerun
+
+After the temporary reward switch, the newest full Markov run is:
+
+`Polymer/Results/td3_markov_disturb/20260509_155540/input_data.pkl`
+
+This run uses `reward_params["mode"] = "prototype_legacy"` inside the shared unified Markov notebook and shared runner.
+
+### What changed for this rerun
+
+Only the reward was switched back to the prototype form. The unified execution path remained in place:
+
+- same shared Markov runner
+- same canonical baseline pickle comparator
+- same Markov basis and bounds
+- same `s_pred_min`, `gain_drift_max`, and nominal-cost guard
+- same observer-alignment default
+- same replay and fallback flow
+
+So this rerun isolates reward effects much more than it restores the old prototype runtime.
+
+### Main result of the prototype-reward rerun
+
+Under the prototype reward, the newest unified run is better than the canonical baseline in every episode:
+
+| Quantity | Latest unified rerun vs canonical baseline |
+| --- | ---: |
+| Mean prototype reward delta | `23.3318` |
+| Last-20 prototype reward delta | `27.3439` |
+| Fraction of better episodes | `1.0000` |
+| Fraction of better last-20 episodes | `1.0000` |
+
+This means the reward switch did work in the narrow sense that the run now looks decisively better under the old reward definition.
+
+But the next result is more important: the behavior still looks almost nominal in the plots because the reward gain is almost entirely bonus-driven.
+
+### Why it still looks almost nominal
+
+For the latest rerun versus canonical baseline:
+
+| Prototype reward component delta | Full run | Last 20 |
+| --- | ---: | ---: |
+| Total reward delta | `23.3318` | `27.3439` |
+| Bonus delta | `23.3432` | `27.3506` |
+| Tracking-cost delta | `0.0115` | `0.0068` |
+| Move-cost delta | `-0.0001` | `-0.0001` |
+| Inside-5% gate fraction delta | `0.0163` | `0.0193` |
+
+Interpretation:
+
+- The prototype reward gain is almost exactly the prototype bonus gain.
+- The raw tracking term is slightly worse than baseline, not better.
+- The input-move term is essentially unchanged.
+- The rerun wins because it spends slightly more time inside the old 5% gate, and the prototype reward converts that into a large exponential bonus.
+
+This figure shows that directly:
+
+![Latest prototype reward components](figures/polymer_markov_prototype_reward_followup_20260509/latest_prototype_reward_components.png)
+
+### The trajectories are still very close to nominal
+
+For the latest rerun versus canonical baseline:
+
+- full-run output MAE delta: viscosity `+0.00048`, temperature `-0.00385`
+- last-20 output MAE delta: viscosity `+0.00095`, temperature `-0.00571`
+- full-run input-movement delta: `+7.27e-05`
+- whole-run maximum absolute output difference: `0.1125`
+- last-episode output differences stay visually tiny
+
+So the control law is still producing nearly the same visible closed loop, even though the old reward now declares it decisively better.
+
+The final-episode difference traces make that clear:
+
+![Last episode output differences](figures/polymer_markov_prototype_reward_followup_20260509/last_episode_output_differences.png)
+
+The corresponding final-episode input differences are here:
+
+`report/figures/polymer_markov_prototype_reward_followup_20260509/last_episode_input_differences.png`
+
+### The earlier unified run was already good under the prototype reward
+
+This is the strongest follow-up finding.
+
+Even before the reward switch, the earlier unified run from `20260509_023119` already outperformed the canonical baseline when its saved trajectory was rescored with the prototype reward:
+
+| Quantity | Earlier unified run, rescored by prototype reward |
+| --- | ---: |
+| Mean prototype reward delta | `15.5660` |
+| Last-20 prototype reward delta | `14.8186` |
+| Fraction of better episodes | `1.0000` |
+| Fraction of better last-20 episodes | `1.0000` |
+
+So the prototype reward rerun did not create a brand-new type of controller. It mostly changed the evaluation lens and nudged the same shared runtime toward a somewhat larger bonus margin.
+
+This comparison is shown below:
+
+![Prototype reward window compare](figures/polymer_markov_prototype_reward_followup_20260509/prototype_reward_window_compare.png)
+
+### The reward switch changed behavior only a little
+
+The latest prototype-reward rerun and the earlier unified run remain close in actual closed-loop behavior:
+
+| Latest unified rerun minus earlier unified run | Value |
+| --- | ---: |
+| Output RMSE difference, viscosity | `0.0061` |
+| Output RMSE difference, temperature | `0.0261` |
+| Input RMSE difference, `Qc` | `1.1270` |
+| Input RMSE difference, `Qm` | `1.7364` |
+| Maximum absolute output difference | `0.2240` |
+| Maximum absolute input difference | `14.7116` |
+
+That is small relative to the overall plant trajectory scales. So the reward switch changed the reported reward much more than it changed the actual closed loop.
+
+### Why this rerun is still less aggressive than the old prototype
+
+The action-source and correction statistics are:
+
+| Run | TD3 accepted | LS fallback | Nominal fallback | Any-`z` saturation | Mean `||z||` |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Latest unified rerun | `0.4289` | `0.4984` | `0.0248` | `0.8802` | `0.0795` |
+| Earlier unified run | `0.4808` | `0.4524` | `0.0190` | `0.8067` | `0.0779` |
+| Previous prototype | `0.3169` | `0.6229` | `0.0112` | `0.9519` | `0.0849` |
+
+Interpretation:
+
+- The old prototype was the most saturated and the most aggressive.
+- The latest rerun is still less aggressive than the old prototype because its `z` usage is smaller and it hits the saturation wall less often.
+- The latest rerun is not near-nominal because TD3 is absent. TD3 is used often. It is near-nominal because the accepted corrections remain smaller and less saturated than in the old prototype.
+
+This is visible in the action-mix summary:
+
+![Action mix three-run compare](figures/polymer_markov_prototype_reward_followup_20260509/action_mix_three_run_compare.png)
+
+### Comparator choice still matters a lot
+
+The old prototype did not compare against the same nominal baseline used now.
+
+Under the prototype reward:
+
+| Comparator delta | Full run | Last 20 |
+| --- | ---: | ---: |
+| Previous prototype Markov minus previous nominal | `-7.0366` | `25.7074` |
+| Previous nominal minus canonical baseline | `-173.8693` | `87.7667` |
+
+So the old internal nominal rerun and the canonical baseline are dramatically different under the prototype reward. That is why it is dangerous to compare “old Markov vs old nominal” visually against “new Markov vs canonical baseline” and assume the controller itself changed by the same amount.
+
+This bar chart shows how much the comparator changes the conclusion:
+
+![Prototype reward comparator effect](figures/polymer_markov_prototype_reward_followup_20260509/prototype_reward_comparator_effect.png)
+
+### Code-path differences that still matter after the reward switch
+
+The reward switch did not bring back the old prototype code path. The remaining important differences are:
+
+| Area | Previous prototype script | Latest unified rerun | Why it still matters |
+| --- | --- | --- | --- |
+| Nominal comparison reference | Internal nominal rerun stored in the same bundle | External canonical baseline pickle | This is still the largest non-reward difference in the reported comparisons |
+| Nominal online solve | Prototype script solved nominal MPC through its local lifted path using `solve_lifted_mpc(..., G0, ...)` | Shared runner solves nominal MPC with `MpcSolverGeneral.mpc_opt_fun(...)` | This changes the nominal candidate seen by the correction gate and can shift accepted corrections even with the same reward |
+| Runtime ownership | Report script owned config, reward, rollout, and comparison | Notebook + `utils.markov_runner` own rollout, plotting, and comparison | This keeps the Markov method aligned to unified polymer rules rather than prototype-local behavior |
+| Reward/comparison consistency | Prototype script mixed local reward helpers and local comparison logic | Shared notebook and runner now use one selected reward function end-to-end | Good for consistency, but it means “old reward” alone does not restore “old behavior” |
+
+Just as important, several things did *not* change:
+
+- `basis_family = "io_pair_gain"`
+- `z_bound = 0.05`
+- `prediction_window = 20`
+- `lambda_z = 1e-3`
+- `s_pred_min = 1e-6`
+- `gain_drift_max = 0.1`
+- `rl_fallback_to_ls = True`
+- `rl_store_executed_action_in_replay = True`
+- observer alignment remains the legacy previous-measurement mode
+
+So the follow-up evidence says the remaining behavior gap is not caused by the reward switch being incomplete. It is caused by the fact that the unified runtime is still a different controller/comparator stack than the old report script.
+
+### Follow-up conclusion
+
+The prototype reward rerun answers the question cleanly:
+
+1. Yes, the old reward is enough to make the latest unified Markov run look better than nominal in reward.
+2. No, that does not mean the closed-loop behavior became like the old prototype.
+3. The reward improvement comes almost entirely from the old exponential bonus, not from visibly different tracking or move suppression.
+4. The latest unified runtime remains more conservative than the previous prototype because it still uses the unified nominal/comparison path and produces smaller, less saturated corrections.
+
 ## Artifacts generated for this note
 
 - `report/figures/polymer_markov_latest_run_20260509/reward_delta_compare.png`
@@ -352,3 +536,12 @@ The stronger explanation is:
 - `report/figures/polymer_markov_latest_run_20260509/comparison_summary.csv`
 - `report/figures/polymer_markov_latest_run_20260509/window_metrics.csv`
 - `report/figures/polymer_markov_latest_run_20260509/baseline_reference_difference.csv`
+- `report/figures/polymer_markov_prototype_reward_followup_20260509/prototype_reward_window_compare.png`
+- `report/figures/polymer_markov_prototype_reward_followup_20260509/latest_prototype_reward_components.png`
+- `report/figures/polymer_markov_prototype_reward_followup_20260509/last_episode_output_differences.png`
+- `report/figures/polymer_markov_prototype_reward_followup_20260509/last_episode_input_differences.png`
+- `report/figures/polymer_markov_prototype_reward_followup_20260509/action_mix_three_run_compare.png`
+- `report/figures/polymer_markov_prototype_reward_followup_20260509/prototype_reward_comparator_effect.png`
+- `report/figures/polymer_markov_prototype_reward_followup_20260509/prototype_reward_followup_summary.csv`
+- `report/figures/polymer_markov_prototype_reward_followup_20260509/action_mix_summary.csv`
+- `report/figures/polymer_markov_prototype_reward_followup_20260509/windowed_prototype_reward_deltas.csv`

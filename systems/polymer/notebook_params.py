@@ -675,7 +675,15 @@ POLYMER_MARKOV_DEFAULTS = {
         "debug_run_shadow_ls": False,
     },
     "td3_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
-    "reward": _copy_reward_defaults(),
+    "reward": {
+        **_copy_reward_defaults(),
+        # Temporary A/B test switch: use the prototype Markov reward in the
+        # unified notebook so we can isolate whether reward shaping explains
+        # the behavior gap versus the pre-migration script.
+        "mode": "prototype_legacy",
+        "legacy_bonus_A": 1000.0,
+        "legacy_bonus_B": 1.0,
+    },
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
 }
 

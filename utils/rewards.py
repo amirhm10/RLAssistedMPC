@@ -116,3 +116,61 @@ def make_reward_fn_relative_QR(
         "reward_scale": float(reward_scale),
     }
     return params, reward_fn
+
+
+def make_reward_fn_prototype_legacy(
+    data_min,
+    data_max,
+    n_inputs,
+    y_ss_scaled,
+    Q_diag,
+    R_diag,
+    bonus_A=1000.0,
+    bonus_B=1.0,
+):
+    """
+    Prototype Markov reward used before the unified migration.
+
+    This reproduces the older reward exactly in terms of:
+    - scaled output error penalty
+    - scaled input-move penalty
+    - exponential bonus when every output's relative scaled error is within 5%
+
+    The denominator for the percentage check is the scaled setpoint deviation,
+    matching the prototype script behavior.
+    """
+
+    data_min = np.asarray(data_min, float)
+    data_max = np.asarray(data_max, float)
+    y_ss_scaled = np.asarray(y_ss_scaled, float).reshape(-1)
+    q_diag = np.asarray(Q_diag, float).reshape(-1)
+    r_diag = np.asarray(R_diag, float).reshape(-1)
+    y_scale_min = data_min[int(n_inputs) :]
+    y_scale_max = data_max[int(n_inputs) :]
+
+    def reward_fn(e_scaled, du_scaled, y_sp_phys=None):
+        e_scaled = np.asarray(e_scaled, float).reshape(-1)
+        du_scaled = np.asarray(du_scaled, float).reshape(-1)
+
+        if y_sp_phys is None:
+            y_sp_scaled_dev = np.zeros_like(e_scaled)
+        else:
+            y_sp_phys_arr = np.asarray(y_sp_phys, float).reshape(-1)
+            y_sp_scaled_dev = (y_sp_phys_arr - y_scale_min) / np.maximum(y_scale_max - y_scale_min, 1.0e-12)
+            y_sp_scaled_dev = y_sp_scaled_dev - y_ss_scaled
+
+        reward = -(np.sum(q_diag * (e_scaled**2)) + np.sum(r_diag * (du_scaled**2)))
+        error_norm = np.abs(np.linalg.norm(e_scaled.reshape(1, -1), axis=0) / (y_sp_scaled_dev + 1.0e-15)) * 100.0
+        if np.all(error_norm <= 5.0):
+            reward += float(bonus_A) * np.exp(-float(bonus_B) * float(np.mean(error_norm)))
+        return float(reward)
+
+    params = {
+        "mode": "prototype_legacy",
+        "Q_diag": q_diag,
+        "R_diag": r_diag,
+        "bonus_A": float(bonus_A),
+        "bonus_B": float(bonus_B),
+        "uses_scaled_setpoint_denominator": True,
+    }
+    return params, reward_fn

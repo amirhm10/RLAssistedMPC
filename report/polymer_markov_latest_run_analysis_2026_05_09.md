@@ -2,11 +2,17 @@
 
 Date: 2026-05-09
 
-Latest unified run analyzed:
-`Polymer/Results/td3_markov_disturb/20260509_023119/input_data.pkl`
+Newest prototype-default rerun analyzed:
+`Polymer/Results/td3_markov_disturb/20260509_184140/input_data.pkl`
 
-Latest unified comparison directory:
-`Polymer/Results/disturb_compare_td3_markov/20260509_023133/`
+Newest prototype-default comparison directory:
+`Polymer/Results/disturb_compare_td3_markov/20260509_184152/`
+
+Earlier unified prototype-reward rerun analyzed:
+`Polymer/Results/td3_markov_disturb/20260509_155540/input_data.pkl`
+
+Earlier unified shared-reward run analyzed:
+`Polymer/Results/td3_markov_disturb/20260509_023119/input_data.pkl`
 
 Previous prototype run analyzed:
 `Polymer/Results/polymer_markov_corrected_mpc/20260508_123902/input_data.pkl`
@@ -16,6 +22,8 @@ Canonical nominal baseline used by the latest unified workflow:
 
 Generated analysis artifacts:
 `report/figures/polymer_markov_latest_run_20260509/`
+`report/figures/polymer_markov_prototype_reward_followup_20260509/`
+`report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/`
 
 ## Objective
 
@@ -526,6 +534,161 @@ The prototype reward rerun answers the question cleanly:
 3. The reward improvement comes almost entirely from the old exponential bonus, not from visibly different tracking or move suppression.
 4. The latest unified runtime remains more conservative than the previous prototype because it still uses the unified nominal/comparison path and produces smaller, less saturated corrections.
 
+## Follow-up: lifted-G0 prototype nominal-solver rerun
+
+After switching the Markov default nominal online solve from `state_space_shared` to `lifted_g0_prototype`, the newest full rerun is:
+
+`Polymer/Results/td3_markov_disturb/20260509_184140/input_data.pkl`
+
+This run keeps the prototype reward active and also uses the prototype-style lifted nominal solve.
+
+### What changed for this rerun
+
+Relative to the previous unified prototype-reward rerun `20260509_155540`, the intended controller-side change was narrow:
+
+- reward stays `prototype_legacy`
+- the Markov basis, bounds, LS teacher, gain-drift limit, and cost guard stay the same
+- the nominal online solve default switches from `state_space_shared` to `lifted_g0_prototype`
+
+One caution matters scientifically: the current Markov TD3 runs do not store a training seed in the saved bundle, and the Markov notebook defaults do not expose a dedicated Markov TD3 seed. So this rerun is informative, but a single A/B rerun does not prove that every observed difference is purely caused by the nominal-solver switch rather than some RL run-to-run variance.
+
+### Main result
+
+Even with the prototype nominal solve restored, the newest run still does not separate visibly from nominal MPC. In fact, under the prototype reward it is much worse than the canonical baseline:
+
+| Quantity | Latest lifted-G0 rerun vs canonical baseline |
+| --- | ---: |
+| Mean prototype reward delta | `-111.4477` |
+| Last-20 prototype reward delta | `-110.3465` |
+| Fraction of better episodes | `0.0000` |
+| Fraction of better last-20 episodes | `0.0000` |
+| TD3 accepted fraction | `0.3636` |
+| LS fallback fraction | `0.5539` |
+| Nominal fallback fraction | `0.0352` |
+| Any-`z` saturation fraction | `0.8726` |
+| Mean `||z||` | `0.0795` |
+
+So the nominal-solver restoration did not bring back the old “Markov clearly beats MPC” behavior.
+
+The windowed reward comparison is here:
+
+![Reward window compare](figures/polymer_markov_prototype_nominal_solver_followup_20260509/reward_window_compare.png)
+
+### Why it still looks almost the same as MPC
+
+The newest rerun is still visually close to canonical MPC because the actual trajectory differences remain small:
+
+| Latest lifted-G0 rerun minus canonical baseline | Full run | Last 20 |
+| --- | ---: | ---: |
+| Viscosity MAE delta | `+0.00113` | `+0.00133` |
+| Temperature MAE delta | `+0.00384` | `+0.00406` |
+| Input-movement delta | `-0.01214` | `-0.00980` |
+
+Additional distance metrics:
+
+- output RMSE difference versus canonical baseline: viscosity `0.00397`, temperature `0.01693`
+- maximum absolute output difference versus canonical baseline: `0.1105`
+- input RMSE difference versus canonical baseline: `Qc = 1.0227`, `Qm = 1.1858`
+- maximum absolute input difference versus canonical baseline: `9.6082`
+
+This rerun is therefore slightly worse in tracking than canonical MPC but still smoother in input movement. That is exactly the kind of controller that looks almost nominal in the plots.
+
+The final-episode difference traces confirm this:
+
+![Last-episode output differences](figures/polymer_markov_prototype_nominal_solver_followup_20260509/last_episode_output_differences.png)
+
+The corresponding final-episode input differences are here:
+
+`report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/last_episode_input_differences.png`
+
+### Why the prototype reward got much worse anyway
+
+The prototype reward collapse is almost entirely a bonus collapse, not a large trajectory change:
+
+| Prototype reward component delta, latest lifted-G0 minus canonical baseline | Full run | Last 20 |
+| --- | ---: | ---: |
+| Total reward delta | `-111.4477` | `-110.3465` |
+| Bonus delta | `-111.4263` | `-110.3310` |
+| Tracking-cost delta | `+0.0216` | `+0.0157` |
+| Move-cost delta | `-0.0003` | `-0.0002` |
+| Inside-5% gate fraction delta | `-0.0059` | `-0.0055` |
+| Mean percentage error delta | `+0.2531` | `+0.4035` |
+
+Interpretation:
+
+- almost the entire reward loss is the loss of the prototype exponential bonus
+- raw tracking is only slightly worse than canonical MPC
+- the move term is still negligible
+- a very small reduction in time spent inside the 5% gate is amplified into a very large reward penalty
+
+That is why the newest rerun can look nearly nominal in the outputs while being decisively worse under the old reward.
+
+This figure shows the component breakdown directly:
+
+![Latest components vs baseline](figures/polymer_markov_prototype_nominal_solver_followup_20260509/latest_components_vs_baseline.png)
+
+### What the nominal-solver switch actually changed
+
+The cleanest comparison is the newest rerun versus the previous unified prototype-reward rerun `20260509_155540`, because those two runs share the same reward mode and differ mainly by the nominal-solver path plus normal RL stochasticity.
+
+Relative to that previous rerun:
+
+| Latest lifted-G0 rerun minus previous unified prototype-reward rerun | Value |
+| --- | ---: |
+| Mean prototype reward delta | `-134.7794` |
+| Last-20 prototype reward delta | `-137.6904` |
+| Output RMSE difference, viscosity | `0.0040` |
+| Output RMSE difference, temperature | `0.0181` |
+| Input RMSE difference, `Qc` | `1.4016` |
+| Input RMSE difference, `Qm` | `1.0426` |
+| Max absolute output difference | `0.1845` |
+| Max absolute input difference | `14.6487` |
+| Inside-5% gate fraction delta | `-0.0222` |
+| Mean percentage error delta | `+0.5845` |
+
+The key point is that the closed-loop outputs barely moved, but the prototype reward moved a lot because the old bonus is extremely threshold-sensitive.
+
+This is also reflected in the action mix:
+
+| Run | TD3 accepted | LS fallback | Nominal fallback | Any-`z` saturation | Mean `||z||` |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Latest lifted-G0 rerun | `0.3636` | `0.5539` | `0.0352` | `0.8726` | `0.0795` |
+| Previous unified prototype-reward rerun | `0.4289` | `0.4984` | `0.0248` | `0.8802` | `0.0795` |
+| Old prototype | `0.3169` | `0.6229` | `0.0112` | `0.9519` | `0.0849` |
+
+So the newest rerun actually became a bit more fallback-heavy than the previous unified rerun:
+
+- TD3 accepted less often
+- LS fallback happened more often
+- nominal fallback also rose
+- the average correction norm stayed essentially unchanged
+
+That is more consistent with “even more conservative” than with “restored old prototype behavior.”
+
+These two figures summarize that shift:
+
+![Solver-mode switch effect](figures/polymer_markov_prototype_nominal_solver_followup_20260509/solver_mode_switch_effect.png)
+
+![Action mix compare](figures/polymer_markov_prototype_nominal_solver_followup_20260509/action_mix_compare.png)
+
+### Why this still does not reproduce the old prototype
+
+The new rerun shows that changing the nominal online solve alone is not enough.
+
+The remaining evidence points to three stronger explanations:
+
+1. The prototype reward is very unstable around the 5% inside-band gate, so small trajectory shifts cause very large reward swings without a dramatic visible change in the outputs.
+2. The unified runtime still uses the shared notebook/runner/comparator stack, so it is not the same experiment as the old report-script prototype even after restoring the lifted nominal solve.
+3. The old prototype was still the most aggressive run. Its any-`z` saturation was `0.9519` versus `0.8726` now, and its mean `||z||` was also larger.
+
+So the latest evidence is stronger than before:
+
+- restoring the prototype reward alone was not enough
+- restoring the prototype nominal solve alone was not enough
+- the gap versus the old prototype is therefore not dominated by the nominal-solver choice
+
+The most likely remaining reasons are the shared runtime/comparator stack and the extreme sensitivity of the prototype reward to tiny inside-band changes.
+
 ## Artifacts generated for this note
 
 - `report/figures/polymer_markov_latest_run_20260509/reward_delta_compare.png`
@@ -545,3 +708,13 @@ The prototype reward rerun answers the question cleanly:
 - `report/figures/polymer_markov_prototype_reward_followup_20260509/prototype_reward_followup_summary.csv`
 - `report/figures/polymer_markov_prototype_reward_followup_20260509/action_mix_summary.csv`
 - `report/figures/polymer_markov_prototype_reward_followup_20260509/windowed_prototype_reward_deltas.csv`
+- `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/reward_window_compare.png`
+- `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/latest_components_vs_baseline.png`
+- `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/action_mix_compare.png`
+- `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/solver_mode_switch_effect.png`
+- `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/last_episode_output_differences.png`
+- `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/last_episode_input_differences.png`
+- `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/prototype_nominal_solver_followup_summary.csv`
+- `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/action_mix_summary.csv`
+- `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/solver_mode_switch_window_summary.csv`
+- `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/trajectory_distance_summary.csv`

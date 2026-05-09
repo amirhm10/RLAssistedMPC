@@ -651,6 +651,10 @@ POLYMER_MARKOV_DEFAULTS = {
         "R2_penalty": 1.0,
         **_copy_mismatch_defaults(),
         "use_shifted_mpc_warm_start": False,
+        # Nominal online solve used as the reference action/cost each step:
+        # - "state_space_shared": current unified path via MpcSolverGeneral
+        # - "lifted_g0_prototype": pre-migration Markov prototype path via G0
+        "nominal_solver_mode": "state_space_shared",
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
         "nominal_ha": 1.05e6,

@@ -412,6 +412,46 @@ def solve_nominal_mpc_step(mpc_obj, y_sp, u_prev_dev, x0_model, bounds, x_init):
     return np.asarray(sol.x, float), float(sol.fun), sol
 
 
+def solve_nominal_reference_step(
+    *,
+    nominal_solver_mode,
+    mpc_obj,
+    y_sp,
+    u_prev_dev,
+    x0_model,
+    A,
+    C,
+    G0,
+    Q_out,
+    R_in,
+    predict_h,
+    control_horizon,
+    bounds,
+    x_init,
+):
+    mode = str(nominal_solver_mode).strip().lower()
+    if mode == "state_space_shared":
+        return solve_nominal_mpc_step(mpc_obj, y_sp, u_prev_dev, x0_model, bounds, x_init)
+    if mode == "lifted_g0_prototype":
+        return solve_lifted_mpc(
+            y_sp,
+            u_prev_dev,
+            x0_model,
+            A,
+            C,
+            G0,
+            Q_out,
+            R_in,
+            predict_h,
+            control_horizon,
+            bounds,
+            x_init,
+        )
+    raise ValueError(
+        "nominal_solver_mode must be 'state_space_shared' or 'lifted_g0_prototype'."
+    )
+
+
 def initialize_history(nFE, nx, ny, nu, z_dim, rl_state_dim=0):
     return {
         "xhat_before": np.zeros((nFE, nx), dtype=float),
@@ -705,6 +745,7 @@ def build_runtime_context(markov_cfg, runtime_ctx):
 def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_markov, print_progress=False):
     predict_h = int(config["predict_h"])
     control_horizon = int(config["cont_h"])
+    nominal_solver_mode = str(config.get("nominal_solver_mode", "state_space_shared")).strip().lower()
     A = np.asarray(ctx["A_aug"], float)
     B = np.asarray(ctx["B_aug"], float)
     C = np.asarray(ctx["C_aug"], float)
@@ -797,13 +838,21 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         nominal_guess = x_init if bool(config.get("use_shifted_mpc_warm_start", False)) else np.zeros(
             control_horizon * nu, dtype=float
         )
-        U0, J0, sol0 = solve_nominal_mpc_step(
-            ctx["MPC_obj"],
-            ctx["y_sp"][step],
-            u_prev_dev,
-            x_model,
-            ctx["bounds"],
-            nominal_guess,
+        U0, J0, sol0 = solve_nominal_reference_step(
+            nominal_solver_mode=nominal_solver_mode,
+            mpc_obj=ctx["MPC_obj"],
+            y_sp=ctx["y_sp"][step],
+            u_prev_dev=u_prev_dev,
+            x0_model=x_model,
+            A=A,
+            C=C,
+            G0=G0,
+            Q_out=config["Q_out"],
+            R_in=config["R_in"],
+            predict_h=predict_h,
+            control_horizon=control_horizon,
+            bounds=ctx["bounds"],
+            x_init=nominal_guess,
         )
         U_exec = U0.copy()
         z_exec = np.zeros(z_dim, dtype=float)
@@ -1139,6 +1188,7 @@ def summarize_history(config, ctx, history):
     return {
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
         "run_mode": str(config["run_mode"]).lower(),
+        "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
         "accepted_fraction": accepted_fraction,
         "td3_accepted_fraction": td3_accepted_fraction,
         "ls_fallback_fraction": ls_fallback_fraction,
@@ -1197,6 +1247,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
     return {
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
         "run_mode": ctx["run_mode"],
+        "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
         "system_metadata": ctx["system_metadata"],
         "y_sp": ctx["y_sp"],
         "steady_states": ctx["steady_states"],

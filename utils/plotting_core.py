@@ -2081,6 +2081,518 @@ def plot_matrix_multiplier_results_core(result_bundle, plot_cfg):
     return out_dir
 
 
+def plot_markov_correction_results_core(result_bundle, plot_cfg):
+    bundle_input = dict(result_bundle)
+    rl_agent = bundle_input.pop("_rl_agent", None)
+    style_profile = str(plot_cfg.get("style_profile", "hybrid")).lower()
+    _set_plot_style(style_profile=style_profile)
+    bundle = normalize_result_bundle(bundle_input)
+
+    directory = os.fspath(plot_cfg["directory"])
+    prefix_name = plot_cfg.get("prefix_name", "markov_correction_result")
+    start_episode = int(plot_cfg.get("start_episode", 1))
+    save_pdf = bool(plot_cfg.get("save_pdf", False))
+    out_dir = create_output_dir(directory, prefix_name)
+
+    if rl_agent is not None and bool(plot_cfg.get("save_agent_checkpoint", False)):
+        checkpoint_prefix = str(plot_cfg.get("agent_checkpoint_prefix", "td3_markov_agent"))
+        bundle["rl_agent_checkpoint_path"] = rl_agent.save(out_dir, prefix=checkpoint_prefix)
+
+    y_line_full = bundle["y_line_full"]
+    u_step_full = bundle["u_step_full"]
+    nFE = bundle["nFE"]
+    delta_t = bundle["delta_t"]
+    time_in_sub_episodes = bundle["time_in_sub_episodes"]
+    n_inputs = bundle["n_inputs"]
+    n_outputs = bundle["n_outputs"]
+    metadata = resolve_system_metadata(bundle=bundle, plot_cfg=plot_cfg, n_outputs=n_outputs, n_inputs=n_inputs)
+    output_labels = metadata["output_labels"]
+    input_labels = metadata["input_labels"]
+    time_label = metadata["time_label"]
+
+    y_sp_phys_full = ysp_scaled_dev_to_phys(
+        bundle["y_sp"],
+        bundle["steady_states"],
+        bundle["data_min"],
+        bundle["data_max"],
+        n_inputs=n_inputs,
+    )
+
+    start_step = int(min(max(0, (start_episode - 1) * time_in_sub_episodes), max(0, nFE - 1)))
+    W = int(len(y_sp_phys_full[start_step:, :]))
+    y_line = y_line_full[start_step:, :]
+    y_sp_phys = y_sp_phys_full[start_step:, :]
+    u_line = u_step_full[start_step:, :]
+
+    t_line = np.linspace(0.0, W * delta_t, W + 1)
+    t_step = t_line[:-1]
+    last_steps = int(min(max(20, time_in_sub_episodes), W))
+    s_last = max(0, W - last_steps)
+    t_line_blk = np.linspace(0.0, last_steps * delta_t, last_steps + 1)
+    t_step_blk = t_line_blk[:-1]
+    spans = episode_spans(bundle.get("test_train_dict"), nFE)
+
+    fig, axs = plt.subplots(n_outputs, 1, figsize=(8.6, 3.0 + 2.5 * max(1, n_outputs - 1)), sharex=True)
+    if n_outputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.plot(t_line, y_line[:, idx], label="Markov RL")
+        ax.step(t_step, y_sp_phys[:, idx], where="post", linestyle="--", label="Setpoint")
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel(output_labels[idx])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel(time_label)
+    axs[0].legend(loc="best")
+    _save_fig(fig, out_dir, "fig_markov_outputs_full", save_pdf=save_pdf)
+
+    fig, axs = plt.subplots(n_outputs, 1, figsize=(8.6, 3.0 + 2.5 * max(1, n_outputs - 1)), sharex=True)
+    if n_outputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.plot(t_line_blk, y_line[s_last : s_last + last_steps + 1, idx], label="Markov RL")
+        ax.step(
+            t_step_blk,
+            y_sp_phys[s_last : s_last + last_steps, idx],
+            where="post",
+            linestyle="--",
+            label="Setpoint",
+        )
+        ax.set_ylabel(output_labels[idx])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel(time_label)
+    axs[0].legend(loc="best")
+    _save_fig(fig, out_dir, "fig_markov_outputs_last_block", save_pdf=save_pdf)
+
+    fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
+    if n_inputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.step(t_step, u_line[:, idx], where="post")
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel(input_labels[idx])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel(time_label)
+    _save_fig(fig, out_dir, "fig_markov_inputs_full", save_pdf=save_pdf)
+
+    fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
+    if n_inputs == 1:
+        axs = [axs]
+    for idx, ax in enumerate(axs):
+        ax.step(t_step_blk, u_line[s_last : s_last + last_steps, idx], where="post")
+        ax.set_ylabel(input_labels[idx])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel(time_label)
+    _save_fig(fig, out_dir, "fig_markov_inputs_last_block", save_pdf=save_pdf)
+
+    n_ep_total = int(nFE // time_in_sub_episodes) if time_in_sub_episodes > 0 else 0
+    x_ep, y_ep = slice_avg_rewards(bundle["avg_rewards"], n_ep_total, start_episode)
+    fig, ax = plt.subplots(figsize=(7.8, 5.0))
+    if len(y_ep) > 0:
+        ax.plot(x_ep, y_ep, "o-")
+    ax.set_ylabel("Avg. Reward")
+    ax.set_xlabel("Episode #")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.xaxis.set_major_locator(mtick.MaxNLocator(8, integer=True))
+    _make_axes_bold(ax)
+    _save_fig(fig, out_dir, "fig_markov_avg_rewards", save_pdf=save_pdf)
+
+    rewards_step = bundle.get("rewards_step")
+    if rewards_step is not None:
+        rewards_seg = np.asarray(rewards_step, float)[start_step : start_step + W]
+        fig, ax = plt.subplots(figsize=(8.4, 4.8))
+        ax.plot(t_step, rewards_seg)
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel("Reward")
+        ax.set_xlabel(time_label)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_markov_step_rewards", save_pdf=save_pdf)
+
+    delta_y_storage = bundle.get("delta_y_storage")
+    if delta_y_storage is not None:
+        err_seg = np.asarray(delta_y_storage, float)[start_step : start_step + W, :]
+        fig, axs = plt.subplots(n_outputs + 1, 1, figsize=(8.6, 3.2 + 2.3 * n_outputs), sharex=True)
+        for idx in range(n_outputs):
+            axs[idx].plot(t_step, err_seg[:, idx])
+            shade_test_regions(axs[idx], spans, delta_t)
+            axs[idx].set_ylabel(f"e[{idx + 1}]")
+            axs[idx].spines["top"].set_visible(False)
+            axs[idx].spines["right"].set_visible(False)
+            _make_axes_bold(axs[idx])
+        axs[-1].plot(t_step, np.linalg.norm(err_seg, axis=1))
+        shade_test_regions(axs[-1], spans, delta_t)
+        axs[-1].set_ylabel("||e||")
+        axs[-1].set_xlabel(time_label)
+        axs[-1].spines["top"].set_visible(False)
+        axs[-1].spines["right"].set_visible(False)
+        _make_axes_bold(axs[-1])
+        _save_fig(fig, out_dir, "fig_markov_tracking_error", save_pdf=save_pdf)
+
+    delta_u_storage = bundle.get("delta_u_storage")
+    if delta_u_storage is not None:
+        du_seg = np.asarray(delta_u_storage, float)[start_step : start_step + W, :]
+        fig, axs = plt.subplots(n_inputs, 1, figsize=(8.6, 3.0 + 2.2 * max(1, n_inputs - 1)), sharex=True)
+        if n_inputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            ax.step(t_step, du_seg[:, idx], where="post")
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(rf"$\Delta u_{{{idx + 1}}}$")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel(time_label)
+        _save_fig(fig, out_dir, "fig_markov_delta_u", save_pdf=save_pdf)
+
+    yhat = bundle.get("yhat")
+    if yhat is not None:
+        yhat = np.asarray(yhat, float)
+        fig, axs = plt.subplots(n_outputs, 1, figsize=(8.6, 3.0 + 2.5 * max(1, n_outputs - 1)), sharex=True)
+        if n_outputs == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            meas_scaled = apply_min_max(
+                y_line_full[1:, idx],
+                bundle["data_min"][n_inputs + idx],
+                bundle["data_max"][n_inputs + idx],
+            ) - apply_min_max(
+                bundle["steady_states"]["y_ss"][idx],
+                bundle["data_min"][n_inputs + idx],
+                bundle["data_max"][n_inputs + idx],
+            )
+            ax.plot(t_step, np.asarray(yhat[idx, start_step : start_step + W], float), label="Observer")
+            ax.plot(t_step, meas_scaled[start_step : start_step + W], linestyle="--", label="Measurement")
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(output_labels[idx])
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel(time_label)
+        axs[0].legend(loc="best")
+        _save_fig(fig, out_dir, "fig_markov_observer_overlay", save_pdf=save_pdf)
+
+    disturbance_profile = bundle.get("disturbance_profile")
+    if disturbance_profile:
+        disturbance_items = disturbance_plot_items(disturbance_profile, metadata.get("disturbance_labels"))
+        if disturbance_items:
+            fig, axs = plt.subplots(
+                len(disturbance_items),
+                1,
+                figsize=(8.6, 3.0 + 2.0 * max(1, len(disturbance_items) - 1)),
+                sharex=True,
+            )
+            if len(disturbance_items) == 1:
+                axs = [axs]
+            for idx, (_, label, series) in enumerate(disturbance_items):
+                axs[idx].plot(t_step, np.asarray(series, float)[start_step : start_step + W])
+                shade_test_regions(axs[idx], spans, delta_t)
+                axs[idx].set_ylabel(label)
+                axs[idx].spines["top"].set_visible(False)
+                axs[idx].spines["right"].set_visible(False)
+                _make_axes_bold(axs[idx])
+            axs[-1].set_xlabel(time_label)
+            _save_fig(fig, out_dir, "fig_markov_disturbance_profile", save_pdf=save_pdf)
+
+    z_exec = bundle.get("z_executed_log")
+    z_req = bundle.get("rl_requested_z_log")
+    z_ls = bundle.get("rl_ls_z_log")
+    basis_labels = list(bundle.get("basis_labels") or [])
+    if z_exec is not None:
+        z_exec = np.asarray(z_exec, float)
+        if z_exec.ndim == 1:
+            z_exec = z_exec[:, None]
+        if z_req is not None:
+            z_req = np.asarray(z_req, float)
+            if z_req.ndim == 1:
+                z_req = z_req[:, None]
+        if z_ls is not None:
+            z_ls = np.asarray(z_ls, float)
+            if z_ls.ndim == 1:
+                z_ls = z_ls[:, None]
+        fig, axs = plt.subplots(
+            z_exec.shape[1],
+            1,
+            figsize=(8.8, 2.8 + 2.0 * max(1, z_exec.shape[1] - 1)),
+            sharex=True,
+        )
+        if z_exec.shape[1] == 1:
+            axs = [axs]
+        for idx, ax in enumerate(axs):
+            label = basis_labels[idx] if idx < len(basis_labels) else f"z{idx + 1}"
+            if z_req is not None:
+                ax.plot(t_step, z_req[start_step : start_step + W, idx], alpha=0.35, label="requested")
+            if z_ls is not None:
+                ax.plot(t_step, z_ls[start_step : start_step + W, idx], alpha=0.75, label="LS")
+            ax.plot(t_step, z_exec[start_step : start_step + W, idx], label="executed")
+            shade_test_regions(ax, spans, delta_t)
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel(time_label)
+        axs[0].legend(loc="best")
+        _save_fig(fig, out_dir, "fig_markov_correction_traces", save_pdf=save_pdf)
+
+    s_pred = bundle.get("s_pred_log")
+    if s_pred is not None:
+        fig, ax = plt.subplots(figsize=(8.0, 4.6))
+        ax.plot(t_step, np.asarray(s_pred, float)[start_step : start_step + W], label="executed score")
+        s_min = plot_cfg.get("s_pred_min")
+        if s_min is None:
+            s_min = bundle.get("markov_s_pred_min")
+        if s_min is not None:
+            ax.axhline(float(s_min), color="k", linestyle="--", linewidth=1.0, label="S_min")
+        shade_test_regions(ax, spans, delta_t)
+        ax.set_ylabel("Prediction score")
+        ax.set_xlabel(time_label)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.legend(loc="best")
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_markov_prediction_score", save_pdf=save_pdf)
+
+    accepted_log = bundle.get("accepted_log")
+    gain_drift_log = bundle.get("gain_drift_log")
+    if accepted_log is not None and gain_drift_log is not None:
+        fig, axs = plt.subplots(2, 1, figsize=(8.2, 5.4), sharex=True)
+        axs[0].step(t_step, np.asarray(accepted_log, float)[start_step : start_step + W], where="post")
+        shade_test_regions(axs[0], spans, delta_t)
+        axs[0].set_ylabel("Accepted")
+        axs[0].spines["top"].set_visible(False)
+        axs[0].spines["right"].set_visible(False)
+        _make_axes_bold(axs[0])
+        axs[1].plot(t_step, np.asarray(gain_drift_log, float)[start_step : start_step + W])
+        shade_test_regions(axs[1], spans, delta_t)
+        axs[1].set_ylabel("Gain drift")
+        axs[1].set_xlabel(time_label)
+        axs[1].spines["top"].set_visible(False)
+        axs[1].spines["right"].set_visible(False)
+        _make_axes_bold(axs[1])
+        _save_fig(fig, out_dir, "fig_markov_acceptance_and_gain_drift", save_pdf=save_pdf)
+
+    action_source = bundle.get("rl_action_source_log")
+    raw_req = bundle.get("rl_requested_raw_action_log")
+    raw_exec = bundle.get("rl_executed_raw_action_log")
+    if action_source is not None:
+        action_source = np.asarray(action_source, float)
+        fig, axs = plt.subplots(2, 1, figsize=(8.2, 5.4), sharex=True)
+        axs[0].step(t_step, action_source[start_step : start_step + W], where="post")
+        shade_test_regions(axs[0], spans, delta_t)
+        axs[0].set_ylabel("Action src")
+        axs[0].spines["top"].set_visible(False)
+        axs[0].spines["right"].set_visible(False)
+        _make_axes_bold(axs[0])
+        if raw_req is not None:
+            axs[1].plot(
+                t_step,
+                np.linalg.norm(np.asarray(raw_req, float)[start_step : start_step + W], axis=1),
+                label="requested",
+            )
+        if raw_exec is not None:
+            axs[1].plot(
+                t_step,
+                np.linalg.norm(np.asarray(raw_exec, float)[start_step : start_step + W], axis=1),
+                label="executed",
+                alpha=0.85,
+            )
+        shade_test_regions(axs[1], spans, delta_t)
+        axs[1].set_ylabel("||a||")
+        axs[1].set_xlabel(time_label)
+        axs[1].spines["top"].set_visible(False)
+        axs[1].spines["right"].set_visible(False)
+        axs[1].legend(loc="best")
+        _make_axes_bold(axs[1])
+        _save_fig(fig, out_dir, "fig_markov_action_source_and_norm", save_pdf=save_pdf)
+
+    diag_series = []
+    actor_loss = bundle.get("rl_actor_loss_log")
+    critic_loss = bundle.get("rl_critic_loss_log")
+    bc_loss = bundle.get("rl_bc_loss_log")
+    if actor_loss is not None and np.isfinite(np.asarray(actor_loss, float)).any():
+        diag_series.append(("actor_loss", np.asarray(actor_loss, float)))
+    if critic_loss is not None and np.isfinite(np.asarray(critic_loss, float)).any():
+        diag_series.append(("critic_loss", np.asarray(critic_loss, float)))
+    if bc_loss is not None and np.isfinite(np.asarray(bc_loss, float)).any():
+        diag_series.append(("bc_loss", np.asarray(bc_loss, float)))
+    if diag_series:
+        fig, axs = plt.subplots(len(diag_series), 1, figsize=(8.4, 3.0 + 2.2 * max(1, len(diag_series) - 1)), sharex=True)
+        if len(diag_series) == 1:
+            axs = [axs]
+        env_steps = np.arange(1, nFE + 1)
+        for ax, (label, series) in zip(axs, diag_series):
+            ax.plot(env_steps, series)
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Env step")
+        _save_fig(fig, out_dir, "fig_markov_training_diagnostics", save_pdf=save_pdf)
+
+    debug_phase1 = bundle.get("debug_phase1_metrics")
+    if debug_phase1:
+        y_state = np.asarray(debug_phase1.get("y_state"), float)
+        y_lifted = np.asarray(debug_phase1.get("y_lifted"), float)
+        if y_state.size and y_lifted.size:
+            t_phase = np.arange(1, y_state.shape[0] + 1)
+            fig, axs = plt.subplots(y_state.shape[1], 1, figsize=(7.8, 3.0 + 2.0 * max(1, y_state.shape[1] - 1)), sharex=True)
+            if y_state.shape[1] == 1:
+                axs = [axs]
+            for idx, ax in enumerate(axs):
+                ax.plot(t_phase, y_state[:, idx], "o-", label="state-space")
+                ax.plot(t_phase, y_lifted[:, idx], "s--", label="lifted")
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel("Prediction step")
+            axs[0].legend(loc="best")
+            _save_fig(fig, out_dir, "phase1_lifted_equivalence", save_pdf=save_pdf)
+
+    debug_shadow = bundle.get("debug_shadow")
+    if debug_shadow:
+        fig, ax = plt.subplots(figsize=(7.8, 4.2))
+        ax.plot(np.arange(nFE) * delta_t, np.asarray(debug_shadow["best_s_pred"], float), label="best candidate")
+        ax.plot(np.arange(nFE) * delta_t, np.asarray(debug_shadow["ls_s_pred"], float), label="adaptive LS", alpha=0.85)
+        ax.set_xlabel(time_label)
+        ax.set_ylabel("Prediction score")
+        ax.legend(loc="best")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "phase2_prediction_score_trace", save_pdf=save_pdf)
+
+        valid_idx = np.asarray(debug_shadow["best_candidate_index"], int)
+        valid_idx = valid_idx[valid_idx >= 0]
+        if valid_idx.size > 0:
+            fig, ax = plt.subplots(figsize=(7.2, 4.2))
+            bins = np.arange(valid_idx.max() + 2) - 0.5
+            ax.hist(valid_idx, bins=bins, edgecolor="black")
+            ax.set_xlabel("Candidate index")
+            ax.set_ylabel("Count")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+            _save_fig(fig, out_dir, "phase2_candidate_selection_histogram", save_pdf=save_pdf)
+
+        ls_z = np.asarray(debug_shadow["ls_z"], float)
+        if ls_z.ndim == 2 and ls_z.shape[1] > 0:
+            fig, axs = plt.subplots(ls_z.shape[1], 1, figsize=(8.0, 2.2 + 1.6 * max(1, ls_z.shape[1])), sharex=True)
+            if ls_z.shape[1] == 1:
+                axs = [axs]
+            for idx, ax in enumerate(axs):
+                label = basis_labels[idx] if idx < len(basis_labels) else f"z{idx + 1}"
+                ax.plot(np.arange(nFE) * delta_t, ls_z[:, idx])
+                ax.set_ylabel(label)
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel(time_label)
+            _save_fig(fig, out_dir, "phase3_z_trace", save_pdf=save_pdf)
+
+    debug_nominal = bundle.get("debug_nominal")
+    if debug_nominal:
+        y_nominal = np.asarray(debug_nominal.get("y"), float)
+        u_nominal = np.asarray(debug_nominal.get("u"), float)
+        rewards_nominal = np.asarray(debug_nominal.get("avg_rewards"), float)
+        if y_nominal.ndim == 2:
+            fig, axs = plt.subplots(n_outputs, 1, figsize=(8.5, 5.8), sharex=True)
+            if n_outputs == 1:
+                axs = [axs]
+            for idx, ax in enumerate(axs):
+                ax.plot(t_line, y_nominal[start_step : start_step + W + 1, idx], label="Nominal MPC")
+                ax.plot(t_line, y_line[:, idx], label="Markov RL", alpha=0.85)
+                ax.step(t_step, y_sp_phys[:, idx], where="post", linestyle="--", label="Setpoint")
+                ax.set_ylabel(output_labels[idx])
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel(time_label)
+            axs[0].legend(loc="best")
+            _save_fig(fig, out_dir, "phase4_outputs_compare", save_pdf=save_pdf)
+
+        if u_nominal.ndim == 2:
+            fig, axs = plt.subplots(n_inputs, 1, figsize=(8.5, 5.4), sharex=True)
+            if n_inputs == 1:
+                axs = [axs]
+            for idx, ax in enumerate(axs):
+                ax.step(t_step, u_nominal[start_step : start_step + W, idx], where="post", label="Nominal MPC")
+                ax.step(t_step, u_line[:, idx], where="post", label="Markov RL", alpha=0.85)
+                ax.set_ylabel(input_labels[idx])
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel(time_label)
+            axs[0].legend(loc="best")
+            _save_fig(fig, out_dir, "phase4_inputs_compare", save_pdf=save_pdf)
+
+        if rewards_nominal.size > 0 and bundle["avg_rewards"].size > 0:
+            fig, ax = plt.subplots(figsize=(7.5, 4.2))
+            ax.plot(rewards_nominal, "o-", label="Nominal MPC")
+            ax.plot(bundle["avg_rewards"], "s-", label="Markov RL")
+            ax.set_ylabel("Average reward")
+            ax.set_xlabel("Episode #")
+            ax.legend(loc="best")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+            _save_fig(fig, out_dir, "phase4_reward_compare", save_pdf=save_pdf)
+
+    stored_bundle = build_storage_bundle(bundle, start_episode)
+    stored_bundle.update(
+        {
+            "agent_kind": bundle.get("agent_kind"),
+            "run_mode": bundle.get("run_mode"),
+            "test_train_dict": bundle.get("test_train_dict"),
+            "disturbance_profile": bundle.get("disturbance_profile"),
+            "summary_metrics": bundle.get("summary_metrics"),
+            "basis_family": bundle.get("basis_family"),
+            "basis_labels": bundle.get("basis_labels"),
+            "z_log": bundle.get("z_log"),
+            "z_proposed_log": bundle.get("z_proposed_log"),
+            "z_executed_log": bundle.get("z_executed_log"),
+            "s_pred_log": bundle.get("s_pred_log"),
+            "gain_drift_log": bundle.get("gain_drift_log"),
+            "accepted_log": bundle.get("accepted_log"),
+            "fallback_log": bundle.get("fallback_log"),
+            "prediction_error_nominal_log": bundle.get("prediction_error_nominal_log"),
+            "prediction_error_markov_log": bundle.get("prediction_error_markov_log"),
+            "rl_state_dim": bundle.get("rl_state_dim"),
+            "rl_action_dim": bundle.get("rl_action_dim"),
+            "rl_requested_raw_action_log": bundle.get("rl_requested_raw_action_log"),
+            "rl_executed_raw_action_log": bundle.get("rl_executed_raw_action_log"),
+            "rl_requested_z_log": bundle.get("rl_requested_z_log"),
+            "rl_ls_z_log": bundle.get("rl_ls_z_log"),
+            "rl_action_source_log": bundle.get("rl_action_source_log"),
+            "rl_action_source_names": bundle.get("rl_action_source_names"),
+            "rl_decision_taken_log": bundle.get("rl_decision_taken_log"),
+            "rl_policy_source_log": bundle.get("rl_policy_source_log"),
+            "rl_replay_pushed_log": bundle.get("rl_replay_pushed_log"),
+            "rl_train_called_log": bundle.get("rl_train_called_log"),
+            "rl_train_updated_log": bundle.get("rl_train_updated_log"),
+            "rl_actor_loss_log": bundle.get("rl_actor_loss_log"),
+            "rl_critic_loss_log": bundle.get("rl_critic_loss_log"),
+            "rl_bc_loss_log": bundle.get("rl_bc_loss_log"),
+            "rl_test_step_log": bundle.get("rl_test_step_log"),
+            "rl_agent_checkpoint_path": bundle.get("rl_agent_checkpoint_path"),
+            "debug_phase1_metrics": bundle.get("debug_phase1_metrics"),
+            "debug_shadow": bundle.get("debug_shadow"),
+            "debug_nominal": bundle.get("debug_nominal"),
+            "mpc_path_or_dir": bundle.get("mpc_path_or_dir"),
+        }
+    )
+    save_bundle_pickle(out_dir, stored_bundle)
+    return out_dir
+
+
 def plot_structured_matrix_results_core(result_bundle, plot_cfg):
     out_dir = plot_matrix_multiplier_results_core(result_bundle=result_bundle, plot_cfg=plot_cfg)
     bundle = normalize_result_bundle(result_bundle)

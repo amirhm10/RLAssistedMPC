@@ -1,0 +1,2 @@
+comparison,shared_reward_delta_mean,shared_reward_delta_last20,output_max_abs_diff,input_max_abs_diff
+previous_nominal_vs_canonical_baseline,0.3628816590099029,0.6085449358162096,0.9674628822286309,265.1800410415734

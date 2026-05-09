@@ -745,7 +745,7 @@ def build_runtime_context(markov_cfg, runtime_ctx):
 def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_markov, print_progress=False):
     predict_h = int(config["predict_h"])
     control_horizon = int(config["cont_h"])
-    nominal_solver_mode = str(config.get("nominal_solver_mode", "state_space_shared")).strip().lower()
+    nominal_solver_mode = str(config.get("nominal_solver_mode", "lifted_g0_prototype")).strip().lower()
     A = np.asarray(ctx["A_aug"], float)
     B = np.asarray(ctx["B_aug"], float)
     C = np.asarray(ctx["C_aug"], float)
@@ -1188,7 +1188,7 @@ def summarize_history(config, ctx, history):
     return {
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
         "run_mode": str(config["run_mode"]).lower(),
-        "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
+        "nominal_solver_mode": str(config.get("nominal_solver_mode", "lifted_g0_prototype")).lower(),
         "accepted_fraction": accepted_fraction,
         "td3_accepted_fraction": td3_accepted_fraction,
         "ls_fallback_fraction": ls_fallback_fraction,
@@ -1247,7 +1247,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
     return {
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
         "run_mode": ctx["run_mode"],
-        "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
+        "nominal_solver_mode": str(config.get("nominal_solver_mode", "lifted_g0_prototype")).lower(),
         "system_metadata": ctx["system_metadata"],
         "y_sp": ctx["y_sp"],
         "steady_states": ctx["steady_states"],

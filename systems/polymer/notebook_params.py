@@ -654,7 +654,7 @@ POLYMER_MARKOV_DEFAULTS = {
         # Nominal online solve used as the reference action/cost each step:
         # - "state_space_shared": current unified path via MpcSolverGeneral
         # - "lifted_g0_prototype": pre-migration Markov prototype path via G0
-        "nominal_solver_mode": "state_space_shared",
+        "nominal_solver_mode": "lifted_g0_prototype",
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
         "nominal_ha": 1.05e6,

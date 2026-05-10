@@ -175,6 +175,158 @@ This does not explain the entire May 10 collapse by itself, because both outputs
 
 ![Cross-system reward geometry](figures/distillation_matrix_structured_followup_20260510/fig_cross_system_reward_geometry.png)
 
+## How To Smooth The Reward Geometry
+
+The current relative-band reward separates into two different smoothing problems:
+
+1. cross-output imbalance
+2. cliff-like inside-band bonus decay
+
+For the current helper, the distillation output-balance ratios are
+
+$$
+r_{\mathrm{edge}} = \frac{Q_1 b_1}{Q_2 b_2},
+\qquad
+r_{\mathrm{bonus}} = \frac{Q_1 b_1^2}{Q_2 b_2^2},
+$$
+
+where $b_i$ is the scaled relative band for output $i$.
+
+That means:
+
+- lowering `Q1` is the cleanest no-helper-change way to reduce both ratios at once
+- lowering `beta` reduces the absolute bonus magnitude but does **not** change the output-1/output-2 bonus ratio
+- changing `bonus_kind` smooths the inside-band reward shape but does **not** change the cross-output ratio
+- changing `tau_frac` or `gate` smooths the transition between outside-band and inside-band regimes but does **not** directly fix composition dominance
+- changing the physical bands can also change the ratio, but it simultaneously changes what the notebook counts as acceptable physical error, so it is a riskier first lever
+
+To make that concrete, I generated a reward-smoothing follow-up asset bundle:
+
+`report/figures/distillation_reward_geometry_smoothing_20260510/`
+
+![Reward smoothing options](figures/distillation_reward_geometry_smoothing_20260510/fig_reward_smoothing_options.png)
+
+### Candidate reweighting table
+
+The SP2 setpoint is the harshest current case, so it is the right place to compare candidate geometry changes.
+
+| Candidate | SP2 edge ratio | SP2 bonus ratio | Scalar May 8 post-live reward delta | Structured May 8 post-live reward delta |
+| --- | ---: | ---: | ---: | ---: |
+| Current | 16.47 | 11.00 | -126.41 | -86.01 |
+| `Q1 = 15000` | 6.68 | 4.46 | -91.62 | -62.59 |
+| `Q1 = 10000` | 4.45 | 2.97 | -83.72 | -57.26 |
+| `Q1 = 5300` | 2.36 | 1.58 | -76.29 | -52.26 |
+| `Q1 = 10000`, `beta = 3`, `bonus_kind = "power"` | 4.45 | 2.97 | -83.28 | -56.92 |
+
+The reward-delta columns above are **fixed-trajectory rescoring** on the May 8 observer-refresh runs, not retraining results. They answer a narrow question: if the saved May 8 trajectories were judged under smoother candidates, how much of the current negative reward gap is geometry-driven?
+
+The answer is meaningful but limited:
+
+- smoother reward geometry narrows the May 8 scalar and structured reward deficits substantially
+- even aggressive smoothing does **not** make those saved trajectories beat disturbance MPC
+- so reward geometry is part of the problem, but not the whole problem
+
+### What each smoothing lever would do
+
+#### 1. Lower `Q1` first
+
+This is the most direct way to reduce the output-1 bias without redefining the physical temperature band.
+
+- `Q1 = 15000` is the conservative first ablation:
+  it cuts the SP2 edge ratio from `16.47` to `6.68` and the SP2 bonus ratio from `11.00` to `4.46`
+- `Q1 = 10000` is the best middle-ground candidate from the current table:
+  it cuts the SP2 edge ratio to `4.45` and the SP2 bonus ratio to `2.97`, while also bringing the SP1 edge ratio below the polymer SP1 value
+- `Q1 = 5300` is a useful lower anchor because it is near the current SP1 edge-equalized target:
+  it nearly equalizes SP1 edge pressure and pulls SP2 much closer to the polymer range, but it is aggressive enough that composition convergence could become noticeably slower
+
+Expected run effect after retraining:
+
+- less composition-only chasing near the band boundary
+- more freedom for the policy to protect output 2
+- lower saturation pressure and lower move amplification
+- some increase in composition settling time or residual composition error if `Q1` is pushed too low
+
+#### 2. Lower `beta` after the weight rebalance
+
+`beta` does not change the ratio, but it does reduce the absolute size of the inside-band bonus. That matters because the current bonus is large enough to reward composition-band entry aggressively even when temperature quality is still poor.
+
+At SP2, with `Q1 = 10000`:
+
+- current output-1 bonus prefactor is `17.35`
+- changing to `beta = 3` drops it to `7.44`
+
+Expected run effect after retraining:
+
+- less incentive to spike authority just to cross the composition band
+- smaller reward swings between "just outside" and "just inside" behavior
+- lower reward variance across episodes
+- less chance that the policy learns a narrow band-hitting strategy that pays off in reward but not in temperature regulation
+
+#### 3. Replace the cliff-like exponential bonus
+
+The current `bonus_kind = "exp"` with `bonus_k = 12` is extremely steep. At the normalized band positions:
+
+- `z = 0.25`: current exponential bonus shape is only `0.0498`
+- `z = 0.50`: current exponential bonus shape is only `0.0025`
+- `z = 0.75`: current exponential bonus shape is only `0.0001`
+
+By comparison:
+
+- `bonus_kind = "quadratic"` gives `0.5625`, `0.25`, and `0.0625`
+- `bonus_kind = "power"` with `p = 0.6` gives `0.5647`, `0.3402`, and `0.1585`
+
+So the current exponential bonus is not merely "strong." It is almost an on/off reward that collapses quickly once the error is no longer very close to zero.
+
+Expected run effect after retraining:
+
+- smoother credit assignment near the band edge
+- less abrupt switching between exploration and authority saturation
+- better chance that the agent values gradual temperature improvement instead of only sharp composition-band entry
+
+This is why the `Q1 = 10000`, `beta = 3`, `bonus_kind = "power"` candidate is attractive as a second-stage smoothing option after the first weight-only ablation.
+
+#### 4. Use `tau_frac` or `gate` only as secondary smoothers
+
+If we want an even smoother transition between outside-band and inside-band penalties, the clean secondary levers are:
+
+- increasing `tau_frac`, for example `0.7 -> 1.0`
+- changing `gate` from `"geom"` to `"mean"`
+
+These do not solve the composition/temperature balance by themselves. What they do is soften the regime switch in `w_in`, making the reward less brittle when one output is close to its band and the other is not.
+
+Expected run effect after retraining:
+
+- smoother episode-to-episode reward traces
+- less reward discontinuity around band crossing
+- probably modest improvement in optimization stability
+- little direct change in output balance unless combined with a smaller `Q1`
+
+#### 5. Do not start with band edits
+
+Band edits can reduce ratios too, but they are more ambiguous scientifically:
+
+- increasing the temperature band can make output 2 appear more acceptable without actual physical improvement
+- shrinking the composition band reduces output-1 slope and bonus, but it also makes composition "inside-band" success harder to earn
+
+So band edits are better treated as a second-order design decision after reweighting and bonus smoothing are understood.
+
+### Practical recommendation
+
+The strongest report extension from this analysis is a staged reward-smoothing path:
+
+1. First rerun with `Q1 = 10000`, keeping the current band definitions and the rest of the reward helper unchanged.
+2. If that helps temperature protection but the reward is still too brittle, lower `beta` from `7` to `3`.
+3. If the reward remains cliff-like near the band edge, switch `bonus_kind` from `"exp"` to `"power"` or `"quadratic"`.
+4. Only after those tests, consider `tau_frac` or `gate` smoothing.
+5. Leave band edits for last, because they change the physical meaning of "good enough" tracking.
+
+The most important scientific caution is that reward smoothing should be judged by both reward and physical metrics. The May 8 rescoring shows that smoother geometry can explain part of the current reward gap, but not all of it. So the right success criteria remain:
+
+- better output-2 MAE
+- lower input movement
+- lower saturation and near-bound fractions
+- and only then a better reward gap
+
 ## What This Changes About The Markov-Correction Direction
 
 The May 10 evidence changes one part of the earlier interpretation and leaves another part intact.
@@ -225,9 +377,12 @@ The acceptance bar should remain practical and transparent:
 - `change-reports/2026-05-04_distillation_matrix_structured_step4g_review.md`
 - `change-reports/2026-05-08_disable_distillation_matrix_observer_recalc.md`
 - `report/scripts/generate_distillation_matrix_structured_followup_assets.py`
+- `report/scripts/generate_distillation_reward_smoothing_assets.py`
 - `report/figures/distillation_matrix_structured_followup_20260510/distillation_phase_summary.csv`
 - `report/figures/distillation_matrix_structured_followup_20260510/cross_system_latest_summary.csv`
 - `report/figures/distillation_matrix_structured_followup_20260510/exploratory_stats_summary.csv`
+- `report/figures/distillation_reward_geometry_smoothing_20260510/reward_smoothing_candidates.csv`
+- `report/figures/distillation_reward_geometry_smoothing_20260510/summary.json`
 - `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260508_015834/input_data.pkl`
 - `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260510_001108/input_data.pkl`
 - `Distillation/Results/distillation_structured_matrix_td3_disturb_fluctuation_mismatch_unified/20260508_005027/input_data.pkl`
@@ -237,4 +392,6 @@ The acceptance bar should remain practical and transparent:
 
 - `report/distillation_matrix_structured_step4g_latest_2026_05_04.md`
 - `report/scripts/generate_distillation_matrix_structured_followup_assets.py`
+- `report/scripts/generate_distillation_reward_smoothing_assets.py`
 - `report/figures/distillation_matrix_structured_followup_20260510/`
+- `report/figures/distillation_reward_geometry_smoothing_20260510/`

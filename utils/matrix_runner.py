@@ -126,6 +126,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
     use_shifted_mpc_warm_start = bool(matrix_cfg.get("use_shifted_mpc_warm_start", False))
     recalculate_observer_requested = bool(matrix_cfg.get("recalculate_observer_on_matrix_change", False))
+    force_observer_refresh_each_step = bool(matrix_cfg.get("recalculate_observer_each_step", False))
     mismatch_cfg = resolve_mismatch_settings(
         state_mode=state_mode,
         mismatch_cfg=matrix_cfg,
@@ -671,6 +672,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
 
         observer_refresh = maybe_refresh_observer_model(
             enabled=recalculate_observer_requested,
+            force_refresh=force_observer_refresh_each_step,
             A_candidate=A_executed,
             B_candidate=B_executed,
             A_current=A_est,
@@ -916,6 +918,7 @@ def run_matrix_multiplier_supervisor(matrix_cfg, runtime_ctx):
         "warm_start_step": int(warm_start_step),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "recalculate_observer_on_matrix_change": recalculate_observer_requested,
+        "recalculate_observer_each_step": force_observer_refresh_each_step,
         "recalculate_observer_on_matrix_change_ignored": False,
         "nonfinite_matrix_action_count": int(nonfinite_matrix_action_count),
         "n_step": int(getattr(agent, "n_step", 1)),

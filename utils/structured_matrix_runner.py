@@ -180,6 +180,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
 
     use_shifted_mpc_warm_start = bool(structured_cfg.get("use_shifted_mpc_warm_start", False))
     recalculate_observer_requested = bool(structured_cfg.get("recalculate_observer_on_matrix_change", False))
+    force_observer_refresh_each_step = bool(structured_cfg.get("recalculate_observer_each_step", False))
     log_spectral_radius = bool(structured_cfg.get("log_spectral_radius", True))
     mismatch_cfg = resolve_mismatch_settings(
         state_mode=state_mode,
@@ -864,6 +865,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
 
         observer_refresh = maybe_refresh_observer_model(
             enabled=recalculate_observer_requested,
+            force_refresh=force_observer_refresh_each_step,
             A_candidate=np.asarray(prediction_payload["A_aug"], float),
             B_candidate=np.asarray(prediction_payload["B_aug"], float),
             A_current=A_est,
@@ -1042,6 +1044,7 @@ def run_structured_matrix_supervisor(structured_cfg, runtime_ctx):
         "warm_start_step": int(warm_start_step),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "recalculate_observer_on_matrix_change": recalculate_observer_requested,
+        "recalculate_observer_each_step": force_observer_refresh_each_step,
         "recalculate_observer_on_matrix_change_ignored": False,
         "log_spectral_radius": log_spectral_radius,
         "prediction_fallback_on_solve_failure": prediction_fallback_on_solve_failure,

@@ -34,6 +34,7 @@ def compute_observer_gain(A, C, desired_poles):
 def maybe_refresh_observer_model(
     *,
     enabled,
+    force_refresh=False,
     A_candidate,
     B_candidate,
     A_current,
@@ -45,12 +46,14 @@ def maybe_refresh_observer_model(
     atol=1e-12,
 ):
     """
-    Refresh the observer model/gain only when the executed model changes.
+    Refresh the observer model/gain when requested.
 
-    When refresh is disabled, or when the candidate model matches the current
-    observer model, the current observer state-space pair and gain are kept.
-    If pole placement fails for the new executed model, the previous observer
-    model is retained so the rollout can continue safely.
+    By default this refreshes only when the executed model changes. When
+    ``force_refresh`` is True, the observer gain is recomputed even if the
+    candidate model matches the current observer model. If refresh is disabled,
+    or if no refresh is requested, the current observer state-space pair and
+    gain are kept. If pole placement fails for the requested model, the
+    previous observer model is retained so the rollout can continue safely.
     """
 
     A_candidate = np.asarray(A_candidate, float)
@@ -60,6 +63,7 @@ def maybe_refresh_observer_model(
     L_current = np.asarray(L_current, float)
     C = np.asarray(C, float)
     poles = np.asarray(poles, float)
+    force_refresh = bool(force_refresh)
 
     changed = not (
         A_candidate.shape == A_current.shape
@@ -67,12 +71,13 @@ def maybe_refresh_observer_model(
         and np.allclose(A_candidate, A_current, rtol=rtol, atol=atol)
         and np.allclose(B_candidate, B_current, rtol=rtol, atol=atol)
     )
-    if (not enabled) or (not changed):
+    refresh_requested = bool(force_refresh or changed)
+    if (not enabled) or (not refresh_requested):
         return {
             "A": A_current,
             "B": B_current,
             "L": L_current,
-            "event": bool(enabled and changed),
+            "event": bool(enabled and refresh_requested),
             "success": False,
             "reason": "disabled" if not enabled else "unchanged",
         }
@@ -116,5 +121,5 @@ def maybe_refresh_observer_model(
         "L": L_candidate,
         "event": True,
         "success": True,
-        "reason": "updated",
+        "reason": "forced_refresh" if force_refresh and not changed else "updated",
     }

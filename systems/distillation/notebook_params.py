@@ -461,8 +461,9 @@ DISTILLATION_MATRIX_DEFAULTS = {
     "controller": {
         "predict_h": 6,
         "cont_h": 3,
-        "decision_interval": 20,
-        "recalculate_observer_on_matrix_change": False,  # Keep the nominal observer fixed during matrix runs unless a notebook explicitly opts in.
+        "decision_interval": 1,
+        "recalculate_observer_on_matrix_change": True,  # Recompute the observer on live matrix updates for the default every-step distillation matrix reruns.
+        "recalculate_observer_each_step": True,  # Force an observer redesign each MPC step, even if the executed assisted model repeats.
         "Q1_penalty": 1.0,
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
@@ -570,8 +571,9 @@ DISTILLATION_STRUCTURED_MATRIX_DEFAULTS = {
     "controller": {
         "predict_h": 6,
         "cont_h": 3,
-        "decision_interval": 20,
-        "recalculate_observer_on_matrix_change": False,  # Keep the nominal observer fixed during structured-matrix runs unless a notebook explicitly opts in.
+        "decision_interval": 1,
+        "recalculate_observer_on_matrix_change": True,  # Recompute the observer on live structured-matrix updates for the default every-step distillation reruns.
+        "recalculate_observer_each_step": True,  # Force an observer redesign each MPC step, even if the executed assisted model repeats.
         "Q1_penalty": 1.0,
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,

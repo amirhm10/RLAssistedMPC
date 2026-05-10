@@ -1,6 +1,7 @@
 import copy
 import math
 import pickle
+import random
 from dataclasses import dataclass
 from typing import List, Literal, Optional
 
@@ -26,6 +27,18 @@ from datetime import datetime
 def get_device() -> torch.device:
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     return device
+
+
+def set_global_seeds(seed: int) -> None:
+    seed = int(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    if hasattr(torch.backends, "cudnn"):
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
 
 def hard_update(target: nn.Module, online: nn.Module) -> None:
@@ -147,11 +160,15 @@ class TD3Agent(nn.Module):
             # device/opt
             device: Optional[torch.device] = None,
             use_adamw: bool = True,
+            seed: Optional[int] = None,
             # actor freeze
             actor_freeze: int = 0,
     ):
         super(TD3Agent, self).__init__()
         self.device = device if device is not None else get_device()
+        self.seed = None if seed is None else int(seed)
+        if self.seed is not None:
+            set_global_seeds(self.seed)
 
         # --- hparams ---
         self.gamma = gamma
@@ -643,6 +660,7 @@ class TD3Agent(nn.Module):
                 "replay_beta_start": self.replay_beta_start,
                 "replay_beta_end": self.replay_beta_end,
                 "replay_beta_steps": self.replay_beta_steps,
+                "seed": self.seed,
                 "steps": self.steps,
                 "train_steps": self.train_steps,
                 "total_it": self.total_it,

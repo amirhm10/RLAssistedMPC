@@ -563,6 +563,7 @@ POLYMER_MATRIX_DEFAULTS = {
         "ha_change": 0.85,
     },
     "td3_agent": {
+        "seed": 7,
         "actor_hidden": [256, 256],
         "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
@@ -654,7 +655,7 @@ POLYMER_MARKOV_DEFAULTS = {
         # Nominal online solve used as the reference action/cost each step:
         # - "state_space_shared": current unified path via MpcSolverGeneral
         # - "lifted_g0_prototype": pre-migration Markov prototype path via G0
-        "nominal_solver_mode": "lifted_g0_prototype",
+        "nominal_solver_mode": "state_space_shared",
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
         "nominal_ha": 1.05e6,
@@ -678,7 +679,10 @@ POLYMER_MARKOV_DEFAULTS = {
         "debug_validate_lifted": False,
         "debug_run_shadow_ls": False,
     },
-    "td3_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
+    "td3_agent": {
+        **deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
+        "seed": 7,
+    },
     "reward": {
         **_copy_reward_defaults(),
         # Temporary A/B test switch: use the prototype Markov reward in the

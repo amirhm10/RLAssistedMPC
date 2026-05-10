@@ -837,3 +837,210 @@ So if the goal is to reproduce the old prototype behavior more faithfully, the f
 - `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/action_mix_summary.csv`
 - `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/solver_mode_switch_window_summary.csv`
 - `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/trajectory_distance_summary.csv`
+
+## Dual-notebook follow-up after restoring the legacy notebook
+
+Date: 2026-05-10
+
+Newest unified-notebook run analyzed:
+`Polymer/Results/td3_markov_disturb/20260510_134814/input_data.pkl`
+
+Newest restored-legacy-notebook run analyzed:
+`Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/input_data.pkl`
+
+Original legacy reference run:
+`Polymer/Results/polymer_markov_corrected_mpc/20260508_123902/input_data.pkl`
+
+New analysis artifacts:
+`report/figures/polymer_markov_dual_notebook_followup_20260510/`
+
+Additional files inspected for this follow-up:
+
+- `polymer_markov_corrected_mpc_legacy.ipynb`
+- `report/scripts/generate_polymer_markov_correction_assets_legacy.py`
+- `utils/markov_runner.py`
+- `TD3Agent/agent.py`
+- `systems/polymer/notebook_params.py`
+- `Polymer/Data/mpc_results_dist.pickle`
+
+### Objective
+
+After fixing the disturbance timing and restoring the old notebook into a separate legacy path, the remaining question was:
+
+- does the restored legacy notebook actually behave like the old prototype?
+- or is the gap mainly between the unified runtime and the legacy control loop?
+
+The new comparison says the second explanation is the right one.
+
+### Main findings
+
+1. The restored legacy notebook is already close to the original prototype.
+2. The unified notebook is still the path that behaves differently.
+3. The main remaining differences are not the notebook restoration itself, but the unified runtime choices: nominal-reference solve, `z` authority, fallback frequency, and the comparator used in the report.
+
+### Quantitative summary
+
+| Comparison | Prototype reward delta mean | Prototype reward delta last 20 | Shared reward delta mean | Output-1 MAE delta mean | Output-2 MAE delta mean |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Unified latest vs canonical MPC | `45.03` | `51.61` | `-0.1059` | `0.00398` | `0.00788` |
+| Legacy latest vs own nominal | `-5.29` | `9.28` | `0.0143` | `-0.00118` | `-0.00077` |
+| Original legacy vs own nominal | `-7.04` | `25.71` | `0.00287` | `-0.00017` | `0.00039` |
+
+Interpretation:
+
+- The restored legacy notebook still shows the same basic pattern as the old prototype: weak or negative full-run average on the prototype reward, but a positive late-episode lift.
+- The unified notebook tells a very different reward story against the canonical baseline, but that does not mean it reproduced the old behavior.
+- The unified run can score much better on the prototype reward while still tracking slightly worse on both outputs. So the prototype reward is not a reliable proxy for visible trajectory improvement.
+
+### The restored legacy notebook is close to the old prototype
+
+The direct run-to-run distance between the restored legacy run and the original old prototype is small in the outputs:
+
+| Run-to-run distance | Output-1 RMSE | Output-2 RMSE | Max output abs diff |
+| --- | ---: | ---: | ---: |
+| Legacy latest vs original legacy | `0.00197` | `0.00599` | `0.10735` |
+
+The action-source and `z` statistics are also very similar:
+
+| Run | TD3 fraction | LS fraction | Nominal fraction | `z` saturation | Mean `||z||` | Mean gain drift |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Legacy latest | `0.3938` | `0.5466` | `0.0106` | `0.9491` | `0.0851` | `0.0353` |
+| Original legacy | `0.3169` | `0.6229` | `0.0112` | `0.9519` | `0.0849` | `0.0342` |
+
+So the restored legacy notebook is not the main problem anymore. It is already reproducing the old control law fairly closely.
+
+The remaining difference between the restored legacy run and the original old run is most likely ordinary RL realization noise:
+
+- the old legacy script creates `TD3Agent(...)` without forwarding a seed
+- the current `TD3Agent` now supports seeding, but that seed path is not used by the restored legacy script
+- so exact replay of the old prototype is still impossible even though the top-level script is the same
+
+This explains why the restored legacy notebook is close to the old behavior, but not numerically identical.
+
+### The unified notebook is still the different controller
+
+The direct distance between the newest unified run and the newest restored-legacy run is much larger:
+
+| Run-to-run distance | Output-1 RMSE | Output-2 RMSE | Max output abs diff |
+| --- | ---: | ---: | ---: |
+| Unified latest vs legacy latest | `0.04578` | `0.18324` | `0.98232` |
+
+And the input trajectories are radically different:
+
+| Run-to-run input distance | Input-1 RMSE | Input-2 RMSE | Max input abs diff |
+| --- | ---: | ---: | ---: |
+| Unified latest vs legacy latest | `158.68` | `9.31` | `262.50` |
+
+So even after fixing disturbance timing, the unified notebook is still not executing the same Markov policy as the legacy notebook.
+
+### Why the unified notebook is still different
+
+#### 1. The nominal online solve is still different
+
+In the unified runner, the nominal reference each step is built through:
+
+- `solve_nominal_reference_step(...)`
+- default `nominal_solver_mode = "state_space_shared"`
+
+in `utils/markov_runner.py`.
+
+In the legacy script, the nominal reference each step is still:
+
+- `solve_lifted_mpc(..., G0, ...)`
+
+inside `report/scripts/generate_polymer_markov_correction_assets_legacy.py`.
+
+That means the candidate filter is still comparing against a different nominal action and a different nominal reference cost.
+
+#### 2. The unified run had twice the `z` authority
+
+The restored legacy path kept the old setting:
+
+$$ z_{\max}^{\mathrm{legacy}} = 0.05. $$
+
+The unified notebook was run with:
+
+$$ z_{\max}^{\mathrm{unified}} = 0.10. $$
+
+This doubled the correction box and increased the executed correction norm:
+
+- unified mean `||z|| = 0.1472`
+- legacy mean `||z|| = 0.0851`
+
+but it did not make the controller more prototype-like. Instead, it raised the gain-drift level:
+
+- unified mean gain drift `0.0637`
+- legacy mean gain drift `0.0353`
+
+and increased the number of steps where the controller fell all the way back to nominal MPC.
+
+#### 3. The unified run falls back to nominal much more often
+
+| Run | TD3 fraction | LS fraction | Nominal fraction |
+| --- | ---: | ---: | ---: |
+| Unified latest | `0.3154` | `0.5525` | `0.0879` |
+| Legacy latest | `0.3938` | `0.5466` | `0.0106` |
+
+This is one of the clearest explanations for the visual similarity to nominal MPC.
+
+Even though the unified run has a larger `z` box, it rejects enough proposals that it executes pure nominal MPC about eight times more often than the legacy run.
+
+#### 4. The comparator is different
+
+The unified report path compares against the canonical saved baseline pickle.
+
+The legacy notebook stores and compares against its own internal nominal rerun.
+
+That difference does not change the online control law, but it changes the story the plots tell. The baseline-choice effect is large enough to flip the apparent conclusion:
+
+- legacy latest vs own nominal: prototype reward delta mean `-5.29`
+- legacy latest vs canonical baseline: prototype reward delta mean `-179.16`
+- unified latest vs canonical baseline: prototype reward delta mean `45.03`
+
+So "better than MPC" is still highly comparator-dependent in this method family.
+
+### Figures
+
+The windowed prototype-reward comparison shows that the restored legacy notebook stays close to the older prototype pattern, while the unified notebook follows a different curve:
+
+![Prototype reward window compare](figures/polymer_markov_dual_notebook_followup_20260510/prototype_reward_window_compare.png)
+
+The same legacy run looks very different depending on whether it is compared to its own nominal rerun or to the canonical saved baseline:
+
+![Baseline choice effect](figures/polymer_markov_dual_notebook_followup_20260510/baseline_choice_effect.png)
+
+The final-episode output overlays show that the restored legacy notebook remains close to the old legacy path, while the unified notebook follows a different trajectory family:
+
+![Tail output overlay](figures/polymer_markov_dual_notebook_followup_20260510/tail_output_overlay.png)
+
+The action-source and `z`-usage summary makes the mechanism visible: the unified notebook has larger corrections, larger gain drift, and far more nominal fallback:
+
+![Action source and z summary](figures/polymer_markov_dual_notebook_followup_20260510/action_source_and_z_summary.png)
+
+The run-to-run distance summary confirms that the restored legacy notebook is much closer to the original prototype than the unified notebook is:
+
+![Behavioral distance summary](figures/polymer_markov_dual_notebook_followup_20260510/behavioral_distance_summary.png)
+
+### Bottom line
+
+The restored legacy notebook is already close to the old prototype. So the main discrepancy is no longer "the old notebook was not restored correctly."
+
+The main discrepancy is that the unified notebook still uses a different Markov execution stack:
+
+1. different nominal online solve
+2. different `z` authority
+3. much larger nominal fallback rate
+4. different external comparator in the report
+
+That is why the newest unified run can still look much more like nominal MPC even after the disturbance timing fix, while the restored legacy notebook remains close to the historical prototype behavior.
+
+### Artifacts generated for this follow-up
+
+- `report/figures/polymer_markov_dual_notebook_followup_20260510/prototype_reward_window_compare.png`
+- `report/figures/polymer_markov_dual_notebook_followup_20260510/baseline_choice_effect.png`
+- `report/figures/polymer_markov_dual_notebook_followup_20260510/tail_output_overlay.png`
+- `report/figures/polymer_markov_dual_notebook_followup_20260510/action_source_and_z_summary.png`
+- `report/figures/polymer_markov_dual_notebook_followup_20260510/behavioral_distance_summary.png`
+- `report/figures/polymer_markov_dual_notebook_followup_20260510/comparison_summary.csv`
+- `report/figures/polymer_markov_dual_notebook_followup_20260510/source_summary.csv`
+- `report/figures/polymer_markov_dual_notebook_followup_20260510/behavioral_distance_summary.csv`

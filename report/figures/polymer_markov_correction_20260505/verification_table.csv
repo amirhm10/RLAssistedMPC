@@ -1,8 +1,8 @@
 Check,Value,Pass
 Lifted equivalence max error,1.734723475976807e-18,True
-Any positive shadow S_pred fraction,0.7,True
-Adaptive LS accepted fraction,0.7,True
-Live corrected accepted fraction,0.7,True
-Reward delta mean,0.08320262290208046,True
-Output MAE delta,0.00015205034328885647,True
-Input movement delta,0.001539019552175308,True
+Any positive shadow S_pred fraction,0.992875,True
+Adaptive LS accepted fraction,0.990425,True
+Live corrected accepted fraction,0.98941875,True
+Reward delta mean,-4.004789011162009,False
+Output MAE delta,-0.0012357024085964674,True
+Input movement delta,-0.00041753024349912987,True

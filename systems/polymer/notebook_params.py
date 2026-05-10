@@ -655,7 +655,7 @@ POLYMER_MARKOV_DEFAULTS = {
         # Nominal online solve used as the reference action/cost each step:
         # - "state_space_shared": current unified path via MpcSolverGeneral
         # - "lifted_g0_prototype": pre-migration Markov prototype path via G0
-        "nominal_solver_mode": "state_space_shared",
+        "nominal_solver_mode": "lifted_g0_prototype",
         "nominal_qi": 108.0,
         "nominal_qs": 459.0,
         "nominal_ha": 1.05e6,
@@ -663,7 +663,7 @@ POLYMER_MARKOV_DEFAULTS = {
         "qs_change": 1.3,
         "ha_change": 0.85,
         "basis_family": "io_pair_gain",
-        "z_bound": 0.10,
+        "z_bound": 0.05,
         "prediction_window": 20,
         "lambda_z": 1.0e-3,
         "s_pred_min": 1.0e-6,
@@ -673,7 +673,11 @@ POLYMER_MARKOV_DEFAULTS = {
         "run_adaptive_ls": True,
         "run_live_corrected_mpc": True,
         "run_rl_proposal": True,
-        "rl_fallback_to_ls": True,
+        "rl_fallback_to_ls": False,
+        # Experiment switch: execute the TD3-requested Markov correction
+        # directly in the unified notebook path, bypassing LS/nominal fallback
+        # and acceptance gates so we can inspect the unconstrained policy effect.
+        "force_td3_execute": True,
         "rl_store_executed_action_in_replay": True,
         "rl_save_agent_checkpoint": True,
         "debug_validate_lifted": False,
@@ -683,15 +687,7 @@ POLYMER_MARKOV_DEFAULTS = {
         **deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
         "seed": 7,
     },
-    "reward": {
-        **_copy_reward_defaults(),
-        # Temporary A/B test switch: use the prototype Markov reward in the
-        # unified notebook so we can isolate whether reward shaping explains
-        # the behavior gap versus the pre-migration script.
-        "mode": "prototype_legacy",
-        "legacy_bonus_A": 1000.0,
-        "legacy_bonus_B": 1.0,
-    },
+    "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
 }
 

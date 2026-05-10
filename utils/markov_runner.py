@@ -747,6 +747,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     predict_h = int(config["predict_h"])
     control_horizon = int(config["cont_h"])
     nominal_solver_mode = str(config.get("nominal_solver_mode", "state_space_shared")).strip().lower()
+    force_td3_execute = bool(config.get("force_td3_execute", False))
     A = np.asarray(ctx["A_aug"], float)
     B = np.asarray(ctx["B_aug"], float)
     C = np.asarray(ctx["C_aug"], float)
@@ -759,6 +760,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     history = initialize_history(nFE, A.shape[0], ny, nu, z_dim, rl_state_dim)
     test_flags = build_test_flags(nFE, ctx["test_train_dict"])
     use_rl = bool(use_markov and config.get("run_rl_proposal", False))
+    action_warm_start_step = -1 if force_td3_execute else int(ctx["warm_start_step"])
 
     rl_agent = None
     if use_rl:
@@ -954,7 +956,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     agent=rl_agent,
                     state=rl_state,
                     step=step,
-                    warm_start_step=ctx["warm_start_step"],
+                    warm_start_step=action_warm_start_step,
                     decision_interval=int(config.get("decision_interval", 1)),
                     last_action=last_raw_action,
                     last_action_test=last_action_test,
@@ -975,7 +977,33 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 history["rl_requested_z_log"][step, :] = z_requested
                 history["z_proposed_log"][step, :] = z_requested
 
-                if step > ctx["warm_start_step"]:
+                if force_td3_execute:
+                    rl_score = prediction_improvement_score(
+                        z=z_requested,
+                        history=history,
+                        m_blocks=m_blocks,
+                        basis_blocks=basis_blocks,
+                        G0=G0,
+                        A=A,
+                        C=C,
+                        predict_h=predict_h,
+                        control_horizon=control_horizon,
+                        Wy=Wy,
+                        lambda_z=float(config["lambda_z"]),
+                        current_step=step,
+                        prediction_window=int(config["prediction_window"]),
+                    )
+                    rl_eval = evaluate_markov_candidate(z_requested, u_prev_dev, x_model, U0, J0)
+                    U_exec = rl_eval["U"]
+                    z_exec = z_requested
+                    raw_executed = raw_requested
+                    score = rl_score
+                    drift = float(rl_eval["drift"])
+                    accepted = True
+                    fallback = False
+                    action_source = 2
+                    z_prev = z_exec
+                elif step > ctx["warm_start_step"]:
                     rl_score = prediction_improvement_score(
                         z=z_requested,
                         history=history,
@@ -1190,6 +1218,7 @@ def summarize_history(config, ctx, history):
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
         "run_mode": str(config["run_mode"]).lower(),
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
+        "force_td3_execute": bool(config.get("force_td3_execute", False)),
         "td3_seed": config.get("td3_agent", {}).get("seed"),
         "accepted_fraction": accepted_fraction,
         "td3_accepted_fraction": td3_accepted_fraction,
@@ -1250,6 +1279,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
         "run_mode": ctx["run_mode"],
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
+        "force_td3_execute": bool(config.get("force_td3_execute", False)),
         "td3_seed": config.get("td3_agent", {}).get("seed"),
         "system_metadata": ctx["system_metadata"],
         "y_sp": ctx["y_sp"],

@@ -26,8 +26,8 @@ from systems.polymer.config import (
 )
 
 
-FIG_DIR = REPO_ROOT / "report" / "figures" / "distillation_matrix_structured_followup_20260508"
-DISTILLATION_SUMMARY_CSV = FIG_DIR / "distillation_decision_interval_followup_summary.csv"
+FIG_DIR = REPO_ROOT / "report" / "figures" / "distillation_matrix_structured_followup_20260510"
+DISTILLATION_SUMMARY_CSV = FIG_DIR / "distillation_phase_summary.csv"
 CROSS_SYSTEM_SUMMARY_CSV = FIG_DIR / "cross_system_latest_summary.csv"
 STATS_CSV = FIG_DIR / "exploratory_stats_summary.csv"
 REWARD_GEOMETRY_CSV = FIG_DIR / "reward_geometry_summary.csv"
@@ -72,11 +72,11 @@ RUNS = [
         baseline_path=DISTILLATION_BASELINE_PATH,
     ),
     RunSpec(
-        key="distillation_matrix_latest",
-        label="Distillation scalar matrix (May 8, decision interval 20)",
+        key="distillation_matrix_may8",
+        label="Distillation scalar matrix (May 8, decision interval 20, observer refresh)",
         system="distillation",
         family="scalar_matrix",
-        phase="latest",
+        phase="may8",
         rl_path=REPO_ROOT
         / "Distillation"
         / "Results"
@@ -88,6 +88,26 @@ RUNS = [
         / "Results"
         / "distillation_compare_matrix_td3_disturb_fluctuation_mismatch"
         / "20260508_015844"
+        / "input_data.pkl",
+        baseline_path=DISTILLATION_BASELINE_PATH,
+    ),
+    RunSpec(
+        key="distillation_matrix_latest",
+        label="Distillation scalar matrix (May 10, decision interval 20, fixed observer)",
+        system="distillation",
+        family="scalar_matrix",
+        phase="latest",
+        rl_path=REPO_ROOT
+        / "Distillation"
+        / "Results"
+        / "distillation_matrix_td3_disturb_fluctuation_mismatch_unified"
+        / "20260510_001108"
+        / "input_data.pkl",
+        compare_path=REPO_ROOT
+        / "Distillation"
+        / "Results"
+        / "distillation_compare_matrix_td3_disturb_fluctuation_mismatch"
+        / "20260510_001120"
         / "input_data.pkl",
         baseline_path=DISTILLATION_BASELINE_PATH,
     ),
@@ -112,11 +132,11 @@ RUNS = [
         baseline_path=DISTILLATION_BASELINE_PATH,
     ),
     RunSpec(
-        key="distillation_structured_latest",
-        label="Distillation structured matrix (May 8, decision interval 20)",
+        key="distillation_structured_may8",
+        label="Distillation structured matrix (May 8, decision interval 20, observer refresh)",
         system="distillation",
         family="structured_matrix",
-        phase="latest",
+        phase="may8",
         rl_path=REPO_ROOT
         / "Distillation"
         / "Results"
@@ -128,6 +148,26 @@ RUNS = [
         / "Results"
         / "distillation_compare_structured_matrix_td3_disturb_fluctuation_mismatch"
         / "20260508_005037"
+        / "input_data.pkl",
+        baseline_path=DISTILLATION_BASELINE_PATH,
+    ),
+    RunSpec(
+        key="distillation_structured_latest",
+        label="Distillation structured matrix (May 10, decision interval 20, fixed observer)",
+        system="distillation",
+        family="structured_matrix",
+        phase="latest",
+        rl_path=REPO_ROOT
+        / "Distillation"
+        / "Results"
+        / "distillation_structured_matrix_td3_disturb_fluctuation_mismatch_unified"
+        / "20260510_111413"
+        / "input_data.pkl",
+        compare_path=REPO_ROOT
+        / "Distillation"
+        / "Results"
+        / "distillation_compare_structured_matrix_td3_disturb_fluctuation_mismatch"
+        / "20260510_111427"
         / "input_data.pkl",
         baseline_path=DISTILLATION_BASELINE_PATH,
     ),
@@ -251,6 +291,16 @@ def exploratory_sign_test(values: np.ndarray) -> tuple[int, int, float]:
     trials = pos + neg
     pvalue = float("nan") if trials == 0 else float(binomtest(pos, trials, p=0.5).pvalue)
     return pos, neg, pvalue
+
+
+def safe_corr(x: np.ndarray, y: np.ndarray) -> float:
+    x = np.asarray(x, float).reshape(-1)
+    y = np.asarray(y, float).reshape(-1)
+    if x.size != y.size or x.size < 2:
+        return float("nan")
+    if np.allclose(np.std(x), 0.0) or np.allclose(np.std(y), 0.0):
+        return float("nan")
+    return float(np.corrcoef(x, y)[0, 1])
 
 
 def compute_reward_geometry(system: str) -> list[dict]:
@@ -449,25 +499,19 @@ def build_exploratory_stats(run_payloads: dict[str, dict]) -> list[dict]:
 
         reward_delta_full = np.asarray(payload["reward_delta"], float)
         out2_full = np.asarray(payload["rl_metrics"]["mae_out_phys"], float)[:, 1]
-        row["corr_reward_vs_out2_mae"] = float(np.corrcoef(reward_delta_full, out2_full)[0, 1])
+        row["corr_reward_vs_out2_mae"] = safe_corr(reward_delta_full, out2_full)
         aux = payload["auxiliary_means"]
         if "A_model_delta_ratio_log" in aux:
-            row["corr_reward_vs_A_drift"] = float(np.corrcoef(reward_delta_full, aux["A_model_delta_ratio_log"])[0, 1])
-            row["corr_out2_mae_vs_A_drift"] = float(np.corrcoef(out2_full, aux["A_model_delta_ratio_log"])[0, 1])
+            row["corr_reward_vs_A_drift"] = safe_corr(reward_delta_full, aux["A_model_delta_ratio_log"])
+            row["corr_out2_mae_vs_A_drift"] = safe_corr(out2_full, aux["A_model_delta_ratio_log"])
         if "B_model_delta_ratio_log" in aux:
-            row["corr_reward_vs_B_drift"] = float(np.corrcoef(reward_delta_full, aux["B_model_delta_ratio_log"])[0, 1])
-            row["corr_out2_mae_vs_B_drift"] = float(np.corrcoef(out2_full, aux["B_model_delta_ratio_log"])[0, 1])
+            row["corr_reward_vs_B_drift"] = safe_corr(reward_delta_full, aux["B_model_delta_ratio_log"])
+            row["corr_out2_mae_vs_B_drift"] = safe_corr(out2_full, aux["B_model_delta_ratio_log"])
         if "action_saturation_fraction_log" in aux:
-            row["corr_reward_vs_saturation"] = float(
-                np.corrcoef(reward_delta_full, aux["action_saturation_fraction_log"])[0, 1]
-            )
+            row["corr_reward_vs_saturation"] = safe_corr(reward_delta_full, aux["action_saturation_fraction_log"])
         if "observer_recalc_event_log" in aux:
-            row["corr_reward_vs_observer_refresh"] = float(
-                np.corrcoef(reward_delta_full, aux["observer_recalc_event_log"])[0, 1]
-            )
-            row["corr_out2_mae_vs_observer_refresh"] = float(
-                np.corrcoef(out2_full, aux["observer_recalc_event_log"])[0, 1]
-            )
+            row["corr_reward_vs_observer_refresh"] = safe_corr(reward_delta_full, aux["observer_recalc_event_log"])
+            row["corr_out2_mae_vs_observer_refresh"] = safe_corr(out2_full, aux["observer_recalc_event_log"])
         rows.append(row)
     return rows
 
@@ -480,22 +524,27 @@ def plot_distillation_reward_followup(run_payloads: dict[str, dict]) -> Path:
             axes[0],
             "Scalar matrix",
             run_payloads["distillation_matrix_old"],
+            run_payloads["distillation_matrix_may8"],
             run_payloads["distillation_matrix_latest"],
             "#1f77b4",
+            "#ff7f0e",
             "#d62728",
         ),
         (
             axes[1],
             "Structured matrix",
             run_payloads["distillation_structured_old"],
+            run_payloads["distillation_structured_may8"],
             run_payloads["distillation_structured_latest"],
             "#2ca02c",
+            "#8c564b",
             "#9467bd",
         ),
     ]
-    for ax, title, old_payload, new_payload, old_color, new_color in family_cfg:
+    for ax, title, old_payload, mid_payload, new_payload, old_color, mid_color, new_color in family_cfg:
         ax.plot(episodes, old_payload["reward_delta"], lw=2.0, color=old_color, label="May 3, interval 1")
-        ax.plot(episodes, new_payload["reward_delta"], lw=2.0, color=new_color, label="May 8, interval 20")
+        ax.plot(episodes, mid_payload["reward_delta"], lw=2.0, color=mid_color, label="May 8, interval 20")
+        ax.plot(episodes, new_payload["reward_delta"], lw=2.0, color=new_color, label="May 10, fixed observer")
         ax.axhline(0.0, color="0.3", lw=1.0, linestyle=":")
         ax.axvline(old_payload["row"]["first_live_episode"], color="0.45", lw=1.0, linestyle="--")
         ax.set_title(title)
@@ -504,19 +553,23 @@ def plot_distillation_reward_followup(run_payloads: dict[str, dict]) -> Path:
     axes[0].set_ylabel("Reward delta vs MPC (RL - MPC)")
     axes[0].legend(frameon=False, loc="lower left")
     axes[1].legend(frameon=False, loc="lower left")
-    fig.suptitle("Distillation follow-up: slowing decisions to 20 steps did not rescue the matrix family", y=1.03)
+    fig.suptitle(
+        "Distillation phase comparison: slower updates did not help, and the fixed-observer reruns became catastrophic",
+        y=1.03,
+    )
     fig.tight_layout()
-    out_path = FIG_DIR / "fig_distillation_reward_delta_old_vs_new.png"
+    out_path = FIG_DIR / "fig_distillation_reward_delta_phase_compare.png"
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
     return out_path
 
 
 def plot_distillation_latest_dashboard(run_payloads: dict[str, dict]) -> Path:
-    scalar = run_payloads["distillation_matrix_latest"]
-    structured = run_payloads["distillation_structured_latest"]
-    baseline = scalar["baseline_bundle"]
-    baseline_metrics = scalar["baseline_metrics"]
+    scalar_may8 = run_payloads["distillation_matrix_may8"]
+    scalar_latest = run_payloads["distillation_matrix_latest"]
+    structured_may8 = run_payloads["distillation_structured_may8"]
+    structured_latest = run_payloads["distillation_structured_latest"]
+    baseline = scalar_latest["baseline_bundle"]
     baseline_outputs = np.asarray(baseline["y"], float)
     baseline_setpoints = np.asarray(baseline["y_sp"], float)
     steps = infer_steps_per_episode(baseline)
@@ -524,23 +577,28 @@ def plot_distillation_latest_dashboard(run_payloads: dict[str, dict]) -> Path:
 
     fig, axes = plt.subplots(2, 2, figsize=(13.8, 8.4))
 
-    labels = ["Scalar latest", "Structured latest", "MPC baseline"]
+    labels = ["Scalar May 8", "Scalar May 10", "Structured May 8", "Structured May 10"]
     reward_tail = [
-        scalar["row"]["reward_delta_tail10_mean"],
-        structured["row"]["reward_delta_tail10_mean"],
-        0.0,
+        scalar_may8["row"]["reward_delta_tail10_mean"],
+        scalar_latest["row"]["reward_delta_tail10_mean"],
+        structured_may8["row"]["reward_delta_tail10_mean"],
+        structured_latest["row"]["reward_delta_tail10_mean"],
     ]
     move_tail = [
-        scalar["row"]["tail10_move_phys_mean"],
-        structured["row"]["tail10_move_phys_mean"],
-        scalar["row"]["tail10_move_phys_mean_mpc"],
+        scalar_may8["row"]["tail10_move_phys_mean"],
+        scalar_latest["row"]["tail10_move_phys_mean"],
+        structured_may8["row"]["tail10_move_phys_mean"],
+        structured_latest["row"]["tail10_move_phys_mean"],
     ]
     out2_tail = [
-        scalar["row"]["tail10_out2_mae_phys"],
-        structured["row"]["tail10_out2_mae_phys"],
-        scalar["row"]["tail10_out2_mae_phys_mpc"],
+        scalar_may8["row"]["tail10_out2_mae_phys"],
+        scalar_latest["row"]["tail10_out2_mae_phys"],
+        structured_may8["row"]["tail10_out2_mae_phys"],
+        structured_latest["row"]["tail10_out2_mae_phys"],
     ]
-    colors = ["#d62728", "#9467bd", "0.55"]
+    colors = ["#ff7f0e", "#d62728", "#8c564b", "#9467bd"]
+    mpc_out2 = float(scalar_latest["row"]["tail10_out2_mae_phys_mpc"])
+    mpc_move = float(scalar_latest["row"]["tail10_move_phys_mean_mpc"])
 
     axes[0, 0].bar(labels, reward_tail, color=colors)
     axes[0, 0].axhline(0.0, color="0.3", lw=1.0)
@@ -549,18 +607,24 @@ def plot_distillation_latest_dashboard(run_payloads: dict[str, dict]) -> Path:
     axes[0, 0].grid(axis="y", alpha=0.25)
 
     axes[0, 1].bar(labels, out2_tail, color=colors)
+    axes[0, 1].axhline(mpc_out2, color="0.35", lw=1.3, linestyle="--", label="MPC baseline")
     axes[0, 1].set_title("Tail-10 output-2 MAE")
     axes[0, 1].set_ylabel("Physical MAE")
     axes[0, 1].grid(axis="y", alpha=0.25)
+    axes[0, 1].legend(frameon=False)
 
     axes[1, 0].bar(labels, move_tail, color=colors)
+    axes[1, 0].axhline(mpc_move, color="0.35", lw=1.3, linestyle="--", label="MPC baseline")
     axes[1, 0].set_title("Tail-10 mean input movement")
     axes[1, 0].set_ylabel("Mean |delta u| in physical units")
     axes[1, 0].grid(axis="y", alpha=0.25)
+    axes[1, 0].legend(frameon=False)
 
     latest_runs = [
-        ("Scalar latest", scalar, "#d62728"),
-        ("Structured latest", structured, "#9467bd"),
+        ("Scalar May 8", scalar_may8, "#ff7f0e"),
+        ("Scalar May 10", scalar_latest, "#d62728"),
+        ("Structured May 8", structured_may8, "#8c564b"),
+        ("Structured May 10", structured_latest, "#9467bd"),
     ]
     for label, payload, color in latest_runs:
         y = np.asarray(payload["rl_bundle"]["y"], float)
@@ -573,7 +637,7 @@ def plot_distillation_latest_dashboard(run_payloads: dict[str, dict]) -> Path:
     axes[1, 1].grid(alpha=0.25)
     axes[1, 1].legend(frameon=False)
 
-    fig.suptitle("Latest distillation matrix-family outcome: slower updates changed the failure shape, but not the sign", y=1.02)
+    fig.suptitle("Observer-toggle follow-up: removing observer refresh sharply worsened both distillation matrix families", y=1.02)
     fig.tight_layout()
     out_path = FIG_DIR / "fig_distillation_latest_dashboard.png"
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
@@ -652,7 +716,7 @@ def plot_cross_system_effects(stats_rows: list[dict]) -> Path:
     axes[0].set_yticks(y)
     axes[0].set_yticklabels(labels)
     axes[0].invert_yaxis()
-    fig.suptitle("Cross-system latest effect direction: polymer gains, distillation losses", y=1.02)
+    fig.suptitle("Cross-system latest effect direction: polymer gains, distillation fixed-observer reruns remain strongly negative", y=1.02)
     fig.tight_layout()
     out_path = FIG_DIR / "fig_cross_system_effects.png"
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
@@ -693,28 +757,27 @@ def plot_reward_geometry(geometry_rows: list[dict]) -> Path:
 
 def plot_adaptation_diagnostics(run_payloads: dict[str, dict], stats_rows: list[dict]) -> Path:
     latest_keys = [
+        "distillation_matrix_may8",
         "distillation_matrix_latest",
+        "distillation_structured_may8",
         "distillation_structured_latest",
-        "polymer_matrix_latest",
-        "polymer_structured_latest",
     ]
     colors = {
+        "distillation_matrix_may8": "#ff7f0e",
         "distillation_matrix_latest": "#d62728",
+        "distillation_structured_may8": "#8c564b",
         "distillation_structured_latest": "#9467bd",
-        "polymer_matrix_latest": "#1f77b4",
-        "polymer_structured_latest": "#2ca02c",
     }
     labels = {
-        "distillation_matrix_latest": "Distill scalar",
-        "distillation_structured_latest": "Distill structured",
-        "polymer_matrix_latest": "Polymer scalar",
-        "polymer_structured_latest": "Polymer structured",
+        "distillation_matrix_may8": "Scalar May 8",
+        "distillation_matrix_latest": "Scalar May 10",
+        "distillation_structured_may8": "Structured May 8",
+        "distillation_structured_latest": "Structured May 10",
     }
 
     fig, axes = plt.subplots(1, 2, figsize=(13.4, 5.0))
     for key in latest_keys:
         payload = run_payloads[key]
-        reward = np.asarray(payload["reward_delta"], float)
         out2 = np.asarray(payload["rl_metrics"]["mae_out_phys"], float)[:, 1]
         b_drift = payload["auxiliary_means"].get("B_model_delta_ratio_log")
         if b_drift is not None:
@@ -726,10 +789,10 @@ def plot_adaptation_diagnostics(run_payloads: dict[str, dict], stats_rows: list[
                 color=colors[key],
                 label=labels[key],
             )
-        observer_refresh = payload["auxiliary_means"].get("observer_recalc_event_log")
-        if observer_refresh is not None and key.startswith("distillation"):
+        saturation = payload["auxiliary_means"].get("action_saturation_fraction_log")
+        if saturation is not None:
             axes[1].scatter(
-                observer_refresh,
+                saturation,
                 out2,
                 s=20,
                 alpha=0.55,
@@ -743,13 +806,16 @@ def plot_adaptation_diagnostics(run_payloads: dict[str, dict], stats_rows: list[
     axes[0].grid(alpha=0.25)
     axes[0].legend(frameon=False)
 
-    axes[1].set_title("Distillation observer refresh rate vs output-2 MAE")
-    axes[1].set_xlabel("Episode mean observer refresh event rate")
+    axes[1].set_title("Structured saturation vs output-2 MAE")
+    axes[1].set_xlabel("Episode mean action saturation fraction")
     axes[1].set_ylabel("Episode mean output-2 MAE")
     axes[1].grid(alpha=0.25)
     axes[1].legend(frameon=False)
 
-    fig.suptitle("Adaptation diagnostics: in distillation, more model motion is not translating into better temperature control", y=1.02)
+    fig.suptitle(
+        "Adaptation diagnostics: in distillation, more model motion and more structured saturation align with worse temperature control",
+        y=1.02,
+    )
     fig.tight_layout()
     out_path = FIG_DIR / "fig_adaptation_diagnostics.png"
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
@@ -776,7 +842,7 @@ def main():
     write_csv(REWARD_GEOMETRY_CSV, geometry_rows)
 
     figures = {
-        "distillation_reward_followup": str(plot_distillation_reward_followup(run_payloads).relative_to(REPO_ROOT)),
+        "distillation_reward_phase_compare": str(plot_distillation_reward_followup(run_payloads).relative_to(REPO_ROOT)),
         "distillation_latest_dashboard": str(plot_distillation_latest_dashboard(run_payloads).relative_to(REPO_ROOT)),
         "cross_system_effects": str(plot_cross_system_effects(stats_rows).relative_to(REPO_ROOT)),
         "cross_system_reward_geometry": str(plot_reward_geometry(geometry_rows).relative_to(REPO_ROOT)),
@@ -785,6 +851,11 @@ def main():
 
     summary_json = {
         "figures": figures,
+        "distillation_phase_compare": {
+            row["key"]: row
+            for row in summary_rows
+            if row["system"] == "distillation"
+        },
         "distillation_latest": {
             row["key"]: row
             for row in summary_rows

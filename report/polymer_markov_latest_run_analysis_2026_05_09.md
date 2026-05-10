@@ -1,6 +1,12 @@
 # Polymer Markov Latest-Run Analysis
 
-Date: 2026-05-09
+Date: 2026-05-10 (updated from 2026-05-09)
+
+Newest unified shared-reward run analyzed:
+`Polymer/Results/td3_markov_disturb/20260510_193643/input_data.pkl`
+
+Newest unified shared-reward comparison directory:
+`Polymer/Results/disturb_compare_td3_markov/20260510_193656/`
 
 Newest prototype-default rerun analyzed:
 `Polymer/Results/td3_markov_disturb/20260509_184140/input_data.pkl`
@@ -22,6 +28,7 @@ Canonical nominal baseline used by the latest unified workflow:
 
 Generated analysis artifacts:
 `report/figures/polymer_markov_latest_run_20260509/`
+`report/figures/polymer_markov_latest_run_20260510/`
 `report/figures/polymer_markov_prototype_reward_followup_20260509/`
 `report/figures/polymer_markov_prototype_nominal_solver_followup_20260509/`
 
@@ -44,6 +51,10 @@ This note answers four questions:
 - `systems/polymer/notebook_params.py`
 - `report/polymer_markov_correction_progress.md`
 - `report/scripts/generate_polymer_markov_correction_assets.py`
+- `report/scripts/generate_polymer_markov_latest_run_update_20260510.py`
+- `Polymer/Results/td3_markov_disturb/20260510_193643/input_data.pkl`
+- `Polymer/Results/disturb_compare_td3_markov/20260510_193656/input_data.pkl`
+- `Polymer/Data/mpc_results_dist.pickle`
 - Prototype reference from git history:
   `git show ce34e86^:report/scripts/generate_polymer_markov_correction_assets.py`
 
@@ -1044,3 +1055,85 @@ That is why the newest unified run can still look much more like nominal MPC eve
 - `report/figures/polymer_markov_dual_notebook_followup_20260510/comparison_summary.csv`
 - `report/figures/polymer_markov_dual_notebook_followup_20260510/source_summary.csv`
 - `report/figures/polymer_markov_dual_notebook_followup_20260510/behavioral_distance_summary.csv`
+
+## Update: May 10 forced-execution run
+
+The newest polymer Markov run is now:
+
+`Polymer/Results/td3_markov_disturb/20260510_193643/input_data.pkl`
+
+with comparison bundle:
+
+`Polymer/Results/disturb_compare_td3_markov/20260510_193656/input_data.pkl`
+
+This run matters because it removes the easiest excuse for weak Markov performance. It does not look near-nominal because TD3 was filtered away. It uses TD3 essentially all the time:
+
+| Quantity | Latest shared-reward forced run |
+| --- | ---: |
+| Mean reward delta vs canonical MPC | `-0.0647` |
+| Last-20 reward delta | `-0.0528` |
+| Fraction of better episodes | `0.0150` |
+| TD3 fraction | `0.9999` |
+| LS fallback fraction | `0.0000` |
+| Nominal fallback fraction | `0.0000` |
+| Mean prediction score | `0.0047` |
+| Mean gain drift | `0.0432` |
+| Output-1 MAE delta, full run | `+0.0016` |
+| Output-2 MAE delta, full run | `+0.0012` |
+| Input-movement delta, full run | `-0.0276` |
+
+The output story is slightly mixed but still not strong enough to rescue the method. In the last 20 episodes the newest run is a little better on both outputs:
+
+- output-1 MAE delta, last 20: `-0.00093`
+- output-2 MAE delta, last 20: `-0.00255`
+- input-movement delta, last 20: `-0.0391`
+
+So the newest run is smoother and somewhat better late in the run, but it still loses on the overall shared reward and only beats canonical MPC in `1.5%` of episodes.
+
+### Why this changes the interpretation
+
+The newest run strengthens the negative conclusion rather than weakening it.
+
+First, all shared-reward polymer Markov runs analyzed so far are below the canonical polymer baseline:
+
+| Shared-reward run | Reward delta mean | Reward delta last 20 | Better-episode fraction |
+| --- | ---: | ---: | ---: |
+| `20260509_023119` guarded TD3 | `-0.0259` | `-0.0295` | `0.0450` |
+| `20260510_193643` forced TD3 execute | `-0.0647` | `-0.0528` | `0.0150` |
+
+Second, the newest run shows that the problem is not just conservative fallback logic. The earlier shared-reward run used TD3 on `48.08%` of steps and still lost slightly. The newest run uses TD3 on `99.994%` of steps, with no LS fallback and no nominal fallback, and it still loses. That is strong evidence that the currently learned Markov corrections are not improving the polymer objective under the shared reward geometry.
+
+Third, prediction-error validation is not translating cleanly into closed-loop benefit. The newest run still reports positive prediction-improvement statistics, but the average score is only `0.0047`, much smaller than the earlier shared-reward run's `0.0215`. In other words, even when the correction basis explains recent trajectory data a little better, the resulting control decisions are not reliably better than nominal MPC.
+
+### Why prototype-reward runs can still look good
+
+The prototype-reward runs remain important, but they no longer overturn the main conclusion.
+
+- Under the prototype reward, several unified runs still show large positive deltas.
+- Under the shared polymer reward, the same Markov family remains below the canonical baseline.
+- The newest forced-execution run confirms that this is not only a fallback-rate artifact.
+
+So the current polymer Markov branch appears reward-sensitive rather than robustly process-improving. It can look better when the evaluation puts more weight on bonus-like inside-band behavior, but it has not shown a reliable win under the shared polymer objective.
+
+### Revised bottom line
+
+The current `io_pair_gain` Markov correction family is not yet helping the polymer process in a robust way.
+
+The best evidence for that statement is now:
+
+1. the shared-reward runs are both negative versus canonical MPC
+2. the latest forced-execution run is still negative even though TD3 is active almost everywhere
+3. the method mainly buys smoother inputs and occasional late-episode local improvement, not a clear full-run control advantage
+
+That does not prove that every Markov-style idea is hopeless, but it does mean this current polymer Markov implementation is not earning more tuning by default. The burden of proof has shifted. Any next Markov experiment should first demonstrate that LS-only or hand-selected Markov corrections can beat canonical MPC under the same shared reward and the same external baseline. If that ablation is still negative, it is reasonable to stop the polymer Markov branch and move effort to residual correction or re-identification instead.
+
+### Note on metric provenance
+
+For this May 10 update, all baseline-sensitive metrics were computed from the canonical baseline pickle and the saved compare bundles. The unified Markov run bundles currently store `y_mpc` and `u_mpc` equal to the RL trajectory itself, so those duplicated arrays are not used for report comparisons.
+
+### Artifacts generated for this update
+
+- `report/figures/polymer_markov_latest_run_20260510/reward_mode_history.png`
+- `report/figures/polymer_markov_latest_run_20260510/shared_reward_window_compare.png`
+- `report/figures/polymer_markov_latest_run_20260510/recent_run_summary.csv`
+- `report/figures/polymer_markov_latest_run_20260510/summary.json`

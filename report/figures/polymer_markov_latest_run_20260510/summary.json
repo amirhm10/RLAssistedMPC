@@ -1,0 +1,22 @@
+{
+  "latest_run_id": "20260510_193643",
+  "latest_compare_id": "20260510_193656",
+  "latest_reward_delta_mean": -0.06465038800416396,
+  "latest_reward_delta_last20": -0.05283097371732785,
+  "latest_reward_better_frac": 0.015,
+  "latest_output1_mae_delta_mean": 0.001620705452760442,
+  "latest_output2_mae_delta_mean": 0.0012180209440099574,
+  "latest_input_move_delta_mean": -0.027585374424347515,
+  "latest_td3_fraction": 0.99994375,
+  "latest_ls_fraction": 0.0,
+  "latest_nominal_fraction": 0.0,
+  "latest_prediction_score_mean": 0.004699768165214553,
+  "latest_gain_drift_mean": 0.04321923612170637,
+  "all_shared_reward_runs_negative": true,
+  "shared_reward_run_ids": [
+    "20260509_023119",
+    "20260510_193643"
+  ],
+  "canonical_baseline_path": "C:\\Users\\HAMEDI\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Data\\mpc_results_dist.pickle",
+  "note": "Unified run bundles duplicate y_mpc and u_mpc from the RL trajectory, so all baseline-sensitive metrics here use the canonical baseline pickle and compare bundles."
+}

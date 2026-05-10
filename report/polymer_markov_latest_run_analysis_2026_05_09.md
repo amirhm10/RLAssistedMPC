@@ -689,6 +689,125 @@ So the latest evidence is stronger than before:
 
 The most likely remaining reasons are the shared runtime/comparator stack and the extreme sensitivity of the prototype reward to tiny inside-band changes.
 
+## Code-level discrepancy audit
+
+This section answers the narrower question: if we read the old prototype script and the new shared Markov runner line by line, what is actually different in the live control loop?
+
+### What is effectively the same
+
+These parts of the old prototype and the current shared Markov runner are almost the same in logic:
+
+- the LS fitting objective `fit_markov_ls_correction(...)`
+- the prediction-improvement score `prediction_improvement_score(...)`
+- the TD3 state definition `markov_rl_state(...)`
+- the TD3 decision helper `select_continuous_action(...)`
+- the fallback order `TD3 -> LS -> nominal`
+- the replay push/train pattern through `pending_transition`
+- the warm-start boundary `if step > warm_start_step`
+- the shifted-control warm start logic
+
+So the discrepancy is not because the current runner completely rewrote the RL gating logic. Most of that logic is still the same.
+
+### Highest-confidence live-loop discrepancy: disturbance timing
+
+This is the strongest concrete control-loop difference I found.
+
+In the old prototype script, the polymer disturbances are written into the plant before the plant step:
+
+- `system.Qi = float(ctx["qi"][step])`
+- `system.Qs = float(ctx["qs"][step])`
+- `system.hA = float(ctx["ha"][step])`
+- `system.step()`
+
+That means the plant transition from time step `k` to `k+1` uses the disturbance values scheduled for step `k`.
+
+In the current shared runner, the polymer path goes through `step_system_with_disturbance(...)` in `utils/helpers.py`. The Markov runner calls:
+
+- `step_system_with_disturbance(system, idx=step, disturbance_schedule=ctx["disturbance_schedule"], system_stepper=ctx["system_stepper"])`
+
+But when `disturbance_schedule` is a dictionary and `system_stepper` is `None`, the helper currently does:
+
+1. `system.step()`
+2. then `setattr(system, key, value)` for the disturbance entries
+
+So for the current shared polymer path, the disturbance dictionary is applied after the plant step rather than before it.
+
+That has two consequences:
+
+1. the very first step is taken with the plant's old disturbance values rather than the scheduled step-0 disturbance
+2. every scheduled disturbance acts with an effective one-step lag
+
+This matters a lot for Markov correction because the LS teacher and TD3 proposal are driven by recent prediction error. If the plant disturbance arrives one step late relative to the old prototype semantics, then:
+
+- the measured prediction-error windows change
+- the LS fit changes
+- the TD3 state changes through innovation and tracking error
+- the accepted correction timing changes
+- the resulting closed loop can look more nominal even if the rest of the logic is unchanged
+
+This is also not just a Markov issue. The same helper is used across the shared polymer runners. The older polymer MPC code in `Simulation/mpc.py`, however, still sets `Qi` and `Qs` before stepping the plant, which matches the old prototype semantics rather than the current shared helper semantics.
+
+So this disturbance-order mismatch is the highest-confidence implementation reason for the discrepancy between the old prototype behavior and the new shared Markov runs.
+
+### Nominal solve difference: real, but not the main culprit
+
+The second major live-loop difference is the nominal reference solve:
+
+- old prototype: `U0, J0, sol0 = solve_lifted_mpc(..., G0, ...)`
+- current shared runner: `solve_nominal_reference_step(...)`, which defaults to `state_space_shared` and can optionally use `lifted_g0_prototype`
+
+This changes the nominal action sequence and the nominal cost seen by the acceptance filter. That can shift how often LS and TD3 candidates pass the guard.
+
+However, the dedicated rerun with `nominal_solver_mode = "lifted_g0_prototype"` did not recover the old behavior. So this is a genuine code difference, but the evidence says it is not the dominant reason the new setup remains close to MPC.
+
+### Reward difference: large for metrics, smaller for trajectories
+
+The reward path differs in two separate ways:
+
+1. old prototype originally used `legacy_mpc_reward(...)`
+2. unified runner can use either `make_reward_fn_relative_QR(...)` or `make_reward_fn_prototype_legacy(...)`
+
+Once the current Markov notebook was switched back to `prototype_legacy`, the reward formula itself became effectively aligned with the old prototype.
+
+So for the latest prototype-reward reruns, reward mismatch is no longer the main control-loop discrepancy. It still changes the reported reward a lot, but it is not the best explanation for why the trajectories remain near nominal.
+
+### Comparator difference: important for conclusions, not for the online loop
+
+The old prototype compared against its own internally rerun nominal trajectory.
+
+The new shared notebook compares against the canonical saved baseline pickle.
+
+This is a very important difference for report conclusions, but it does not explain why the online live control law itself looks close to nominal. It explains why "better than MPC" can disappear or reappear depending on which nominal reference is used in the plots and reward summaries.
+
+### Observer update difference: mostly not the issue
+
+The old prototype used the nominal observer update:
+
+$$ x_{k+1} = A x_k + B u_k + L(y_k - \hat{y}_k). $$
+
+The current shared Markov runner still defaults to the same `legacy_previous_measurement` alignment. There is now an optional `predictor_corrector_current` path, but that is not the default Markov setting.
+
+So observer alignment is not the main discrepancy either.
+
+### Randomness was previously uncontrolled
+
+Until the latest change, the Markov TD3 path did not store a dedicated TD3 seed in the saved bundle, and the Markov defaults did not explicitly wire one through the agent construction.
+
+That means some of the differences between recent reruns were contaminated by plain RL variance.
+
+This does not explain the old-prototype versus new-shared discrepancy by itself, but it does mean that some earlier A/B conclusions were noisier than they looked.
+
+### Bottom line from the line-by-line audit
+
+After reading the old prototype and current shared runner line by line, the strongest explanation is:
+
+1. the live TD3/LS gating logic is mostly the same
+2. the nominal-solver difference is real but not dominant
+3. the reward/comparator differences change the reported win/loss story
+4. the single biggest control-loop implementation discrepancy is the disturbance timing in the shared helper
+
+So if the goal is to reproduce the old prototype behavior more faithfully, the first code-level fix to test is not another reward or `z_bound` tweak. It is to make the shared polymer disturbance stepping use the same before-step disturbance semantics as the old prototype and the older polymer MPC code.
+
 ## Artifacts generated for this note
 
 - `report/figures/polymer_markov_latest_run_20260509/reward_delta_compare.png`

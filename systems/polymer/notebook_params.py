@@ -663,7 +663,7 @@ POLYMER_MARKOV_DEFAULTS = {
         "qs_change": 1.3,
         "ha_change": 0.85,
         "basis_family": "io_pair_gain",
-        "z_bound": 0.05,
+        "z_bound": 0.10,
         "prediction_window": 20,
         "lambda_z": 1.0e-3,
         "s_pred_min": 1.0e-6,

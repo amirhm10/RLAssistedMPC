@@ -318,8 +318,14 @@ def step_system_with_disturbance(system, idx=None, disturbance_schedule=None, sy
         # workflows: plant-side disturbances such as Qi/Qs/hA are written onto
         # the plant object before stepping, so every shared polymer runner uses
         # the same historical Step 3 semantics.
+        polymer_attr_aliases = {
+            "qi": "Qi",
+            "qs": "Qs",
+            "ha": "hA",
+        }
         for key, value in disturbance_step.items():
-            setattr(system, key, float(value))
+            attr_name = polymer_attr_aliases.get(str(key), str(key))
+            setattr(system, attr_name, float(value))
         system.step()
         return disturbance_step
 

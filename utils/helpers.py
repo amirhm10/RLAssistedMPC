@@ -314,11 +314,12 @@ def step_system_with_disturbance(system, idx=None, disturbance_schedule=None, sy
         return None
 
     if isinstance(disturbance_step, dict):
+        # This is the canonical disturbed live-step contract for polymer
+        # workflows: plant-side disturbances such as Qi/Qs/hA are written onto
+        # the plant object before stepping, so every shared polymer runner uses
+        # the same historical Step 3 semantics.
         for key, value in disturbance_step.items():
             setattr(system, key, float(value))
-        # Polymer disturbance schedules are stored as plant attributes
-        # (for example Qi/Qs/hA), so they must be applied before stepping
-        # the plant to match the historical polymer MPC/Markov semantics.
         system.step()
         return disturbance_step
 

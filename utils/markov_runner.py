@@ -7,6 +7,13 @@ import scipy.optimize as spo
 
 from TD3Agent.agent import TD3Agent
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
+from utils.behavioral_cloning import (
+    build_behavioral_cloning_bundle_fields,
+    build_behavioral_cloning_schedule,
+    init_behavioral_cloning_logs,
+    record_behavioral_cloning_step,
+    resolve_behavioral_cloning_context,
+)
 from utils.helpers import (
     apply_min_max,
     build_polymer_disturbance_schedule,
@@ -453,7 +460,7 @@ def solve_nominal_reference_step(
     )
 
 
-def initialize_history(nFE, nx, ny, nu, z_dim, rl_state_dim=0):
+def initialize_history(nFE, nx, ny, nu, z_dim, control_horizon, rl_state_dim=0):
     return {
         "xhat_before": np.zeros((nFE, nx), dtype=float),
         "xhat_after": np.zeros((nFE + 1, nx), dtype=float),
@@ -489,12 +496,79 @@ def initialize_history(nFE, nx, ny, nu, z_dim, rl_state_dim=0):
         "rl_critic_loss_log": np.full(nFE, np.nan, dtype=float),
         "rl_bc_loss_log": np.full(nFE, np.nan, dtype=float),
         "rl_test_step_log": np.zeros(nFE, dtype=int),
+        "u_sequence_nominal_log": np.empty((nFE, control_horizon * nu), dtype=float),
+        "u_sequence_requested_log": np.full((nFE, control_horizon * nu), np.nan, dtype=float),
+        "u_sequence_ls_log": np.full((nFE, control_horizon * nu), np.nan, dtype=float),
+        "u_sequence_executed_log": np.empty((nFE, control_horizon * nu), dtype=float),
+        "u0_nominal_log": np.empty((nFE, nu), dtype=float),
+        "u0_requested_log": np.full((nFE, nu), np.nan, dtype=float),
+        "u0_ls_log": np.full((nFE, nu), np.nan, dtype=float),
+        "u0_executed_log": np.empty((nFE, nu), dtype=float),
+        "u0_requested_minus_nominal_log": np.full((nFE, nu), np.nan, dtype=float),
+        "u0_ls_minus_nominal_log": np.full((nFE, nu), np.nan, dtype=float),
+        "u0_executed_minus_nominal_log": np.empty((nFE, nu), dtype=float),
+        "u0_requested_minus_nominal_norm_log": np.full(nFE, np.nan, dtype=float),
+        "u0_ls_minus_nominal_norm_log": np.full(nFE, np.nan, dtype=float),
+        "u0_executed_minus_nominal_norm_log": np.full(nFE, np.nan, dtype=float),
+        "u_sequence_requested_minus_nominal_norm_log": np.full(nFE, np.nan, dtype=float),
+        "u_sequence_ls_minus_nominal_norm_log": np.full(nFE, np.nan, dtype=float),
+        "u_sequence_executed_minus_nominal_norm_log": np.full(nFE, np.nan, dtype=float),
+        "nominal_cost_log": np.full(nFE, np.nan, dtype=float),
+        "requested_candidate_native_cost_log": np.full(nFE, np.nan, dtype=float),
+        "requested_candidate_nominal_cost_log": np.full(nFE, np.nan, dtype=float),
+        "requested_cost_margin_log": np.full(nFE, np.nan, dtype=float),
+        "requested_cost_guard_pass_log": np.full(nFE, -1, dtype=int),
+        "requested_gain_drift_log": np.full(nFE, np.nan, dtype=float),
+        "requested_prediction_score_log": np.full(nFE, np.nan, dtype=float),
+        "ls_candidate_native_cost_log": np.full(nFE, np.nan, dtype=float),
+        "ls_candidate_nominal_cost_log": np.full(nFE, np.nan, dtype=float),
+        "ls_cost_margin_log": np.full(nFE, np.nan, dtype=float),
+        "ls_cost_guard_pass_log": np.full(nFE, -1, dtype=int),
+        "ls_gain_drift_log": np.full(nFE, np.nan, dtype=float),
+        "ls_prediction_score_log": np.full(nFE, np.nan, dtype=float),
+        "executed_candidate_native_cost_log": np.full(nFE, np.nan, dtype=float),
+        "executed_candidate_nominal_cost_log": np.full(nFE, np.nan, dtype=float),
+        "executed_cost_margin_log": np.full(nFE, np.nan, dtype=float),
+        "executed_cost_guard_pass_log": np.full(nFE, -1, dtype=int),
+        "executed_gain_drift_log": np.full(nFE, np.nan, dtype=float),
+        "executed_prediction_score_log": np.full(nFE, np.nan, dtype=float),
         "avg_rewards": np.asarray([], dtype=float),
         "rl_state_dim": int(rl_state_dim),
         "rl_action_dim": int(z_dim),
         "rl_action_source_names": dict(MARKOV_ACTION_SOURCE),
         "rl_agent_checkpoint_path": None,
     }
+
+
+def _flatten_control_sequence(U_seq):
+    return np.asarray(U_seq, float).reshape(-1)
+
+
+def _record_nominal_stage(history, step, U_nominal, nominal_cost, nu):
+    U_flat = _flatten_control_sequence(U_nominal)
+    history["u_sequence_nominal_log"][step, :] = U_flat
+    history["u0_nominal_log"][step, :] = U_flat[:nu]
+    history["nominal_cost_log"][step] = float(nominal_cost)
+
+
+def _record_candidate_stage(history, step, prefix, U_candidate, candidate_eval, candidate_score, U_nominal, nominal_cost, nu):
+    U_flat = _flatten_control_sequence(U_candidate)
+    U_nom_flat = _flatten_control_sequence(U_nominal)
+    diff_flat = U_flat - U_nom_flat
+    diff_first = diff_flat[:nu]
+    history[f"u_sequence_{prefix}_log"][step, :] = U_flat
+    history[f"u0_{prefix}_log"][step, :] = U_flat[:nu]
+    history[f"u0_{prefix}_minus_nominal_log"][step, :] = diff_first
+    history[f"u0_{prefix}_minus_nominal_norm_log"][step] = float(np.linalg.norm(diff_first))
+    history[f"u_sequence_{prefix}_minus_nominal_norm_log"][step] = float(np.linalg.norm(diff_flat))
+    if candidate_eval is not None:
+        history[f"{prefix}_candidate_native_cost_log"][step] = float(candidate_eval["J"])
+        history[f"{prefix}_candidate_nominal_cost_log"][step] = float(candidate_eval["nominal_cost"])
+        history[f"{prefix}_cost_margin_log"][step] = float(candidate_eval["nominal_cost"] - float(nominal_cost))
+        history[f"{prefix}_cost_guard_pass_log"][step] = int(bool(candidate_eval["cost_guard_pass"]))
+        history[f"{prefix}_gain_drift_log"][step] = float(candidate_eval["drift"])
+    if candidate_score is not None:
+        history[f"{prefix}_prediction_score_log"][step] = float(candidate_score["score"])
 
 
 def phase1_equivalence_metrics(config, ctx, G0):
@@ -757,10 +831,17 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     z_dim = int(basis_blocks.shape[0])
     z_bounds = [(-float(config["z_bound"]), float(config["z_bound"])) for _ in range(z_dim)]
     rl_state_dim = int(A.shape[0] + ny + ny + nu + z_dim + z_dim + 2)
-    history = initialize_history(nFE, A.shape[0], ny, nu, z_dim, rl_state_dim)
+    history = initialize_history(nFE, A.shape[0], ny, nu, z_dim, control_horizon, rl_state_dim)
     test_flags = build_test_flags(nFE, ctx["test_train_dict"])
     use_rl = bool(use_markov and config.get("run_rl_proposal", False))
     action_warm_start_step = -1 if force_td3_execute else int(ctx["warm_start_step"])
+    bc_schedule = build_behavioral_cloning_schedule(
+        config=config.get("behavioral_cloning", {}),
+        warm_start_step=ctx["warm_start_step"],
+        time_in_sub_episodes=ctx["time_in_sub_episodes"],
+        n_steps=nFE,
+    )
+    bc_logs = init_behavioral_cloning_logs(nFE)
 
     rl_agent = None
     if use_rl:
@@ -789,6 +870,50 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     last_action_test = None
     pending_transition = None
     avg_rewards = []
+
+    def flush_pending_transition(next_state, done):
+        nonlocal pending_transition
+        if pending_transition is None or rl_agent is None:
+            return
+
+        pending_step = int(pending_transition["step"])
+        bc_context = resolve_behavioral_cloning_context(
+            bc_schedule,
+            step_idx=pending_step,
+            target_action=pending_transition["bc_target_action"],
+        )
+        train_info = replay_train_continuous_agent(
+            agent=rl_agent,
+            state=pending_transition["state"],
+            action=pending_transition["action"],
+            reward=pending_transition["reward"],
+            next_state=next_state,
+            done=done,
+            step=pending_step,
+            test=pending_transition["test"],
+            train_start_step=ctx["warm_start_step"],
+            bc_context=bc_context,
+        )
+        history["rl_replay_pushed_log"][pending_step] = int(train_info["pushed"])
+        history["rl_train_called_log"][pending_step] = int(train_info["trained"])
+        train_meta = train_info.get("train_meta")
+        if train_meta is not None:
+            history["rl_train_updated_log"][pending_step] = int(train_meta.get("critic_updated", False))
+            if train_meta.get("actor_loss") is not None:
+                history["rl_actor_loss_log"][pending_step] = float(train_meta["actor_loss"])
+            if train_meta.get("critic_loss") is not None:
+                history["rl_critic_loss_log"][pending_step] = float(train_meta["critic_loss"])
+            if train_meta.get("bc_loss") is not None:
+                history["rl_bc_loss_log"][pending_step] = float(train_meta["bc_loss"])
+        record_behavioral_cloning_step(
+            bc_logs,
+            step_idx=pending_step,
+            bc_context=bc_context,
+            policy_action=pending_transition["policy_action"],
+            target_action=pending_transition["bc_target_action"],
+            train_meta=train_meta,
+        )
+        pending_transition = None
 
     def evaluate_markov_candidate(z_candidate, u_prev_dev, x_model_now, nominal_guess, nominal_cost):
         mz_candidate = apply_markov_correction(m_blocks, basis_blocks, z_candidate)
@@ -857,6 +982,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             bounds=ctx["bounds"],
             x_init=nominal_guess,
         )
+        _record_nominal_stage(history, step, U0, J0, nu)
         U_exec = U0.copy()
         z_exec = np.zeros(z_dim, dtype=float)
         accepted = False
@@ -876,6 +1002,17 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         ls_accepted = False
         z_ls = np.zeros(z_dim, dtype=float)
         U_ls = None
+        ls_eval = None
+        rl_eval = None
+        rl_score = None
+        executed_eval = {
+            "U": U0.copy(),
+            "J": float(J0),
+            "nominal_cost": float(J0),
+            "cost_guard_pass": True,
+            "drift": 0.0,
+        }
+        executed_score = score
 
         if use_markov and bool(config.get("run_adaptive_ls", True)) and step >= predict_h:
             z_ls, _ls_result, ls_score = fit_markov_ls_correction(
@@ -905,6 +1042,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             )
             if ls_accepted:
                 U_ls = ls_eval["U"]
+            _record_candidate_stage(history, step, "ls", ls_eval["U"], ls_eval, ls_score, U0, J0, nu)
 
         z_ls_safe = z_ls if ls_accepted else np.zeros(z_dim, dtype=float)
         innovation = history["y_scaled_dev"][step, :] - yhat
@@ -921,36 +1059,16 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         )
         history["rl_state_log"][step, :] = rl_state
         history["rl_ls_z_log"][step, :] = z_ls
+        bc_target_raw = np.zeros(z_dim, dtype=float)
+        bc_target_is_ls = False
 
-        if pending_transition is not None and rl_agent is not None:
-            train_info = replay_train_continuous_agent(
-                agent=rl_agent,
-                state=pending_transition["state"],
-                action=pending_transition["action"],
-                reward=pending_transition["reward"],
-                next_state=rl_state,
-                done=0.0,
-                step=pending_transition["step"],
-                test=pending_transition["test"],
-                train_start_step=ctx["warm_start_step"],
-            )
-            pending_step = int(pending_transition["step"])
-            history["rl_replay_pushed_log"][pending_step] = int(train_info["pushed"])
-            history["rl_train_called_log"][pending_step] = int(train_info["trained"])
-            train_meta = train_info.get("train_meta")
-            if train_meta is not None:
-                history["rl_train_updated_log"][pending_step] = int(train_meta.get("critic_updated", False))
-                if train_meta.get("actor_loss") is not None:
-                    history["rl_actor_loss_log"][pending_step] = float(train_meta["actor_loss"])
-                if train_meta.get("critic_loss") is not None:
-                    history["rl_critic_loss_log"][pending_step] = float(train_meta["critic_loss"])
-                if train_meta.get("bc_loss") is not None:
-                    history["rl_bc_loss_log"][pending_step] = float(train_meta["bc_loss"])
-            pending_transition = None
+        flush_pending_transition(rl_state, 0.0)
 
         if use_markov and bool(config.get("run_live_corrected_mpc", True)) and step >= predict_h:
             if rl_agent is not None:
                 baseline_raw = z_to_raw_action(z_ls_safe, config["z_bound"])
+                bc_target_raw = baseline_raw.copy()
+                bc_target_is_ls = bool(ls_accepted and U_ls is not None)
                 test_step = bool(test_flags[step])
                 decision = select_continuous_action(
                     agent=rl_agent,
@@ -994,6 +1112,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         prediction_window=int(config["prediction_window"]),
                     )
                     rl_eval = evaluate_markov_candidate(z_requested, u_prev_dev, x_model, U0, J0)
+                    _record_candidate_stage(history, step, "requested", rl_eval["U"], rl_eval, rl_score, U0, J0, nu)
                     U_exec = rl_eval["U"]
                     z_exec = z_requested
                     raw_executed = raw_requested
@@ -1003,6 +1122,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     fallback = False
                     action_source = 2
                     z_prev = z_exec
+                    executed_eval = rl_eval
+                    executed_score = rl_score
                 elif step > ctx["warm_start_step"]:
                     rl_score = prediction_improvement_score(
                         z=z_requested,
@@ -1020,6 +1141,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         prediction_window=int(config["prediction_window"]),
                     )
                     rl_eval = evaluate_markov_candidate(z_requested, u_prev_dev, x_model, U0, J0)
+                    _record_candidate_stage(history, step, "requested", rl_eval["U"], rl_eval, rl_score, U0, J0, nu)
                     rl_accepted = bool(
                         sol0.success
                         and rl_eval["sol"].success
@@ -1037,6 +1159,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         fallback = False
                         action_source = 2
                         z_prev = z_exec
+                        executed_eval = rl_eval
+                        executed_score = rl_score
                     elif bool(config.get("rl_fallback_to_ls", True)) and ls_accepted and U_ls is not None:
                         U_exec = U_ls
                         z_exec = z_ls
@@ -1047,6 +1171,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         fallback = True
                         action_source = 3
                         z_prev = z_exec
+                        executed_eval = ls_eval
+                        executed_score = ls_score
                     else:
                         raw_executed = np.zeros(z_dim, dtype=float)
                         action_source = 4
@@ -1060,6 +1186,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     fallback = False
                     action_source = 1
                     z_prev = z_exec
+                    executed_eval = ls_eval
+                    executed_score = ls_score
                 else:
                     raw_executed = np.zeros(z_dim, dtype=float)
                     action_source = 4
@@ -1074,7 +1202,12 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 fallback = False
                 action_source = 5
                 z_prev = z_exec
+                executed_eval = ls_eval
+                executed_score = ls_score
+                bc_target_raw = raw_executed.copy()
+                bc_target_is_ls = True
 
+        _record_candidate_stage(history, step, "executed", U_exec, executed_eval, executed_score, U0, J0, nu)
         u_dev = U_exec[:nu]
         u_scaled_abs = u_dev + ctx["ss_scaled_inputs"]
         u_phys = reverse_min_max(u_scaled_abs, ctx["data_min"][:nu], ctx["data_max"][:nu])
@@ -1131,10 +1264,14 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
 
         if rl_agent is not None:
             transition_action = raw_executed if bool(config.get("rl_store_executed_action_in_replay", True)) else raw_requested
+            if not bc_target_is_ls:
+                bc_target_raw = np.asarray(raw_executed, float).copy()
             pending_transition = {
                 "step": step,
                 "state": rl_state.copy(),
                 "action": np.asarray(transition_action, float).copy(),
+                "policy_action": np.asarray(raw_requested, float).copy(),
+                "bc_target_action": np.asarray(bc_target_raw, float).copy(),
                 "reward": float(history["rewards"][step]),
                 "test": bool(test_flags[step]),
             }
@@ -1172,36 +1309,16 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         else:
             x_init = np.zeros(control_horizon * nu, dtype=float)
 
-    if pending_transition is not None and rl_agent is not None:
-        train_info = replay_train_continuous_agent(
-            agent=rl_agent,
-            state=pending_transition["state"],
-            action=pending_transition["action"],
-            reward=pending_transition["reward"],
-            next_state=pending_transition["state"],
-            done=1.0,
-            step=pending_transition["step"],
-            test=pending_transition["test"],
-            train_start_step=ctx["warm_start_step"],
-        )
-        pending_step = int(pending_transition["step"])
-        history["rl_replay_pushed_log"][pending_step] = int(train_info["pushed"])
-        history["rl_train_called_log"][pending_step] = int(train_info["trained"])
-        train_meta = train_info.get("train_meta")
-        if train_meta is not None:
-            history["rl_train_updated_log"][pending_step] = int(train_meta.get("critic_updated", False))
-            if train_meta.get("actor_loss") is not None:
-                history["rl_actor_loss_log"][pending_step] = float(train_meta["actor_loss"])
-            if train_meta.get("critic_loss") is not None:
-                history["rl_critic_loss_log"][pending_step] = float(train_meta["critic_loss"])
-            if train_meta.get("bc_loss") is not None:
-                history["rl_bc_loss_log"][pending_step] = float(train_meta["bc_loss"])
+    if pending_transition is not None:
+        flush_pending_transition(pending_transition["state"], 1.0)
 
     history["avg_rewards"] = (
         np.asarray(avg_rewards, float)
         if avg_rewards
         else avg_by_episode(history["rewards"], ctx["sub_episode_changes_dict"], ctx["time_in_sub_episodes"])
     )
+    history["_behavioral_cloning_schedule"] = bc_schedule
+    history["_behavioral_cloning_logs"] = bc_logs
     history["_rl_agent"] = rl_agent
     return history
 
@@ -1275,13 +1392,19 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
     )
     summary_metrics = summarize_history(config, ctx, history)
 
-    return {
+    result_bundle = {
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
         "run_mode": ctx["run_mode"],
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
         "force_td3_execute": bool(config.get("force_td3_execute", False)),
         "td3_seed": config.get("td3_agent", {}).get("seed"),
         "system_metadata": ctx["system_metadata"],
+        "A": None if ctx.get("system_data", {}).get("A") is None else np.asarray(ctx["system_data"]["A"], float),
+        "B": None if ctx.get("system_data", {}).get("B") is None else np.asarray(ctx["system_data"]["B"], float),
+        "C": None if ctx.get("system_data", {}).get("C") is None else np.asarray(ctx["system_data"]["C"], float),
+        "A_aug": np.asarray(ctx["A_aug"], float),
+        "B_aug": np.asarray(ctx["B_aug"], float),
+        "C_aug": np.asarray(ctx["C_aug"], float),
         "y_sp": ctx["y_sp"],
         "steady_states": ctx["steady_states"],
         "nFE": int(ctx["nFE"]),
@@ -1340,6 +1463,42 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "rl_critic_loss_log": history["rl_critic_loss_log"],
         "rl_bc_loss_log": history["rl_bc_loss_log"],
         "rl_test_step_log": history["rl_test_step_log"],
+        "u_sequence_nominal_log": history["u_sequence_nominal_log"],
+        "u_sequence_requested_log": history["u_sequence_requested_log"],
+        "u_sequence_ls_log": history["u_sequence_ls_log"],
+        "u_sequence_executed_log": history["u_sequence_executed_log"],
+        "u0_nominal_log": history["u0_nominal_log"],
+        "u0_requested_log": history["u0_requested_log"],
+        "u0_ls_log": history["u0_ls_log"],
+        "u0_executed_log": history["u0_executed_log"],
+        "u0_requested_minus_nominal_log": history["u0_requested_minus_nominal_log"],
+        "u0_ls_minus_nominal_log": history["u0_ls_minus_nominal_log"],
+        "u0_executed_minus_nominal_log": history["u0_executed_minus_nominal_log"],
+        "u0_requested_minus_nominal_norm_log": history["u0_requested_minus_nominal_norm_log"],
+        "u0_ls_minus_nominal_norm_log": history["u0_ls_minus_nominal_norm_log"],
+        "u0_executed_minus_nominal_norm_log": history["u0_executed_minus_nominal_norm_log"],
+        "u_sequence_requested_minus_nominal_norm_log": history["u_sequence_requested_minus_nominal_norm_log"],
+        "u_sequence_ls_minus_nominal_norm_log": history["u_sequence_ls_minus_nominal_norm_log"],
+        "u_sequence_executed_minus_nominal_norm_log": history["u_sequence_executed_minus_nominal_norm_log"],
+        "nominal_cost_log": history["nominal_cost_log"],
+        "requested_candidate_native_cost_log": history["requested_candidate_native_cost_log"],
+        "requested_candidate_nominal_cost_log": history["requested_candidate_nominal_cost_log"],
+        "requested_cost_margin_log": history["requested_cost_margin_log"],
+        "requested_cost_guard_pass_log": history["requested_cost_guard_pass_log"],
+        "requested_gain_drift_log": history["requested_gain_drift_log"],
+        "requested_prediction_score_log": history["requested_prediction_score_log"],
+        "ls_candidate_native_cost_log": history["ls_candidate_native_cost_log"],
+        "ls_candidate_nominal_cost_log": history["ls_candidate_nominal_cost_log"],
+        "ls_cost_margin_log": history["ls_cost_margin_log"],
+        "ls_cost_guard_pass_log": history["ls_cost_guard_pass_log"],
+        "ls_gain_drift_log": history["ls_gain_drift_log"],
+        "ls_prediction_score_log": history["ls_prediction_score_log"],
+        "executed_candidate_native_cost_log": history["executed_candidate_native_cost_log"],
+        "executed_candidate_nominal_cost_log": history["executed_candidate_nominal_cost_log"],
+        "executed_cost_margin_log": history["executed_cost_margin_log"],
+        "executed_cost_guard_pass_log": history["executed_cost_guard_pass_log"],
+        "executed_gain_drift_log": history["executed_gain_drift_log"],
+        "executed_prediction_score_log": history["executed_prediction_score_log"],
         "rl_agent_checkpoint_path": history["rl_agent_checkpoint_path"],
         "debug_phase1_metrics": debug_phase1,
         "debug_shadow": debug_shadow,
@@ -1353,3 +1512,10 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         },
         "_rl_agent": history.get("_rl_agent"),
     }
+    result_bundle.update(
+        build_behavioral_cloning_bundle_fields(
+            history.get("_behavioral_cloning_schedule", {}),
+            history.get("_behavioral_cloning_logs", init_behavioral_cloning_logs(int(ctx["nFE"]))),
+        )
+    )
+    return result_bundle

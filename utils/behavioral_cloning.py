@@ -36,8 +36,10 @@ def build_behavioral_cloning_schedule(
     label_weight_overrides_cfg = cfg.get("label_weight_overrides")
     action_gap_tolerance = float(cfg.get("action_gap_tolerance", 0.0))
 
-    if target_mode not in {"nominal_only", "executed_action"}:
-        raise ValueError("behavioral_cloning target_mode must be 'nominal_only' or 'executed_action'.")
+    if target_mode not in {"nominal_only", "executed_action", "ls_action"}:
+        raise ValueError(
+            "behavioral_cloning target_mode must be 'nominal_only', 'executed_action', or 'ls_action'."
+        )
     if decay_mode not in {"constant", "linear", "exp"}:
         raise ValueError("behavioral_cloning decay_mode must be 'constant', 'linear', or 'exp'.")
     if not math.isfinite(action_gap_tolerance) or action_gap_tolerance < 0.0:

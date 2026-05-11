@@ -642,6 +642,14 @@ POLYMER_MARKOV_DEFAULTS = {
         },
     },
     "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
+    # Short LS-guided release window: after warm start, keep the actor near the
+    # accepted LS correction manifold before handing full authority to TD3.
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(
+        enabled=True,
+        target_mode="ls_action",
+        lambda_bc_start=0.2,
+        active_subepisodes=5,
+    ),
     "controller": {
         "predict_h": 9,
         "cont_h": 3,

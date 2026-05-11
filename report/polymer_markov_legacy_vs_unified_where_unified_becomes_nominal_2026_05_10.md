@@ -12,6 +12,12 @@ Generated figures:
 - `report/figures/polymer_markov_legacy_vs_unified_20260510/legacy_vs_unified_metric_grid.png`
 - `report/figures/polymer_markov_legacy_vs_unified_20260510/legacy_vs_unified_prediction_diagnostics.png`
 
+Embedded figures:
+
+![Legacy versus unified Markov metrics](figures/polymer_markov_legacy_vs_unified_20260510/legacy_vs_unified_metric_grid.png)
+
+![Legacy versus unified Markov prediction diagnostics](figures/polymer_markov_legacy_vs_unified_20260510/legacy_vs_unified_prediction_diagnostics.png)
+
 ## Files inspected
 
 - `polymer_markov_corrected_mpc_legacy.ipynb`
@@ -85,6 +91,10 @@ So the current gap is not a different control objective or a different Markov co
 
 The requested six signals show three clear facts.
 
+The first figure shows the six requested comparisons directly:
+
+![Legacy versus unified Markov metrics](figures/polymer_markov_legacy_vs_unified_20260510/legacy_vs_unified_metric_grid.png)
+
 1. Unified is not more nominal by raw move-difference norm.
    Its executed first-move and full-sequence differences are actually a bit larger than legacy on average.
 
@@ -93,6 +103,10 @@ The requested six signals show three clear facts.
 
 3. Legacy works because the teacher dominates for a long time.
    The first 10 episodes are essentially LS warm-start in the legacy run, and even the tail of the run is still heavily LS-driven.
+
+The second figure explains why that matters mechanistically:
+
+![Legacy versus unified Markov prediction diagnostics](figures/polymer_markov_legacy_vs_unified_20260510/legacy_vs_unified_prediction_diagnostics.png)
 
 ## Where does unified become nominal?
 

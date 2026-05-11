@@ -641,7 +641,11 @@ POLYMER_MARKOV_DEFAULTS = {
             "compare_start_episode": 2,
         },
     },
-    "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
+    "episode_defaults": {
+        **deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
+        "n_tests": 50,
+        "warm_start": 0,
+    },
     "controller": {
         "predict_h": 9,
         "cont_h": 3,
@@ -673,11 +677,10 @@ POLYMER_MARKOV_DEFAULTS = {
         "run_adaptive_ls": True,
         "run_live_corrected_mpc": True,
         "run_rl_proposal": True,
-        "rl_fallback_to_ls": False,
-        # Experiment switch: execute the TD3-requested Markov correction
-        # directly in the unified notebook path, bypassing LS/nominal fallback
-        # and acceptance gates so we can inspect the unconstrained policy effect.
-        "force_td3_execute": True,
+        "rl_fallback_to_ls": True,
+        # Keep the original guarded execution order in the unified notebook:
+        # TD3 proposal -> LS fallback -> nominal fallback.
+        "force_td3_execute": False,
         "rl_store_executed_action_in_replay": True,
         "rl_save_agent_checkpoint": True,
         "debug_validate_lifted": False,

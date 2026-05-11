@@ -27,7 +27,11 @@ from systems.polymer.data_io import (
     resolve_polymer_result_dir,
 )
 from systems.polymer.labels import POLYMER_SYSTEM_METADATA
-from systems.polymer.notebook_params import POLYMER_BASELINE_DEFAULTS, POLYMER_MATRIX_DEFAULTS
+from systems.polymer.notebook_params import (
+    POLYMER_BASELINE_DEFAULTS,
+    POLYMER_MARKOV_DEFAULTS,
+    POLYMER_MATRIX_DEFAULTS,
+)
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
 from utils.helpers import (
     apply_min_max,
@@ -37,6 +41,7 @@ from utils.helpers import (
     reverse_min_max,
 )
 from utils.plotting import compare_mpc_rl_from_dirs
+from utils.rewards import make_reward_fn_relative_QR
 
 
 def build_config(overrides=None):
@@ -84,6 +89,7 @@ def build_config(overrides=None):
         "rl_fallback_to_ls": True,
         "rl_store_executed_action_in_replay": True,
         "rl_save_agent_checkpoint": True,
+        "reward": deepcopy(POLYMER_MARKOV_DEFAULTS["reward"]),
         "td3_agent": deepcopy(matrix_nb["td3_agent"]),
         "save_outputs": True,
         "make_plots": True,
@@ -435,22 +441,7 @@ def legacy_mpc_reward(delta_y, delta_u, y_sp, Q_out, R_in):
 
 
 def make_compare_reward_fn(ctx):
-    def reward_fn(e_scaled, du_scaled, y_sp_phys=None):
-        if y_sp_phys is None:
-            y_sp_scaled_dev = np.zeros(ctx["C_aug"].shape[0], dtype=float)
-        else:
-            n_inputs = ctx["B_aug"].shape[1]
-            y_sp_scaled_dev = (
-                apply_min_max(
-                    np.asarray(y_sp_phys, float),
-                    ctx["system_data"]["data_min"][n_inputs:],
-                    ctx["system_data"]["data_max"][n_inputs:],
-                )
-                - ctx["y_ss_scaled"]
-            )
-        return legacy_mpc_reward(e_scaled, du_scaled, y_sp_scaled_dev, ctx["Q_out"], ctx["R_in"])
-
-    return reward_fn
+    return ctx["reward_fn"]
 
 
 def avg_by_episode(rewards, sub_episode_changes, time_in_sub_episodes):
@@ -495,6 +486,13 @@ def build_context(config):
     data_max = np.asarray(system_data["data_max"], float)
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
     y_sp_scenario = apply_min_max(y_sp_scenario_phys, data_min[n_inputs:], data_max[n_inputs:]) - y_ss_scaled
+    reward_cfg = deepcopy(config.get("reward", POLYMER_MARKOV_DEFAULTS["reward"]))
+    reward_params, reward_fn = make_reward_fn_relative_QR(
+        data_min,
+        data_max,
+        n_inputs=n_inputs,
+        **reward_cfg,
+    )
 
     y_sp, nFE, sub_episode_changes, time_in_sub_episodes, test_train_dict, warm_start_step, qi, qs, ha = (
         generate_setpoints_training_rl_gradually(
@@ -527,6 +525,7 @@ def build_context(config):
     Q_out = np.asarray([config["Q1_penalty"], config["Q2_penalty"]], float)
     R_in = np.asarray([config["R1_penalty"], config["R2_penalty"]], float)
     ss_scaled_inputs = np.asarray(system_data["u_ss_scaled"], float)
+    y_sp_phys = reverse_min_max(y_sp + y_ss_scaled, data_min[n_inputs:], data_max[n_inputs:])
     bounds = [
         (float(system_data["b_min"][inp]), float(system_data["b_max"][inp]))
         for _ in range(int(config["cont_h"]))
@@ -553,6 +552,9 @@ def build_context(config):
         "ss_scaled_inputs": ss_scaled_inputs,
         "y_ss_scaled": y_ss_scaled,
         "y_sp": y_sp,
+        "y_sp_phys": y_sp_phys,
+        "reward_params": reward_params,
+        "reward_fn": reward_fn,
         "nFE": int(nFE),
         "sub_episode_changes": sub_episode_changes,
         "time_in_sub_episodes": int(time_in_sub_episodes),
@@ -919,7 +921,7 @@ def run_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_markov, 
         history["xhat_after"][step + 1, :] = x_model
 
         delta_y = history["y_scaled_dev"][step + 1, :] - ctx["y_sp"][step, :]
-        history["rewards"][step] = legacy_mpc_reward(delta_y, du, ctx["y_sp"][step, :], ctx["Q_out"], ctx["R_in"])
+        history["rewards"][step] = float(ctx["reward_fn"](delta_y, du, ctx["y_sp_phys"][step, :]))
         history["z_log"][step, :] = z_exec
         history["z_executed_log"][step, :] = z_exec
         history["rl_executed_raw_action_log"][step, :] = raw_executed
@@ -1377,6 +1379,7 @@ def make_bundle(config, ctx, nominal, markov, shadow, phase1_metrics, summary, f
         "M_blocks_nominal": m_blocks,
         "basis_family": config["basis_family"],
         "basis_labels": basis_labels,
+        "reward_params": ctx["reward_params"],
         "phase1_metrics": phase1_metrics,
         "summary_metrics": summary,
         "episode_average_rewards": make_episode_reward_table(ctx, nominal, markov),
@@ -1517,7 +1520,7 @@ $$ S_{{\\mathrm{{pred}}}}(z)=\\sum_\\tau \\left(\\|W_y(Y_\\tau^{{\\mathrm{{meas}
 
 11. Fall back in a fixed order if TD3 is not accepted. If TD3 fails the filter, the controller tries the accepted LS correction. If LS is unavailable or fails, the controller applies nominal MPC. The replay action is the executed action, not merely the requested TD3 action.
 
-12. Advance the nonlinear plant and update replay. The selected first input move is applied to `PolymerCSTR`, the nominal observer updates, the existing closed-loop reward convention is computed, and the transition is pushed to TD3 replay on train steps. TD3 training starts only after the configured warm-start boundary.
+12. Advance the nonlinear plant and update replay. The selected first input move is applied to `PolymerCSTR`, the nominal observer updates, the shared unified relative-QR reward is computed, and the transition is pushed to TD3 replay on train steps. TD3 training starts only after the configured warm-start boundary.
 
 13. Save artifacts in the polymer result tree. The run writes `input_data.pkl`, summary tables, verification tables, Markov diagnostic figures, RL diagnostic logs, and the TD3 checkpoint under `Polymer/Results/polymer_markov_corrected_mpc/<timestamp>/`. Standard MPC comparison plots are generated with `compare_mpc_rl_from_dirs()` under `Polymer/Results/polymer_markov_compare_disturb/<timestamp>/`.
 
@@ -1543,7 +1546,7 @@ The live corrected controller solves both nominal and corrected lifted MPC. It e
 
 ## Phase 5: TD3 Markov proposal
 
-TD3 is enabled by default through `run_rl_proposal=True` and proposes normalized Markov correction coordinates in $[-1,1]$. The runner maps the raw action to $z_k$, stores the executed action in replay, and uses the existing closed-loop reward convention. Constrained LS remains the warm-start teacher and safety fallback. The TD3 accepted fraction is `{summary["td3_accepted_fraction"]:.4f}`, the LS fallback fraction is `{summary["ls_fallback_fraction"]:.4f}`, and the nominal fallback fraction is `{summary["nominal_fallback_fraction"]:.4f}`. This run pushed `{summary["rl_replay_push_count"]}` replay transitions and recorded `{summary["rl_train_update_count"]}` TD3 critic updates.
+TD3 is enabled by default through `run_rl_proposal=True` and proposes normalized Markov correction coordinates in $[-1,1]$. The runner maps the raw action to $z_k$, stores the executed action in replay, and uses the shared unified relative-QR reward. Constrained LS remains the warm-start teacher and safety fallback. The TD3 accepted fraction is `{summary["td3_accepted_fraction"]:.4f}`, the LS fallback fraction is `{summary["ls_fallback_fraction"]:.4f}`, and the nominal fallback fraction is `{summary["nominal_fallback_fraction"]:.4f}`. This run pushed `{summary["rl_replay_push_count"]}` replay transitions and recorded `{summary["rl_train_update_count"]}` TD3 critic updates.
 
 ## Result summary
 
@@ -1766,3 +1769,4 @@ if __name__ == "__main__":
     if args.basis_family is not None:
         overrides["basis_family"] = args.basis_family
     run_polymer_markov_correction(overrides)
+

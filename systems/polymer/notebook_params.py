@@ -641,11 +641,7 @@ POLYMER_MARKOV_DEFAULTS = {
             "compare_start_episode": 2,
         },
     },
-    "episode_defaults": {
-        **deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
-        "n_tests": 50,
-        "warm_start": 0,
-    },
+    "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
     "controller": {
         "predict_h": 9,
         "cont_h": 3,

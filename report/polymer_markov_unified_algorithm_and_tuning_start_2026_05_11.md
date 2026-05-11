@@ -223,6 +223,7 @@ Generated figures:
 - `report/figures/polymer_markov_unified_followup_20260511/latest_run_recovery_and_reward.png`
 - `report/figures/polymer_markov_unified_followup_20260511/latest_run_action_mix.png`
 - `report/figures/polymer_markov_unified_followup_20260511/latest_td3_decline_diagnostics.png`
+- `report/figures/polymer_markov_unified_followup_20260511/latest_test_episode_vs_nominal_mpc.png`
 - `report/figures/polymer_markov_unified_followup_20260511/summary.json`
 
 ### Main result
@@ -256,6 +257,25 @@ The latest bundle contains `200` episodes, with:
 ![Latest unified reward and action-source evolution](figures/polymer_markov_unified_followup_20260511/latest_run_action_mix.png)
 
 This means the good reward is not coming from a long hidden BC phase. The BC window is short and only stabilizes the first few live episodes after warm start.
+
+### Final test episode versus nominal MPC
+
+The final episode in the latest run is also a **test** episode, so it gives a clean RL-versus-nominal-MPC comparison without exploration noise.
+
+For that last test episode:
+
+| Metric | Markov RL | Nominal MPC |
+| --- | ---: | ---: |
+| Average reward | `-3.8908` | `-4.4174` |
+| Viscosity RMSE | `0.1830` | `0.1917` |
+| Temperature RMSE | `0.4502` | `0.5678` |
+| Viscosity IAE | `43.59` | `51.71` |
+| Temperature IAE | `104.94` | `212.30` |
+| Mean input-move norm | `1.0031` | `1.1915` |
+
+![Latest final test episode versus nominal MPC](figures/polymer_markov_unified_followup_20260511/latest_test_episode_vs_nominal_mpc.png)
+
+So the latest Markov controller is not only recovering average training-run reward. On the final held-out test episode it also outperforms nominal MPC in both outputs, with the clearest gain appearing in reactor temperature tracking.
 
 ### Why TD3 role becomes less and less
 

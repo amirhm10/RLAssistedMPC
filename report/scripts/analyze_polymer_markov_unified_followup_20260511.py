@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import pickle
+import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -9,8 +10,13 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from utils.helpers import apply_min_max, reverse_min_max
+
+
 LATEST_UNIFIED_RUN = REPO_ROOT / "Polymer" / "Results" / "td3_markov_disturb" / "20260511_120210"
 REGRESSION_UNIFIED_RUN = REPO_ROOT / "Polymer" / "Results" / "td3_markov_disturb" / "20260510_215724"
 LEGACY_RUN = REPO_ROOT / "Polymer" / "Results" / "polymer_markov_corrected_mpc" / "20260510_212956"
@@ -270,6 +276,123 @@ def _plot_td3_decline_diagnostics(latest: RunBundle, out_dir: Path) -> Path:
     return out_path
 
 
+def _final_test_episode_metrics(latest: RunBundle, mpc_bundle: dict) -> dict:
+    time_in_sub_episodes = int(latest.bundle["time_in_sub_episodes"])
+    rl_y = np.asarray(latest.bundle["y_line_full"], float)
+    rl_u = np.asarray(latest.bundle["u_step_full"], float)
+    mpc_y = np.asarray(mpc_bundle["y_mpc"], float)
+    mpc_u = np.asarray(mpc_bundle["u_mpc"], float)
+
+    rl_y_last = rl_y[-(time_in_sub_episodes + 1) :, :]
+    rl_u_last = rl_u[-time_in_sub_episodes:, :]
+    mpc_y_last = mpc_y[-(time_in_sub_episodes + 1) :, :]
+    mpc_u_last = mpc_u[-time_in_sub_episodes:, :]
+
+    data_min = np.asarray(latest.bundle["data_min"], float)
+    data_max = np.asarray(latest.bundle["data_max"], float)
+    n_inputs = int(rl_u_last.shape[1])
+    y_ss = np.asarray(latest.bundle["steady_states"]["y_ss"], float)
+    y_ss_scaled = apply_min_max(y_ss, data_min[n_inputs:], data_max[n_inputs:])
+    y_sp_scaled_dev = np.asarray(latest.bundle["y_sp"], float)[-time_in_sub_episodes:, :]
+    y_sp_phys = reverse_min_max(
+        y_sp_scaled_dev + y_ss_scaled,
+        data_min[n_inputs:],
+        data_max[n_inputs:],
+    )
+
+    rl_err = rl_y_last[1:, :] - y_sp_phys
+    mpc_err = mpc_y_last[1:, :] - y_sp_phys
+    rl_du = np.diff(np.vstack([rl_u_last[0:1, :], rl_u_last]), axis=0)
+    mpc_du = np.diff(np.vstack([mpc_u_last[0:1, :], mpc_u_last]), axis=0)
+
+    compare_rewards_path = latest.run_dir.parent.parent / "disturb_compare_td3_markov" / "20260511_120232" / "input_data.pkl"
+    avg_rl_last = float(latest.avg_rewards[-1])
+    avg_mpc_last = np.nan
+    if compare_rewards_path.exists():
+        with compare_rewards_path.open("rb") as handle:
+            cmp_bundle = pickle.load(handle)
+        avg_mpc = np.asarray(cmp_bundle.get("avg_rewards_mpc", []), float)
+        if avg_mpc.size:
+            avg_mpc_last = float(avg_mpc[-1])
+
+    return {
+        "avg_reward_rl_last_test_episode": avg_rl_last,
+        "avg_reward_mpc_last_test_episode": avg_mpc_last,
+        "eta_rmse_rl": float(np.sqrt(np.mean(np.square(rl_err[:, 0])))),
+        "eta_rmse_mpc": float(np.sqrt(np.mean(np.square(mpc_err[:, 0])))),
+        "temp_rmse_rl": float(np.sqrt(np.mean(np.square(rl_err[:, 1])))),
+        "temp_rmse_mpc": float(np.sqrt(np.mean(np.square(mpc_err[:, 1])))),
+        "eta_iae_rl": float(np.sum(np.abs(rl_err[:, 0]))),
+        "eta_iae_mpc": float(np.sum(np.abs(mpc_err[:, 0]))),
+        "temp_iae_rl": float(np.sum(np.abs(rl_err[:, 1]))),
+        "temp_iae_mpc": float(np.sum(np.abs(mpc_err[:, 1]))),
+        "input_move_norm_rl": float(np.mean(np.linalg.norm(rl_du, axis=1))),
+        "input_move_norm_mpc": float(np.mean(np.linalg.norm(mpc_du, axis=1))),
+    }
+
+
+def _plot_final_test_episode_compare(latest: RunBundle, mpc_bundle: dict, out_dir: Path) -> Path:
+    time_in_sub_episodes = int(latest.bundle["time_in_sub_episodes"])
+    delta_t = float(latest.bundle["delta_t"])
+    meta = dict(latest.bundle.get("system_metadata", {}))
+    output_labels = list(meta.get("output_labels", ["Output 1", "Output 2"]))
+    input_labels = list(meta.get("input_labels", ["Input 1", "Input 2"]))
+    time_label = str(meta.get("time_label", "Time"))
+
+    rl_y = np.asarray(latest.bundle["y_line_full"], float)[-(time_in_sub_episodes + 1) :, :]
+    rl_u = np.asarray(latest.bundle["u_step_full"], float)[-time_in_sub_episodes:, :]
+    mpc_y = np.asarray(mpc_bundle["y_mpc"], float)[-(time_in_sub_episodes + 1) :, :]
+    mpc_u = np.asarray(mpc_bundle["u_mpc"], float)[-time_in_sub_episodes:, :]
+
+    data_min = np.asarray(latest.bundle["data_min"], float)
+    data_max = np.asarray(latest.bundle["data_max"], float)
+    n_inputs = int(rl_u.shape[1])
+    y_ss = np.asarray(latest.bundle["steady_states"]["y_ss"], float)
+    y_ss_scaled = apply_min_max(y_ss, data_min[n_inputs:], data_max[n_inputs:])
+    y_sp_scaled_dev = np.asarray(latest.bundle["y_sp"], float)[-time_in_sub_episodes:, :]
+    y_sp_phys = reverse_min_max(
+        y_sp_scaled_dev + y_ss_scaled,
+        data_min[n_inputs:],
+        data_max[n_inputs:],
+    )
+
+    t_line = np.linspace(0.0, time_in_sub_episodes * delta_t, time_in_sub_episodes + 1)
+    t_step = t_line[:-1]
+
+    fig, axs = plt.subplots(2, 2, figsize=(12.8, 8.4), sharex="col")
+    for idx in range(2):
+        ax = axs[idx, 0]
+        ax.plot(t_line, rl_y[:, idx], color="#C84C09", linewidth=2.0, label="Markov RL")
+        ax.plot(t_line, mpc_y[:, idx], color="#0B6E4F", linewidth=1.8, linestyle="--", label="Nominal MPC")
+        ax.step(t_step, y_sp_phys[:, idx], where="post", color="0.35", linewidth=1.5, linestyle=":", label="Setpoint")
+        ax.set_ylabel(output_labels[idx])
+        ax.grid(alpha=0.25)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        if idx == 0:
+            ax.legend(loc="best", fontsize=9)
+
+        ax_u = axs[idx, 1]
+        ax_u.step(t_step, rl_u[:, idx], where="post", color="#C84C09", linewidth=2.0, label="Markov RL")
+        ax_u.step(t_step, mpc_u[:, idx], where="post", color="#0B6E4F", linewidth=1.8, linestyle="--", label="Nominal MPC")
+        ax_u.set_ylabel(input_labels[idx])
+        ax_u.grid(alpha=0.25)
+        ax_u.spines["top"].set_visible(False)
+        ax_u.spines["right"].set_visible(False)
+        if idx == 0:
+            ax_u.legend(loc="best", fontsize=9)
+
+    axs[1, 0].set_xlabel(time_label)
+    axs[1, 1].set_xlabel(time_label)
+    axs[0, 0].set_title("Final test episode outputs")
+    axs[0, 1].set_title("Final test episode inputs")
+    fig.tight_layout()
+    out_path = out_dir / "latest_test_episode_vs_nominal_mpc.png"
+    fig.savefig(out_path, dpi=220, bbox_inches="tight")
+    plt.close(fig)
+    return out_path
+
+
 def _summary(run: RunBundle) -> dict:
     n_ep = run.n_episodes
     src = run.action_source
@@ -321,11 +444,13 @@ def main() -> None:
     latest = _load_run("Latest unified", LATEST_UNIFIED_RUN)
     regression = _load_run("Pre-fix unified", REGRESSION_UNIFIED_RUN)
     legacy = _load_run("Legacy reference", LEGACY_RUN)
+    mpc_bundle = _load_pickle(REPO_ROOT / "Polymer" / "Data" / "mpc_results_dist.pickle")
 
     figure_paths = [
         _plot_reward_recovery(latest, regression, legacy, OUT_DIR),
         _plot_latest_action_mix(latest, OUT_DIR),
         _plot_td3_decline_diagnostics(latest, OUT_DIR),
+        _plot_final_test_episode_compare(latest, mpc_bundle, OUT_DIR),
     ]
 
     summary = {
@@ -333,6 +458,7 @@ def main() -> None:
         "latest_unified": _summary(latest),
         "pre_fix_unified": _summary(regression),
         "legacy_reference": _summary(legacy),
+        "latest_final_test_episode_vs_nominal_mpc": _final_test_episode_metrics(latest, mpc_bundle),
         "figure_paths": [str(path.relative_to(REPO_ROOT)) for path in figure_paths],
     }
     with (OUT_DIR / "summary.json").open("w", encoding="utf-8") as handle:

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-11T12:09:41",
+  "generated_at": "2026-05-11T12:17:57",
   "latest_unified": {
     "run_dir": "Polymer\\Results\\td3_markov_disturb\\20260511_120210",
     "n_episodes": 200,
@@ -81,9 +81,24 @@
     "requested_cost_pass_last50_episodes": 0.5999500000000001,
     "requested_ls_gap_norm_last50_episodes": 0.09450419198269726
   },
+  "latest_final_test_episode_vs_nominal_mpc": {
+    "avg_reward_rl_last_test_episode": -3.890820577266254,
+    "avg_reward_mpc_last_test_episode": -4.417364930715477,
+    "eta_rmse_rl": 0.18297232395762889,
+    "eta_rmse_mpc": 0.19169792731715596,
+    "temp_rmse_rl": 0.45018008423075334,
+    "temp_rmse_mpc": 0.5677967430583765,
+    "eta_iae_rl": 43.58652132030015,
+    "eta_iae_mpc": 51.70621634322039,
+    "temp_iae_rl": 104.94244633229829,
+    "temp_iae_mpc": 212.30312865989174,
+    "input_move_norm_rl": 1.0031329321152125,
+    "input_move_norm_mpc": 1.1915242243698108
+  },
   "figure_paths": [
     "report\\figures\\polymer_markov_unified_followup_20260511\\latest_run_recovery_and_reward.png",
     "report\\figures\\polymer_markov_unified_followup_20260511\\latest_run_action_mix.png",
-    "report\\figures\\polymer_markov_unified_followup_20260511\\latest_td3_decline_diagnostics.png"
+    "report\\figures\\polymer_markov_unified_followup_20260511\\latest_td3_decline_diagnostics.png",
+    "report\\figures\\polymer_markov_unified_followup_20260511\\latest_test_episode_vs_nominal_mpc.png"
   ]
 }

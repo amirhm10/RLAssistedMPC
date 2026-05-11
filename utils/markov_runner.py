@@ -806,11 +806,21 @@ def build_runtime_context(markov_cfg, runtime_ctx):
     if disturbance_schedule is None and str(markov_cfg["run_mode"]).lower() == "disturb":
         disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
 
+    system = runtime_ctx.get("system")
+    system_factory = runtime_ctx.get("system_factory")
+    if system is None and system_factory is None:
+        raise KeyError("runtime_ctx must provide either 'system' or 'system_factory'.")
+
+    delta_t = runtime_ctx.get("delta_t")
+    if delta_t is None:
+        delta_t = getattr(system, "delta_t", 0.5) if system is not None else 0.5
+
     return {
-        "system_factory": runtime_ctx["system_factory"],
+        "system": system,
+        "system_factory": system_factory,
         "system_stepper": runtime_ctx.get("system_stepper"),
         "system_teardown": runtime_ctx.get("system_teardown"),
-        "delta_t": float(runtime_ctx.get("delta_t", getattr(runtime_ctx["system_factory"](), "delta_t", 0.5))),
+        "delta_t": float(delta_t),
         "system_data": system_data,
         "system_metadata": system_metadata,
         "reward_fn": reward_fn,
@@ -884,7 +894,12 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 set_points_len=int(config["set_points_len"]),
             )
 
-    system = ctx["system_factory"]()
+    system = ctx.get("system")
+    if system is None:
+        system_factory = ctx.get("system_factory")
+        if not callable(system_factory):
+            raise ValueError("No usable system or system_factory was provided to the Markov runner.")
+        system = system_factory()
     try:
         L = compute_observer_gain(A, C, ctx["poles"])
         history["y_phys"][0, :] = np.asarray(system.current_output, float)

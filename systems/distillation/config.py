@@ -92,6 +92,12 @@ DISTILLATION_MATRIX_RUN_PROFILES = {
     ("sac", "disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
 }
 
+DISTILLATION_MARKOV_RUN_PROFILES = {
+    ("td3", "nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+    ("td3", "disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+    ("td3", "disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+}
+
 DISTILLATION_WEIGHT_RUN_PROFILES = {
     ("td3", "nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("td3", "disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
@@ -147,6 +153,7 @@ _FAMILY_FILE_MAP = {
     "horizon": {"none": "C2S_SS_simulation3.dynf", "ramp": "C2S_SS_simulation3.dynf", "fluctuation": "C2S_SS_simulation3.dynf"},
     "horizon_dueling": {"none": "C2S_SS_simulation4.dynf", "ramp": "C2S_SS_simulation4.dynf", "fluctuation": "C2S_SS_simulation4.dynf"},
     "matrix": {"none": "C2S_SS_simulation5.dynf", "ramp": "C2S_SS_simulation5.dynf", "fluctuation": "C2S_SS_simulation5.dynf"},
+    "markov": {"none": "C2S_SS_simulation11.dynf", "ramp": "C2S_SS_simulation11.dynf", "fluctuation": "C2S_SS_simulation11.dynf"},
     "structured_matrix": {"none": "C2S_SS_simulation6.dynf", "ramp": "C2S_SS_simulation6.dynf", "fluctuation": "C2S_SS_simulation6.dynf"},
     "weights": {"none": "C2S_SS_simulation7.dynf", "ramp": "C2S_SS_simulation7.dynf", "fluctuation": "C2S_SS_simulation7.dynf"},
     "residual": {"none": "C2S_SS_simulation8.dynf", "ramp": "C2S_SS_simulation8.dynf", "fluctuation": "C2S_SS_simulation8.dynf"},
@@ -180,6 +187,7 @@ def default_plant_paths(family, disturbance_profile):
         "horizon_standard": "horizon",
         "matrix_td3": "matrix",
         "matrix_sac": "matrix",
+        "markov_td3": "markov",
         "structured_matrix_td3": "structured_matrix",
         "structured_matrix_sac": "structured_matrix",
     }.get(family, family)

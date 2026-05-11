@@ -37,6 +37,21 @@ MARKOV_ACTION_SOURCE = {
 }
 
 
+def _truncate_disturbance_schedule(disturbance_schedule, n_steps):
+    if disturbance_schedule is None:
+        return None
+    n_steps = int(n_steps)
+    if isinstance(disturbance_schedule, dict):
+        return {
+            key: np.asarray(value, float)[:n_steps] if np.asarray(value).ndim > 0 else float(value)
+            for key, value in disturbance_schedule.items()
+        }
+    arr = np.asarray(disturbance_schedule, float)
+    if arr.ndim == 0:
+        return arr
+    return arr[:n_steps]
+
+
 def compute_markov_blocks(A, B, C, predict_h):
     A = np.asarray(A, float)
     B = np.asarray(B, float)
@@ -723,29 +738,41 @@ def build_runtime_context(markov_cfg, runtime_ctx):
     reward_params = runtime_ctx.get("reward_params", {})
     system_metadata = runtime_ctx.get("system_metadata")
 
-    (
-        y_sp,
-        nFE,
-        sub_episode_changes_dict,
-        time_in_sub_episodes,
-        test_train_dict,
-        warm_start_step,
-        qi,
-        qs,
-        ha,
-    ) = generate_setpoints_training_rl_gradually(
-        y_sp_scenario,
-        int(markov_cfg["n_tests"]),
-        int(markov_cfg["set_points_len"]),
-        int(markov_cfg["warm_start"]),
-        list(markov_cfg["test_cycle"]),
-        float(markov_cfg["nominal_qi"]),
-        float(markov_cfg["nominal_qs"]),
-        float(markov_cfg["nominal_ha"]),
-        float(markov_cfg["qi_change"]),
-        float(markov_cfg["qs_change"]),
-        float(markov_cfg["ha_change"]),
-    )
+    episode_bundle = runtime_ctx.get("episode_bundle")
+    if episode_bundle is None:
+        (
+            y_sp,
+            nFE,
+            sub_episode_changes_dict,
+            time_in_sub_episodes,
+            test_train_dict,
+            warm_start_step,
+            qi,
+            qs,
+            ha,
+        ) = generate_setpoints_training_rl_gradually(
+            y_sp_scenario,
+            int(markov_cfg["n_tests"]),
+            int(markov_cfg["set_points_len"]),
+            int(markov_cfg["warm_start"]),
+            list(markov_cfg["test_cycle"]),
+            float(markov_cfg.get("nominal_qi", 0.0)),
+            float(markov_cfg.get("nominal_qs", 0.0)),
+            float(markov_cfg.get("nominal_ha", 0.0)),
+            float(markov_cfg.get("qi_change", 1.0)),
+            float(markov_cfg.get("qs_change", 1.0)),
+            float(markov_cfg.get("ha_change", 1.0)),
+        )
+    else:
+        y_sp = np.asarray(episode_bundle["y_sp"], float)
+        nFE = int(episode_bundle["nFE"])
+        sub_episode_changes_dict = dict(episode_bundle["sub_episode_changes_dict"])
+        time_in_sub_episodes = int(episode_bundle["time_in_sub_episodes"])
+        test_train_dict = dict(episode_bundle["test_train_dict"])
+        warm_start_step = int(episode_bundle["warm_start_step"])
+        qi = np.asarray(episode_bundle.get("qi", np.zeros(nFE, dtype=float)), float)
+        qs = np.asarray(episode_bundle.get("qs", np.zeros(nFE, dtype=float)), float)
+        ha = np.asarray(episode_bundle.get("ha", np.zeros(nFE, dtype=float)), float)
 
     max_steps = markov_cfg.get("max_steps")
     if max_steps is not None:
@@ -773,15 +800,16 @@ def build_runtime_context(markov_cfg, runtime_ctx):
     )
     ss_scaled_inputs = np.asarray(system_data["u_ss_scaled"], float)
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
-    disturbance_schedule = None
-    if str(markov_cfg["run_mode"]).lower() == "disturb":
-        disturbance_schedule = runtime_ctx.get("disturbance_schedule")
-        if disturbance_schedule is None:
-            disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
+    disturbance_schedule = runtime_ctx.get("disturbance_schedule")
+    if max_steps is not None:
+        disturbance_schedule = _truncate_disturbance_schedule(disturbance_schedule, nFE)
+    if disturbance_schedule is None and str(markov_cfg["run_mode"]).lower() == "disturb":
+        disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
 
     return {
         "system_factory": runtime_ctx["system_factory"],
         "system_stepper": runtime_ctx.get("system_stepper"),
+        "system_teardown": runtime_ctx.get("system_teardown"),
         "delta_t": float(runtime_ctx.get("delta_t", getattr(runtime_ctx["system_factory"](), "delta_t", 0.5))),
         "system_data": system_data,
         "system_metadata": system_metadata,
@@ -857,299 +885,263 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             )
 
     system = ctx["system_factory"]()
-    L = compute_observer_gain(A, C, ctx["poles"])
-    history["y_phys"][0, :] = np.asarray(system.current_output, float)
-    history["y_scaled_dev"][0, :] = (
-        apply_min_max(system.current_output, ctx["data_min"][nu:], ctx["data_max"][nu:]) - ctx["y_ss_scaled"]
-    )
-
-    x_model = np.zeros(A.shape[0], dtype=float)
-    x_init = np.zeros(control_horizon * nu, dtype=float)
-    z_prev = np.zeros(z_dim, dtype=float)
-    last_raw_action = None
-    last_action_test = None
-    pending_transition = None
-    avg_rewards = []
-
-    def flush_pending_transition(next_state, done):
-        nonlocal pending_transition
-        if pending_transition is None or rl_agent is None:
-            return
-
-        pending_step = int(pending_transition["step"])
-        bc_context = resolve_behavioral_cloning_context(
-            bc_schedule,
-            step_idx=pending_step,
-            target_action=pending_transition["bc_target_action"],
+    try:
+        L = compute_observer_gain(A, C, ctx["poles"])
+        history["y_phys"][0, :] = np.asarray(system.current_output, float)
+        history["y_scaled_dev"][0, :] = (
+            apply_min_max(system.current_output, ctx["data_min"][nu:], ctx["data_max"][nu:]) - ctx["y_ss_scaled"]
         )
-        train_info = replay_train_continuous_agent(
-            agent=rl_agent,
-            state=pending_transition["state"],
-            action=pending_transition["action"],
-            reward=pending_transition["reward"],
-            next_state=next_state,
-            done=done,
-            step=pending_step,
-            test=pending_transition["test"],
-            train_start_step=ctx["warm_start_step"],
-            bc_context=bc_context,
-        )
-        history["rl_replay_pushed_log"][pending_step] = int(train_info["pushed"])
-        history["rl_train_called_log"][pending_step] = int(train_info["trained"])
-        train_meta = train_info.get("train_meta")
-        if train_meta is not None:
-            history["rl_train_updated_log"][pending_step] = int(train_meta.get("critic_updated", False))
-            if train_meta.get("actor_loss") is not None:
-                history["rl_actor_loss_log"][pending_step] = float(train_meta["actor_loss"])
-            if train_meta.get("critic_loss") is not None:
-                history["rl_critic_loss_log"][pending_step] = float(train_meta["critic_loss"])
-            if train_meta.get("bc_loss") is not None:
-                history["rl_bc_loss_log"][pending_step] = float(train_meta["bc_loss"])
-        record_behavioral_cloning_step(
-            bc_logs,
-            step_idx=pending_step,
-            bc_context=bc_context,
-            policy_action=pending_transition["policy_action"],
-            target_action=pending_transition["bc_target_action"],
-            train_meta=train_meta,
-        )
+
+        x_model = np.zeros(A.shape[0], dtype=float)
+        x_init = np.zeros(control_horizon * nu, dtype=float)
+        z_prev = np.zeros(z_dim, dtype=float)
+        last_raw_action = None
+        last_action_test = None
         pending_transition = None
+        avg_rewards = []
 
-    def evaluate_markov_candidate(z_candidate, u_prev_dev, x_model_now, nominal_guess, nominal_cost):
-        mz_candidate = apply_markov_correction(m_blocks, basis_blocks, z_candidate)
-        G_candidate = build_toeplitz_from_markov(mz_candidate, predict_h, control_horizon)
-        candidate_drift = gain_drift(G_candidate, G0)
-        U_candidate, J_candidate, sol_candidate = solve_lifted_mpc(
-            ctx["y_sp"][step],
-            u_prev_dev,
-            x_model_now,
-            A,
-            C,
-            G_candidate,
-            config["Q_out"],
-            config["R_in"],
-            predict_h,
-            control_horizon,
-            ctx["bounds"],
-            nominal_guess,
-        )
-        nominal_cost_of_candidate = lifted_mpc_cost(
-            U_candidate,
-            ctx["y_sp"][step],
-            u_prev_dev,
-            free_response(A, C, x_model_now, predict_h),
-            G0,
-            config["Q_out"],
-            config["R_in"],
-            predict_h,
-            control_horizon,
-        )
-        loose_tol = float(config["nominal_cost_absolute_tol"]) + float(config["nominal_cost_relative_tol"]) * abs(
-            float(nominal_cost)
-        )
-        return {
-            "U": U_candidate,
-            "J": J_candidate,
-            "sol": sol_candidate,
-            "drift": candidate_drift,
-            "nominal_cost": nominal_cost_of_candidate,
-            "cost_guard_pass": nominal_cost_of_candidate <= float(nominal_cost) + loose_tol,
-        }
+        def flush_pending_transition(next_state, done):
+            nonlocal pending_transition
+            if pending_transition is None or rl_agent is None:
+                return
 
-    for step in range(nFE):
-        scaled_current_input = apply_min_max(system.current_input, ctx["data_min"][:nu], ctx["data_max"][:nu])
-        u_prev_dev = scaled_current_input - ctx["ss_scaled_inputs"]
-        history["xhat_before"][step, :] = x_model
-        yhat = C @ x_model
-        history["yhat"][:, step] = yhat
+            pending_step = int(pending_transition["step"])
+            bc_context = resolve_behavioral_cloning_context(
+                bc_schedule,
+                step_idx=pending_step,
+                target_action=pending_transition["bc_target_action"],
+            )
+            train_info = replay_train_continuous_agent(
+                agent=rl_agent,
+                state=pending_transition["state"],
+                action=pending_transition["action"],
+                reward=pending_transition["reward"],
+                next_state=next_state,
+                done=done,
+                step=pending_step,
+                test=pending_transition["test"],
+                train_start_step=ctx["warm_start_step"],
+                bc_context=bc_context,
+            )
+            history["rl_replay_pushed_log"][pending_step] = int(train_info["pushed"])
+            history["rl_train_called_log"][pending_step] = int(train_info["trained"])
+            train_meta = train_info.get("train_meta")
+            if train_meta is not None:
+                history["rl_train_updated_log"][pending_step] = int(train_meta.get("critic_updated", False))
+                if train_meta.get("actor_loss") is not None:
+                    history["rl_actor_loss_log"][pending_step] = float(train_meta["actor_loss"])
+                if train_meta.get("critic_loss") is not None:
+                    history["rl_critic_loss_log"][pending_step] = float(train_meta["critic_loss"])
+                if train_meta.get("bc_loss") is not None:
+                    history["rl_bc_loss_log"][pending_step] = float(train_meta["bc_loss"])
+            record_behavioral_cloning_step(
+                bc_logs,
+                step_idx=pending_step,
+                bc_context=bc_context,
+                policy_action=pending_transition["policy_action"],
+                target_action=pending_transition["bc_target_action"],
+                train_meta=train_meta,
+            )
+            pending_transition = None
 
-        nominal_guess = x_init if bool(config.get("use_shifted_mpc_warm_start", False)) else np.zeros(
-            control_horizon * nu, dtype=float
-        )
-        U0, J0, sol0 = solve_nominal_reference_step(
-            nominal_solver_mode=nominal_solver_mode,
-            mpc_obj=ctx["MPC_obj"],
-            y_sp=ctx["y_sp"][step],
-            u_prev_dev=u_prev_dev,
-            x0_model=x_model,
-            A=A,
-            C=C,
-            G0=G0,
-            Q_out=config["Q_out"],
-            R_in=config["R_in"],
-            predict_h=predict_h,
-            control_horizon=control_horizon,
-            bounds=ctx["bounds"],
-            x_init=nominal_guess,
-        )
-        _record_nominal_stage(history, step, U0, J0, nu)
-        U_exec = U0.copy()
-        z_exec = np.zeros(z_dim, dtype=float)
-        accepted = False
-        fallback = True
-        action_source = 0
-        raw_requested = np.zeros(z_dim, dtype=float)
-        raw_executed = np.zeros(z_dim, dtype=float)
-        score = {
-            "score": 0.0,
-            "nominal_sse": np.nan,
-            "corrected_sse": np.nan,
-            "n_windows": 0,
-        }
-        ls_score = dict(score)
-        drift = 0.0
-        ls_drift = 0.0
-        ls_accepted = False
-        z_ls = np.zeros(z_dim, dtype=float)
-        U_ls = None
-        ls_eval = None
-        rl_eval = None
-        rl_score = None
-        executed_eval = {
-            "U": U0.copy(),
-            "J": float(J0),
-            "nominal_cost": float(J0),
-            "cost_guard_pass": True,
-            "drift": 0.0,
-        }
-        executed_score = score
-
-        if use_markov and bool(config.get("run_adaptive_ls", True)) and step >= predict_h:
-            z_ls, _ls_result, ls_score = fit_markov_ls_correction(
-                z_prev,
-                z_bounds,
-                history,
-                m_blocks,
-                basis_blocks,
-                G0,
+        def evaluate_markov_candidate(z_candidate, u_prev_dev, x_model_now, nominal_guess, nominal_cost):
+            mz_candidate = apply_markov_correction(m_blocks, basis_blocks, z_candidate)
+            G_candidate = build_toeplitz_from_markov(mz_candidate, predict_h, control_horizon)
+            candidate_drift = gain_drift(G_candidate, G0)
+            U_candidate, J_candidate, sol_candidate = solve_lifted_mpc(
+                ctx["y_sp"][step],
+                u_prev_dev,
+                x_model_now,
                 A,
                 C,
+                G_candidate,
+                config["Q_out"],
+                config["R_in"],
                 predict_h,
                 control_horizon,
-                Wy,
-                float(config["lambda_z"]),
-                step,
-                int(config["prediction_window"]),
+                ctx["bounds"],
+                nominal_guess,
             )
-            ls_eval = evaluate_markov_candidate(z_ls, u_prev_dev, x_model, U0, J0)
-            ls_drift = float(ls_eval["drift"])
-            ls_accepted = bool(
-                sol0.success
-                and ls_eval["sol"].success
-                and ls_score["score"] > float(config["s_pred_min"])
-                and ls_drift <= float(config["gain_drift_max"])
-                and ls_eval["cost_guard_pass"]
+            nominal_cost_of_candidate = lifted_mpc_cost(
+                U_candidate,
+                ctx["y_sp"][step],
+                u_prev_dev,
+                free_response(A, C, x_model_now, predict_h),
+                G0,
+                config["Q_out"],
+                config["R_in"],
+                predict_h,
+                control_horizon,
             )
-            if ls_accepted:
-                U_ls = ls_eval["U"]
-            _record_candidate_stage(history, step, "ls", ls_eval["U"], ls_eval, ls_score, U0, J0, nu)
+            loose_tol = float(config["nominal_cost_absolute_tol"]) + float(config["nominal_cost_relative_tol"]) * abs(
+                float(nominal_cost)
+            )
+            return {
+                "U": U_candidate,
+                "J": J_candidate,
+                "sol": sol_candidate,
+                "drift": candidate_drift,
+                "nominal_cost": nominal_cost_of_candidate,
+                "cost_guard_pass": nominal_cost_of_candidate <= float(nominal_cost) + loose_tol,
+            }
 
-        z_ls_safe = z_ls if ls_accepted else np.zeros(z_dim, dtype=float)
-        innovation = history["y_scaled_dev"][step, :] - yhat
-        tracking_error = history["y_scaled_dev"][step, :] - ctx["y_sp"][step, :]
-        rl_state = markov_rl_state(
-            x_model,
-            tracking_error,
-            innovation,
-            u_prev_dev,
-            z_prev,
-            z_ls_safe,
-            ls_score["score"],
-            ls_drift,
-        )
-        history["rl_state_log"][step, :] = rl_state
-        history["rl_ls_z_log"][step, :] = z_ls
-        bc_target_raw = np.zeros(z_dim, dtype=float)
-        bc_target_is_ls = False
+        for step in range(nFE):
+            scaled_current_input = apply_min_max(system.current_input, ctx["data_min"][:nu], ctx["data_max"][:nu])
+            u_prev_dev = scaled_current_input - ctx["ss_scaled_inputs"]
+            history["xhat_before"][step, :] = x_model
+            yhat = C @ x_model
+            history["yhat"][:, step] = yhat
 
-        flush_pending_transition(rl_state, 0.0)
+            nominal_guess = x_init if bool(config.get("use_shifted_mpc_warm_start", False)) else np.zeros(
+                control_horizon * nu, dtype=float
+            )
+            U0, J0, sol0 = solve_nominal_reference_step(
+                nominal_solver_mode=nominal_solver_mode,
+                mpc_obj=ctx["MPC_obj"],
+                y_sp=ctx["y_sp"][step],
+                u_prev_dev=u_prev_dev,
+                x0_model=x_model,
+                A=A,
+                C=C,
+                G0=G0,
+                Q_out=config["Q_out"],
+                R_in=config["R_in"],
+                predict_h=predict_h,
+                control_horizon=control_horizon,
+                bounds=ctx["bounds"],
+                x_init=nominal_guess,
+            )
+            _record_nominal_stage(history, step, U0, J0, nu)
+            U_exec = U0.copy()
+            z_exec = np.zeros(z_dim, dtype=float)
+            accepted = False
+            fallback = True
+            action_source = 0
+            raw_requested = np.zeros(z_dim, dtype=float)
+            raw_executed = np.zeros(z_dim, dtype=float)
+            score = {
+                "score": 0.0,
+                "nominal_sse": np.nan,
+                "corrected_sse": np.nan,
+                "n_windows": 0,
+            }
+            ls_score = dict(score)
+            drift = 0.0
+            ls_drift = 0.0
+            ls_accepted = False
+            z_ls = np.zeros(z_dim, dtype=float)
+            U_ls = None
+            ls_eval = None
+            rl_eval = None
+            rl_score = None
+            executed_eval = {
+                "U": U0.copy(),
+                "J": float(J0),
+                "nominal_cost": float(J0),
+                "cost_guard_pass": True,
+                "drift": 0.0,
+            }
+            executed_score = score
 
-        if use_markov and bool(config.get("run_live_corrected_mpc", True)) and step >= predict_h:
-            if rl_agent is not None:
-                baseline_raw = z_to_raw_action(z_ls_safe, config["z_bound"])
-                bc_target_raw = baseline_raw.copy()
-                bc_target_is_ls = bool(ls_accepted and U_ls is not None)
-                test_step = bool(test_flags[step])
-                decision = select_continuous_action(
-                    agent=rl_agent,
-                    state=rl_state,
-                    step=step,
-                    warm_start_step=action_warm_start_step,
-                    decision_interval=int(config.get("decision_interval", 1)),
-                    last_action=last_raw_action,
-                    last_action_test=last_action_test,
-                    test=test_step,
-                    baseline_action=baseline_raw,
-                    action_dim=z_dim,
-                    nonfinite_fallback=True,
+            if use_markov and bool(config.get("run_adaptive_ls", True)) and step >= predict_h:
+                z_ls, _ls_result, ls_score = fit_markov_ls_correction(
+                    z_prev,
+                    z_bounds,
+                    history,
+                    m_blocks,
+                    basis_blocks,
+                    G0,
+                    A,
+                    C,
+                    predict_h,
+                    control_horizon,
+                    Wy,
+                    float(config["lambda_z"]),
+                    step,
+                    int(config["prediction_window"]),
                 )
-                raw_requested = np.asarray(decision.action, float).reshape(-1)
-                last_raw_action = decision.last_action
-                last_action_test = decision.last_action_test
-                history["rl_decision_taken_log"][step] = int(decision.decision_taken)
-                history["rl_policy_source_log"][step] = int(decision.source)
-                history["rl_test_step_log"][step] = int(test_step)
+                ls_eval = evaluate_markov_candidate(z_ls, u_prev_dev, x_model, U0, J0)
+                ls_drift = float(ls_eval["drift"])
+                ls_accepted = bool(
+                    sol0.success
+                    and ls_eval["sol"].success
+                    and ls_score["score"] > float(config["s_pred_min"])
+                    and ls_drift <= float(config["gain_drift_max"])
+                    and ls_eval["cost_guard_pass"]
+                )
+                if ls_accepted:
+                    U_ls = ls_eval["U"]
+                _record_candidate_stage(history, step, "ls", ls_eval["U"], ls_eval, ls_score, U0, J0, nu)
 
-                z_requested = raw_action_to_z(raw_requested, config["z_bound"])
-                history["rl_requested_raw_action_log"][step, :] = raw_requested
-                history["rl_requested_z_log"][step, :] = z_requested
-                history["z_proposed_log"][step, :] = z_requested
+            z_ls_safe = z_ls if ls_accepted else np.zeros(z_dim, dtype=float)
+            innovation = history["y_scaled_dev"][step, :] - yhat
+            tracking_error = history["y_scaled_dev"][step, :] - ctx["y_sp"][step, :]
+            rl_state = markov_rl_state(
+                x_model,
+                tracking_error,
+                innovation,
+                u_prev_dev,
+                z_prev,
+                z_ls_safe,
+                ls_score["score"],
+                ls_drift,
+            )
+            history["rl_state_log"][step, :] = rl_state
+            history["rl_ls_z_log"][step, :] = z_ls
+            bc_target_raw = np.zeros(z_dim, dtype=float)
+            bc_target_is_ls = False
 
-                if force_td3_execute:
-                    rl_score = prediction_improvement_score(
-                        z=z_requested,
-                        history=history,
-                        m_blocks=m_blocks,
-                        basis_blocks=basis_blocks,
-                        G0=G0,
-                        A=A,
-                        C=C,
-                        predict_h=predict_h,
-                        control_horizon=control_horizon,
-                        Wy=Wy,
-                        lambda_z=float(config["lambda_z"]),
-                        current_step=step,
-                        prediction_window=int(config["prediction_window"]),
+            flush_pending_transition(rl_state, 0.0)
+
+            if use_markov and bool(config.get("run_live_corrected_mpc", True)) and step >= predict_h:
+                if rl_agent is not None:
+                    baseline_raw = z_to_raw_action(z_ls_safe, config["z_bound"])
+                    bc_target_raw = baseline_raw.copy()
+                    bc_target_is_ls = bool(ls_accepted and U_ls is not None)
+                    test_step = bool(test_flags[step])
+                    decision = select_continuous_action(
+                        agent=rl_agent,
+                        state=rl_state,
+                        step=step,
+                        warm_start_step=action_warm_start_step,
+                        decision_interval=int(config.get("decision_interval", 1)),
+                        last_action=last_raw_action,
+                        last_action_test=last_action_test,
+                        test=test_step,
+                        baseline_action=baseline_raw,
+                        action_dim=z_dim,
+                        nonfinite_fallback=True,
                     )
-                    rl_eval = evaluate_markov_candidate(z_requested, u_prev_dev, x_model, U0, J0)
-                    _record_candidate_stage(history, step, "requested", rl_eval["U"], rl_eval, rl_score, U0, J0, nu)
-                    U_exec = rl_eval["U"]
-                    z_exec = z_requested
-                    raw_executed = raw_requested
-                    score = rl_score
-                    drift = float(rl_eval["drift"])
-                    accepted = True
-                    fallback = False
-                    action_source = 2
-                    z_prev = z_exec
-                    executed_eval = rl_eval
-                    executed_score = rl_score
-                elif step > ctx["warm_start_step"]:
-                    rl_score = prediction_improvement_score(
-                        z=z_requested,
-                        history=history,
-                        m_blocks=m_blocks,
-                        basis_blocks=basis_blocks,
-                        G0=G0,
-                        A=A,
-                        C=C,
-                        predict_h=predict_h,
-                        control_horizon=control_horizon,
-                        Wy=Wy,
-                        lambda_z=float(config["lambda_z"]),
-                        current_step=step,
-                        prediction_window=int(config["prediction_window"]),
-                    )
-                    rl_eval = evaluate_markov_candidate(z_requested, u_prev_dev, x_model, U0, J0)
-                    _record_candidate_stage(history, step, "requested", rl_eval["U"], rl_eval, rl_score, U0, J0, nu)
-                    rl_accepted = bool(
-                        sol0.success
-                        and rl_eval["sol"].success
-                        and rl_score["score"] > float(config["s_pred_min"])
-                        and rl_eval["drift"] <= float(config["gain_drift_max"])
-                        and rl_eval["cost_guard_pass"]
-                    )
-                    if rl_accepted:
+                    raw_requested = np.asarray(decision.action, float).reshape(-1)
+                    last_raw_action = decision.last_action
+                    last_action_test = decision.last_action_test
+                    history["rl_decision_taken_log"][step] = int(decision.decision_taken)
+                    history["rl_policy_source_log"][step] = int(decision.source)
+                    history["rl_test_step_log"][step] = int(test_step)
+
+                    z_requested = raw_action_to_z(raw_requested, config["z_bound"])
+                    history["rl_requested_raw_action_log"][step, :] = raw_requested
+                    history["rl_requested_z_log"][step, :] = z_requested
+                    history["z_proposed_log"][step, :] = z_requested
+
+                    if force_td3_execute:
+                        rl_score = prediction_improvement_score(
+                            z=z_requested,
+                            history=history,
+                            m_blocks=m_blocks,
+                            basis_blocks=basis_blocks,
+                            G0=G0,
+                            A=A,
+                            C=C,
+                            predict_h=predict_h,
+                            control_horizon=control_horizon,
+                            Wy=Wy,
+                            lambda_z=float(config["lambda_z"]),
+                            current_step=step,
+                            prediction_window=int(config["prediction_window"]),
+                        )
+                        rl_eval = evaluate_markov_candidate(z_requested, u_prev_dev, x_model, U0, J0)
+                        _record_candidate_stage(history, step, "requested", rl_eval["U"], rl_eval, rl_score, U0, J0, nu)
                         U_exec = rl_eval["U"]
                         z_exec = z_requested
                         raw_executed = raw_requested
@@ -1161,15 +1153,67 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         z_prev = z_exec
                         executed_eval = rl_eval
                         executed_score = rl_score
-                    elif bool(config.get("rl_fallback_to_ls", True)) and ls_accepted and U_ls is not None:
+                    elif step > ctx["warm_start_step"]:
+                        rl_score = prediction_improvement_score(
+                            z=z_requested,
+                            history=history,
+                            m_blocks=m_blocks,
+                            basis_blocks=basis_blocks,
+                            G0=G0,
+                            A=A,
+                            C=C,
+                            predict_h=predict_h,
+                            control_horizon=control_horizon,
+                            Wy=Wy,
+                            lambda_z=float(config["lambda_z"]),
+                            current_step=step,
+                            prediction_window=int(config["prediction_window"]),
+                        )
+                        rl_eval = evaluate_markov_candidate(z_requested, u_prev_dev, x_model, U0, J0)
+                        _record_candidate_stage(history, step, "requested", rl_eval["U"], rl_eval, rl_score, U0, J0, nu)
+                        rl_accepted = bool(
+                            sol0.success
+                            and rl_eval["sol"].success
+                            and rl_score["score"] > float(config["s_pred_min"])
+                            and rl_eval["drift"] <= float(config["gain_drift_max"])
+                            and rl_eval["cost_guard_pass"]
+                        )
+                        if rl_accepted:
+                            U_exec = rl_eval["U"]
+                            z_exec = z_requested
+                            raw_executed = raw_requested
+                            score = rl_score
+                            drift = float(rl_eval["drift"])
+                            accepted = True
+                            fallback = False
+                            action_source = 2
+                            z_prev = z_exec
+                            executed_eval = rl_eval
+                            executed_score = rl_score
+                        elif bool(config.get("rl_fallback_to_ls", True)) and ls_accepted and U_ls is not None:
+                            U_exec = U_ls
+                            z_exec = z_ls
+                            raw_executed = z_to_raw_action(z_ls, config["z_bound"])
+                            score = ls_score
+                            drift = ls_drift
+                            accepted = True
+                            fallback = True
+                            action_source = 3
+                            z_prev = z_exec
+                            executed_eval = ls_eval
+                            executed_score = ls_score
+                        else:
+                            raw_executed = np.zeros(z_dim, dtype=float)
+                            action_source = 4
+                    elif ls_accepted and U_ls is not None:
                         U_exec = U_ls
                         z_exec = z_ls
-                        raw_executed = z_to_raw_action(z_ls, config["z_bound"])
+                        raw_executed = baseline_raw
                         score = ls_score
                         drift = ls_drift
                         accepted = True
-                        fallback = True
-                        action_source = 3
+                        fallback = False
+                        action_source = 1
                         z_prev = z_exec
                         executed_eval = ls_eval
                         executed_score = ls_score
@@ -1179,148 +1223,141 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 elif ls_accepted and U_ls is not None:
                     U_exec = U_ls
                     z_exec = z_ls
-                    raw_executed = baseline_raw
+                    raw_requested = z_to_raw_action(z_ls, config["z_bound"])
+                    raw_executed = raw_requested
                     score = ls_score
                     drift = ls_drift
                     accepted = True
                     fallback = False
-                    action_source = 1
+                    action_source = 5
                     z_prev = z_exec
                     executed_eval = ls_eval
                     executed_score = ls_score
-                else:
-                    raw_executed = np.zeros(z_dim, dtype=float)
-                    action_source = 4
-            elif ls_accepted and U_ls is not None:
-                U_exec = U_ls
-                z_exec = z_ls
-                raw_requested = z_to_raw_action(z_ls, config["z_bound"])
-                raw_executed = raw_requested
-                score = ls_score
-                drift = ls_drift
-                accepted = True
-                fallback = False
-                action_source = 5
-                z_prev = z_exec
-                executed_eval = ls_eval
-                executed_score = ls_score
-                bc_target_raw = raw_executed.copy()
-                bc_target_is_ls = True
+                    bc_target_raw = raw_executed.copy()
+                    bc_target_is_ls = True
 
-        _record_candidate_stage(history, step, "executed", U_exec, executed_eval, executed_score, U0, J0, nu)
-        u_dev = U_exec[:nu]
-        u_scaled_abs = u_dev + ctx["ss_scaled_inputs"]
-        u_phys = reverse_min_max(u_scaled_abs, ctx["data_min"][:nu], ctx["data_max"][:nu])
-        du = u_dev - u_prev_dev
+            _record_candidate_stage(history, step, "executed", U_exec, executed_eval, executed_score, U0, J0, nu)
+            u_dev = U_exec[:nu]
+            u_scaled_abs = u_dev + ctx["ss_scaled_inputs"]
+            u_phys = reverse_min_max(u_scaled_abs, ctx["data_min"][:nu], ctx["data_max"][:nu])
+            du = u_dev - u_prev_dev
 
-        system.current_input = u_phys
-        step_system_with_disturbance(
-            system,
-            idx=step if ctx["run_mode"] == "disturb" else None,
-            disturbance_schedule=ctx["disturbance_schedule"],
-            system_stepper=ctx["system_stepper"],
-        )
+            system.current_input = u_phys
+            step_system_with_disturbance(
+                system,
+                idx=step if ctx["run_mode"] == "disturb" else None,
+                disturbance_schedule=ctx["disturbance_schedule"],
+                system_stepper=ctx["system_stepper"],
+            )
 
-        history["u_phys_log"][step, :] = u_phys
-        history["u_scaled_abs_log"][step, :] = u_scaled_abs
-        history["u_dev_log"][step, :] = u_dev
-        history["du_log"][step, :] = du
-        history["y_phys"][step + 1, :] = np.asarray(system.current_output, float)
-        y_current_scaled = (
-            apply_min_max(system.current_output, ctx["data_min"][nu:], ctx["data_max"][nu:]) - ctx["y_ss_scaled"]
-        )
-        history["y_scaled_dev"][step + 1, :] = y_current_scaled
+            history["u_phys_log"][step, :] = u_phys
+            history["u_scaled_abs_log"][step, :] = u_scaled_abs
+            history["u_dev_log"][step, :] = u_dev
+            history["du_log"][step, :] = du
+            history["y_phys"][step + 1, :] = np.asarray(system.current_output, float)
+            y_current_scaled = (
+                apply_min_max(system.current_output, ctx["data_min"][nu:], ctx["data_max"][nu:]) - ctx["y_ss_scaled"]
+            )
+            history["y_scaled_dev"][step + 1, :] = y_current_scaled
 
-        if ctx["observer_alignment"] == "predictor_corrector_current":
-            x_pred = A @ x_model + B @ u_dev
-            y_pred_next = C @ x_pred
-            x_model = x_pred + L @ (y_current_scaled - y_pred_next).T
-            history["yhat"][:, step] = C @ x_model
-        else:
-            x_model = A @ x_model + B @ u_dev + L @ innovation
-        history["xhat_after"][step + 1, :] = x_model
+            if ctx["observer_alignment"] == "predictor_corrector_current":
+                x_pred = A @ x_model + B @ u_dev
+                y_pred_next = C @ x_pred
+                x_model = x_pred + L @ (y_current_scaled - y_pred_next).T
+                history["yhat"][:, step] = C @ x_model
+            else:
+                x_model = A @ x_model + B @ u_dev + L @ innovation
+            history["xhat_after"][step + 1, :] = x_model
 
-        delta_y = history["y_scaled_dev"][step + 1, :] - ctx["y_sp"][step, :]
-        y_sp_phys = reverse_min_max(
-            ctx["y_sp"][step, :] + ctx["y_ss_scaled"],
-            ctx["data_min"][nu:],
-            ctx["data_max"][nu:],
-        )
-        history["rewards"][step] = float(ctx["reward_fn"](delta_y, du, y_sp_phys))
-        history["z_log"][step, :] = z_exec
-        history["z_executed_log"][step, :] = z_exec
-        history["rl_executed_raw_action_log"][step, :] = raw_executed
-        history["rl_action_source_log"][step] = int(action_source)
-        history["s_pred_log"][step] = float(score["score"])
-        history["gain_drift_log"][step] = float(drift)
-        history["accepted_log"][step] = int(accepted)
-        history["fallback_log"][step] = int(fallback)
-        history["prediction_error_nominal_log"][step] = (
-            float(score["nominal_sse"]) if np.isfinite(score["nominal_sse"]) else np.nan
-        )
-        history["prediction_error_markov_log"][step] = (
-            float(score["corrected_sse"]) if np.isfinite(score["corrected_sse"]) else np.nan
-        )
+            delta_y = history["y_scaled_dev"][step + 1, :] - ctx["y_sp"][step, :]
+            y_sp_phys = reverse_min_max(
+                ctx["y_sp"][step, :] + ctx["y_ss_scaled"],
+                ctx["data_min"][nu:],
+                ctx["data_max"][nu:],
+            )
+            history["rewards"][step] = float(ctx["reward_fn"](delta_y, du, y_sp_phys))
+            history["z_log"][step, :] = z_exec
+            history["z_executed_log"][step, :] = z_exec
+            history["rl_executed_raw_action_log"][step, :] = raw_executed
+            history["rl_action_source_log"][step] = int(action_source)
+            history["s_pred_log"][step] = float(score["score"])
+            history["gain_drift_log"][step] = float(drift)
+            history["accepted_log"][step] = int(accepted)
+            history["fallback_log"][step] = int(fallback)
+            history["prediction_error_nominal_log"][step] = (
+                float(score["nominal_sse"]) if np.isfinite(score["nominal_sse"]) else np.nan
+            )
+            history["prediction_error_markov_log"][step] = (
+                float(score["corrected_sse"]) if np.isfinite(score["corrected_sse"]) else np.nan
+            )
 
-        if rl_agent is not None:
-            transition_action = raw_executed if bool(config.get("rl_store_executed_action_in_replay", True)) else raw_requested
-            if not bc_target_is_ls:
-                bc_target_raw = np.asarray(raw_executed, float).copy()
-            pending_transition = {
-                "step": step,
-                "state": rl_state.copy(),
-                "action": np.asarray(transition_action, float).copy(),
-                "policy_action": np.asarray(raw_requested, float).copy(),
-                "bc_target_action": np.asarray(bc_target_raw, float).copy(),
-                "reward": float(history["rewards"][step]),
-                "test": bool(test_flags[step]),
-            }
-
-        if step in ctx["sub_episode_changes_dict"]:
-            start = max(0, step - int(ctx["time_in_sub_episodes"]) + 1)
-            stop = step + 1
-            avg_reward = float(np.mean(history["rewards"][start:stop]))
-            avg_rewards.append(avg_reward)
-            if print_progress:
-                accepted_fraction = float(np.mean(history["accepted_log"][start:stop]))
-                td3_accepted_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 2))
-                ls_fallback_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 3))
-                nominal_fallback_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 4))
-                mean_z = np.mean(history["z_executed_log"][start:stop, :], axis=0)
-                print(
-                    "Sub_Episode:",
-                    ctx["sub_episode_changes_dict"][step],
-                    "| avg. reward:",
-                    avg_reward,
-                    "| accepted:",
-                    accepted_fraction,
-                    "| TD3 accepted:",
-                    td3_accepted_fraction,
-                    "| LS fallback:",
-                    ls_fallback_fraction,
-                    "| nominal fallback:",
-                    nominal_fallback_fraction,
-                    "| avg z:",
-                    mean_z,
+            if rl_agent is not None:
+                transition_action = (
+                    raw_executed if bool(config.get("rl_store_executed_action_in_replay", True)) else raw_requested
                 )
+                if not bc_target_is_ls:
+                    bc_target_raw = np.asarray(raw_executed, float).copy()
+                pending_transition = {
+                    "step": step,
+                    "state": rl_state.copy(),
+                    "action": np.asarray(transition_action, float).copy(),
+                    "policy_action": np.asarray(raw_requested, float).copy(),
+                    "bc_target_action": np.asarray(bc_target_raw, float).copy(),
+                    "reward": float(history["rewards"][step]),
+                    "test": bool(test_flags[step]),
+                }
 
-        if bool(config.get("use_shifted_mpc_warm_start", False)):
-            x_init = shift_control_sequence(U_exec[: nu * control_horizon], nu, control_horizon)
-        else:
-            x_init = np.zeros(control_horizon * nu, dtype=float)
+            if step in ctx["sub_episode_changes_dict"]:
+                start = max(0, step - int(ctx["time_in_sub_episodes"]) + 1)
+                stop = step + 1
+                avg_reward = float(np.mean(history["rewards"][start:stop]))
+                avg_rewards.append(avg_reward)
+                if print_progress:
+                    accepted_fraction = float(np.mean(history["accepted_log"][start:stop]))
+                    td3_accepted_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 2))
+                    ls_fallback_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 3))
+                    nominal_fallback_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 4))
+                    mean_z = np.mean(history["z_executed_log"][start:stop, :], axis=0)
+                    print(
+                        "Sub_Episode:",
+                        ctx["sub_episode_changes_dict"][step],
+                        "| avg. reward:",
+                        avg_reward,
+                        "| accepted:",
+                        accepted_fraction,
+                        "| TD3 accepted:",
+                        td3_accepted_fraction,
+                        "| LS fallback:",
+                        ls_fallback_fraction,
+                        "| nominal fallback:",
+                        nominal_fallback_fraction,
+                        "| avg z:",
+                        mean_z,
+                    )
 
-    if pending_transition is not None:
-        flush_pending_transition(pending_transition["state"], 1.0)
+            if bool(config.get("use_shifted_mpc_warm_start", False)):
+                x_init = shift_control_sequence(U_exec[: nu * control_horizon], nu, control_horizon)
+            else:
+                x_init = np.zeros(control_horizon * nu, dtype=float)
 
-    history["avg_rewards"] = (
-        np.asarray(avg_rewards, float)
-        if avg_rewards
-        else avg_by_episode(history["rewards"], ctx["sub_episode_changes_dict"], ctx["time_in_sub_episodes"])
-    )
-    history["_behavioral_cloning_schedule"] = bc_schedule
-    history["_behavioral_cloning_logs"] = bc_logs
-    history["_rl_agent"] = rl_agent
-    return history
+        if pending_transition is not None:
+            flush_pending_transition(pending_transition["state"], 1.0)
+
+        history["avg_rewards"] = (
+            np.asarray(avg_rewards, float)
+            if avg_rewards
+            else avg_by_episode(history["rewards"], ctx["sub_episode_changes_dict"], ctx["time_in_sub_episodes"])
+        )
+        history["_behavioral_cloning_schedule"] = bc_schedule
+        history["_behavioral_cloning_logs"] = bc_logs
+        history["_rl_agent"] = rl_agent
+        return history
+    finally:
+        teardown = ctx.get("system_teardown")
+        if callable(teardown):
+            teardown(system)
+        elif hasattr(system, "close"):
+            system.close()
 
 
 def summarize_history(config, ctx, history):

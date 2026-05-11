@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import pickle
+import pathlib
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -65,6 +66,35 @@ class RunArtifacts:
     stage_arrays: dict[str, np.ndarray]
 
 
+class DummyPandasObject:
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def __call__(self, *args, **kwargs):
+        return DummyPandasObject(*args, **kwargs)
+
+    def __setstate__(self, state):
+        self.state = state
+
+    def __getattr__(self, name):
+        return DummyPandasObject()
+
+
+class CompatUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if module == "pathlib._local":
+            if name == "Path":
+                return pathlib.Path
+            if name == "WindowsPath":
+                return pathlib.WindowsPath
+            if name == "PosixPath":
+                return pathlib.PosixPath
+        if module.startswith("pandas"):
+            return DummyPandasObject
+        return super().find_class(module, name)
+
+
 def _parse_float(value: str) -> float:
     try:
         return float(value)
@@ -89,7 +119,7 @@ def _load_stage_csv(path: Path) -> dict[str, np.ndarray]:
 
 def _load_bundle(path: Path) -> dict:
     with path.open("rb") as handle:
-        return pickle.load(handle)
+        return CompatUnpickler(handle).load()
 
 
 def _load_run(label: str, run_dir: Path) -> RunArtifacts:
@@ -139,6 +169,17 @@ def _latest_mimic_run(step_name: str | None) -> Path:
         suffix = f" for step '{step_name}'" if step_name else ""
         raise FileNotFoundError(f"No legacy-mimic Markov runs found{suffix}.")
     return candidates[-1]
+
+
+def _latest_runs_by_step() -> list[Path]:
+    grouped: dict[str, Path] = {}
+    for run_dir in _all_mimic_runs():
+        bundle = _load_bundle(run_dir / "input_data.pkl")
+        step_name = _infer_step_name(run_dir, bundle)
+        prev = grouped.get(step_name)
+        if prev is None or run_dir.name > prev.name:
+            grouped[step_name] = run_dir
+    return [grouped[key] for key in sorted(grouped)]
 
 
 def _infer_step_name(run_dir: Path, bundle: dict) -> str:
@@ -336,15 +377,110 @@ def _plot_step_comparison(
     plt.close(fig)
 
 
+def _plot_all_steps_progression(rows: list[dict], out_path: Path) -> None:
+    labels = [row["mimic"]["legacy_mimic_step"].replace("step", "S").replace("_", "\n", 1) for row in rows]
+    x = np.arange(len(labels))
+
+    fig, axs = plt.subplots(2, 2, figsize=(13.5, 9.0))
+
+    ax = axs[0, 0]
+    ax.plot(x, [row["mimic_vs_frozen_legacy"]["output_1_rmse"] for row in rows], marker="o", label="y1 RMSE")
+    ax.plot(x, [row["mimic_vs_frozen_legacy"]["output_2_rmse"] for row in rows], marker="o", label="y2 RMSE")
+    ax.set_title("Distance to frozen legacy")
+    ax.set_xticks(x, labels)
+    ax.grid(alpha=0.25)
+    ax.legend(fontsize=8)
+
+    ax = axs[0, 1]
+    ax.plot(x, [row["mimic"]["td3_fraction"] for row in rows], marker="o", label="TD3")
+    ax.plot(x, [row["mimic"]["ls_fraction"] for row in rows], marker="o", label="LS")
+    ax.plot(x, [row["mimic"]["nominal_fraction"] for row in rows], marker="o", label="Nominal")
+    ax.set_title("Action-source fractions")
+    ax.set_xticks(x, labels)
+    ax.grid(alpha=0.25)
+    ax.legend(fontsize=8)
+
+    ax = axs[1, 0]
+    ax.plot(x, [row["mimic"]["mean_executed_z_norm"] for row in rows], marker="o", label="||z||")
+    ax.plot(x, [row["mimic"]["mean_executed_gain_drift"] for row in rows], marker="o", label="drift")
+    ax.set_title("Mechanism shift")
+    ax.set_xticks(x, labels)
+    ax.grid(alpha=0.25)
+    ax.legend(fontsize=8)
+
+    ax = axs[1, 1]
+    ax.plot(x, [row["mimic"]["mean_executed_prediction_score"] for row in rows], marker="o", label="executed score")
+    ax.plot(x, [row["mimic"]["mean_ls_prediction_score"] for row in rows], marker="o", label="LS score")
+    ax.plot(x, [row["mimic"]["mean_requested_prediction_score"] for row in rows], marker="o", label="requested score")
+    ax.set_title("Prediction-score progression")
+    ax.set_xticks(x, labels)
+    ax.grid(alpha=0.25)
+    ax.legend(fontsize=8)
+
+    for ax in axs.reshape(-1):
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+    fig.suptitle("Legacy mimic ladder progression", fontsize=13)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=220, bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Analyze the latest polymer Markov legacy-mimic ladder run.")
     parser.add_argument("--step", default=None, help="Optional legacy_mimic_step to filter for.")
+    parser.add_argument("--all-steps", action="store_true", help="Analyze the latest run for every mimic step.")
     args = parser.parse_args()
+    legacy = _load_run("Frozen legacy", FROZEN_LEGACY_RUN)
+    unified = _load_run("Frozen unified", FROZEN_UNIFIED_RUN)
+
+    if args.all_steps:
+        out_dir = FIG_ROOT / "all_steps"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        summaries = []
+        for mimic_dir in _latest_runs_by_step():
+            mimic = _load_run("Mimic", mimic_dir)
+            step_name = _infer_step_name(mimic.run_dir, mimic.bundle)
+            step_dir = FIG_ROOT / step_name
+            step_dir.mkdir(parents=True, exist_ok=True)
+            legacy_gap = _trajectory_distance(mimic.bundle, legacy.bundle)
+            unified_gap = _trajectory_distance(mimic.bundle, unified.bundle)
+            figure_path = step_dir / f"{step_name}_comparison.png"
+            _plot_step_comparison(mimic, legacy, unified, legacy_gap, unified_gap, figure_path)
+            summaries.append(
+                {
+                    "generated_at": datetime.now().isoformat(timespec="seconds"),
+                    "frozen_legacy_run": str(FROZEN_LEGACY_RUN.relative_to(REPO_ROOT)),
+                    "frozen_unified_run": str(FROZEN_UNIFIED_RUN.relative_to(REPO_ROOT)),
+                    "episode_len": int(_episode_len(mimic)),
+                    "mimic": _summary(mimic),
+                    "frozen_legacy": _summary(legacy),
+                    "frozen_unified": _summary(unified),
+                    "mimic_vs_frozen_legacy": legacy_gap,
+                    "mimic_vs_frozen_unified": unified_gap,
+                    "figure_path": str(figure_path.relative_to(REPO_ROOT)),
+                }
+            )
+            with (step_dir / f"{step_name}_summary.json").open("w", encoding="utf-8") as handle:
+                json.dump(summaries[-1], handle, indent=2)
+
+        progression_path = out_dir / "legacy_mimic_all_steps_progression.png"
+        _plot_all_steps_progression(summaries, progression_path)
+        aggregate = {
+            "generated_at": datetime.now().isoformat(timespec="seconds"),
+            "frozen_legacy_run": str(FROZEN_LEGACY_RUN.relative_to(REPO_ROOT)),
+            "frozen_unified_run": str(FROZEN_UNIFIED_RUN.relative_to(REPO_ROOT)),
+            "figure_path": str(progression_path.relative_to(REPO_ROOT)),
+            "steps": summaries,
+        }
+        with (out_dir / "legacy_mimic_all_steps_summary.json").open("w", encoding="utf-8") as handle:
+            json.dump(aggregate, handle, indent=2)
+        print(json.dumps(aggregate, indent=2))
+        return
 
     mimic_dir = _latest_mimic_run(args.step)
     mimic = _load_run("Mimic", mimic_dir)
-    legacy = _load_run("Frozen legacy", FROZEN_LEGACY_RUN)
-    unified = _load_run("Frozen unified", FROZEN_UNIFIED_RUN)
 
     step_name = _infer_step_name(mimic.run_dir, mimic.bundle)
     out_dir = FIG_ROOT / step_name

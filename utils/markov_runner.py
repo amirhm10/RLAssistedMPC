@@ -1388,6 +1388,7 @@ def summarize_history(config, ctx, history):
         "run_mode": str(config["run_mode"]).lower(),
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
         "force_td3_execute": bool(config.get("force_td3_execute", False)),
+        "rl_store_executed_action_in_replay": bool(config.get("rl_store_executed_action_in_replay", True)),
         "td3_seed": config.get("td3_agent", {}).get("seed"),
         "accepted_fraction": accepted_fraction,
         "td3_accepted_fraction": td3_accepted_fraction,
@@ -1449,6 +1450,10 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "run_mode": ctx["run_mode"],
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
         "force_td3_execute": bool(config.get("force_td3_execute", False)),
+        "rl_store_executed_action_in_replay": bool(config.get("rl_store_executed_action_in_replay", True)),
+        "replay_storage_mode": "executed"
+        if bool(config.get("rl_store_executed_action_in_replay", True))
+        else "requested",
         "td3_seed": config.get("td3_agent", {}).get("seed"),
         "system_metadata": ctx["system_metadata"],
         "A": None if ctx.get("system_data", {}).get("A") is None else np.asarray(ctx["system_data"]["A"], float),

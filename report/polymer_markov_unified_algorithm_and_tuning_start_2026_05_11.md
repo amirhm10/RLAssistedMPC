@@ -225,14 +225,6 @@ Generated figures:
 - `report/figures/polymer_markov_unified_followup_20260511/latest_td3_decline_diagnostics.png`
 - `report/figures/polymer_markov_unified_followup_20260511/summary.json`
 
-Embedded figures:
-
-![Latest unified reward recovery versus the broken unified run and the legacy reference](figures/polymer_markov_unified_followup_20260511/latest_run_recovery_and_reward.png)
-
-![Latest unified reward and action-source evolution](figures/polymer_markov_unified_followup_20260511/latest_run_action_mix.png)
-
-![Latest unified TD3-decline diagnostics](figures/polymer_markov_unified_followup_20260511/latest_td3_decline_diagnostics.png)
-
 ### Main result
 
 The newest polymer Markov run is now back in the right performance regime.
@@ -249,6 +241,8 @@ Compared with the earlier nominal-like unified run, the latest run recovers the 
 | Overall LS fallback fraction | `0.5686` | `0.3925` | `0.4759` |
 | Overall nominal fallback fraction | `0.0108` | `0.0348` | `0.0112` |
 
+![Latest unified reward recovery versus the broken unified run and the legacy reference](figures/polymer_markov_unified_followup_20260511/latest_run_recovery_and_reward.png)
+
 So the current run is not behaving like the old broken unified path anymore. In reward space and nominal-fallback fraction it is now essentially at legacy quality.
 
 ### What the latest run is actually doing
@@ -258,6 +252,8 @@ The latest bundle contains `200` episodes, with:
 - warm start through episode `10`
 - the LS-target behavioral-cloning window active only over episodes `11` to `16`
 - standard post-warm-start release after that: TD3, then LS fallback, then nominal fallback
+
+![Latest unified reward and action-source evolution](figures/polymer_markov_unified_followup_20260511/latest_run_action_mix.png)
 
 This means the good reward is not coming from a long hidden BC phase. The BC window is short and only stabilizes the first few live episodes after warm start.
 
@@ -289,6 +285,8 @@ The prediction-score panel explains the decline:
 - LS score over episodes `11-50`: `+0.03439`
 - LS score over the last `50` episodes: `+0.04255`
 - executed score over the last `50` episodes: `+0.03326`
+
+![Latest unified TD3-decline diagnostics](figures/polymer_markov_unified_followup_20260511/latest_td3_decline_diagnostics.png)
 
 So late in training, the TD3 proposal is usually still feasible, but it is no longer prediction-improving enough to beat LS. The gate then accepts LS instead.
 

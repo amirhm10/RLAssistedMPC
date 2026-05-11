@@ -618,6 +618,8 @@ DISTILLATION_MARKOV_DEFAULTS = {
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
+    "n_tests_override": 30,
+    "set_points_len_override": 100,
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
         enabled=True,
         target_mode="ls_action",

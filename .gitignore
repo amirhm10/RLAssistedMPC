@@ -5,13 +5,21 @@ Polymer/Results/*
 Distillation/Results/*
 !Distillation/Results/.gitkeep
 
+# Shared generated result folders.
+Result/
+Results/
+
 # Other generated result or temporary run folders.
 VanDeVusse/Results/*
 .tmp_*/
+
+# Timestamped experiment bundles under Data are generated outputs.
+Data/**/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]/
 
 # Python cache artifacts.
 __pycache__/
 *.py[cod]
 
-# Generated report assets from the polymer five-seed study should stay local.
-report/figures/polymer_five_seed_core_study*/
+# Generated report figures and analysis assets should stay local.
+report/figures/*
+!report/figures/.gitkeep

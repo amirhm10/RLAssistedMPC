@@ -1,5 +1,0 @@
-family,variant,accepted_fraction,reject_safe_fraction,reject_useful_fraction,reject_gain_fraction
-Scalar matrix,Step 3D relaxed gate,0.0,0.631975,0.3410625,0.0269625
-Scalar matrix,Step 3D hard gate,0.0,0.38399375,0.589475,0.02653125
-Structured matrix,Step 3D relaxed gate,0.00131875,0.5742125,0.41159375,0.012875
-Structured matrix,Step 3D hard gate,0.0,0.4576125,0.52355,0.0188375

@@ -137,10 +137,25 @@ DISTILLATION_ROOT = Path("Distillation")
 DISTILLATION_DATA_SUBDIR = DISTILLATION_ROOT / "Data"
 DISTILLATION_RESULT_SUBDIR = DISTILLATION_ROOT / "Results"
 
+
+def _default_aspen_root_from_user_profile():
+    user_profile = Path(os.environ.get("USERPROFILE", Path.home())).expanduser()
+    return (
+        user_profile
+        / "Desktop"
+        / "FinalDocuments"
+        / "FinalDocuments"
+        / "C2SplitterControlFiles"
+        / "AspenFiles"
+        / "dynsim"
+        / "Plant"
+    )
+
+
 DEFAULT_ASPEN_ROOT = Path(
     os.environ.get(
         "DISTILLATION_ASPEN_ROOT",
-        r"C:\Users\HAMEDI\Desktop\FinalDocuments\FinalDocuments\C2SplitterControlFiles\AspenFiles\dynsim\Plant",
+        str(_default_aspen_root_from_user_profile()),
     )
 )
 

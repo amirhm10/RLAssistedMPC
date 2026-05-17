@@ -16,6 +16,20 @@ Important scope note:
 this review is based on the latest **completed** saved Markov runs from 2026-05-16.
 It does **not** include the currently running May 17 TD3-only temperature-retuned notebook.
 
+## Recommended active notebook surface
+
+Going forward, the active distillation Markov notebook surface should be reduced to only:
+
+- `distillation_RL_assisted_MPC_markov_unified.ipynb`
+- `distillation_RL_assisted_MPC_markov_td3_only_no_safeguard_unified.ipynb`
+
+Those two notebooks are enough to cover the two roles that still matter scientifically:
+
+1. a conservative reference / fallback-aware Markov notebook
+2. a TD3-priority notebook where the learned supervisor is actually allowed to matter
+
+The relaxed-acceptance, LS-only, and TD3-without-LS notebooks were useful as diagnosis surfaces, but the saved May 16 runs show that they add clutter more than insight. Their results remain useful as historical evidence, but they do not need to remain active notebook entrypoints.
+
 ## Files inspected
 
 - `distillation_RL_assisted_MPC_markov_unified.ipynb`
@@ -38,6 +52,8 @@ It does **not** include the currently running May 17 TD3-only temperature-retune
 - `Distillation/Results/distillation_markov_td3_disturb_fluctuation_td3_only_no_safeguard_unified/20260516_200353/input_data.pkl`
 - `Distillation/Results/distillation_markov_td3_disturb_fluctuation_td3_only_no_safeguard_unified/20260516_200353/markov_stage_diagnostics.csv`
 - `report/scripts/generate_distillation_markov_td3_decision_authority_assets_20260517.py`
+
+The relaxed-acceptance, LS-only, and TD3-without-LS notebooks were inspected here as historical variant surfaces before pruning the active notebook set.
 
 ## What the current Markov method is actually doing
 
@@ -231,6 +247,23 @@ If TD3 is supposed to become the heart of the decision, the cleanest options are
 
 Keeping `target_mode = "ls_action"` after warm start teaches the actor to stay close to the same fallback policy we are trying to move beyond.
 
+At the same time, the saved TD3-only run says we should not be glib about this.
+
+The worst early post-warm-start reward dip happens exactly during the BC-active window:
+
+- episodes `11` to `15` have mean reward `-19.58`
+- `4` of those `5` episodes are negative
+- TD3 execution is already `100%` in those episodes
+
+So BC is clearly **not** eliminating the early bad episodes by itself.
+But that does not prove BC is useless; it may still be damping how bad those episodes get.
+
+The safest interpretation is:
+
+- removing LS-target BC completely may be okay, but it is not guaranteed to be painless
+- the better first pilot is to remove **LS-target** BC after warm start, while keeping a milder short protected phase through fallback caps or actor/action freezing
+- if we want an even gentler transition, we can shorten BC to 1 to 2 sub-episodes after warm start instead of 5, then compare early negative-episode counts
+
 ### 5. Be careful with replay when fallback is still enabled
 
 If `rl_store_executed_action_in_replay = True` and fallback remains frequent, the replay buffer becomes dominated by conservative behavior.
@@ -240,6 +273,26 @@ For a TD3-priority notebook, better options are:
 - store requested TD3 action plus fallback metadata, or
 - keep storing executed action but down-weight fallback-heavy transitions, or
 - use a source-aware replay analysis so we know whether learning is still being driven by nominal and LS actions
+
+There is also a correctness issue here.
+
+If the plant executes `a_{\mathrm{exec}}` but we store `a_{\mathrm{req}}` in the transition
+
+$$ (s_t, a_{\mathrm{req}}, r_t, s_{t+1}), $$
+
+then the critic is being trained on a state transition that did **not** actually come from `a_{\mathrm{req}}`.
+That is an incorrect off-policy sample unless we have a reliable counterfactual model for the requested action.
+
+So the safe rule is:
+
+- if executed action differs from requested action, store the **executed** action in replay
+- separately log the requested action, fallback source, and action gap for analysis
+
+That means `rl_store_executed_action_in_replay = True` is still the right default whenever fallback is present.
+What needs to change is not the correctness rule, but the fraction of steps where fallback steals authority.
+
+The good news is that this becomes much less painful once TD3 executes more often.
+In the May 16 TD3-only run, `rl_action_source_log` is `2` on all `80000` steps, so executed-action replay is already effectively pure TD3 replay there.
 
 ## Best next pilot
 
@@ -260,6 +313,187 @@ The success criterion should be:
 - SP1 temperature improves versus the May 16 TD3-only baseline
 - late reward remains above guarded and relaxed variants
 
+## Step-by-step implementation note
+
+This is the concrete implementation path I would use when we are ready to edit the controller.
+
+### Step 1. Keep only two notebook entrypoints
+
+Notebook surface:
+
+- `distillation_RL_assisted_MPC_markov_unified.ipynb`
+- `distillation_RL_assisted_MPC_markov_td3_only_no_safeguard_unified.ipynb`
+
+Role split:
+
+- `markov_unified` becomes the conservative reference notebook
+- `td3_only_no_safeguard` becomes the TD3-priority development notebook
+
+This keeps the comparison surface simple and prevents us from diffusing attention across variants that are mostly fallback studies.
+
+### Step 2. Keep the current MPC backbone unchanged
+
+We do **not** want to replace the underlying optimizer with raw TD3 commands.
+
+The architecture should stay:
+
+1. solve nominal MPC
+2. let TD3 modify the Markov structure
+3. solve the corrected lifted MPC
+4. apply the first move of that corrected sequence
+
+So implementation work should focus on the decision block in `utils/markov_runner.py`, not on removing the nominal MPC solve.
+
+### Step 3. Replace the old acceptance test with TD3-first fallback
+
+Current guarded pattern:
+
+1. TD3 must pass score, drift, and cost all at once
+2. otherwise LS gets the move
+3. otherwise nominal MPC gets the move
+
+Proposed TD3-priority pattern after warm start:
+
+1. build and solve the TD3-corrected candidate
+2. execute TD3 unless it violates a **catastrophic** cap
+3. if catastrophic, try LS
+4. if LS fails too, use nominal MPC
+
+In other words, LS and nominal remain in the system, but only as genuine recovery tools rather than first-class competitors against TD3 on every step.
+
+### Step 4. Remove the positive-score hard veto
+
+This is one of the clearest changes.
+
+For the successful May 16 TD3-only run:
+
+- tail median requested prediction score is `-0.0234`
+- tail 5th percentile is `-0.296`
+- tail 90th percentile is only about `0.000002`
+
+So requiring `s_pred > 0` is simply the wrong geometry for this controller.
+
+Implementation rule:
+
+- keep logging prediction score
+- do not require it to be positive
+- if we keep any hard score veto at all, make it a very negative catastrophic floor calibrated from successful TD3-only behavior, not from zero
+
+### Step 5. Replace the fixed relative cost guard with a phase-aware catastrophic cap
+
+The current cost screen is too strict partly because the nominal cost can become very small, so a relative test around `0.10` to `0.15` collapses into a tiny allowable margin.
+
+This is visible in the successful TD3-only run:
+
+- tail 95th percentile absolute requested cost margin is about `0.00719`
+- tail 99th percentile is about `0.01216`
+- but tail 95th percentile relative requested cost margin is about `30.50`
+
+That tells us the relative-only view becomes unstable when nominal cost is tiny.
+
+So the next implementation should use a phase-aware catastrophic cap such as:
+
+- protected phase: tighter absolute+relative cap
+- ramp phase: materially wider cap
+- full-authority phase: fallback only on clearly extreme cost excursions
+
+The key point is not the exact number yet. The key point is that the cap should be based on the envelope of successful TD3-only behavior, not on the old `0.10` to `0.15` relative-tolerance logic.
+
+### Step 6. Keep gain-drift as a secondary diagnostic, not the main limiter
+
+The saved runs show requested drift already passes almost always.
+
+For the successful TD3-only run:
+
+- tail median requested gain drift is `0.0151`
+- tail 95th percentile is `0.0386`
+- current hard limit is `0.10`
+
+So gain drift is not the primary reason TD3 is being screened out.
+It can stay in the log and in a catastrophic check, but it should not be treated as the main tuning lever.
+
+### Step 7. Replace LS-target BC with a shorter protected release
+
+The safest first change is:
+
+- disable LS-target BC after warm start in the TD3-priority notebook
+- keep a short protected release through fallback caps, actor freeze, or action-magnitude ramp
+
+That directly answers the worry about early negative episodes:
+yes, removing BC may make the release rougher at first, but BC is already not preventing the major dip by itself.
+The better substitute is not "copy LS for 5 more episodes." The better substitute is a short release schedule where TD3 still owns the move unless it becomes catastrophic.
+
+### Step 8. Keep executed-action replay, but add source-aware replay analysis
+
+This is the answer to the replay question:
+
+- if fallback executes a different action, storing the requested TD3 action is physically inconsistent with the observed next state
+- therefore the replay action should remain the executed action
+
+What we should add is:
+
+- requested-action logging
+- executed-versus-requested gap logging
+- source-aware replay statistics
+- optional down-weighting or filtering of fallback-heavy transitions
+
+With less conservative guards, this becomes more acceptable automatically, because a larger share of stored executed actions will actually be TD3 actions.
+
+### Step 9. Analyze the redesigned method in stages
+
+The right analysis sequence is:
+
+1. authority analysis  
+   TD3 / LS / nominal execution fractions by episode and in tail-20
+
+2. early-release analysis  
+   episodes `11` to `20`, negative-reward counts, minimum reward, recovery speed after warm start
+
+3. tracking analysis  
+   SP1 temperature, SP2 temperature, and both composition blocks
+
+4. replay analysis  
+   fraction of replay coming from executed TD3 versus fallback
+
+5. safety analysis  
+   catastrophic-cap trigger counts, LS fallback counts, nominal fallback counts
+
+6. final comparison  
+   compare only against `markov_unified` and the previous TD3-only baseline
+
+## Direct answers to the three design questions
+
+### 1. If we remove LS-target BC after warm start, will that be okay?
+
+Probably yes in the long run, but I would not assume the first few post-warm-start episodes stay as smooth as they are now.
+
+The saved May 16 TD3-only run shows that the worst early dip already happens during the BC-active window, so BC is not solving that problem completely.
+Still, BC may be reducing how severe the dip becomes.
+
+My recommendation is:
+
+- do not keep LS-target BC as a long post-warm-start teacher
+- replace it with a shorter protected release, not with nothing at all
+
+### 2. If executed action is not stored in replay, will TD3 train on the wrong action?
+
+Yes, if fallback executed a different action.
+
+If the stored replay action is not the one that actually produced the observed next state, the critic gets a physically inconsistent sample.
+So for correctness, fallback steps should still store the executed action.
+
+The right compromise is:
+
+- store executed action for training correctness
+- store requested action and fallback metadata for diagnosis
+
+### 3. If guards become less conservative, are executed-action samples more acceptable because TD3 has more effect?
+
+Yes, that is exactly the point.
+
+When TD3 executes on most steps, `a_{\mathrm{exec}}` is usually the TD3 action anyway, so executed-action replay becomes much closer to pure TD3 replay.
+That is why replay correctness and TD3 authority start to align once fallback becomes genuinely rare.
+
 ## Practical interpretation
 
 The most important finding from this review is simple:
@@ -279,4 +513,3 @@ The task now is to rebuild fallback around that fact, not to return to a gate st
 - `report/figures/distillation_markov_td3_decision_authority_20260517/fig_td3_only_gate_misalignment.png`
 - `report/figures/distillation_markov_td3_decision_authority_20260517/summary.json`
 - `report/figures/distillation_markov_td3_decision_authority_20260517/summary_metrics.csv`
-

@@ -200,3 +200,53 @@ For analysis of the current run, save and inspect:
 - output tracking errors around subepisodes `15:25`
 
 The key test is whether subepisode `16` has high `rho_eff`, a large policy-executed gap, or a residual sign that pushes the sensitive output away from the setpoint.
+
+## 2026-05-18 saved-run update
+
+The latest saved distillation residual run is:
+
+`Distillation/Results/distillation_residual_td3_disturb_fluctuation_mismatch_rho_unified/20260518_135423/`
+
+This is the saved version of the behavior that was visible in the live notebook output. The main reward metrics are:
+
+| Metric | Latest distillation residual | Prior distillation residual |
+| --- | ---: | ---: |
+| mean reward | `9.7497` | `18.2640` |
+| tail-20 reward | `12.1396` | `18.8243` |
+| final reward | `14.3457` | `17.9311` |
+| first-20 minimum reward | `2.2857` | `8.9475` |
+
+The latest run does recover partially by the final episode, but it never reaches the prior saved residual run's late reward. It is also below the May 18 MPC reference in tail-20 by about `1.7587` reward units.
+
+![Distillation residual release diagnostics](figures/distillation_current_methods_safety_20260518/fig_residual_distillation_release_diagnostics.png)
+
+The latest residual diagnostics are not consistent with a missing rho mechanism:
+
+| Tail-20 diagnostic | Latest distillation | Prior distillation | Polymer reference |
+| --- | ---: | ---: | ---: |
+| `rho_eff` | `0.5684` | `0.4664` | `0.9181` |
+| authority projection fraction | `0.9150` | `0.7165` | `0.9990` |
+| raw residual norm | `0.0331` | `0.0377` | `0.2783` |
+| executed residual norm | `0.00192` | `0.00207` | `0.01498` |
+| raw/executed action gap | `0.6284` | `0.7163` | `0.9926` |
+
+![Residual cross-case authority](figures/distillation_current_methods_safety_20260518/fig_residual_polymer_vs_distillation_authority.png)
+
+This confirms the central diagnosis:
+
+The residual method is shared between polymer and distillation at the runner level, but the numeric authority regime and process sensitivity are different. Polymer can benefit from larger residual corrections. Distillation can be harmed by much smaller residuals because the sign and direction of the residual matter more than the norm.
+
+The next distillation residual change should not be "make rho stronger" in isolation. It should add a direction-aware residual safety check after rho projection:
+
+$$ E_{\mathrm{res},k}^{+} - E_{\mathrm{nom},k}^{+}. $$
+
+If the residual-applied first move increases predicted tracking error beyond a phase-aware cap, the runner should shrink the residual:
+
+$$ \Delta u_{\mathrm{exec},k} = \alpha_k \Delta u_{\mathrm{res},k}, \qquad 0 \leq \alpha_k \leq 1. $$
+
+Recommended implementation order:
+
+1. add residual shadow prediction logs without changing execution
+2. add residual authority ramp/probation after the frozen release window
+3. enable residual shrinking only when the shadow metric predicts a clear tracking penalty
+4. keep executed-action replay, with raw residual and safety reason logged separately

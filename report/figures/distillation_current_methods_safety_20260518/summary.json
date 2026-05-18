@@ -1,0 +1,979 @@
+{
+  "generated_at": "2026-05-18",
+  "baseline_bundle": "Distillation/Data/mpc_results_disturb_fluctuation.pickle",
+  "tail_episodes": 20,
+  "collapse_threshold": 5.0,
+  "runs": {
+    "horizon": {
+      "label": "Horizon DQN",
+      "family": "horizon",
+      "run_dir": "Distillation/Results/distillation_horizon_disturb_fluctuation_mismatch_unified/20260518_141636",
+      "compare_dir": "Distillation/Results/distillation_compare_horizon_disturb_fluctuation_mismatch/20260518_141646",
+      "mean_reward": 15.64574615607241,
+      "tail20_reward": 15.60915872436587,
+      "final_reward": 14.675913038881177,
+      "best_reward": 18.243099942199137,
+      "best_episode": 84,
+      "first20_min_reward": 8.175496649917351,
+      "first20_min_episode": 1,
+      "warm_reference_reward": 14.816086376431672,
+      "collapse_episode_count": 1,
+      "move_proxy_episode_count": 1,
+      "combined_safety_proxy_episode_count": 1,
+      "tracking": {
+        "final": {
+          "SP1": {
+            "comp_mae": 0.000977264433229384,
+            "temp_mae": 0.17898360590497547,
+            "comp_mae_mpc": 0.0015090558488743005,
+            "temp_mae_mpc": 0.16264005098398138
+          },
+          "SP2": {
+            "comp_mae": 0.0016131377915682534,
+            "temp_mae": 0.19844659238751902,
+            "comp_mae_mpc": 0.0015083103663038376,
+            "temp_mae_mpc": 0.1958138131378851
+          }
+        },
+        "tail20": {
+          "SP1": {
+            "comp_mae": 0.0007518709222248227,
+            "temp_mae": 0.18220245813296726,
+            "comp_mae_mpc": 0.0015079384506708835,
+            "temp_mae_mpc": 0.1716713141597722
+          },
+          "SP2": {
+            "comp_mae": 0.0014438020804617734,
+            "temp_mae": 0.20869960674717541,
+            "comp_mae_mpc": 0.001582306887979479,
+            "temp_mae_mpc": 0.21249873689379553
+          }
+        }
+      },
+      "markov_diagnostics": {},
+      "own_mpc_tail20_reward": 13.898341430270449,
+      "own_mpc_final_reward": 13.136131590145144,
+      "tail20_delta_vs_own_mpc": 1.7108172940954247,
+      "reward_params": {
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "dueling": {
+      "label": "Dueling horizon",
+      "family": "dueling_horizon",
+      "run_dir": "Distillation/Results/distillation_dueling_horizon_disturb_fluctuation_mismatch_unified/20260518_140746",
+      "compare_dir": "Distillation/Results/distillation_compare_dueling_horizon_disturb_fluctuation_mismatch/20260518_140757",
+      "mean_reward": 15.53150594312754,
+      "tail20_reward": 15.858544470973863,
+      "final_reward": 16.7153085649121,
+      "best_reward": 19.594344732554063,
+      "best_episode": 150,
+      "first20_min_reward": 8.175496649917351,
+      "first20_min_episode": 1,
+      "warm_reference_reward": 14.816086376431672,
+      "collapse_episode_count": 2,
+      "move_proxy_episode_count": 1,
+      "combined_safety_proxy_episode_count": 2,
+      "tracking": {
+        "final": {
+          "SP1": {
+            "comp_mae": 0.0005738491294746821,
+            "temp_mae": 0.1565476291963264,
+            "comp_mae_mpc": 0.0015090558488743005,
+            "temp_mae_mpc": 0.16264005098398138
+          },
+          "SP2": {
+            "comp_mae": 0.0010700800243625822,
+            "temp_mae": 0.22301428353939468,
+            "comp_mae_mpc": 0.0015083103663038376,
+            "temp_mae_mpc": 0.1958138131378851
+          }
+        },
+        "tail20": {
+          "SP1": {
+            "comp_mae": 0.0004525211995788915,
+            "temp_mae": 0.16444190381698867,
+            "comp_mae_mpc": 0.0015079384506708835,
+            "temp_mae_mpc": 0.1716713141597722
+          },
+          "SP2": {
+            "comp_mae": 0.001283638982472752,
+            "temp_mae": 0.2412845898007309,
+            "comp_mae_mpc": 0.001582306887979479,
+            "temp_mae_mpc": 0.21249873689379553
+          }
+        }
+      },
+      "markov_diagnostics": {},
+      "own_mpc_tail20_reward": 13.898341430270449,
+      "own_mpc_final_reward": 13.136131590145144,
+      "tail20_delta_vs_own_mpc": 1.9602030407034128,
+      "reward_params": {
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "weights_sac": {
+      "label": "Weights SAC",
+      "family": "weights",
+      "run_dir": "Distillation/Results/distillation_weights_sac_disturb_fluctuation_mismatch_unified/20260518_142138",
+      "compare_dir": "Distillation/Results/distillation_compare_weights_sac_disturb_fluctuation_mismatch/20260518_142147",
+      "mean_reward": 15.281805089758631,
+      "tail20_reward": 15.884733825109413,
+      "final_reward": 14.294553979510875,
+      "best_reward": 17.439040452642015,
+      "best_episode": 116,
+      "first20_min_reward": 8.175496649917351,
+      "first20_min_episode": 1,
+      "warm_reference_reward": 14.816086376431672,
+      "collapse_episode_count": 1,
+      "move_proxy_episode_count": 12,
+      "combined_safety_proxy_episode_count": 12,
+      "tracking": {
+        "final": {
+          "SP1": {
+            "comp_mae": 0.0024048301900307335,
+            "temp_mae": 0.161359728869817,
+            "comp_mae_mpc": 0.0015090558488743005,
+            "temp_mae_mpc": 0.16264005098398138
+          },
+          "SP2": {
+            "comp_mae": 0.0010972411207097383,
+            "temp_mae": 0.17692552488317098,
+            "comp_mae_mpc": 0.0015083103663038376,
+            "temp_mae_mpc": 0.1958138131378851
+          }
+        },
+        "tail20": {
+          "SP1": {
+            "comp_mae": 0.0020077941516946146,
+            "temp_mae": 0.16545678723804674,
+            "comp_mae_mpc": 0.0015079384506708835,
+            "temp_mae_mpc": 0.1716713141597722
+          },
+          "SP2": {
+            "comp_mae": 0.0011326300201960544,
+            "temp_mae": 0.1848955782588979,
+            "comp_mae_mpc": 0.001582306887979479,
+            "temp_mae_mpc": 0.21249873689379553
+          }
+        }
+      },
+      "markov_diagnostics": {},
+      "own_mpc_tail20_reward": 13.898341430270449,
+      "own_mpc_final_reward": 13.136131590145144,
+      "tail20_delta_vs_own_mpc": 1.9863923948389672
+    },
+    "residual_td3": {
+      "label": "Residual TD3",
+      "family": "residual",
+      "run_dir": "Distillation/Results/distillation_residual_td3_disturb_fluctuation_mismatch_rho_unified/20260518_135423",
+      "compare_dir": "Distillation/Results/distillation_compare_residual_td3_disturb_fluctuation/20260518_135436",
+      "mean_reward": 9.74969019025454,
+      "tail20_reward": 12.139611088514117,
+      "final_reward": 14.345676112024448,
+      "best_reward": 15.432758530276454,
+      "best_episode": 15,
+      "first20_min_reward": 2.2857440296616436,
+      "first20_min_episode": 17,
+      "warm_reference_reward": 14.816007865404691,
+      "collapse_episode_count": 75,
+      "move_proxy_episode_count": 13,
+      "combined_safety_proxy_episode_count": 186,
+      "tracking": {
+        "final": {
+          "SP1": {
+            "comp_mae": 0.002810244163132818,
+            "temp_mae": 0.13301342882040604,
+            "comp_mae_mpc": 0.0015090558488743005,
+            "temp_mae_mpc": 0.16264005098398138
+          },
+          "SP2": {
+            "comp_mae": 0.0008946819244781403,
+            "temp_mae": 0.1444000476852669,
+            "comp_mae_mpc": 0.0015083103663038376,
+            "temp_mae_mpc": 0.1958138131378851
+          }
+        },
+        "tail20": {
+          "SP1": {
+            "comp_mae": 0.0026950359799526023,
+            "temp_mae": 0.1417001738531771,
+            "comp_mae_mpc": 0.0015079384506708835,
+            "temp_mae_mpc": 0.1716713141597722
+          },
+          "SP2": {
+            "comp_mae": 0.0010775762255994463,
+            "temp_mae": 0.15029660852162813,
+            "comp_mae_mpc": 0.001582306887979479,
+            "temp_mae_mpc": 0.21249873689379553
+          }
+        }
+      },
+      "markov_diagnostics": {},
+      "own_mpc_tail20_reward": 13.898341430270449,
+      "own_mpc_final_reward": 13.136131590145144,
+      "tail20_delta_vs_own_mpc": -1.7587303417563311
+    },
+    "markov_soft": {
+      "label": "Markov TD3 soft handoff",
+      "family": "markov",
+      "run_dir": "Distillation/Results/distillation_markov_td3_disturb_fluctuation_unified/20260518_184548",
+      "compare_dir": "Distillation/Results/distillation_compare_markov_td3_disturb_fluctuation/20260518_184601",
+      "mean_reward": 19.33419953079782,
+      "tail20_reward": 21.24724142158285,
+      "final_reward": 20.386346010228113,
+      "best_reward": 24.063124837770783,
+      "best_episode": 105,
+      "first20_min_reward": -7.8571822807562555,
+      "first20_min_episode": 14,
+      "warm_reference_reward": 14.988770077946656,
+      "collapse_episode_count": 9,
+      "move_proxy_episode_count": 4,
+      "combined_safety_proxy_episode_count": 31,
+      "tracking": {
+        "final": {
+          "SP1": {
+            "comp_mae": 0.00031196754156972083,
+            "temp_mae": 0.2571610456370402,
+            "comp_mae_mpc": 0.0015090558488743005,
+            "temp_mae_mpc": 0.16264005098398138
+          },
+          "SP2": {
+            "comp_mae": 0.000843046176209946,
+            "temp_mae": 0.09002908328754103,
+            "comp_mae_mpc": 0.0015083103663038376,
+            "temp_mae_mpc": 0.1958138131378851
+          }
+        },
+        "tail20": {
+          "SP1": {
+            "comp_mae": 0.00033717114575948845,
+            "temp_mae": 0.26341454731908154,
+            "comp_mae_mpc": 0.0015079384506708835,
+            "temp_mae_mpc": 0.1716713141597722
+          },
+          "SP2": {
+            "comp_mae": 0.0008307316097507892,
+            "temp_mae": 0.11013456310373476,
+            "comp_mae_mpc": 0.001582306887979479,
+            "temp_mae_mpc": 0.21249873689379553
+          }
+        }
+      },
+      "markov_diagnostics": {
+        "td3_fraction_all": 0.9499875,
+        "td3_fraction_tail20": 1.0,
+        "nominal_fraction_all": 0.046575,
+        "ls_fraction_all": 0.0,
+        "authority_scale_mean_all": 0.9462520833333333,
+        "authority_scale_tail20": 1.0,
+        "probation_fraction_all": 0.055,
+        "probation_trigger_count": 8,
+        "probation_active_episodes": [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          28,
+          29,
+          54,
+          55
+        ],
+        "tail20_prediction_score_mean": -0.016519783435075066,
+        "tail20_gain_drift_mean": 0.009304178989562054,
+        "tail20_cost_margin_mean": 0.0007778019547520973,
+        "tail20_cost_margin_p95": 0.004120323151511294
+      },
+      "own_mpc_tail20_reward": 13.898341430270449,
+      "own_mpc_final_reward": 13.136131590145144,
+      "tail20_delta_vs_own_mpc": 7.348899991312405,
+      "reward_params": {
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "markov_td3_only": {
+      "label": "Markov TD3-only",
+      "family": "markov_reference",
+      "run_dir": "Distillation/Results/distillation_markov_td3_disturb_fluctuation_td3_only_no_safeguard_unified/20260518_091937",
+      "compare_dir": "Distillation/Results/distillation_compare_markov_td3_disturb_fluctuation_td3_only_no_safeguard/20260518_091949",
+      "mean_reward": 18.193078577979097,
+      "tail20_reward": 21.978394021344364,
+      "final_reward": 22.222884766866184,
+      "best_reward": 24.298164978202802,
+      "best_episode": 178,
+      "first20_min_reward": -37.10031607811386,
+      "first20_min_episode": 11,
+      "warm_reference_reward": 14.598598658133126,
+      "collapse_episode_count": 17,
+      "move_proxy_episode_count": 9,
+      "combined_safety_proxy_episode_count": 20,
+      "tracking": {
+        "final": {
+          "SP1": {
+            "comp_mae": 0.0003590150009623227,
+            "temp_mae": 0.08695355097979465,
+            "comp_mae_mpc": 0.0015090558488743005,
+            "temp_mae_mpc": 0.16264005098398138
+          },
+          "SP2": {
+            "comp_mae": 0.0007839510711151618,
+            "temp_mae": 0.11251801340559123,
+            "comp_mae_mpc": 0.0015083103663038376,
+            "temp_mae_mpc": 0.1958138131378851
+          }
+        },
+        "tail20": {
+          "SP1": {
+            "comp_mae": 0.0005608795691849046,
+            "temp_mae": 0.0862469273880606,
+            "comp_mae_mpc": 0.0015079384506708835,
+            "temp_mae_mpc": 0.1716713141597722
+          },
+          "SP2": {
+            "comp_mae": 0.0008733569679160362,
+            "temp_mae": 0.11787999189500388,
+            "comp_mae_mpc": 0.001582306887979479,
+            "temp_mae_mpc": 0.21249873689379553
+          }
+        }
+      },
+      "markov_diagnostics": {
+        "td3_fraction_all": 1.0,
+        "td3_fraction_tail20": 1.0,
+        "nominal_fraction_all": 0.0,
+        "ls_fraction_all": 0.0,
+        "tail20_prediction_score_mean": -0.0093740112565104,
+        "tail20_gain_drift_mean": 0.008268314457641942,
+        "tail20_cost_margin_mean": 0.0009774079472857607,
+        "tail20_cost_margin_p95": 0.005622906012238977
+      },
+      "own_mpc_tail20_reward": 13.898341430270449,
+      "own_mpc_final_reward": 13.136131590145144,
+      "tail20_delta_vs_own_mpc": 8.080052591073919,
+      "reward_params": {
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ]
+      }
+    }
+  },
+  "safety_flags": {
+    "horizon": {
+      "reward_collapse": {
+        "count": 1,
+        "fraction": 0.005,
+        "episodes": [
+          1
+        ]
+      },
+      "move_proxy": {
+        "count": 1,
+        "fraction": 0.005,
+        "episodes": [
+          1
+        ]
+      },
+      "combined_proxy": {
+        "count": 1,
+        "fraction": 0.005,
+        "episodes": [
+          1
+        ]
+      }
+    },
+    "dueling": {
+      "reward_collapse": {
+        "count": 2,
+        "fraction": 0.01,
+        "episodes": [
+          1,
+          15
+        ]
+      },
+      "move_proxy": {
+        "count": 1,
+        "fraction": 0.005,
+        "episodes": [
+          1
+        ]
+      },
+      "combined_proxy": {
+        "count": 2,
+        "fraction": 0.01,
+        "episodes": [
+          1,
+          15
+        ]
+      }
+    },
+    "weights_sac": {
+      "reward_collapse": {
+        "count": 1,
+        "fraction": 0.005,
+        "episodes": [
+          1
+        ]
+      },
+      "move_proxy": {
+        "count": 12,
+        "fraction": 0.06,
+        "episodes": [
+          1,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66
+        ]
+      },
+      "combined_proxy": {
+        "count": 12,
+        "fraction": 0.06,
+        "episodes": [
+          1,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66
+        ]
+      }
+    },
+    "residual_td3": {
+      "reward_collapse": {
+        "count": 75,
+        "fraction": 0.375,
+        "episodes": [
+          1,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          53,
+          55,
+          56,
+          57,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          82,
+          83,
+          89
+        ]
+      },
+      "move_proxy": {
+        "count": 13,
+        "fraction": 0.065,
+        "episodes": [
+          1,
+          22,
+          23,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56
+        ]
+      },
+      "residual_projection_risk": {
+        "count": 172,
+        "fraction": 0.86,
+        "episodes": [
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78
+        ]
+      },
+      "combined_proxy": {
+        "count": 186,
+        "fraction": 0.93,
+        "episodes": [
+          1,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64
+        ]
+      }
+    },
+    "markov_soft": {
+      "reward_collapse": {
+        "count": 9,
+        "fraction": 0.045,
+        "episodes": [
+          1,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          27,
+          53
+        ]
+      },
+      "move_proxy": {
+        "count": 4,
+        "fraction": 0.02,
+        "episodes": [
+          1,
+          26,
+          27,
+          53
+        ]
+      },
+      "existing_soft_handoff": {
+        "count": 28,
+        "fraction": 0.14,
+        "episodes": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          28,
+          29,
+          54,
+          55
+        ]
+      },
+      "combined_proxy": {
+        "count": 31,
+        "fraction": 0.155,
+        "episodes": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          26,
+          27,
+          28,
+          29,
+          53,
+          54,
+          55
+        ]
+      }
+    },
+    "markov_td3_only": {
+      "reward_collapse": {
+        "count": 17,
+        "fraction": 0.085,
+        "episodes": [
+          1,
+          11,
+          12,
+          13,
+          14,
+          15,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          29,
+          37,
+          38
+        ]
+      },
+      "move_proxy": {
+        "count": 9,
+        "fraction": 0.045,
+        "episodes": [
+          1,
+          11,
+          12,
+          17,
+          18,
+          19,
+          38,
+          64,
+          83
+        ]
+      },
+      "combined_proxy": {
+        "count": 20,
+        "fraction": 0.1,
+        "episodes": [
+          1,
+          11,
+          12,
+          13,
+          14,
+          15,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          29,
+          37,
+          38,
+          64,
+          83
+        ]
+      }
+    }
+  },
+  "residual_references": {
+    "distillation_latest": {
+      "run_dir": "Distillation/Results/distillation_residual_td3_disturb_fluctuation_mismatch_rho_unified/20260518_135423",
+      "mean_reward": 9.74969019025454,
+      "tail20_reward": 12.139611088514117,
+      "final_reward": 14.345676112024448,
+      "first20_min_reward": 2.2857440296616436,
+      "rho_eff_log_tail20_mean": 0.5684304084762258,
+      "rho_eff_log_mean": 0.5899592792119611,
+      "projection_due_to_authority_log_tail20_mean": 0.915,
+      "projection_due_to_authority_log_mean": 0.7934625,
+      "projection_due_to_deadband_log_tail20_mean": 0.084875,
+      "projection_due_to_deadband_log_mean": 0.1233125,
+      "policy_executed_gap_norm_log_tail20_mean": 0.6283720900793434,
+      "policy_executed_gap_norm_log_mean": 0.6040443384120435,
+      "delta_u_res_raw_log_tail20_norm_mean": 0.0330684087020647,
+      "delta_u_res_raw_log_norm_mean": 0.03189711023154693,
+      "delta_u_res_exec_log_tail20_norm_mean": 0.001921489047444698,
+      "delta_u_res_exec_log_norm_mean": 0.001952365707654755,
+      "authority_beta_res": [
+        0.3,
+        0.3
+      ],
+      "authority_du0_res": [
+        0.003,
+        0.003
+      ],
+      "authority_rho_floor": 0.2,
+      "rho_mapping_mode": "exp_raw_tracking",
+      "append_rho_to_state": true,
+      "authority_use_rho": true
+    },
+    "distillation_prior": {
+      "run_dir": "Distillation/Results/distillation_residual_td3_disturb_fluctuation_mismatch_rho_unified/20260507_212833",
+      "mean_reward": 18.263972574774545,
+      "tail20_reward": 18.82427456677425,
+      "final_reward": 17.931060751473805,
+      "first20_min_reward": 8.94746660183145,
+      "rho_eff_log_tail20_mean": 0.4664328831779844,
+      "rho_eff_log_mean": 0.47805985660142813,
+      "projection_due_to_authority_log_tail20_mean": 0.7165,
+      "projection_due_to_authority_log_mean": 0.6293375,
+      "projection_due_to_deadband_log_tail20_mean": 0.279375,
+      "projection_due_to_deadband_log_mean": 0.2941,
+      "policy_executed_gap_norm_log_tail20_mean": 0.7163484725826236,
+      "policy_executed_gap_norm_log_mean": 0.6607714070427279,
+      "delta_u_res_raw_log_tail20_norm_mean": 0.03769214536938515,
+      "delta_u_res_raw_log_norm_mean": 0.03471791298380113,
+      "delta_u_res_exec_log_tail20_norm_mean": 0.0020707395404287333,
+      "delta_u_res_exec_log_norm_mean": 0.001879887847949011,
+      "authority_beta_res": [
+        0.3,
+        0.3
+      ],
+      "authority_du0_res": [
+        0.003,
+        0.003
+      ],
+      "authority_rho_floor": 0.2,
+      "rho_mapping_mode": "exp_raw_tracking",
+      "append_rho_to_state": true,
+      "authority_use_rho": true
+    },
+    "polymer_reference": {
+      "run_dir": "Polymer/Results/td3_residual_disturb/20260501_000607",
+      "mean_reward": -3.8711340984867646,
+      "tail20_reward": -3.902449034625652,
+      "final_reward": -3.923926775405972,
+      "first20_min_reward": -4.768325081719578,
+      "rho_eff_log_tail20_mean": 0.9180651921702714,
+      "rho_eff_log_mean": 0.6705279613641804,
+      "projection_due_to_authority_log_tail20_mean": 0.999,
+      "projection_due_to_authority_log_mean": 0.8526,
+      "projection_due_to_deadband_log_tail20_mean": 0.000375,
+      "projection_due_to_deadband_log_mean": 0.07203125,
+      "policy_executed_gap_norm_log_tail20_mean": 0.9926181934966264,
+      "policy_executed_gap_norm_log_mean": 0.836275834887021,
+      "delta_u_res_raw_log_tail20_norm_mean": 0.2783097774389888,
+      "delta_u_res_raw_log_norm_mean": 0.2476287493274228,
+      "delta_u_res_exec_log_tail20_norm_mean": 0.014983537266351633,
+      "delta_u_res_exec_log_norm_mean": 0.013021120845625884,
+      "authority_beta_res": [
+        0.5,
+        0.5
+      ],
+      "authority_du0_res": [
+        0.001,
+        0.001
+      ],
+      "authority_rho_floor": 0.15,
+      "rho_mapping_mode": "exp_raw_tracking",
+      "append_rho_to_state": true,
+      "authority_use_rho": true
+    }
+  },
+  "figures": {
+    "reward_trends": "report/figures/distillation_current_methods_safety_20260518/fig_cross_method_reward_trends.png",
+    "reward_risk": "report/figures/distillation_current_methods_safety_20260518/fig_reward_risk_ranking.png",
+    "tracking": "report/figures/distillation_current_methods_safety_20260518/fig_tail20_tracking_metrics.png",
+    "markov_soft_handoff": "report/figures/distillation_current_methods_safety_20260518/fig_markov_soft_handoff_vs_td3_only.png",
+    "residual_distillation": "report/figures/distillation_current_methods_safety_20260518/fig_residual_distillation_release_diagnostics.png",
+    "residual_cross_case": "report/figures/distillation_current_methods_safety_20260518/fig_residual_polymer_vs_distillation_authority.png",
+    "safety_heatmap": "report/figures/distillation_current_methods_safety_20260518/fig_safety_activation_heatmap.png"
+  },
+  "excluded": {
+    "matrix": "excluded by user request",
+    "structured_matrix": "excluded by user request",
+    "reidentification": "excluded by user request",
+    "combined_nominal": "not ranked because no comparable May 18 disturbance-fluctuation combined run was found"
+  }
+}

@@ -30,6 +30,30 @@ Those two notebooks are enough to cover the two roles that still matter scientif
 
 The relaxed-acceptance, LS-only, and TD3-without-LS notebooks were useful as diagnosis surfaces, but the saved May 16 runs show that they add clutter more than insight. Their results remain useful as historical evidence, but they do not need to remain active notebook entrypoints.
 
+## Implementation status
+
+As of 2026-05-17, the shared Markov runner now supports a TD3-priority fallback mode for both polymer and distillation.
+
+The implemented default behavior is:
+
+- TD3 remains a Markov-corrected MPC policy, not a raw direct-input controller.
+- The nominal MPC backbone is still solved every step.
+- TD3 is evaluated first after warm start in the active unified Markov notebooks.
+- Prediction score is logged but is not a positive-score hard veto in TD3-priority mode.
+- LS is retained as an emergency fallback under the same phased catastrophic-cap logic.
+- Nominal MPC is the final fallback if TD3 and LS are both rejected.
+- Replay still stores the executed action, which preserves transition correctness when fallback changes the plant move.
+
+The default TD3-priority fallback caps are phase-aware:
+
+| Phase | Absolute cost cap | Relative cost cap |
+| --- | ---: | ---: |
+| protected | `0.02` | `5.0` |
+| ramp | `0.05` | `20.0` |
+| full | `0.10` | `50.0` |
+
+The old no-safeguard notebook behavior remains separate: when `force_td3_execute = True`, the runner still executes TD3 directly and bypasses fallback screening.
+
 ## Files inspected
 
 - `distillation_RL_assisted_MPC_markov_unified.ipynb`
@@ -513,3 +537,34 @@ The task now is to rebuild fallback around that fact, not to return to a gate st
 - `report/figures/distillation_markov_td3_decision_authority_20260517/fig_td3_only_gate_misalignment.png`
 - `report/figures/distillation_markov_td3_decision_authority_20260517/summary.json`
 - `report/figures/distillation_markov_td3_decision_authority_20260517/summary_metrics.csv`
+
+## 2026-05-18 soft-handoff status
+
+The current unified Markov run after the TD3-priority soft handoff is:
+
+`Distillation/Results/distillation_markov_td3_disturb_fluctuation_unified/20260518_184548/`
+
+This run validates the core decision-authority idea from this report. TD3 is no longer suppressed by the old gates:
+
+- TD3 fraction overall: `0.9500`
+- TD3 fraction in tail-20: `1.0000`
+- nominal fallback overall: `0.0466`
+- LS fallback overall: `0.0000`
+- tail-20 reward: `21.2472`
+- tail-20 advantage over own MPC reference: `+7.3489`
+
+The soft-handoff logic also reduced the release shock relative to TD3-only no-safeguard:
+
+- soft handoff worst first-20 reward: `-7.8572`
+- TD3-only no-safeguard worst first-20 reward: `-37.1003`
+
+The authority ramp and reward-collapse probation were active in the expected region:
+
+- probation trigger count: `8`
+- probation active episodes: `12-18`, `28-29`, `54-55`
+- mean authority scale over all steps: `0.9463`
+- tail-20 authority scale: `1.0000`
+
+![Markov soft handoff versus TD3-only](figures/distillation_current_methods_safety_20260518/fig_markov_soft_handoff_vs_td3_only.png)
+
+The remaining limitation is important: soft handoff improves release safety, but it is not a full candidate safety layer. It does not directly check whether an accepted TD3 correction improves predicted SP1 temperature tracking. The next Markov safety step should therefore keep TD3-priority execution, keep probation, and add a predicted tracking-risk margin before plant application.

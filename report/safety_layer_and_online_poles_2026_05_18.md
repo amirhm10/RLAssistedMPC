@@ -285,6 +285,46 @@ Use a shared safety layer with three outcomes:
 
 This keeps TD3 and residual learning at the center of the decision while making the bad-release episodes much less likely to corrupt a long run.
 
+## Current Method Activation Audit
+
+The May 18 cross-method audit gives a first estimate of where the safety layer would actually be active. The audit is exact for Markov soft handoff where authority scale, action source, cost margin, gain drift, and probation are saved. It is also informative for residual because rho, projection, residual norm, and raw/executed gap are saved. For horizon, dueling horizon, and weights, it is only a proxy because full candidate-vs-nominal diagnostics are not currently stored.
+
+![Safety activation heatmap](figures/distillation_current_methods_safety_20260518/fig_safety_activation_heatmap.png)
+
+| Method | Proxy episodes flagged | Interpretation |
+| --- | ---: | --- |
+| Horizon DQN | `1` | essentially quiet after the first transient |
+| Dueling horizon | `2` | mostly quiet, one release-period dip |
+| Weights SAC | `12` | move-change proxy around episodes `56-66` |
+| Residual TD3 | `186` | persistent projection/raw-executed-gap risk |
+| Markov TD3 soft handoff | `31` | real ramp/probation activity plus a few reward dips |
+| Markov TD3-only | `20` | release-collapse proxy with no active protection |
+
+The audit supports three safety-layer levels:
+
+1. **Monitor-only for horizon and dueling horizon at first.**
+   These methods do not show severe current release risk, and their bundles need better candidate diagnostics before a hard gate is justified.
+
+2. **Soft intervention for Markov.**
+   The soft-handoff result shows that authority scaling and probation are beneficial. The next layer should add predicted tracking-risk checks rather than returning to a positive-score veto.
+
+3. **Direction-aware intervention for residual.**
+   Residual projection is active on most steps, but projection is not enough. The safety layer should evaluate whether the residual-applied first move improves or worsens predicted tracking before applying it to the plant.
+
+The exact additional logs needed before using one safety layer everywhere are:
+
+- `candidate_nominal_cost`
+- `nominal_cost`
+- `candidate_first_move`
+- `nominal_first_move`
+- `predicted_tracking_error_candidate`
+- `predicted_tracking_error_nominal`
+- `safety_decision`
+- `safety_scale`
+- `safety_reason`
+- `raw_action`
+- `executed_action`
+
 ## Remaining Uncertainty
 
 - The May 18 TD3-only result is one saved run, not a multi-seed conclusion.

@@ -426,3 +426,46 @@ The remaining problem is not late performance. The remaining problem is safe rel
 - negative first-20 episodes: `11`, `12`, `13`, `15`, `18`
 
 That means the no-safeguard TD3-only result is now scientifically more interesting, not less. It shows that the learned Markov policy can become better than nominal MPC after enough online learning, but it still needs a generic safety layer to prevent the bad-release episodes from reaching the plant.
+
+## 2026-05-18 update: soft-handoff Markov run
+
+After the TD3-priority soft release was added, the current unified Markov run is:
+
+`Distillation/Results/distillation_markov_td3_disturb_fluctuation_unified/20260518_184548/`
+
+This run is not a return to the old conservative Markov behavior. TD3 remains the dominant executed source:
+
+- TD3 fraction overall: `0.9500`
+- TD3 fraction in tail-20: `1.0000`
+- nominal fallback overall: `0.0466`
+- LS fallback overall: `0.0000`
+- probation trigger count: `8`
+- probation active episodes: `12-18`, `28-29`, `54-55`
+
+The main comparison against TD3-only no-safeguard is:
+
+| Metric | Soft handoff | TD3-only no safeguard |
+| --- | ---: | ---: |
+| mean reward | `19.3342` | `18.1931` |
+| tail-20 reward | `21.2472` | `21.9784` |
+| final reward | `20.3863` | `22.2229` |
+| best reward | `24.0631` | `24.2982` |
+| worst first-20 reward | `-7.8572` | `-37.1003` |
+
+So soft handoff gives up about `0.7312` tail-20 reward relative to TD3-only, but it reduces the worst early crash by about `29.24` reward units. That is a very good trade if the goal is a long one-day run that should not be corrupted by release shock.
+
+![Markov soft handoff versus TD3-only](figures/distillation_current_methods_safety_20260518/fig_markov_soft_handoff_vs_td3_only.png)
+
+The remaining issue is that soft handoff still does not guarantee good SP1 temperature. In tail-20:
+
+- soft handoff SP1 temperature MAE: `0.2634 K`
+- TD3-only SP1 temperature MAE: `0.0862 K`
+- MPC SP1 temperature MAE: `0.1717 K`
+
+But soft handoff is strong on composition and SP2 temperature:
+
+- soft handoff SP1 composition MAE: `0.000337`
+- soft handoff SP2 composition MAE: `0.000831`
+- soft handoff SP2 temperature MAE: `0.1101 K`
+
+The interpretation is that soft handoff solved much of the release-safety problem while preserving TD3 authority, but the final safety layer still needs a predicted tracking-risk check. Cost margin, gain drift, and probation alone are not enough to guarantee that every accepted Markov correction helps the first setpoint temperature.

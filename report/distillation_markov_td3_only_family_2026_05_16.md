@@ -332,3 +332,97 @@ The current TD3-only run already shows meaningful improvement potential. The mor
 - The TD3-only late reward win is clear, but we do not yet know how robust it is to seed changes.
 - Reward reshaping could fix SP1 temperature, but it might also reduce the strong SP2 gain.
 - A softer model-alignment penalty may help, but it still needs to be tested against the current no-safeguard baseline rather than assumed.
+
+## 2026-05-18 update: temperature-retuned TD3-only result
+
+The latest saved TD3-only no-safeguard run is:
+
+`Distillation/Results/distillation_markov_td3_disturb_fluctuation_td3_only_no_safeguard_unified/20260518_091937/`
+
+It uses the temperature-emphasis reward parameters that were requested after the May 16 review:
+
+- `Q_diag = [37000, 5000]`
+- `k_rel = [0.3, 0.01]`
+- `band_floor_phys = [0.003, 0.2]`
+- `force_td3_execute = True`
+
+This result is much stronger than the May 16 TD3-only run. The important caution is that the native reward is not perfectly comparable across the two runs because the reward geometry changed. To handle that, the analysis also rescored the May 16 trajectory under the May 18 reward parameters.
+
+Generated assets:
+
+- `report/figures/distillation_markov_td3_only_latest_20260518/`
+- `report/scripts/analyze_distillation_markov_td3_only_latest_20260518.py`
+
+![Latest TD3-only reward comparison](figures/distillation_markov_td3_only_latest_20260518/fig_latest_reward_vs_prior.png)
+
+### Reward result
+
+| Metric | May 18 TD3-only | May 16 TD3-only | MPC under May 18 reward |
+| --- | ---: | ---: | ---: |
+| native mean reward | `18.1931` | `16.2719` | n/a |
+| native tail-20 reward | `21.9784` | `18.0502` | `13.8983` |
+| native final reward | `22.2229` | `19.2195` | `13.1361` |
+| best episode reward | `24.2982` at ep. `178` | n/a | n/a |
+
+Under the May 18 reward geometry, the result is even clearer:
+
+| Rescored metric | May 18 trajectory | May 16 trajectory | Difference |
+| --- | ---: | ---: | ---: |
+| tail-20 reward | `22.0056` | `13.2339` | `+8.7717` |
+| final reward | `22.2505` | `15.2351` | `+7.0155` |
+| tail-20 advantage over MPC | `+8.1073` | n/a | n/a |
+
+So the new result is not only a reward-parameter artifact. The retuned policy produces a genuinely better trajectory when both TD3 trajectories are scored with the same May 18 reward.
+
+### Tracking result
+
+The most important change is that the old first-setpoint temperature weakness is largely fixed.
+
+| Tail-20 metric | MPC | May 16 TD3-only | May 18 TD3-only |
+| --- | ---: | ---: | ---: |
+| SP1 temperature MAE | `0.1717 K` | `0.4582 K` | `0.0862 K` |
+| SP2 temperature MAE | `0.2125 K` | `0.1771 K` | `0.1179 K` |
+| SP1 composition MAE | `0.001508` | `0.001198` | `0.000561` |
+| SP2 composition MAE | `0.001582` | `0.000778` | `0.000873` |
+
+The May 18 final episode gives the same message:
+
+- SP1 temperature MAE improved from `0.5583 K` to `0.0870 K`.
+- SP1 composition MAE improved from `0.000500` to `0.000359`.
+- SP2 temperature stayed strong at `0.1125 K`, close to the May 16 value of `0.1111 K`.
+- SP2 composition remains much better than MPC, although it is slightly worse than the May 16 TD3-only final episode.
+
+![Latest TD3-only final episode tracking](figures/distillation_markov_td3_only_latest_20260518/fig_latest_final_episode_tracking.png)
+
+![Latest TD3-only block tracking](figures/distillation_markov_td3_only_latest_20260518/fig_latest_tail20_block_tracking.png)
+
+![Latest TD3-only inside-band fractions](figures/distillation_markov_td3_only_latest_20260518/fig_latest_tail20_inside_band.png)
+
+### Diagnostics
+
+The May 18 policy is also less aggressive relative to the Markov model.
+
+| Tail-20 diagnostic | May 16 TD3-only | May 18 TD3-only |
+| --- | ---: | ---: |
+| TD3 executed fraction | `1.0000` | `1.0000` |
+| executed prediction score | `-0.0944` | `-0.00937` |
+| executed gain drift | `0.0167` | `0.00827` |
+| executed cost margin | `0.00240` | `0.000977` |
+| executed `z` norm | `0.0327` | `0.0170` |
+
+![Latest TD3-only Markov diagnostics](figures/distillation_markov_td3_only_latest_20260518/fig_latest_tail20_diagnostics.png)
+
+This supports the interpretation that the reward change did not simply force larger temperature moves. It led to a smaller and more model-consistent Markov correction that still produced better tracking and reward.
+
+### Main interpretation
+
+This is a very useful result.
+
+The May 16 report said that the first temperature setpoint was probably a reward-geometry problem. The May 18 run strongly supports that diagnosis. Increasing the temperature weight, tightening the temperature relative band, and lowering the temperature floor removed most of the SP1 temperature sacrifice while preserving full TD3 authority.
+
+The remaining problem is not late performance. The remaining problem is safe release. The May 18 run still has severe early negative episodes:
+
+- first-20 minimum reward: `-37.1003` at subepisode `11`
+- negative first-20 episodes: `11`, `12`, `13`, `15`, `18`
+
+That means the no-safeguard TD3-only result is now scientifically more interesting, not less. It shows that the learned Markov policy can become better than nominal MPC after enough online learning, but it still needs a generic safety layer to prevent the bad-release episodes from reaching the plant.

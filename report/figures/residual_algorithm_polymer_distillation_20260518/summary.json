@@ -1,0 +1,113 @@
+{
+  "live_distillation_so_far": {
+    "episode_count": 50,
+    "warm_freeze_reward_mean_ep1_15": 14.39430828836337,
+    "release_reward_mean_ep16_20": 2.3909480097518587,
+    "reward_drop_ep15_to_ep16": 12.751445362406576,
+    "residual_norm_mean_ep1_15": 2.590032884124641e-09,
+    "residual_norm_mean_ep16_20": 0.0023762559697737386,
+    "residual_norm_max_ep16_50": 0.002727265782885856
+  },
+  "saved_distillation": {
+    "run_dir": "Distillation\\Results\\distillation_residual_td3_disturb_fluctuation_mismatch_rho_unified\\20260507_212833",
+    "reward_mean": 18.263972574774545,
+    "reward_tail20": 18.82427456677425,
+    "reward_final": 17.931060751473805,
+    "state_mode": "mismatch",
+    "authority_use_rho": true,
+    "append_rho_to_state": true,
+    "authority_beta_res": [
+      0.3,
+      0.3
+    ],
+    "authority_du0_res": [
+      0.003,
+      0.003
+    ],
+    "authority_rho_floor": 0.2,
+    "rho_mapping_mode": "exp_raw_tracking",
+    "behavioral_cloning_enabled": true,
+    "warm_episode_count": 10,
+    "warm": {
+      "rho_mean": 0.339889912965532,
+      "rho_eff_mean": 0.4719119303724256,
+      "projection_active_fraction": 0.99975,
+      "projection_authority_fraction": 0.0,
+      "projection_deadband_fraction": 0.0,
+      "raw_residual_norm_mean": 0.0,
+      "exec_residual_norm_mean": 4.490920450880488e-08,
+      "policy_executed_gap_mean": 8.981840896006007e-07
+    },
+    "release": {
+      "rho_mean": 0.3252570530198118,
+      "rho_eff_mean": 0.46020564241584955,
+      "projection_active_fraction": 1.0,
+      "projection_authority_fraction": 0.0,
+      "projection_deadband_fraction": 0.0,
+      "raw_residual_norm_mean": 0.0,
+      "exec_residual_norm_mean": 4.5305247235294235e-08,
+      "policy_executed_gap_mean": 0.0038811842066636968
+    },
+    "tail20": {
+      "rho_mean": 0.3330411039724805,
+      "rho_eff_mean": 0.4664328831779844,
+      "projection_active_fraction": 1.0,
+      "projection_authority_fraction": 0.7165,
+      "projection_deadband_fraction": 0.279375,
+      "raw_residual_norm_mean": 0.03769214536938515,
+      "exec_residual_norm_mean": 0.0020707395404287333,
+      "policy_executed_gap_mean": 0.7163484725826236
+    }
+  },
+  "saved_polymer": {
+    "run_dir": "Polymer\\Results\\td3_residual_disturb\\20260501_000607",
+    "reward_mean": -3.8711340984867646,
+    "reward_tail20": -3.902449034625652,
+    "reward_final": -3.923926775405972,
+    "state_mode": "mismatch",
+    "authority_use_rho": true,
+    "append_rho_to_state": true,
+    "authority_beta_res": [
+      0.5,
+      0.5
+    ],
+    "authority_du0_res": [
+      0.001,
+      0.001
+    ],
+    "authority_rho_floor": 0.15,
+    "rho_mapping_mode": "exp_raw_tracking",
+    "behavioral_cloning_enabled": true,
+    "warm_episode_count": 10,
+    "warm": {
+      "rho_mean": 0.5422432863363641,
+      "rho_eff_mean": 0.6109067933859095,
+      "projection_active_fraction": 0.99975,
+      "projection_authority_fraction": 0.0,
+      "projection_deadband_fraction": 0.0,
+      "raw_residual_norm_mean": 0.0,
+      "exec_residual_norm_mean": 9.010156971829602e-08,
+      "policy_executed_gap_mean": 3.6040627887318406e-07
+    },
+    "release": {
+      "rho_mean": 0.5423255913035623,
+      "rho_eff_mean": 0.610976752608028,
+      "projection_active_fraction": 0.99975,
+      "projection_authority_fraction": 0.0,
+      "projection_deadband_fraction": 0.0,
+      "raw_residual_norm_mean": 0.0,
+      "exec_residual_norm_mean": 8.993838992821063e-08,
+      "policy_executed_gap_mean": 0.007791132362589859
+    },
+    "tail20": {
+      "rho_mean": 0.9036061084356134,
+      "rho_eff_mean": 0.9180651921702714,
+      "projection_active_fraction": 1.0,
+      "projection_authority_fraction": 0.999,
+      "projection_deadband_fraction": 0.000375,
+      "raw_residual_norm_mean": 0.2783097774389888,
+      "exec_residual_norm_mean": 0.014983537266351633,
+      "policy_executed_gap_mean": 0.9926181934966264
+    }
+  }
+}

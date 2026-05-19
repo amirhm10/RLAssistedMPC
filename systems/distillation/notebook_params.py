@@ -367,7 +367,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
         "ha_change": 1.0,
     },
     "agent": {
-        "hidden_layers": [256, 256],
+        "hidden_layers": [256, 256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. Keep 1 for the baseline; common DDQN ablations use 3.
@@ -409,7 +409,7 @@ DISTILLATION_HORIZON_DUELING_DEFAULTS = {
     "controller": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["controller"]),
     "agent": {
         "seed": 7,
-        "hidden_layers": [256, 256],
+        "hidden_layers": [256, 256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
@@ -490,8 +490,8 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "ha_change": 1.0,
     },
     "td3_agent": {
-        "actor_hidden": [256, 256],
-        "critic_hidden": [256, 256],
+        "actor_hidden": [256, 256, 256],
+        "critic_hidden": [256, 256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. Typical TD3 studies here use 1, 3, or 5.
@@ -517,8 +517,8 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "sac_agent": {
-        "actor_hidden": [256, 256],
-        "critic_hidden": [256, 256],
+        "actor_hidden": [256, 256, 256],
+        "critic_hidden": [256, 256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,  # Positive integer. SAC often uses 3-step as the first extension.
@@ -698,8 +698,8 @@ DISTILLATION_WEIGHT_DEFAULTS = {
         "ha_change": 1.0,
     },
     "td3_agent": {
-        "actor_hidden": [256, 256],
-        "critic_hidden": [256, 256],
+        "actor_hidden": [256, 256, 256],
+        "critic_hidden": [256, 256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,
@@ -723,8 +723,8 @@ DISTILLATION_WEIGHT_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "sac_agent": {
-        "actor_hidden": [256, 256],
-        "critic_hidden": [256, 256],
+        "actor_hidden": [256, 256, 256],
+        "critic_hidden": [256, 256, 256],
         **_copy_replay_defaults(),
         "gamma": 0.995,
         "n_step": 1,

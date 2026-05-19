@@ -1,8 +1,9 @@
-# Distillation Matrix And Structured-Matrix Step 4G Review With May 10 Fixed-Observer Follow-Up
+# Distillation Matrix And Structured-Matrix Step 4G Review With May 11 Scalar-Matrix Follow-Up
 
 Original stage note: 2026-05-04  
 First follow-up: 2026-05-08  
-Second follow-up: 2026-05-10
+Second follow-up: 2026-05-10  
+Third follow-up: 2026-05-11
 
 ## Objective
 
@@ -26,6 +27,10 @@ The May 10 update answers four questions:
 2. What does the saved configuration difference imply about the current distillation matrix family?
 3. How do the latest distillation results compare with the polymer matrix-family reference runs?
 4. Does the May 10 evidence change the case for a future distillation Markov-correction pilot?
+
+The May 11 update adds one more question:
+
+5. In the newest scalar-matrix rerun, is the final-episode second setpoint genuinely better, and if not, what is causing the first-setpoint jitter?
 
 ## Method Reconstruction
 
@@ -327,6 +332,161 @@ The most important scientific caution is that reward smoothing should be judged 
 - lower saturation and near-bound fractions
 - and only then a better reward gap
 
+## May 11 Scalar-Matrix Follow-Up: The Last Episode Is Not A Real Recovery
+
+The newest scalar matrix disturbance run is:
+
+- latest scalar matrix run: `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260511_183650`
+- disturbance MPC baseline: `Distillation/Data/mpc_results_disturb_fluctuation.pickle`
+
+New follow-up assets are under:
+
+`report/figures/distillation_matrix_latest_followup_20260511/`
+
+The first important result is a reporting issue:
+
+- the saved RL bundle stores `y_mpc` and `u_mpc` as exact copies of the RL trajectories
+- the real MPC comparison must therefore be taken from `Distillation/Data/mpc_results_disturb_fluctuation.pickle`, not from the RL bundle’s internal `y_mpc/u_mpc` fields
+
+This comes directly from [utils/plotting_core.py](../utils/plotting_core.py), where `build_storage_bundle(...)` writes:
+
+- `stored["y_rl"] = bundle["y_line_full"]`
+- `stored["u_rl"] = bundle["u_step_full"]`
+- `stored["y_mpc"] = bundle["y_line_full"]`
+- `stored["u_mpc"] = bundle["u_step_full"]`
+
+So a naive inspection of the saved RL bundle can falsely suggest RL and MPC are identical inside the artifact, even though the true disturbance baseline differs.
+
+### 1. The latest run is still catastrophically worse than disturbance MPC
+
+Using the real disturbance baseline:
+
+| Metric | Latest scalar TD3 matrix | Disturbance MPC |
+| --- | ---: | ---: |
+| Mean episode reward | `-17.5482` | `-0.00091` |
+| Last 10 episode reward | `-115.0549` | `-0.00099` |
+| Final test episode reward | `-127.2365` | `-0.00083` |
+
+![Latest scalar-matrix reward and block deltas](figures/distillation_matrix_latest_followup_20260511/distillation_matrix_latest_reward_and_block_deltas.png)
+
+So this is not a near-success with a local anomaly in the last episode. It is globally far below the disturbance MPC baseline.
+
+### 2. Only the final episode is a test episode
+
+The saved `test_train_dict` marks only the last episode as a held-out test episode.
+
+That means:
+
+- the final episode is the cleanest place to examine the visible jitter
+- but the tail training episodes still matter, because they show whether the same setpoint-block pattern is already present before the test rollout
+
+### 3. The final episode really does split into a bad first setpoint block and a calmer second block
+
+The final episode contains two `200`-step setpoint blocks:
+
+- setpoint block 1: approximately `[0.013, -23]`
+- setpoint block 2: approximately `[0.028, -21]`
+
+For the final test episode:
+
+| Metric | RL block 1 | MPC block 1 | RL block 2 | MPC block 2 |
+| --- | ---: | ---: | ---: | ---: |
+| x24 RMSE | `0.06973` | `0.00218` | `0.00504` | `0.00345` |
+| T85 RMSE | `2.7724` | `0.2258` | `0.7539` | `0.5698` |
+| x24 IAE | `0.03439` | `0.00151` | `0.00173` | `0.00151` |
+| T85 IAE | `1.5969` | `0.1626` | `0.2540` | `0.1958` |
+| Mean input-move norm | `4358.70` | `126.62` | `126.05` | `130.59` |
+| Alpha total variation | `0.08846` | reference | `0.00214` | reference |
+
+![Latest scalar-matrix final test episode dashboard](figures/distillation_matrix_latest_followup_20260511/distillation_matrix_latest_last_episode_dashboard.png)
+
+This confirms the qualitative impression:
+
+- the first setpoint block is genuinely jittery and extremely aggressive
+- the second setpoint block is much calmer
+
+But the second block is **not** actually better than disturbance MPC on tracking. It is only less bad than the first block.
+
+The one visual detail that can mislead here is temperature jitter in block 2:
+
+- RL T85 jitter: `0.0716`
+- MPC T85 jitter: `0.2438`
+
+So the RL trace can look smoother there. But that smoother trace still comes with worse temperature tracking:
+
+- RL T85 RMSE: `0.7539`
+- MPC T85 RMSE: `0.5698`
+
+So the second block is visually calmer, but it is not a real control improvement.
+
+### 4. The same first-block problem is already present across the tail, not only in the last episode
+
+Averaging over the last `20` episodes:
+
+| Tail-20 metric (RL minus MPC) | Setpoint block 1 | Setpoint block 2 |
+| --- | ---: | ---: |
+| T85 RMSE delta | `+2.0252` | `+0.5965` |
+| x24 RMSE delta | `+0.04375` | `+0.00831` |
+| Mean input-move delta | `+2291.64` | `+160.35` |
+| Alpha total variation | `0.03577` | `0.000758` |
+
+![Latest scalar-matrix tail block summary](figures/distillation_matrix_latest_followup_20260511/distillation_matrix_latest_tail_block_summary.png)
+
+So the last episode is not a one-off accident. The tail already contains the same pattern:
+
+1. the first setpoint block is where the multipliers keep moving aggressively
+2. the second setpoint block is much closer to nominal behavior
+
+### 5. What likely happened mechanistically
+
+By the tail of the run, the release schedule is fully open:
+
+- release phase in the final episode: full-live phase for both setpoint blocks
+- release guard active fraction: `0.0`
+- release clip fraction: `0.0`
+
+So the first-block jitter is not a protected-release artifact. It is happening in the fully released policy.
+
+The multiplier trace explains the split:
+
+- final episode block 1: `alpha` std = `0.2093`, `alpha` TV = `0.08846`
+- final episode block 2: `alpha` std = `0.01099`, `alpha` TV = `0.00214`
+
+And the tail average keeps the same ordering:
+
+- tail block 1 alpha TV = `0.03577`
+- tail block 2 alpha TV = `0.000758`
+
+Inference:
+
+- when the episode enters the first setpoint block, the actor is still making large model-side scalar changes
+- those changes amplify input motion and destabilize tracking, especially for T85
+- by the second setpoint block, the policy effectively settles closer to a near-nominal multiplier, so the trace looks calmer
+
+That calmer second block can create the visual impression of "real recovery," but the quantitative comparison shows it is still below disturbance MPC.
+
+### 6. Why the current result still leaves some hope
+
+There is still one encouraging signal in this run:
+
+- the policy clearly can collapse back toward a much calmer multiplier regime inside the same final episode
+
+That means the scalar matrix family is not failing only because it must always explode. It fails because the released policy does not handle the first setpoint block robustly and pays a huge movement/tracking cost before it reaches the calmer regime.
+
+So the newest result does not support a success claim, but it does support a more specific hypothesis:
+
+- the main practical failure is now concentrated in the first setpoint block under the fully released scalar multiplier policy
+- the second block looks better mainly because the multiplier dynamics calm down, not because the RL controller is outperforming disturbance MPC
+
+### 7. Updated next-step interpretation
+
+The May 11 evidence makes the scalar family story more precise:
+
+1. this is not a "good final episode with one jittery section"
+2. it is a globally negative run whose tail contains a repeatable first-setpoint instability pattern
+3. the instability is strongly associated with large scalar-multiplier variation and enormous input movement in block 1
+4. the calmer second setpoint block is not enough to rescue the run and should not be interpreted as a true win over MPC
+
 ## What This Changes About The Markov-Correction Direction
 
 The May 10 evidence changes one part of the earlier interpretation and leaves another part intact.
@@ -385,13 +545,18 @@ The acceptance bar should remain practical and transparent:
 - `report/figures/distillation_reward_geometry_smoothing_20260510/summary.json`
 - `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260508_015834/input_data.pkl`
 - `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260510_001108/input_data.pkl`
+- `Distillation/Results/distillation_matrix_td3_disturb_fluctuation_mismatch_unified/20260511_183650/input_data.pkl`
 - `Distillation/Results/distillation_structured_matrix_td3_disturb_fluctuation_mismatch_unified/20260508_005027/input_data.pkl`
 - `Distillation/Results/distillation_structured_matrix_td3_disturb_fluctuation_mismatch_unified/20260510_111413/input_data.pkl`
+- `Distillation/Data/mpc_results_disturb_fluctuation.pickle`
+- `utils/plotting_core.py`
 
 ## Files Changed
 
 - `report/distillation_matrix_structured_step4g_latest_2026_05_04.md`
 - `report/scripts/generate_distillation_matrix_structured_followup_assets.py`
 - `report/scripts/generate_distillation_reward_smoothing_assets.py`
+- `report/scripts/generate_distillation_matrix_latest_followup_assets_20260511.py`
 - `report/figures/distillation_matrix_structured_followup_20260510/`
 - `report/figures/distillation_reward_geometry_smoothing_20260510/`
+- `report/figures/distillation_matrix_latest_followup_20260511/`

@@ -54,14 +54,14 @@ RESIDUAL_BOUNDS = {
 }
 
 RL_REWARD_DEFAULTS = {
-    "k_rel": np.array([0.3, 0.02], dtype=float),
-    "band_floor_phys": np.array([0.003, 0.3], dtype=float),
-    "Q_diag": np.array([5.3e3, 1.5e3], dtype=float),
+    "k_rel": np.array([0.3, 0.01], dtype=float),
+    "band_floor_phys": np.array([0.003, 0.2], dtype=float),
+    "Q_diag": np.array([3.7e4, 5.0e3], dtype=float),
     "R_diag": np.array([2.5e3, 2.5e3], dtype=float),
     "tau_frac": 0.7,
     "gamma_out": 0.5,
     "gamma_in": 0.5,
-    "beta": 3.0,
+    "beta": 7.0,
     "gate": "geom",
     "lam_in": 1.0,
     "bonus_kind": "exp",

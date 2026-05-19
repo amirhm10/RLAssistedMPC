@@ -164,6 +164,35 @@ def _copy_behavioral_cloning_defaults(
     }
 
 
+def _copy_td3_priority_fallback_defaults(enabled=True):
+    return {
+        "enabled": bool(enabled),
+        "protected_subepisodes": 5,
+        "ramp_subepisodes": 10,
+        "score_hard_min": None,
+        "gain_drift_max": 0.10,
+        "cost_caps": {
+            "protected": {"absolute": 0.02, "relative": 5.0},
+            "ramp": {"absolute": 0.05, "relative": 20.0},
+            "full": {"absolute": 0.10, "relative": 50.0},
+        },
+        "authority_ramp": {
+            "enabled": True,
+            "protected_scale": 0.25,
+            "ramp_start_scale": 0.25,
+            "ramp_end_scale": 1.0,
+            "full_scale": 1.0,
+        },
+        "reward_probation": {
+            "enabled": True,
+            "reference_warm_episodes": 3,
+            "collapse_threshold": 5.0,
+            "cooldown_subepisodes": 2,
+            "cooldown_scale": 0.25,
+        },
+    }
+
+
 def _copy_mismatch_defaults():
     return {
         "mismatch_clip": 3.0,
@@ -618,13 +647,11 @@ DISTILLATION_MARKOV_DEFAULTS = {
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
-    "n_tests_override": 30,
-    "set_points_len_override": 100,
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
-        enabled=True,
+        enabled=False,
         target_mode="ls_action",
         lambda_bc_start=0.2,
-        active_subepisodes=5,
+        active_subepisodes=0,
     ),
     "run_profiles": deepcopy(DISTILLATION_MARKOV_RUN_PROFILES),
     "controller": {
@@ -658,6 +685,7 @@ DISTILLATION_MARKOV_DEFAULTS = {
         "rl_fallback_to_ls": True,
         "force_td3_execute": False,
         "rl_store_executed_action_in_replay": True,
+        "td3_priority_fallback": _copy_td3_priority_fallback_defaults(enabled=True),
         "rl_save_agent_checkpoint": True,
         "debug_validate_lifted": False,
         "debug_run_shadow_ls": False,

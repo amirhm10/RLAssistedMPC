@@ -12,6 +12,7 @@ Results/
 # Other generated result or temporary run folders.
 VanDeVusse/Results/*
 .tmp_*/
+.detached-notebook-runs/
 
 # Timestamped experiment bundles under Data are generated outputs.
 Data/**/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]/

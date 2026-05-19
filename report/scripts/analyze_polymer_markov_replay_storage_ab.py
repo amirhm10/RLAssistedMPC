@@ -103,6 +103,26 @@ def _episode_vec_norm(values: np.ndarray, n_episodes: int) -> np.ndarray:
     return np.nanmean(np.linalg.norm(reshaped, axis=2), axis=1)
 
 
+def _episode_fraction_raw_saturation(values: np.ndarray, n_episodes: int, threshold: float = 0.95) -> np.ndarray:
+    arr = np.asarray(values, float)
+    if n_episodes <= 0 or arr.size == 0:
+        return np.asarray([], float)
+    step_per_episode = arr.shape[0] // n_episodes
+    arr = arr[: step_per_episode * n_episodes]
+    reshaped = arr.reshape(n_episodes, step_per_episode, -1)
+    return np.mean(np.max(np.abs(reshaped), axis=2) >= float(threshold), axis=1)
+
+
+def _episode_mean_max_abs(values: np.ndarray, n_episodes: int) -> np.ndarray:
+    arr = np.asarray(values, float)
+    if n_episodes <= 0 or arr.size == 0:
+        return np.asarray([], float)
+    step_per_episode = arr.shape[0] // n_episodes
+    arr = arr[: step_per_episode * n_episodes]
+    reshaped = arr.reshape(n_episodes, step_per_episode, -1)
+    return np.nanmean(np.max(np.abs(reshaped), axis=2), axis=1)
+
+
 def _warm_start_and_bc(run: RunBundle) -> dict[str, int | None]:
     warm_start_step = run.bundle.get("warm_start_step")
     warm_end = None
@@ -255,6 +275,63 @@ def _plot_ab_metrics(executed: RunBundle, requested: RunBundle, out_dir: Path) -
     return [out1, out2]
 
 
+def _plot_state_and_saturation_diagnostics(executed: RunBundle, requested: RunBundle, out_dir: Path) -> Path:
+    n_ep = min(executed.n_episodes, requested.n_episodes)
+    x = np.arange(1, n_ep + 1)
+    warm = _warm_start_and_bc(executed)
+
+    ex_sat = _episode_fraction_raw_saturation(executed.bundle["rl_requested_raw_action_log"], executed.n_episodes)[:n_ep]
+    rq_sat = _episode_fraction_raw_saturation(requested.bundle["rl_requested_raw_action_log"], requested.n_episodes)[:n_ep]
+    ex_req_max = _episode_mean_max_abs(executed.bundle["rl_requested_z_log"], executed.n_episodes)[:n_ep]
+    ex_ls_max = _episode_mean_max_abs(executed.bundle["rl_ls_z_log"], executed.n_episodes)[:n_ep]
+    rq_req_max = _episode_mean_max_abs(requested.bundle["rl_requested_z_log"], requested.n_episodes)[:n_ep]
+    rq_ls_max = _episode_mean_max_abs(requested.bundle["rl_ls_z_log"], requested.n_episodes)[:n_ep]
+
+    ex_state_std = np.nanstd(np.asarray(executed.bundle["rl_state_log"], float), axis=0)
+    rq_state_std = np.nanstd(np.asarray(requested.bundle["rl_state_log"], float), axis=0)
+    dims = np.arange(1, ex_state_std.size + 1)
+
+    fig, axs = plt.subplots(3, 1, figsize=(12.8, 12.8), sharex=False)
+
+    axs[0].plot(x, ex_sat, color="#C84C09", linewidth=2.0, label="Executed replay")
+    axs[0].plot(x, rq_sat, color="#1f77b4", linewidth=2.0, label="Requested replay")
+    axs[0].set_ylabel("Frac(|a_raw| >= 0.95)")
+    axs[0].set_title("Replay A/B diagnostics: action saturation and state scaling")
+    axs[0].legend(loc="best")
+
+    axs[1].plot(x, ex_req_max, color="#C84C09", linewidth=2.0, label="|z_TD3| max, executed replay")
+    axs[1].plot(x, ex_ls_max, color="#C84C09", linewidth=1.4, linestyle="--", label="|z_LS| max, executed replay")
+    axs[1].plot(x, rq_req_max, color="#1f77b4", linewidth=2.0, label="|z_TD3| max, requested replay")
+    axs[1].plot(x, rq_ls_max, color="#1f77b4", linewidth=1.4, linestyle="--", label="|z_LS| max, requested replay")
+    axs[1].axhline(0.05, color="0.35", linestyle=":", linewidth=1.1, label="Current z_bound")
+    axs[1].set_ylabel("Mean max |z|")
+    axs[1].legend(loc="best", ncol=2, fontsize=9)
+
+    axs[2].plot(dims, ex_state_std, color="#C84C09", linewidth=1.8, marker="o", markersize=3.2, label="Executed replay")
+    axs[2].plot(dims, rq_state_std, color="#1f77b4", linewidth=1.8, marker="s", markersize=3.0, label="Requested replay")
+    axs[2].set_yscale("log")
+    axs[2].set_xlabel("Raw Markov state dimension")
+    axs[2].set_ylabel("Std. dev. (log scale)")
+    axs[2].legend(loc="best")
+
+    for ax in axs[:2]:
+        if warm["warm_end"] is not None:
+            ax.axvline(warm["warm_end"], color="0.35", linestyle="--", linewidth=1.1)
+        if warm["bc_start"] is not None and warm["bc_end"] is not None:
+            ax.axvspan(warm["bc_start"], warm["bc_end"], color="#F6C85F", alpha=0.18)
+
+    for ax in axs:
+        ax.grid(alpha=0.25)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+    fig.tight_layout()
+    out = out_dir / "replay_storage_ab_state_saturation_diagnostics.png"
+    fig.savefig(out, dpi=220, bbox_inches="tight")
+    plt.close(fig)
+    return out
+
+
 def _summary(executed: RunBundle, requested: RunBundle) -> dict:
     def run_metrics(run: RunBundle) -> dict:
         n_ep = run.n_episodes
@@ -265,6 +342,12 @@ def _summary(executed: RunBundle, requested: RunBundle) -> dict:
             np.asarray(run.bundle["rl_requested_z_log"], float) - np.asarray(run.bundle["rl_ls_z_log"], float),
             n_ep,
         )
+        sat = _episode_fraction_raw_saturation(run.bundle["rl_requested_raw_action_log"], n_ep)
+        req_z_max = _episode_mean_max_abs(run.bundle["rl_requested_z_log"], n_ep)
+        ls_z_max = _episode_mean_max_abs(run.bundle["rl_ls_z_log"], n_ep)
+        state_std = np.nanstd(np.asarray(run.bundle["rl_state_log"], float), axis=0)
+        p10 = float(np.percentile(state_std, 10))
+        p90 = float(np.percentile(state_std, 90))
         return {
             "run_dir": str(run.run_dir.relative_to(REPO_ROOT)),
             "replay_storage_mode": run.replay_storage_mode,
@@ -277,6 +360,11 @@ def _summary(executed: RunBundle, requested: RunBundle) -> dict:
             "requested_score_last50": float(np.nanmean(req_score[max(0, n_ep - 50):])),
             "ls_score_last50": float(np.nanmean(ls_score[max(0, n_ep - 50):])),
             "z_gap_last50": float(np.nanmean(gap[max(0, n_ep - 50):])),
+            "raw_action_saturation_all": float(np.nanmean(sat)),
+            "raw_action_saturation_last50": float(np.nanmean(sat[max(0, n_ep - 50):])),
+            "requested_z_max_last50": float(np.nanmean(req_z_max[max(0, n_ep - 50):])),
+            "ls_z_max_last50": float(np.nanmean(ls_z_max[max(0, n_ep - 50):])),
+            "rl_state_std_p90_over_p10": float(p90 / max(p10, 1e-12)),
         }
 
     return {
@@ -306,6 +394,7 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     figure_paths = _plot_ab_metrics(executed, requested, out_dir)
+    figure_paths.append(_plot_state_and_saturation_diagnostics(executed, requested, out_dir))
     summary = _summary(executed, requested)
     summary["figure_paths"] = [str(path.relative_to(REPO_ROOT)) for path in figure_paths]
 

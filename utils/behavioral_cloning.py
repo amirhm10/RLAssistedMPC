@@ -35,6 +35,7 @@ def build_behavioral_cloning_schedule(
     coordinate_weights_cfg = cfg.get("coordinate_weights")
     label_weight_overrides_cfg = cfg.get("label_weight_overrides")
     action_gap_tolerance = float(cfg.get("action_gap_tolerance", 0.0))
+    tail_anchor_cfg = cfg.get("tail_anchor")
 
     if target_mode not in {"nominal_only", "executed_action", "ls_action"}:
         raise ValueError(
@@ -62,6 +63,37 @@ def build_behavioral_cloning_schedule(
             if not math.isfinite(weight) or weight < 0.0:
                 raise ValueError("behavioral_cloning label_weight_overrides values must be finite and non-negative.")
             label_weight_overrides[label] = weight
+
+    if tail_anchor_cfg is None:
+        tail_anchor = {
+            "enabled": False,
+            "weight": 0.0,
+            "action_gap_tolerance": 0.0,
+            "require_ls_target": True,
+            "activate_on_score_deficit": True,
+            "activate_on_negative_requested_score": False,
+            "start_after_main_window": True,
+        }
+    else:
+        if not isinstance(tail_anchor_cfg, dict):
+            raise ValueError("behavioral_cloning tail_anchor must be a dict when provided.")
+        tail_anchor = {
+            "enabled": bool(tail_anchor_cfg.get("enabled", False)),
+            "weight": float(tail_anchor_cfg.get("weight", 0.0)),
+            "action_gap_tolerance": float(tail_anchor_cfg.get("action_gap_tolerance", action_gap_tolerance)),
+            "require_ls_target": bool(tail_anchor_cfg.get("require_ls_target", True)),
+            "activate_on_score_deficit": bool(tail_anchor_cfg.get("activate_on_score_deficit", True)),
+            "activate_on_negative_requested_score": bool(
+                tail_anchor_cfg.get("activate_on_negative_requested_score", False)
+            ),
+            "start_after_main_window": bool(tail_anchor_cfg.get("start_after_main_window", True)),
+        }
+        if not math.isfinite(tail_anchor["weight"]) or tail_anchor["weight"] < 0.0:
+            raise ValueError("behavioral_cloning tail_anchor weight must be finite and non-negative.")
+        if not math.isfinite(tail_anchor["action_gap_tolerance"]) or tail_anchor["action_gap_tolerance"] < 0.0:
+            raise ValueError(
+                "behavioral_cloning tail_anchor action_gap_tolerance must be finite and non-negative."
+            )
 
     n_steps = int(max(0, n_steps))
     time_in_sub_episodes = int(max(1, time_in_sub_episodes))
@@ -96,6 +128,7 @@ def build_behavioral_cloning_schedule(
         "start_step": int(start_step),
         "end_step": int(end_step if active_enabled else start_step - 1),
         "active_log": active_log,
+        "tail_anchor": dict(tail_anchor),
     }
 
 
@@ -138,48 +171,96 @@ def resolve_behavioral_cloning_context(
     target_action=None,
     nominal_target_action=None,
     action_labels=None,
+    policy_action=None,
+    tail_meta: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
-    if not schedule.get("enabled", False):
-        return None
-
     if target_action is None:
         if nominal_target_action is None:
             raise ValueError("behavioral_cloning requires target_action or nominal_target_action.")
         target_action = nominal_target_action
 
     step_idx = int(step_idx)
-    if step_idx < int(schedule["start_step"]) or step_idx > int(schedule["end_step"]):
+    if schedule.get("enabled", False) and step_idx >= int(schedule["start_step"]) and step_idx <= int(schedule["end_step"]):
+        active_steps = int(schedule["active_steps"])
+        if active_steps <= 1:
+            progress = 1.0
+        else:
+            progress = float(step_idx - int(schedule["start_step"])) / float(active_steps - 1)
+        progress = min(1.0, max(0.0, progress))
+
+        start = float(schedule["lambda_bc_start"])
+        end = float(schedule["lambda_bc_end"])
+        decay_mode = str(schedule["decay_mode"]).lower()
+        if decay_mode == "constant":
+            weight = start
+        elif decay_mode == "linear":
+            weight = start + (end - start) * progress
+        else:
+            tail = _normalized_exponential_tail(progress)
+            weight = end + (start - end) * tail
+
+        return {
+            "active": True,
+            "weight": float(max(0.0, weight)),
+            "target_mode": str(schedule["target_mode"]),
+            "target_action": np.asarray(target_action, float).reshape(-1),
+            "coordinate_weights": _resolve_coordinate_weights(
+                schedule,
+                target_action=target_action,
+                action_labels=action_labels,
+            ),
+            "progress": float(progress),
+            "phase": "main_window",
+        }
+
+    tail_anchor = dict(schedule.get("tail_anchor", {}) or {})
+    if not bool(tail_anchor.get("enabled", False)):
+        return None
+    if bool(tail_anchor.get("start_after_main_window", True)) and step_idx <= int(schedule["end_step"]):
+        return None
+    if policy_action is None:
         return None
 
-    active_steps = int(schedule["active_steps"])
-    if active_steps <= 1:
-        progress = 1.0
-    else:
-        progress = float(step_idx - int(schedule["start_step"])) / float(active_steps - 1)
-    progress = min(1.0, max(0.0, progress))
+    tail_meta = dict(tail_meta or {})
+    if bool(tail_anchor.get("require_ls_target", True)) and not bool(tail_meta.get("target_is_ls", False)):
+        return None
 
-    start = float(schedule["lambda_bc_start"])
-    end = float(schedule["lambda_bc_end"])
-    decay_mode = str(schedule["decay_mode"]).lower()
-    if decay_mode == "constant":
-        weight = start
-    elif decay_mode == "linear":
-        weight = start + (end - start) * progress
-    else:
-        tail = _normalized_exponential_tail(progress)
-        weight = end + (start - end) * tail
+    requested_score = tail_meta.get("requested_score")
+    ls_score = tail_meta.get("ls_score")
+    if bool(tail_anchor.get("activate_on_score_deficit", True)):
+        if requested_score is None or ls_score is None:
+            return None
+        if (not np.isfinite(float(requested_score))) or (not np.isfinite(float(ls_score))):
+            return None
+        if not (float(requested_score) < float(ls_score)):
+            return None
+    if bool(tail_anchor.get("activate_on_negative_requested_score", False)):
+        if requested_score is None or (not np.isfinite(float(requested_score))) or float(requested_score) >= 0.0:
+            return None
+
+    policy = np.asarray(policy_action, float).reshape(-1)
+    target = np.asarray(target_action, float).reshape(-1)
+    if policy.shape != target.shape:
+        raise ValueError(
+            f"behavioral_cloning policy_action size {policy.size} does not match target_action size {target.size}."
+        )
+    gap = float(np.linalg.norm(policy - target))
+    if gap <= float(tail_anchor.get("action_gap_tolerance", 0.0)):
+        return None
 
     return {
         "active": True,
-        "weight": float(max(0.0, weight)),
+        "weight": float(max(0.0, tail_anchor.get("weight", 0.0))),
         "target_mode": str(schedule["target_mode"]),
-        "target_action": np.asarray(target_action, float).reshape(-1),
+        "target_action": target,
         "coordinate_weights": _resolve_coordinate_weights(
             schedule,
             target_action=target_action,
             action_labels=action_labels,
         ),
-        "progress": float(progress),
+        "progress": 1.0,
+        "phase": "tail_anchor",
+        "tail_gap": gap,
     }
 
 

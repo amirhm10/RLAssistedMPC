@@ -136,6 +136,7 @@ def _copy_behavioral_cloning_defaults(
     coordinate_weights=None,
     label_weight_overrides=None,
     action_gap_tolerance=0.0,
+    tail_anchor=None,
 ):
     return {
         "enabled": bool(enabled),
@@ -149,6 +150,36 @@ def _copy_behavioral_cloning_defaults(
         "coordinate_weights": None if coordinate_weights is None else np.asarray(coordinate_weights, float).copy(),
         "label_weight_overrides": {} if label_weight_overrides is None else dict(label_weight_overrides),
         "action_gap_tolerance": float(action_gap_tolerance),
+        "tail_anchor": None if tail_anchor is None else deepcopy(tail_anchor),
+    }
+
+
+def _copy_td3_priority_fallback_defaults(enabled=True):
+    return {
+        "enabled": bool(enabled),
+        "protected_subepisodes": 5,
+        "ramp_subepisodes": 10,
+        "score_hard_min": None,
+        "gain_drift_max": 0.10,
+        "cost_caps": {
+            "protected": {"absolute": 0.02, "relative": 5.0},
+            "ramp": {"absolute": 0.05, "relative": 20.0},
+            "full": {"absolute": 0.10, "relative": 50.0},
+        },
+        "authority_ramp": {
+            "enabled": True,
+            "protected_scale": 0.25,
+            "ramp_start_scale": 0.25,
+            "ramp_end_scale": 1.0,
+            "full_scale": 1.0,
+        },
+        "reward_probation": {
+            "enabled": True,
+            "reference_warm_episodes": 3,
+            "collapse_threshold": 0.75,
+            "cooldown_subepisodes": 2,
+            "cooldown_scale": 0.25,
+        },
     }
 
 
@@ -567,7 +598,7 @@ POLYMER_MATRIX_DEFAULTS = {
         "actor_hidden": [256, 256],
         "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": 0.99,
         "n_step": 1,  # Positive integer. Typical TD3 ablations use 1, 3, or 5.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda"
         "lambda_value": 0.9,
@@ -592,7 +623,7 @@ POLYMER_MATRIX_DEFAULTS = {
         "actor_hidden": [256, 256],
         "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": 0.99,
         "n_step": 1,  # Positive integer. SAC often benefits from 3-step returns in this repo.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "sac_n" | "lambda"
         "lambda_value": 0.9,
@@ -642,13 +673,22 @@ POLYMER_MARKOV_DEFAULTS = {
         },
     },
     "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
-    # Short LS-guided release window: after warm start, keep the actor near the
-    # accepted LS correction manifold before handing full authority to TD3.
+    # TD3-priority Markov releases through runner-level fallback caps rather
+    # than post-warm-start LS imitation.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
-        enabled=True,
+        enabled=False,
         target_mode="ls_action",
         lambda_bc_start=0.2,
-        active_subepisodes=5,
+        active_subepisodes=0,
+        tail_anchor={
+            "enabled": False,
+            "weight": 0.03,
+            "action_gap_tolerance": 0.02,
+            "require_ls_target": True,
+            "activate_on_score_deficit": True,
+            "activate_on_negative_requested_score": False,
+            "start_after_main_window": True,
+        },
     ),
     "controller": {
         "predict_h": 9,
@@ -686,6 +726,7 @@ POLYMER_MARKOV_DEFAULTS = {
         # TD3 proposal -> LS fallback -> nominal fallback.
         "force_td3_execute": False,
         "rl_store_executed_action_in_replay": True,
+        "td3_priority_fallback": _copy_td3_priority_fallback_defaults(enabled=True),
         "rl_save_agent_checkpoint": True,
         "debug_validate_lifted": False,
         "debug_run_shadow_ls": False,
@@ -912,7 +953,7 @@ POLYMER_WEIGHT_DEFAULTS = {
         "actor_hidden": [256, 256],
         "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": 0.99,
         "n_step": 1,
         "multistep_mode": "one_step",
         "lambda_value": 0.9,
@@ -937,7 +978,7 @@ POLYMER_WEIGHT_DEFAULTS = {
         "actor_hidden": [256, 256],
         "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": 0.99,
         "n_step": 1,
         "multistep_mode": "one_step",
         "lambda_value": 0.9,
@@ -1011,7 +1052,7 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "actor_hidden": [256, 256],
         "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": 0.99,
         "n_step": 1,
         "multistep_mode": "one_step",
         "lambda_value": 0.9,
@@ -1036,7 +1077,7 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "actor_hidden": [256, 256],
         "critic_hidden": [256, 256],
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": 0.99,
         "n_step": 1,
         "multistep_mode": "one_step",
         "lambda_value": 0.9,

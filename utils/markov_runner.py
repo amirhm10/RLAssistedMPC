@@ -25,6 +25,13 @@ from utils.helpers import (
 )
 from utils.multiplier_sensitivity import build_markov_matrix
 from utils.observer import compute_observer_gain
+from utils.state_features import (
+    build_rl_state,
+    compute_tracking_scale_now,
+    get_rl_state_dim,
+    make_state_conditioner_from_settings,
+    resolve_mismatch_settings,
+)
 
 
 MARKOV_ACTION_SOURCE = {
@@ -35,6 +42,116 @@ MARKOV_ACTION_SOURCE = {
     4: "nominal_fallback",
     5: "ls_no_rl",
 }
+
+TD3_PRIORITY_PHASE_CODE = {
+    "none": 0,
+    "protected": 1,
+    "ramp": 2,
+    "full": 3,
+}
+
+
+def _td3_priority_cfg(config):
+    cfg = config.get("td3_priority_fallback", {})
+    return cfg if isinstance(cfg, dict) else {}
+
+
+def _td3_priority_enabled(config):
+    return bool(_td3_priority_cfg(config).get("enabled", False))
+
+
+def _td3_priority_phase(config, ctx, step):
+    cfg = _td3_priority_cfg(config)
+    protected = int(max(0, cfg.get("protected_subepisodes", 0)))
+    ramp = int(max(0, cfg.get("ramp_subepisodes", 0)))
+    time_in_sub = int(max(1, ctx["time_in_sub_episodes"]))
+    warm_start_step = int(ctx["warm_start_step"])
+    post_warm_step = max(0, int(step) - warm_start_step - 1)
+    post_warm_episode = int(post_warm_step // time_in_sub) + 1
+    if post_warm_episode <= protected:
+        return "protected"
+    if post_warm_episode <= protected + ramp:
+        return "ramp"
+    return "full"
+
+
+def _td3_priority_cost_cap(config, phase):
+    cfg = _td3_priority_cfg(config)
+    caps = cfg.get("cost_caps", {})
+    if not isinstance(caps, dict):
+        caps = {}
+    phase_cap = caps.get(phase, caps.get("full", {}))
+    if not isinstance(phase_cap, dict):
+        phase_cap = {}
+    return {
+        "absolute": float(phase_cap.get("absolute", config.get("nominal_cost_absolute_tol", 1.0e-8))),
+        "relative": float(phase_cap.get("relative", config.get("nominal_cost_relative_tol", 0.0))),
+    }
+
+
+def _td3_priority_authority_scale(config, ctx, step, probation_active=False):
+    cfg = _td3_priority_cfg(config)
+    ramp_cfg = cfg.get("authority_ramp", {})
+    if not _td3_priority_enabled(config) or not isinstance(ramp_cfg, dict) or not ramp_cfg.get("enabled", False):
+        return 1.0
+
+    phase = _td3_priority_phase(config, ctx, step)
+    if phase == "protected":
+        scale = float(ramp_cfg.get("protected_scale", 1.0))
+    elif phase == "ramp":
+        protected = int(max(0, cfg.get("protected_subepisodes", 0)))
+        ramp = int(max(0, cfg.get("ramp_subepisodes", 0)))
+        post_warm_episode = _td3_priority_post_warm_episode(ctx, step)
+        ramp_index = max(1, post_warm_episode - protected)
+        start = float(ramp_cfg.get("ramp_start_scale", ramp_cfg.get("protected_scale", 1.0)))
+        end = float(ramp_cfg.get("ramp_end_scale", ramp_cfg.get("full_scale", 1.0)))
+        if ramp <= 1:
+            progress = 1.0
+        else:
+            progress = float(np.clip((ramp_index - 1) / float(ramp - 1), 0.0, 1.0))
+        scale = start + progress * (end - start)
+    else:
+        scale = float(ramp_cfg.get("full_scale", 1.0))
+
+    probation_cfg = cfg.get("reward_probation", {})
+    if probation_active and isinstance(probation_cfg, dict):
+        scale = min(scale, float(probation_cfg.get("cooldown_scale", scale)))
+    return float(np.clip(scale, 0.0, 1.0))
+
+
+def _td3_priority_post_warm_episode(ctx, step):
+    time_in_sub = int(max(1, ctx["time_in_sub_episodes"]))
+    warm_start_step = int(ctx["warm_start_step"])
+    post_warm_step = max(0, int(step) - warm_start_step - 1)
+    return int(post_warm_step // time_in_sub) + 1
+
+
+def _td3_priority_candidate_allowed(config, ctx, step, candidate_eval, candidate_score, nominal_success):
+    if candidate_eval is None:
+        return False
+    sol = candidate_eval.get("sol")
+    if not (bool(nominal_success) and sol is not None and bool(getattr(sol, "success", False))):
+        return False
+
+    cfg = _td3_priority_cfg(config)
+    score_hard_min = cfg.get("score_hard_min", None)
+    if score_hard_min is not None:
+        if candidate_score is None:
+            return False
+        score_value = float(candidate_score.get("score", np.nan))
+        if (not np.isfinite(score_value)) or score_value < float(score_hard_min):
+            return False
+
+    drift_limit = float(cfg.get("gain_drift_max", config.get("gain_drift_max", np.inf)))
+    if float(candidate_eval["drift"]) > drift_limit:
+        return False
+
+    phase = _td3_priority_phase(config, ctx, step)
+    cap = _td3_priority_cost_cap(config, phase)
+    nominal_cost = float(candidate_eval.get("reference_nominal_cost", 0.0))
+    margin = float(candidate_eval.get("cost_margin", 0.0))
+    allowed_margin = float(cap["absolute"]) + float(cap["relative"]) * abs(nominal_cost)
+    return margin <= allowed_margin
 
 
 def _truncate_disturbance_schedule(disturbance_schedule, n_steps):
@@ -497,6 +614,7 @@ def initialize_history(nFE, nx, ny, nu, z_dim, control_horizon, rl_state_dim=0):
         "prediction_error_nominal_log": np.full(nFE, np.nan, dtype=float),
         "prediction_error_markov_log": np.full(nFE, np.nan, dtype=float),
         "rl_state_log": np.zeros((nFE, int(rl_state_dim)), dtype=float),
+        "rl_actor_raw_action_log": np.zeros((nFE, z_dim), dtype=float),
         "rl_requested_raw_action_log": np.zeros((nFE, z_dim), dtype=float),
         "rl_executed_raw_action_log": np.zeros((nFE, z_dim), dtype=float),
         "rl_requested_z_log": np.zeros((nFE, z_dim), dtype=float),
@@ -511,6 +629,10 @@ def initialize_history(nFE, nx, ny, nu, z_dim, control_horizon, rl_state_dim=0):
         "rl_critic_loss_log": np.full(nFE, np.nan, dtype=float),
         "rl_bc_loss_log": np.full(nFE, np.nan, dtype=float),
         "rl_test_step_log": np.zeros(nFE, dtype=int),
+        "td3_priority_phase_log": np.zeros(nFE, dtype=int),
+        "td3_authority_scale_log": np.ones(nFE, dtype=float),
+        "td3_probation_active_log": np.zeros(nFE, dtype=int),
+        "td3_probation_trigger_log": np.zeros(nFE, dtype=int),
         "u_sequence_nominal_log": np.empty((nFE, control_horizon * nu), dtype=float),
         "u_sequence_requested_log": np.full((nFE, control_horizon * nu), np.nan, dtype=float),
         "u_sequence_ls_log": np.full((nFE, control_horizon * nu), np.nan, dtype=float),
@@ -806,6 +928,23 @@ def build_runtime_context(markov_cfg, runtime_ctx):
     if disturbance_schedule is None and str(markov_cfg["run_mode"]).lower() == "disturb":
         disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
 
+    min_max_dict = runtime_ctx.get("min_max_dict")
+    if min_max_dict is None:
+        min_max_dict = runtime_ctx.get("system_data", {}).get("min_max_dict")
+    if min_max_dict is None:
+        raise KeyError("runtime_ctx or system_data must provide 'min_max_dict' for Markov state conditioning.")
+
+    mismatch_cfg = resolve_mismatch_settings(
+        state_mode="mismatch",
+        mismatch_cfg=markov_cfg,
+        reward_params=reward_params,
+        y_sp_scenario=y_sp,
+        steady_states=steady_states,
+        data_min=data_min,
+        data_max=data_max,
+        n_inputs=n_inputs,
+    )
+
     system = runtime_ctx.get("system")
     system_factory = runtime_ctx.get("system_factory")
     if system is None and system_factory is None:
@@ -822,6 +961,8 @@ def build_runtime_context(markov_cfg, runtime_ctx):
         "system_teardown": runtime_ctx.get("system_teardown"),
         "delta_t": float(delta_t),
         "system_data": system_data,
+        "min_max_dict": min_max_dict,
+        "mismatch_cfg": mismatch_cfg,
         "system_metadata": system_metadata,
         "reward_fn": reward_fn,
         "reward_params": reward_params,
@@ -868,9 +1009,10 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     nu = int(B.shape[1])
     z_dim = int(basis_blocks.shape[0])
     z_bounds = [(-float(config["z_bound"]), float(config["z_bound"])) for _ in range(z_dim)]
-    rl_state_dim = int(A.shape[0] + ny + ny + nu + z_dim + z_dim + 2)
+    rl_state_dim = int(get_rl_state_dim(A.shape[0], ny, nu, "mismatch", append_rho_to_state=False) + z_dim + z_dim + 2)
     history = initialize_history(nFE, A.shape[0], ny, nu, z_dim, control_horizon, rl_state_dim)
     test_flags = build_test_flags(nFE, ctx["test_train_dict"])
+    state_conditioner = make_state_conditioner_from_settings(ctx["mismatch_cfg"])
     use_rl = bool(use_markov and config.get("run_rl_proposal", False))
     action_warm_start_step = -1 if force_td3_execute else int(ctx["warm_start_step"])
     bc_schedule = build_behavioral_cloning_schedule(
@@ -914,6 +1056,11 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         last_action_test = None
         pending_transition = None
         avg_rewards = []
+        warm_reference_rewards = []
+        warm_release_reference_reward = None
+        probation_cooldown_until_episode = 0
+        probation_trigger_count = 0
+        warm_subepisodes = int(ctx["warm_start_step"] // max(1, ctx["time_in_sub_episodes"]))
 
         def flush_pending_transition(next_state, done):
             nonlocal pending_transition
@@ -925,6 +1072,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 bc_schedule,
                 step_idx=pending_step,
                 target_action=pending_transition["bc_target_action"],
+                policy_action=pending_transition["policy_action"],
+                tail_meta=pending_transition.get("bc_tail_meta"),
             )
             train_info = replay_train_continuous_agent(
                 agent=rl_agent,
@@ -991,12 +1140,15 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             loose_tol = float(config["nominal_cost_absolute_tol"]) + float(config["nominal_cost_relative_tol"]) * abs(
                 float(nominal_cost)
             )
+            cost_margin = float(nominal_cost_of_candidate) - float(nominal_cost)
             return {
                 "U": U_candidate,
                 "J": J_candidate,
                 "sol": sol_candidate,
                 "drift": candidate_drift,
                 "nominal_cost": nominal_cost_of_candidate,
+                "reference_nominal_cost": float(nominal_cost),
+                "cost_margin": cost_margin,
                 "cost_guard_pass": nominal_cost_of_candidate <= float(nominal_cost) + loose_tol,
             }
 
@@ -1032,6 +1184,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             accepted = False
             fallback = True
             action_source = 0
+            raw_actor_requested = np.zeros(z_dim, dtype=float)
             raw_requested = np.zeros(z_dim, dtype=float)
             raw_executed = np.zeros(z_dim, dtype=float)
             score = {
@@ -1053,6 +1206,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 "U": U0.copy(),
                 "J": float(J0),
                 "nominal_cost": float(J0),
+                "reference_nominal_cost": float(J0),
+                "cost_margin": 0.0,
                 "cost_guard_pass": True,
                 "drift": 0.0,
             }
@@ -1091,16 +1246,48 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             z_ls_safe = z_ls if ls_accepted else np.zeros(z_dim, dtype=float)
             innovation = history["y_scaled_dev"][step, :] - yhat
             tracking_error = history["y_scaled_dev"][step, :] - ctx["y_sp"][step, :]
-            rl_state = markov_rl_state(
-                x_model,
-                tracking_error,
-                innovation,
-                u_prev_dev,
-                z_prev,
-                z_ls_safe,
-                ls_score["score"],
-                ls_drift,
+            y_sp_phys = reverse_min_max(
+                ctx["y_sp"][step, :] + ctx["y_ss_scaled"],
+                ctx["data_min"][nu:],
+                ctx["data_max"][nu:],
             )
+            _, tracking_scale_now = compute_tracking_scale_now(
+                y_sp_phys=y_sp_phys,
+                data_min=ctx["data_min"],
+                data_max=ctx["data_max"],
+                n_inputs=nu,
+                k_rel=ctx["mismatch_cfg"]["k_rel"],
+                band_floor_phys=ctx["mismatch_cfg"]["band_floor_phys"],
+                tracking_eta_tol=ctx["mismatch_cfg"]["tracking_eta_tol"],
+                tracking_scale_floor=ctx["mismatch_cfg"]["tracking_scale_floor"],
+            )
+            conditioned_state, _state_debug = build_rl_state(
+                min_max_dict=ctx["min_max_dict"],
+                x_d_states=x_model,
+                y_sp=ctx["y_sp"][step, :],
+                u=u_prev_dev,
+                state_mode="mismatch",
+                y_prev_scaled=history["y_scaled_dev"][step, :],
+                yhat_pred=yhat,
+                innovation_scale_ref=ctx["mismatch_cfg"]["innovation_scale_ref"],
+                tracking_scale_now=tracking_scale_now,
+                mismatch_clip=ctx["mismatch_cfg"]["mismatch_clip"],
+                state_conditioner=state_conditioner,
+                update_state_conditioner=True,
+                mismatch_feature_transform_mode=ctx["mismatch_cfg"]["mismatch_feature_transform_mode"],
+                mismatch_transform_tanh_scale=ctx["mismatch_cfg"]["mismatch_transform_tanh_scale"],
+                mismatch_transform_post_clip=ctx["mismatch_cfg"]["mismatch_transform_post_clip"],
+            )
+            rl_state = np.concatenate(
+                [
+                    np.asarray(conditioned_state, np.float32).reshape(-1),
+                    np.asarray(z_prev, np.float32).reshape(-1),
+                    np.asarray(z_ls_safe, np.float32).reshape(-1),
+                    np.asarray([float(ls_score["score"]), float(ls_drift)], np.float32),
+                ]
+            ).astype(np.float32, copy=False)
+            if rl_state.size != rl_state_dim:
+                raise ValueError(f"Conditioned Markov RL state has size {rl_state.size}, expected {rl_state_dim}.")
             history["rl_state_log"][step, :] = rl_state
             history["rl_ls_z_log"][step, :] = z_ls
             bc_target_raw = np.zeros(z_dim, dtype=float)
@@ -1108,7 +1295,9 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
 
             flush_pending_transition(rl_state, 0.0)
 
-            if use_markov and bool(config.get("run_live_corrected_mpc", True)) and step >= predict_h:
+            if use_markov and bool(config.get("run_live_corrected_mpc", True)) and (
+                force_td3_execute or step >= predict_h
+            ):
                 if rl_agent is not None:
                     baseline_raw = z_to_raw_action(z_ls_safe, config["z_bound"])
                     bc_target_raw = baseline_raw.copy()
@@ -1127,12 +1316,34 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         action_dim=z_dim,
                         nonfinite_fallback=True,
                     )
-                    raw_requested = np.asarray(decision.action, float).reshape(-1)
+                    raw_actor_requested = np.asarray(decision.action, float).reshape(-1)
+                    raw_requested = raw_actor_requested.copy()
+                    current_subepisode = int(step // max(1, ctx["time_in_sub_episodes"])) + 1
+                    probation_active = bool(
+                        _td3_priority_enabled(config)
+                        and not force_td3_execute
+                        and step > ctx["warm_start_step"]
+                        and current_subepisode <= int(probation_cooldown_until_episode)
+                    )
+                    authority_scale = (
+                        _td3_priority_authority_scale(config, ctx, step, probation_active=probation_active)
+                        if _td3_priority_enabled(config) and not force_td3_execute and step > ctx["warm_start_step"]
+                        else 1.0
+                    )
+                    if authority_scale < 1.0:
+                        raw_requested = np.clip(raw_requested * authority_scale, -1.0, 1.0)
                     last_raw_action = decision.last_action
                     last_action_test = decision.last_action_test
                     history["rl_decision_taken_log"][step] = int(decision.decision_taken)
                     history["rl_policy_source_log"][step] = int(decision.source)
                     history["rl_test_step_log"][step] = int(test_step)
+                    history["rl_actor_raw_action_log"][step, :] = raw_actor_requested
+                    history["td3_priority_phase_log"][step] = TD3_PRIORITY_PHASE_CODE.get(
+                        _td3_priority_phase(config, ctx, step) if step > ctx["warm_start_step"] else "none",
+                        0,
+                    )
+                    history["td3_authority_scale_log"][step] = float(authority_scale)
+                    history["td3_probation_active_log"][step] = int(probation_active)
 
                     z_requested = raw_action_to_z(raw_requested, config["z_bound"])
                     history["rl_requested_raw_action_log"][step, :] = raw_requested
@@ -1186,13 +1397,24 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         )
                         rl_eval = evaluate_markov_candidate(z_requested, u_prev_dev, x_model, U0, J0)
                         _record_candidate_stage(history, step, "requested", rl_eval["U"], rl_eval, rl_score, U0, J0, nu)
-                        rl_accepted = bool(
-                            sol0.success
-                            and rl_eval["sol"].success
-                            and rl_score["score"] > float(config["s_pred_min"])
-                            and rl_eval["drift"] <= float(config["gain_drift_max"])
-                            and rl_eval["cost_guard_pass"]
-                        )
+                        if _td3_priority_enabled(config):
+                            rl_accepted = _td3_priority_candidate_allowed(
+                                config, ctx, step, rl_eval, rl_score, sol0.success
+                            )
+                            ls_priority_accepted = bool(
+                                config.get("rl_fallback_to_ls", True)
+                                and ls_eval is not None
+                                and _td3_priority_candidate_allowed(config, ctx, step, ls_eval, ls_score, sol0.success)
+                            )
+                        else:
+                            rl_accepted = bool(
+                                sol0.success
+                                and rl_eval["sol"].success
+                                and rl_score["score"] > float(config["s_pred_min"])
+                                and rl_eval["drift"] <= float(config["gain_drift_max"])
+                                and rl_eval["cost_guard_pass"]
+                            )
+                            ls_priority_accepted = bool(config.get("rl_fallback_to_ls", True)) and ls_accepted
                         if rl_accepted:
                             U_exec = rl_eval["U"]
                             z_exec = z_requested
@@ -1205,12 +1427,12 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                             z_prev = z_exec
                             executed_eval = rl_eval
                             executed_score = rl_score
-                        elif bool(config.get("rl_fallback_to_ls", True)) and ls_accepted and U_ls is not None:
-                            U_exec = U_ls
+                        elif ls_priority_accepted:
+                            U_exec = ls_eval["U"]
                             z_exec = z_ls
                             raw_executed = z_to_raw_action(z_ls, config["z_bound"])
                             score = ls_score
-                            drift = ls_drift
+                            drift = float(ls_eval["drift"])
                             accepted = True
                             fallback = True
                             action_source = 3
@@ -1285,11 +1507,6 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             history["xhat_after"][step + 1, :] = x_model
 
             delta_y = history["y_scaled_dev"][step + 1, :] - ctx["y_sp"][step, :]
-            y_sp_phys = reverse_min_max(
-                ctx["y_sp"][step, :] + ctx["y_ss_scaled"],
-                ctx["data_min"][nu:],
-                ctx["data_max"][nu:],
-            )
             history["rewards"][step] = float(ctx["reward_fn"](delta_y, du, y_sp_phys))
             history["z_log"][step, :] = z_exec
             history["z_executed_log"][step, :] = z_exec
@@ -1318,6 +1535,11 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     "action": np.asarray(transition_action, float).copy(),
                     "policy_action": np.asarray(raw_requested, float).copy(),
                     "bc_target_action": np.asarray(bc_target_raw, float).copy(),
+                    "bc_tail_meta": {
+                        "target_is_ls": bool(bc_target_is_ls),
+                        "requested_score": None if rl_score is None else float(rl_score["score"]),
+                        "ls_score": None if ls_score is None else float(ls_score["score"]),
+                    },
                     "reward": float(history["rewards"][step]),
                     "test": bool(test_flags[step]),
                 }
@@ -1327,6 +1549,40 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 stop = step + 1
                 avg_reward = float(np.mean(history["rewards"][start:stop]))
                 avg_rewards.append(avg_reward)
+                subepisode_idx = int(ctx["sub_episode_changes_dict"][step])
+                if subepisode_idx <= warm_subepisodes:
+                    warm_reference_rewards.append(avg_reward)
+                    reward_probation_cfg = _td3_priority_cfg(config).get("reward_probation", {})
+                    if not isinstance(reward_probation_cfg, dict):
+                        reward_probation_cfg = {}
+                    n_ref = int(
+                        max(
+                            1,
+                            reward_probation_cfg.get("reference_warm_episodes", 3),
+                        )
+                    )
+                    warm_release_reference_reward = float(np.mean(warm_reference_rewards[-n_ref:]))
+                else:
+                    probation_cfg = _td3_priority_cfg(config).get("reward_probation", {})
+                    if not isinstance(probation_cfg, dict):
+                        probation_cfg = {}
+                    probation_enabled = bool(
+                        _td3_priority_enabled(config)
+                        and isinstance(probation_cfg, dict)
+                        and probation_cfg.get("enabled", False)
+                        and not force_td3_execute
+                        and warm_release_reference_reward is not None
+                    )
+                    collapse_threshold = float(probation_cfg.get("collapse_threshold", np.inf))
+                    if probation_enabled and avg_reward < float(warm_release_reference_reward) - collapse_threshold:
+                        cooldown = int(max(0, probation_cfg.get("cooldown_subepisodes", 0)))
+                        if cooldown > 0:
+                            probation_cooldown_until_episode = max(
+                                int(probation_cooldown_until_episode),
+                                subepisode_idx + cooldown,
+                            )
+                            probation_trigger_count += 1
+                            history["td3_probation_trigger_log"][step] = 1
                 if print_progress:
                     accepted_fraction = float(np.mean(history["accepted_log"][start:stop]))
                     td3_accepted_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 2))
@@ -1363,8 +1619,11 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             if avg_rewards
             else avg_by_episode(history["rewards"], ctx["sub_episode_changes_dict"], ctx["time_in_sub_episodes"])
         )
+        history["_markov_state_norm_stats"] = state_conditioner.export_state()
         history["_behavioral_cloning_schedule"] = bc_schedule
         history["_behavioral_cloning_logs"] = bc_logs
+        history["_td3_probation_trigger_count"] = int(probation_trigger_count)
+        history["_td3_warm_release_reference_reward"] = warm_release_reference_reward
         history["_rl_agent"] = rl_agent
         return history
     finally:
@@ -1387,6 +1646,7 @@ def summarize_history(config, ctx, history):
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
         "run_mode": str(config["run_mode"]).lower(),
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
+        "td3_priority_fallback_enabled": _td3_priority_enabled(config),
         "force_td3_execute": bool(config.get("force_td3_execute", False)),
         "rl_store_executed_action_in_replay": bool(config.get("rl_store_executed_action_in_replay", True)),
         "td3_seed": config.get("td3_agent", {}).get("seed"),
@@ -1398,6 +1658,10 @@ def summarize_history(config, ctx, history):
         "reward_final_episode": float(history["avg_rewards"][-1]) if history["avg_rewards"].size else np.nan,
         "gain_drift_mean": float(np.nanmean(history["gain_drift_log"])) if nFE else np.nan,
         "prediction_score_mean": float(np.nanmean(history["s_pred_log"])) if nFE else np.nan,
+        "td3_authority_scale_mean": float(np.nanmean(history["td3_authority_scale_log"])) if nFE else np.nan,
+        "td3_probation_active_fraction": float(np.mean(history["td3_probation_active_log"])) if nFE else 0.0,
+        "td3_probation_trigger_count": int(history.get("_td3_probation_trigger_count", 0)),
+        "td3_warm_release_reference_reward": history.get("_td3_warm_release_reference_reward"),
         "rl_replay_push_count": replay_push_count,
         "rl_train_update_count": train_update_count,
     }
@@ -1449,6 +1713,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
         "run_mode": ctx["run_mode"],
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
+        "td3_priority_fallback": deepcopy(config.get("td3_priority_fallback", {})),
         "force_td3_execute": bool(config.get("force_td3_execute", False)),
         "rl_store_executed_action_in_replay": bool(config.get("rl_store_executed_action_in_replay", True)),
         "replay_storage_mode": "executed"
@@ -1488,9 +1753,13 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "observer_update_mode": ctx["observer_alignment"],
         "reward_params": ctx["reward_params"],
         "summary_metrics": summary_metrics,
+        "markov_base_state_norm_stats": history.get("_markov_state_norm_stats"),
+        "markov_state_mode": "mismatch_conditioned",
+        "markov_mismatch_feature_transform_mode": ctx["mismatch_cfg"]["mismatch_feature_transform_mode"],
         "M_blocks_nominal": m_blocks,
         "basis_family": str(config["basis_family"]),
         "basis_labels": list(basis_labels),
+        "markov_z_bound": float(config["z_bound"]),
         "markov_s_pred_min": float(config["s_pred_min"]),
         "markov_gain_drift_max": float(config["gain_drift_max"]),
         "z_log": history["z_log"],
@@ -1505,6 +1774,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "rl_state_dim": history["rl_state_dim"],
         "rl_action_dim": history["rl_action_dim"],
         "rl_state_log": history["rl_state_log"],
+        "rl_actor_raw_action_log": history["rl_actor_raw_action_log"],
         "rl_requested_raw_action_log": history["rl_requested_raw_action_log"],
         "rl_executed_raw_action_log": history["rl_executed_raw_action_log"],
         "rl_requested_z_log": history["rl_requested_z_log"],
@@ -1520,6 +1790,13 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "rl_critic_loss_log": history["rl_critic_loss_log"],
         "rl_bc_loss_log": history["rl_bc_loss_log"],
         "rl_test_step_log": history["rl_test_step_log"],
+        "td3_priority_phase_log": history["td3_priority_phase_log"],
+        "td3_priority_phase_codes": dict(TD3_PRIORITY_PHASE_CODE),
+        "td3_authority_scale_log": history["td3_authority_scale_log"],
+        "td3_probation_active_log": history["td3_probation_active_log"],
+        "td3_probation_trigger_log": history["td3_probation_trigger_log"],
+        "td3_probation_trigger_count": int(history.get("_td3_probation_trigger_count", 0)),
+        "td3_warm_release_reference_reward": history.get("_td3_warm_release_reference_reward"),
         "u_sequence_nominal_log": history["u_sequence_nominal_log"],
         "u_sequence_requested_log": history["u_sequence_requested_log"],
         "u_sequence_ls_log": history["u_sequence_ls_log"],

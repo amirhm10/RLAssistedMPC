@@ -74,7 +74,7 @@ $$ S_{\mathrm{pred}}(z)=\sum_\tau \left(\|W_y(Y_\tau^{\mathrm{meas}}-Y_\tau^0)\|
 
 11. Fall back in a fixed order if TD3 is not accepted. If TD3 fails the filter, the controller tries the accepted LS correction. If LS is unavailable or fails, the controller applies nominal MPC. The replay action is the executed action, not merely the requested TD3 action.
 
-12. Advance the nonlinear plant and update replay. The selected first input move is applied to `PolymerCSTR`, the nominal observer updates, the existing closed-loop reward convention is computed, and the transition is pushed to TD3 replay on train steps. TD3 training starts only after the configured warm-start boundary.
+12. Advance the nonlinear plant and update replay. The selected first input move is applied to `PolymerCSTR`, the nominal observer updates, the shared unified relative-QR reward is computed, and the transition is pushed to TD3 replay on train steps. TD3 training starts only after the configured warm-start boundary.
 
 13. Save artifacts in the polymer result tree. The run writes `input_data.pkl`, summary tables, verification tables, Markov diagnostic figures, RL diagnostic logs, and the TD3 checkpoint under `Polymer/Results/polymer_markov_corrected_mpc/<timestamp>/`. Standard MPC comparison plots are generated with `compare_mpc_rl_from_dirs()` under `Polymer/Results/polymer_markov_compare_disturb/<timestamp>/`.
 
@@ -84,62 +84,51 @@ $$ S_{\mathrm{pred}}(z)=\sum_\tau \left(\|W_y(Y_\tau^{\mathrm{meas}}-Y_\tau^0)\|
 
 The notebook validates the lifted absolute input-deviation convention against the state-space rollout. The pass threshold is `max_abs_error < 1e-8`.
 
-Observed max absolute error: `1.734723e-18`.
+Observed max absolute error: `nan`.
 
 ## Phase 2: shadow prediction-error scoring
 
-Candidate Markov corrections are scored on nominal closed-loop history without executing corrected actions. The fraction of steps with positive best shadow score is `0.9929`.
+Candidate Markov corrections are scored on nominal closed-loop history without executing corrected actions. The fraction of steps with positive best shadow score is `nan`.
 
 ## Phase 3: adaptive LS Markov correction
 
-The adaptive constrained LS correction estimates $z_k$ with bounds and regularization, then accepts it only when prediction improvement and gain-drift checks pass. The accepted fraction is `0.9904`.
+The adaptive constrained LS correction estimates $z_k$ with bounds and regularization, then accepts it only when prediction improvement and gain-drift checks pass. The accepted fraction is `nan`.
 
 ## Phase 4: corrected MPC with loose safety guard
 
-The live corrected controller solves both nominal and corrected lifted MPC. It executes the corrected first input only when prediction-error validation, gain-drift, and the loose nominal-cost guard pass. The live accepted fraction is `0.9893`.
+The live corrected controller solves both nominal and corrected lifted MPC. It executes the corrected first input only when prediction-error validation, gain-drift, and the loose nominal-cost guard pass. The live accepted fraction is `0.9886`.
 
 ## Phase 5: TD3 Markov proposal
 
-TD3 is enabled by default through `run_rl_proposal=True` and proposes normalized Markov correction coordinates in $[-1,1]$. The runner maps the raw action to $z_k$, stores the executed action in replay, and uses the existing closed-loop reward convention. Constrained LS remains the warm-start teacher and safety fallback. The TD3 accepted fraction is `0.3938`, the LS fallback fraction is `0.5466`, and the nominal fallback fraction is `0.0106`. This run pushed `159200` replay transitions and recorded `151200` TD3 critic updates.
+TD3 is enabled by default through `run_rl_proposal=True` and proposes normalized Markov correction coordinates in $[-1,1]$. The runner maps the raw action to $z_k$, stores the executed action in replay, and uses the shared unified relative-QR reward. Constrained LS remains the warm-start teacher and safety fallback. The TD3 accepted fraction is `0.3143`, the LS fallback fraction is `0.4759`, and the nominal fallback fraction is `0.0112`. This run pushed `39200` replay transitions and recorded `31200` TD3 critic updates.
 
 ## Result summary
 
-| Check                               | Value                  | Pass  |
-| ----------------------------------- | ---------------------- | ----- |
-| Lifted equivalence max error        | 1.734723475976807e-18  | True  |
-| Any positive shadow S_pred fraction | 0.992875               | True  |
-| Adaptive LS accepted fraction       | 0.990425               | True  |
-| Live corrected accepted fraction    | 0.989325               | True  |
-| TD3 accepted action fraction        | 0.39375625             | True  |
-| Reward delta mean                   | -5.286738904764695     | False |
-| Output MAE delta                    | -0.000978472944889175  | True  |
-| Input movement delta                | 2.1630681706200083e-05 | True  |
+| Check                               | Value    | Pass  |
+| ----------------------------------- | -------- | ----- |
+| Lifted equivalence max error        | nan      | False |
+| Any positive shadow S_pred fraction | nan      | False |
+| Adaptive LS accepted fraction       | nan      | False |
+| Live corrected accepted fraction    | 0.9886   | True  |
+| TD3 accepted action fraction        | 0.314325 | True  |
+| Reward delta mean                   | nan      | False |
+| Output MAE delta                    | nan      | False |
+| Input movement delta                | nan      | False |
 
-Result bundle: `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/input_data.pkl`
+Result bundle: `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_212956/input_data.pkl`
 
-Comparison directory: `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260510_144133`
+Comparison directory: `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260510_214626`
 
 ## Smoke-run interpretation
 
-This run has `nFE=160000` and `warm_start_step=8000`. If the run is shorter than or equal to the warm-start boundary, TD3 is configured, checkpointed, and populated with replay data, but post-warm-start TD3 action acceptance and gradient updates are not expected. In that case, accepted Markov moves mainly validate the LS teacher and safety-gated execution path rather than TD3 closed-loop superiority.
+This run has `nFE=40000` and `warm_start_step=8000`. If the run is shorter than or equal to the warm-start boundary, TD3 is configured, checkpointed, and populated with replay data, but post-warm-start TD3 action acceptance and gradient updates are not expected. In that case, accepted Markov moves mainly validate the LS teacher and safety-gated execution path rather than TD3 closed-loop superiority.
 
 ## Figures
 
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/phase1_lifted_equivalence.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/phase2_prediction_score_trace.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/phase2_candidate_selection_histogram.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/phase3_z_trace.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/phase3_prediction_error_improvement.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/phase4_outputs_compare.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/phase4_inputs_compare.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/phase4_reward_compare.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/phase4_acceptance_and_gain_drift.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/phase5_rl_action_source_and_norm.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_corrected_mpc/20260510_123506/phase4_prediction_improvement_vs_reward.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260510_144133/compare_inputs_last_episode.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260510_144133/compare_outputs_full.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260510_144133/compare_outputs_last_episode.png`
-- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260510_144133/compare_rewards.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260510_214626/compare_inputs_last_episode.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260510_214626/compare_outputs_full.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260510_214626/compare_outputs_last_episode.png`
+- `C:/Users/HAMEDI/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/Polymer/Results/polymer_markov_compare_disturb/20260510_214626/compare_rewards.png`
 
 ## Bugs, inconsistencies, or risks found
 

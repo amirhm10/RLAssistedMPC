@@ -198,3 +198,151 @@ The success criterion should be:
 The TD3-only variant keeps its reward/tracking edge across seeds without a large increase in failed episodes or drift-heavy transients.
 
 If that does not hold, then the current run is best interpreted as a high-performing but less conservative special case rather than a general design improvement.
+
+## 2026-05-17 unified fallback follow-up
+
+After the TD3-priority fallback design was added to the shared runner, the latest polymer Markov result folder is:
+
+`Polymer/Results/td3_markov_disturb_zbound_008/20260517_210211/`
+
+This run does **not** represent the intended TD3-priority setup. The saved bundle reports:
+
+- `td3_priority_fallback = {}`
+- `summary_metrics["td3_priority_fallback_enabled"] = False`
+- `behavioral_cloning_enabled = False`
+- `force_td3_execute = False`
+
+So the behavioral-cloning part of the plan was active, but the new less-conservative TD3-priority fallback block was not passed from the unified notebook into the shared runner for this run.
+
+### What happened
+
+The latest run still behaved like the old guarded controller. Across all steps, the executed action source fractions were:
+
+| Source | Fraction |
+| --- | ---: |
+| LS fallback | `0.7190` |
+| TD3 accepted | `0.2214` |
+| warm-start LS | `0.0467` |
+| nominal fallback | `0.0129` |
+
+In the tail-20 subepisodes, TD3 authority became even smaller:
+
+| Source | Tail-20 fraction |
+| --- | ---: |
+| LS fallback | `0.7539` |
+| TD3 accepted | `0.1657` |
+| nominal fallback | `0.0804` |
+
+That is why TD3 looked less effective: it was not actually being given the decision authority we intended. It was mostly being evaluated as a proposal and then replaced by LS.
+
+![Latest priority gap and action-source fractions](figures/polymer_markov_td3_priority_gap_20260517/fig_latest_priority_gap_action_sources.png)
+
+### Why TD3 was blocked
+
+The blocker was not the catastrophic-cap idea. In the tail-20 window:
+
+| Requested TD3 check | Tail-20 pass fraction |
+| --- | ---: |
+| old `score > 0` test | `0.1658` |
+| drift `<= 0.10` | `1.0000` |
+| old cost guard | `1.0000` |
+| new priority absolute cap `<= 0.10` | `1.0000` |
+
+The maximum requested TD3 gain drift was only `0.0800`, and the maximum requested cost margin was only `0.00465`. Under the intended TD3-priority full phase, these candidates would not have been rejected by drift or cost. They were rejected because the older positive-score veto was still active.
+
+So the conclusion is narrow but important:
+
+The latest polymer unified run did not fail because the new less-conservative fallback design was too conservative. It failed to test that design because the notebook did not pass `td3_priority_fallback` into `markov_cfg`.
+
+### Reward consequence
+
+The reward trace also matches that mechanism:
+
+| Run | Tail-20 mean reward | Final reward |
+| --- | ---: | ---: |
+| TD3-only no safeguard, 2026-05-16 | `-3.6978` | `-3.7357` |
+| latest unified, 2026-05-17 | `-3.8501` | `-3.9026` |
+| previous guarded sibling, 2026-05-15 | `-3.8800` | `-3.9214` |
+
+The latest unified run is slightly better than the previous guarded sibling, likely helped by disabled behavioral cloning and updated shared defaults, but it does not recover the TD3-only reward level because it still executes mostly LS.
+
+![Reward comparison for latest unified gap](figures/polymer_markov_td3_priority_gap_20260517/fig_reward_latest_vs_td3_only.png)
+
+### Implementation status after this audit
+
+The notebook pass-through has now been corrected for future runs:
+
+- `RL_assisted_MPC_markov_unified.ipynb` now passes `CTRL.get("td3_priority_fallback", {})` into `markov_cfg`
+- `distillation_RL_assisted_MPC_markov_unified.ipynb` has the same pass-through fix
+- the shared runner logic remains the intended TD3-priority design:
+  - no positive-score hard veto in priority mode
+  - phase-aware catastrophic caps
+  - LS only as emergency fallback
+  - nominal MPC only as last resort
+  - executed-action replay remains enabled
+
+The next polymer run from `RL_assisted_MPC_markov_unified.ipynb` should therefore show `summary_metrics["td3_priority_fallback_enabled"] = True` in `input_data.pkl`. If it does not, the run should be treated as a configuration failure rather than an algorithm result.
+
+## 2026-05-17 TD3-priority run before soft handoff
+
+The next polymer Markov result was:
+
+`Polymer/Results/td3_markov_disturb_zbound_008/20260517_235822/`
+
+This run is the clean pre-handoff test: the TD3-priority fallback block was active, but the later authority-ramp/probation soft-handoff logs were not yet present. The saved bundle confirms:
+
+- `summary_metrics["td3_priority_fallback_enabled"] = True`
+- `force_td3_execute = False`
+- `behavioral_cloning_enabled = False`
+- no `td3_authority_scale_log`, so this predates the soft-handoff implementation
+
+That means this is not the TD3-only no-safeguard notebook, and it is not the old fallback-dominated unified run. It is the intended TD3-priority controller before the latest handoff modification.
+
+### Main comparison
+
+| Run | TD3 fraction, all | TD3 fraction, tail-20 | Tail-20 mean reward | Final reward |
+| --- | ---: | ---: | ---: | ---: |
+| TD3-priority, no soft handoff, 2026-05-17 | `0.9500` | `1.0000` | `-3.6938` | `-3.7263` |
+| TD3-only no safeguard, 2026-05-16 | `1.0000` | `1.0000` | `-3.6978` | `-3.7357` |
+| no pass-through unified run, 2026-05-17 | `0.2214` | `0.1657` | `-3.8501` | `-3.9026` |
+
+So for polymer, the TD3-priority design did what we wanted: it removed LS domination without requiring `force_td3_execute = True`. In reward terms, it essentially matched the TD3-only no-safeguard result while keeping emergency nominal fallback available.
+
+![Reward and TD3 authority for the pre-handoff priority run](figures/polymer_markov_td3_priority_no_handoff_20260517/fig_reward_and_td3_authority.png)
+
+### Mechanism
+
+The tail-20 action-source comparison is the clearest mechanism check:
+
+| Source | TD3-priority, no soft handoff | no pass-through unified |
+| --- | ---: | ---: |
+| TD3 accepted | `1.0000` | `0.1657` |
+| LS fallback | `0.0000` | `0.7539` |
+| nominal fallback | `0.0000` | `0.0804` |
+
+The old positive-score veto would still have blocked most TD3 moves. In the TD3-priority run tail:
+
+| Requested TD3 check | Tail-20 value |
+| --- | ---: |
+| `score > 0` fraction | `0.1181` |
+| drift `<= 0.10` fraction | `1.0000` |
+| old cost guard pass fraction | `1.0000` |
+| full priority cap pass fraction | `1.0000` |
+
+The requested TD3 gain drift stayed below the cap, with tail maximum `0.0800`, and the tail maximum cost margin was only `0.00464`. The reason TD3 executed is exactly the intended one: priority mode did not use the positive-score veto as a hard acceptance rule.
+
+![Priority mechanism diagnostics](figures/polymer_markov_td3_priority_no_handoff_20260517/fig_priority_mechanism.png)
+
+### Interpretation
+
+This result is stronger than the earlier TD3-only result in one important way. The earlier run proved that forced TD3 could perform well. This run shows that the shared unified runner can give TD3 real authority while still retaining emergency fallback logic.
+
+For polymer, there is no evidence here that the soft-handoff ramp is required for performance. The unsmoothed TD3-priority release already reached the TD3-only reward level:
+
+- tail-20 reward improved by `0.1563` versus the no-pass-through unified run
+- final reward improved by `0.1763` versus the no-pass-through unified run
+- tail-20 reward was essentially tied with TD3-only no safeguard
+
+The reason we still keep the new soft-handoff design is cross-case robustness. Distillation showed a large post-warm-start reward shock when TD3 was released abruptly, while polymer tolerated the abrupt release well. So the right conclusion is:
+
+The polymer case supports TD3-priority as the correct direction. The soft handoff should be viewed as a cross-case stabilizer, not as something polymer needed to recover performance.

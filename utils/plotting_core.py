@@ -9,6 +9,7 @@ import matplotlib.ticker as mtick
 import numpy as np
 
 from utils.helpers import apply_min_max, reverse_min_max
+from utils.markov_diagnostics import MARKOV_STAGE_BUNDLE_KEYS, write_markov_stage_diagnostics_csv
 
 
 def _set_plot_style(style_profile="hybrid"):
@@ -2551,6 +2552,12 @@ def plot_markov_correction_results_core(result_bundle, plot_cfg):
         {
             "agent_kind": bundle.get("agent_kind"),
             "run_mode": bundle.get("run_mode"),
+            "A": bundle.get("A"),
+            "B": bundle.get("B"),
+            "C": bundle.get("C"),
+            "A_aug": bundle.get("A_aug"),
+            "B_aug": bundle.get("B_aug"),
+            "C_aug": bundle.get("C_aug"),
             "test_train_dict": bundle.get("test_train_dict"),
             "disturbance_profile": bundle.get("disturbance_profile"),
             "summary_metrics": bundle.get("summary_metrics"),
@@ -2567,6 +2574,7 @@ def plot_markov_correction_results_core(result_bundle, plot_cfg):
             "prediction_error_markov_log": bundle.get("prediction_error_markov_log"),
             "rl_state_dim": bundle.get("rl_state_dim"),
             "rl_action_dim": bundle.get("rl_action_dim"),
+            "rl_actor_raw_action_log": bundle.get("rl_actor_raw_action_log"),
             "rl_requested_raw_action_log": bundle.get("rl_requested_raw_action_log"),
             "rl_executed_raw_action_log": bundle.get("rl_executed_raw_action_log"),
             "rl_requested_z_log": bundle.get("rl_requested_z_log"),
@@ -2582,6 +2590,13 @@ def plot_markov_correction_results_core(result_bundle, plot_cfg):
             "rl_critic_loss_log": bundle.get("rl_critic_loss_log"),
             "rl_bc_loss_log": bundle.get("rl_bc_loss_log"),
             "rl_test_step_log": bundle.get("rl_test_step_log"),
+            "td3_priority_phase_log": bundle.get("td3_priority_phase_log"),
+            "td3_priority_phase_codes": bundle.get("td3_priority_phase_codes"),
+            "td3_authority_scale_log": bundle.get("td3_authority_scale_log"),
+            "td3_probation_active_log": bundle.get("td3_probation_active_log"),
+            "td3_probation_trigger_log": bundle.get("td3_probation_trigger_log"),
+            "td3_probation_trigger_count": bundle.get("td3_probation_trigger_count"),
+            "td3_warm_release_reference_reward": bundle.get("td3_warm_release_reference_reward"),
             "rl_agent_checkpoint_path": bundle.get("rl_agent_checkpoint_path"),
             "debug_phase1_metrics": bundle.get("debug_phase1_metrics"),
             "debug_shadow": bundle.get("debug_shadow"),
@@ -2589,7 +2604,11 @@ def plot_markov_correction_results_core(result_bundle, plot_cfg):
             "mpc_path_or_dir": bundle.get("mpc_path_or_dir"),
         }
     )
+    for key in MARKOV_STAGE_BUNDLE_KEYS:
+        if key in bundle:
+            stored_bundle[key] = bundle.get(key)
     save_bundle_pickle(out_dir, stored_bundle)
+    write_markov_stage_diagnostics_csv(stored_bundle, os.path.join(out_dir, "markov_stage_diagnostics.csv"))
     return out_dir
 
 

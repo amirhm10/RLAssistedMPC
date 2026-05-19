@@ -369,7 +369,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
     "agent": {
         "hidden_layers": [256, 256],
         **_copy_replay_defaults(),
-        "gamma": 0.99,
+        "gamma": 0.995,
         "n_step": 1,  # Positive integer. Keep 1 for the baseline; common DDQN ablations use 3.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda" | "retrace"
         "lambda_value": 0.9,
@@ -411,7 +411,7 @@ DISTILLATION_HORIZON_DUELING_DEFAULTS = {
         "seed": 7,
         "hidden_layers": [256, 256],
         **_copy_replay_defaults(),
-        "gamma": 0.99,
+        "gamma": 0.995,
         "n_step": 1,
         "multistep_mode": "n_step",
         "lambda_value": 0.9,

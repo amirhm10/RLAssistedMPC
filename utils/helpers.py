@@ -8,12 +8,60 @@ import numpy as np
 from Simulation.mpc import augment_state_space
 
 
+_REPO_MARKERS = ("utils", "Simulation")
+
+
+def _normalize_repo_search_start(start):
+    if start is None:
+        return None
+
+    path = Path(start).expanduser()
+    try:
+        path = path.resolve()
+    except OSError:
+        path = path.absolute()
+
+    return path.parent if path.is_file() else path
+
+
 def resolve_repo_root(start=None):
-    start_path = Path(start or Path.cwd()).resolve()
-    for candidate in [start_path] + list(start_path.parents):
-        if (candidate / "utils").exists() and (candidate / "Simulation").exists():
-            return candidate
-    raise FileNotFoundError("Could not locate the repository root from the provided start path.")
+    search_starts = []
+    if start is not None:
+        search_starts.append(start)
+
+    env_root = os.environ.get("RL_ASSISTED_MPC_ROOT")
+    if env_root:
+        search_starts.append(env_root)
+
+    search_starts.extend((Path.cwd(), Path(__file__).resolve()))
+
+    seen = set()
+    for raw_start in search_starts:
+        start_path = _normalize_repo_search_start(raw_start)
+        if start_path is None:
+            continue
+
+        for candidate in [start_path] + list(start_path.parents):
+            resolved_candidate = candidate.resolve()
+            if resolved_candidate in seen:
+                continue
+            seen.add(resolved_candidate)
+
+            if all((resolved_candidate / marker).exists() for marker in _REPO_MARKERS):
+                return resolved_candidate
+
+    raise FileNotFoundError(
+        "Could not locate the repository root. Set RL_ASSISTED_MPC_ROOT or run from inside the repository."
+    )
+
+
+def resolve_repo_relative_path(path_like, repo_root=None):
+    path = Path(path_like).expanduser()
+    if path.is_absolute():
+        return path.resolve()
+
+    root = Path(repo_root).resolve() if repo_root is not None else resolve_repo_root()
+    return (root / path).resolve()
 
 
 # -------------
@@ -132,10 +180,15 @@ def apply_rl_scaled(min_max_dict, x_d_states, y_sp, u):
 # ------------
 # Load system data
 # ------------
-def resolve_data_dir(data_dir="Data"):
-    path = Path(data_dir)
+def resolve_data_dir(data_dir="Data", repo_root=None):
+    path = Path(data_dir).expanduser()
     if not path.is_absolute():
-        path = Path.cwd() / path
+        try:
+            base_root = Path(repo_root).resolve() if repo_root is not None else resolve_repo_root()
+        except FileNotFoundError:
+            base_root = Path.cwd().resolve()
+        path = base_root / path
+    path = path.resolve()
     path.mkdir(parents=True, exist_ok=True)
     return path
 

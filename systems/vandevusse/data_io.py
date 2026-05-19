@@ -1,18 +1,20 @@
 from pathlib import Path
 
-from utils.helpers import load_and_prepare_system_data
+from utils.helpers import load_and_prepare_system_data, resolve_repo_relative_path
 
 from .config import VANDEVUSSE_DATA_SUBDIR, VANDEVUSSE_RESULT_SUBDIR
 
 
 def resolve_vandevusse_data_dir(repo_root, override=None):
-    path = Path(override) if override else Path(repo_root) / VANDEVUSSE_DATA_SUBDIR
-    return path.resolve()
+    if override:
+        return resolve_repo_relative_path(override, repo_root=repo_root)
+    return (Path(repo_root) / VANDEVUSSE_DATA_SUBDIR).resolve()
 
 
 def resolve_vandevusse_result_dir(repo_root, override=None):
-    path = Path(override) if override else Path(repo_root) / VANDEVUSSE_RESULT_SUBDIR
-    return path.resolve()
+    if override:
+        return resolve_repo_relative_path(override, repo_root=repo_root)
+    return (Path(repo_root) / VANDEVUSSE_RESULT_SUBDIR).resolve()
 
 
 def ensure_vandevusse_directories(repo_root, data_override=None, result_override=None):

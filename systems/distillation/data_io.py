@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-from utils.helpers import load_and_prepare_system_data
+from utils.helpers import load_and_prepare_system_data, resolve_repo_relative_path
 
 from .config import ARCHIVED_DISTILLATION_ROOT, DISTILLATION_DATA_SUBDIR, DISTILLATION_RESULT_SUBDIR
 
@@ -19,13 +19,15 @@ LEGACY_FILE_MAP = {
 
 
 def resolve_distillation_data_dir(repo_root, override=None):
-    path = Path(override) if override else Path(repo_root) / DISTILLATION_DATA_SUBDIR
-    return path.resolve()
+    if override:
+        return resolve_repo_relative_path(override, repo_root=repo_root)
+    return (Path(repo_root) / DISTILLATION_DATA_SUBDIR).resolve()
 
 
 def resolve_distillation_result_dir(repo_root, override=None):
-    path = Path(override) if override else Path(repo_root) / DISTILLATION_RESULT_SUBDIR
-    return path.resolve()
+    if override:
+        return resolve_repo_relative_path(override, repo_root=repo_root)
+    return (Path(repo_root) / DISTILLATION_RESULT_SUBDIR).resolve()
 
 
 def ensure_distillation_directories(repo_root, data_override=None, result_override=None):

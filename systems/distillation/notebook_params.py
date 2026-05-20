@@ -36,6 +36,12 @@ from .config import (
 )
 
 
+DISTILLATION_DEFAULT_DQN_HIDDEN = [128, 128]
+DISTILLATION_DEFAULT_ACTOR_HIDDEN = [128, 128]
+DISTILLATION_DEFAULT_CRITIC_HIDDEN = [128, 128]
+DISTILLATION_DEFAULT_GAMMA = 0.99
+
+
 def _copy_reward_defaults():
     return {k: deepcopy(v) for k, v in _RL_REWARD_DEFAULTS.items()}
 
@@ -396,9 +402,9 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
         "ha_change": 1.0,
     },
     "agent": {
-        "hidden_layers": [256, 256, 256],
+        "hidden_layers": list(DISTILLATION_DEFAULT_DQN_HIDDEN),
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": DISTILLATION_DEFAULT_GAMMA,
         "n_step": 1,  # Positive integer. Keep 1 for the baseline; common DDQN ablations use 3.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda" | "retrace"
         "lambda_value": 0.9,
@@ -438,9 +444,9 @@ DISTILLATION_HORIZON_DUELING_DEFAULTS = {
     "controller": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["controller"]),
     "agent": {
         "seed": 7,
-        "hidden_layers": [256, 256, 256],
+        "hidden_layers": list(DISTILLATION_DEFAULT_DQN_HIDDEN),
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": DISTILLATION_DEFAULT_GAMMA,
         "n_step": 1,
         "multistep_mode": "n_step",
         "lambda_value": 0.9,
@@ -519,10 +525,10 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "ha_change": 1.0,
     },
     "td3_agent": {
-        "actor_hidden": [256, 256, 256],
-        "critic_hidden": [256, 256, 256],
+        "actor_hidden": list(DISTILLATION_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(DISTILLATION_DEFAULT_CRITIC_HIDDEN),
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": DISTILLATION_DEFAULT_GAMMA,
         "n_step": 1,  # Positive integer. Typical TD3 studies here use 1, 3, or 5.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda"
         "lambda_value": 0.9,
@@ -546,10 +552,10 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "sac_agent": {
-        "actor_hidden": [256, 256, 256],
-        "critic_hidden": [256, 256, 256],
+        "actor_hidden": list(DISTILLATION_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(DISTILLATION_DEFAULT_CRITIC_HIDDEN),
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": DISTILLATION_DEFAULT_GAMMA,
         "n_step": 1,  # Positive integer. SAC often uses 3-step as the first extension.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "sac_n" | "lambda"
         "lambda_value": 0.9,
@@ -726,10 +732,10 @@ DISTILLATION_WEIGHT_DEFAULTS = {
         "ha_change": 1.0,
     },
     "td3_agent": {
-        "actor_hidden": [256, 256, 256],
-        "critic_hidden": [256, 256, 256],
+        "actor_hidden": list(DISTILLATION_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(DISTILLATION_DEFAULT_CRITIC_HIDDEN),
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": DISTILLATION_DEFAULT_GAMMA,
         "n_step": 1,
         "multistep_mode": "one_step",
         "lambda_value": 0.9,
@@ -751,10 +757,10 @@ DISTILLATION_WEIGHT_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "sac_agent": {
-        "actor_hidden": [256, 256, 256],
-        "critic_hidden": [256, 256, 256],
+        "actor_hidden": list(DISTILLATION_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(DISTILLATION_DEFAULT_CRITIC_HIDDEN),
         **_copy_replay_defaults(),
-        "gamma": 0.995,
+        "gamma": DISTILLATION_DEFAULT_GAMMA,
         "n_step": 1,
         "multistep_mode": "one_step",
         "lambda_value": 0.9,
@@ -1013,6 +1019,10 @@ def get_distillation_notebook_defaults(family: str) -> dict:
 
 
 __all__ = [
+    "DISTILLATION_DEFAULT_ACTOR_HIDDEN",
+    "DISTILLATION_DEFAULT_CRITIC_HIDDEN",
+    "DISTILLATION_DEFAULT_DQN_HIDDEN",
+    "DISTILLATION_DEFAULT_GAMMA",
     "DISTILLATION_NOTEBOOK_DEFAULTS",
     "get_distillation_notebook_defaults",
 ]

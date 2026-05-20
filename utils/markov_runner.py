@@ -50,6 +50,8 @@ TD3_PRIORITY_PHASE_CODE = {
     "full": 3,
 }
 
+DEFAULT_TD3_GAMMA = 0.99
+
 
 def _td3_priority_cfg(config):
     cfg = config.get("td3_priority_fallback", {})
@@ -471,7 +473,7 @@ def make_td3_markov_agent(config, state_dim, action_dim, *, set_points_len):
         seed=td3_cfg.get("seed"),
         actor_hidden=list(td3_cfg["actor_hidden"]),
         critic_hidden=list(td3_cfg["critic_hidden"]),
-        gamma=float(td3_cfg.get("gamma", 0.995)),
+        gamma=float(td3_cfg.get("gamma", DEFAULT_TD3_GAMMA)),
         actor_lr=float(td3_cfg.get("actor_lr", 1.0e-4)),
         critic_lr=float(td3_cfg.get("critic_lr", 1.0e-4)),
         batch_size=int(td3_cfg.get("batch_size", 128)),

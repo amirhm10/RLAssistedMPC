@@ -154,6 +154,7 @@ R1_penalty = CTRL["R1_penalty"]
 R2_penalty = CTRL["R2_penalty"]
 basis_family = CTRL["basis_family"]
 z_bound = float(CTRL["z_bound"])
+z_safety = CTRL.get("z_safety", {})
 prediction_window = int(CTRL["prediction_window"])
 lambda_z = float(CTRL["lambda_z"])
 s_pred_min = float(CTRL["s_pred_min"])
@@ -215,6 +216,7 @@ print_grouped_notebook_summary(
             "decision_interval": decision_interval,
             "basis_family": basis_family,
             "z_bound": z_bound,
+            "z_safety": z_safety,
             "prediction_window": prediction_window,
             "gain_drift_max": gain_drift_max,
             "nominal_solver_mode": nominal_solver_mode,
@@ -250,6 +252,7 @@ markov_cfg = {
     "observer_update_alignment": observer_update_alignment,
     "basis_family": basis_family,
     "z_bound": z_bound,
+    "z_safety": z_safety,
     "prediction_window": prediction_window,
     "lambda_z": lambda_z,
     "s_pred_min": s_pred_min,

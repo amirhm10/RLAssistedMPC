@@ -128,6 +128,85 @@ def _td3_priority_post_warm_episode(ctx, step):
     return int(post_warm_step // time_in_sub) + 1
 
 
+def _z_safety_cfg(config):
+    cfg = config.get("z_safety", {})
+    return cfg if isinstance(cfg, dict) else {}
+
+
+def _z_safety_enabled(config):
+    return bool(_z_safety_cfg(config).get("enabled", False))
+
+
+def resolve_z_safety_effective_cap(config, ctx, step, probation_active=False):
+    """Return the active coordinate-wise z cap for the current Markov step."""
+    z_bound = float(config["z_bound"])
+    cfg = _z_safety_cfg(config)
+    if not _z_safety_enabled(config):
+        return z_bound
+
+    phase = _td3_priority_phase(config, ctx, step)
+    if phase == "protected":
+        cap = float(cfg.get("protected_cap", z_bound))
+    elif phase == "ramp":
+        priority_cfg = _td3_priority_cfg(config)
+        protected = int(max(0, priority_cfg.get("protected_subepisodes", 0)))
+        ramp = int(max(1, priority_cfg.get("ramp_subepisodes", 1)))
+        post_warm_episode = _td3_priority_post_warm_episode(ctx, step)
+        ramp_index = int(np.clip(post_warm_episode - protected, 1, ramp))
+        frac = 1.0 if ramp <= 1 else float(ramp_index - 1) / float(ramp - 1)
+        start = float(cfg.get("ramp_start_cap", cfg.get("protected_cap", z_bound)))
+        end = float(cfg.get("ramp_end_cap", cfg.get("full_cap", z_bound)))
+        cap = start + frac * (end - start)
+    else:
+        cap = float(cfg.get("full_cap", z_bound))
+
+    if probation_active:
+        cap = min(cap, float(cfg.get("probation_cap", cap)))
+    return float(np.clip(cap, 0.0, z_bound))
+
+
+def apply_z_safety_projection(z, config, effective_cap=None):
+    """Clip z by coordinate and optional vector-norm trust region."""
+    z_in = np.asarray(z, float).reshape(-1)
+    z_bound = float(config["z_bound"])
+    cfg = _z_safety_cfg(config)
+    enabled = _z_safety_enabled(config)
+    coord_cap = z_bound if effective_cap is None else float(effective_cap)
+    if not enabled:
+        coord_cap = z_bound
+    coord_cap = float(np.clip(coord_cap, 0.0, z_bound))
+
+    norm_before = float(np.linalg.norm(z_in))
+    z_coord = np.clip(z_in, -coord_cap, coord_cap)
+    coord_clip_active = bool(np.any(np.abs(z_coord - z_in) > 1.0e-12))
+    norm_after_coord = float(np.linalg.norm(z_coord))
+
+    vector_cfg = cfg.get("vector_norm_cap", {})
+    if not isinstance(vector_cfg, dict):
+        vector_cfg = {}
+    norm_cap_enabled = bool(enabled and vector_cfg.get("enabled", False))
+    max_norm = float(vector_cfg.get("max_norm", np.inf))
+    projection_scale = 1.0
+    vector_projection_active = False
+    z_out = z_coord
+    if norm_cap_enabled and np.isfinite(max_norm) and max_norm > 0.0 and norm_after_coord > max_norm:
+        projection_scale = float(max_norm / max(norm_after_coord, 1.0e-12))
+        z_out = z_coord * projection_scale
+        vector_projection_active = True
+
+    norm_after = float(np.linalg.norm(z_out))
+    return z_out, {
+        "enabled": enabled,
+        "effective_cap": coord_cap,
+        "norm_before": norm_before,
+        "norm_after": norm_after,
+        "projection_scale": projection_scale,
+        "projection_active": bool(coord_clip_active or vector_projection_active),
+        "coord_clip_active": coord_clip_active,
+        "vector_projection_active": vector_projection_active,
+    }
+
+
 def _td3_priority_candidate_allowed(config, ctx, step, candidate_eval, candidate_score, nominal_success):
     if candidate_eval is None:
         return False
@@ -621,6 +700,8 @@ def initialize_history(nFE, nx, ny, nu, z_dim, control_horizon, rl_state_dim=0):
         "rl_executed_raw_action_log": np.zeros((nFE, z_dim), dtype=float),
         "rl_requested_z_log": np.zeros((nFE, z_dim), dtype=float),
         "rl_ls_z_log": np.zeros((nFE, z_dim), dtype=float),
+        "rl_requested_z_uncapped_log": np.zeros((nFE, z_dim), dtype=float),
+        "rl_ls_z_uncapped_log": np.zeros((nFE, z_dim), dtype=float),
         "rl_action_source_log": np.zeros(nFE, dtype=int),
         "rl_decision_taken_log": np.zeros(nFE, dtype=int),
         "rl_policy_source_log": np.zeros(nFE, dtype=int),
@@ -635,6 +716,19 @@ def initialize_history(nFE, nx, ny, nu, z_dim, control_horizon, rl_state_dim=0):
         "td3_authority_scale_log": np.ones(nFE, dtype=float),
         "td3_probation_active_log": np.zeros(nFE, dtype=int),
         "td3_probation_trigger_log": np.zeros(nFE, dtype=int),
+        "z_safety_effective_cap_log": np.full(nFE, np.nan, dtype=float),
+        "z_safety_requested_norm_before_log": np.full(nFE, np.nan, dtype=float),
+        "z_safety_requested_norm_after_log": np.full(nFE, np.nan, dtype=float),
+        "z_safety_requested_projection_scale_log": np.full(nFE, np.nan, dtype=float),
+        "z_safety_requested_projection_active_log": np.zeros(nFE, dtype=int),
+        "z_safety_requested_coord_clip_active_log": np.zeros(nFE, dtype=int),
+        "z_safety_requested_vector_projection_active_log": np.zeros(nFE, dtype=int),
+        "z_safety_ls_norm_before_log": np.full(nFE, np.nan, dtype=float),
+        "z_safety_ls_norm_after_log": np.full(nFE, np.nan, dtype=float),
+        "z_safety_ls_projection_scale_log": np.full(nFE, np.nan, dtype=float),
+        "z_safety_ls_projection_active_log": np.zeros(nFE, dtype=int),
+        "z_safety_ls_coord_clip_active_log": np.zeros(nFE, dtype=int),
+        "z_safety_ls_vector_projection_active_log": np.zeros(nFE, dtype=int),
         "u_sequence_nominal_log": np.empty((nFE, control_horizon * nu), dtype=float),
         "u_sequence_requested_log": np.full((nFE, control_horizon * nu), np.nan, dtype=float),
         "u_sequence_ls_log": np.full((nFE, control_horizon * nu), np.nan, dtype=float),
@@ -708,6 +802,17 @@ def _record_candidate_stage(history, step, prefix, U_candidate, candidate_eval, 
         history[f"{prefix}_gain_drift_log"][step] = float(candidate_eval["drift"])
     if candidate_score is not None:
         history[f"{prefix}_prediction_score_log"][step] = float(candidate_score["score"])
+
+
+def _record_z_safety_stage(history, step, prefix, safety_info):
+    history[f"z_safety_{prefix}_norm_before_log"][step] = float(safety_info["norm_before"])
+    history[f"z_safety_{prefix}_norm_after_log"][step] = float(safety_info["norm_after"])
+    history[f"z_safety_{prefix}_projection_scale_log"][step] = float(safety_info["projection_scale"])
+    history[f"z_safety_{prefix}_projection_active_log"][step] = int(bool(safety_info["projection_active"]))
+    history[f"z_safety_{prefix}_coord_clip_active_log"][step] = int(bool(safety_info["coord_clip_active"]))
+    history[f"z_safety_{prefix}_vector_projection_active_log"][step] = int(
+        bool(safety_info["vector_projection_active"])
+    )
 
 
 def phase1_equivalence_metrics(config, ctx, G0):
@@ -1214,9 +1319,23 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 "drift": 0.0,
             }
             executed_score = score
+            current_subepisode = int(step // max(1, ctx["time_in_sub_episodes"])) + 1
+            probation_active = bool(
+                _td3_priority_enabled(config)
+                and not force_td3_execute
+                and step > ctx["warm_start_step"]
+                and current_subepisode <= int(probation_cooldown_until_episode)
+            )
+            z_safety_effective_cap = resolve_z_safety_effective_cap(
+                config,
+                ctx,
+                step,
+                probation_active=probation_active,
+            )
+            history["z_safety_effective_cap_log"][step] = float(z_safety_effective_cap)
 
             if use_markov and bool(config.get("run_adaptive_ls", True)) and step >= predict_h:
-                z_ls, _ls_result, ls_score = fit_markov_ls_correction(
+                z_ls_uncapped, _ls_result, ls_score = fit_markov_ls_correction(
                     z_prev,
                     z_bounds,
                     history,
@@ -1231,6 +1350,28 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     float(config["lambda_z"]),
                     step,
                     int(config["prediction_window"]),
+                )
+                history["rl_ls_z_uncapped_log"][step, :] = z_ls_uncapped
+                z_ls, ls_safety_info = apply_z_safety_projection(
+                    z_ls_uncapped,
+                    config,
+                    effective_cap=z_safety_effective_cap,
+                )
+                _record_z_safety_stage(history, step, "ls", ls_safety_info)
+                ls_score = prediction_improvement_score(
+                    z=z_ls,
+                    history=history,
+                    m_blocks=m_blocks,
+                    basis_blocks=basis_blocks,
+                    G0=G0,
+                    A=A,
+                    C=C,
+                    predict_h=predict_h,
+                    control_horizon=control_horizon,
+                    Wy=Wy,
+                    lambda_z=float(config["lambda_z"]),
+                    current_step=step,
+                    prediction_window=int(config["prediction_window"]),
                 )
                 ls_eval = evaluate_markov_candidate(z_ls, u_prev_dev, x_model, U0, J0)
                 ls_drift = float(ls_eval["drift"])
@@ -1320,13 +1461,6 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     )
                     raw_actor_requested = np.asarray(decision.action, float).reshape(-1)
                     raw_requested = raw_actor_requested.copy()
-                    current_subepisode = int(step // max(1, ctx["time_in_sub_episodes"])) + 1
-                    probation_active = bool(
-                        _td3_priority_enabled(config)
-                        and not force_td3_execute
-                        and step > ctx["warm_start_step"]
-                        and current_subepisode <= int(probation_cooldown_until_episode)
-                    )
                     authority_scale = (
                         _td3_priority_authority_scale(config, ctx, step, probation_active=probation_active)
                         if _td3_priority_enabled(config) and not force_td3_execute and step > ctx["warm_start_step"]
@@ -1334,7 +1468,6 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     )
                     if authority_scale < 1.0:
                         raw_requested = np.clip(raw_requested * authority_scale, -1.0, 1.0)
-                    last_raw_action = decision.last_action
                     last_action_test = decision.last_action_test
                     history["rl_decision_taken_log"][step] = int(decision.decision_taken)
                     history["rl_policy_source_log"][step] = int(decision.source)
@@ -1347,7 +1480,16 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     history["td3_authority_scale_log"][step] = float(authority_scale)
                     history["td3_probation_active_log"][step] = int(probation_active)
 
-                    z_requested = raw_action_to_z(raw_requested, config["z_bound"])
+                    z_requested_uncapped = raw_action_to_z(raw_requested, config["z_bound"])
+                    history["rl_requested_z_uncapped_log"][step, :] = z_requested_uncapped
+                    z_requested, requested_safety_info = apply_z_safety_projection(
+                        z_requested_uncapped,
+                        config,
+                        effective_cap=z_safety_effective_cap,
+                    )
+                    _record_z_safety_stage(history, step, "requested", requested_safety_info)
+                    raw_requested = z_to_raw_action(z_requested, config["z_bound"])
+                    last_raw_action = raw_requested.copy()
                     history["rl_requested_raw_action_log"][step, :] = raw_requested
                     history["rl_requested_z_log"][step, :] = z_requested
                     history["z_proposed_log"][step, :] = z_requested
@@ -1587,23 +1729,35 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                             history["td3_probation_trigger_log"][step] = 1
                 if print_progress:
                     accepted_fraction = float(np.mean(history["accepted_log"][start:stop]))
-                    td3_accepted_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 2))
-                    ls_fallback_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 3))
-                    nominal_fallback_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 4))
+                    td3_sub_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 2))
+                    ls_sub_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 3))
+                    nominal_sub_fraction = float(np.mean(history["rl_action_source_log"][start:stop] == 4))
+                    post_start = min(stop, int(ctx["warm_start_step"]) + 1)
+                    if stop > post_start:
+                        post_sources = history["rl_action_source_log"][post_start:stop]
+                        td3_post_fraction = float(np.mean(post_sources == 2))
+                        ls_post_fraction = float(np.mean(post_sources == 3))
+                        nominal_post_fraction = float(np.mean(post_sources == 4))
+                    else:
+                        td3_post_fraction = np.nan
+                        ls_post_fraction = np.nan
+                        nominal_post_fraction = np.nan
                     mean_z = np.mean(history["z_executed_log"][start:stop, :], axis=0)
                     print(
                         "Sub_Episode:",
                         ctx["sub_episode_changes_dict"][step],
                         "| avg. reward:",
                         avg_reward,
-                        "| accepted:",
+                        "| accepted (subepisode):",
                         accepted_fraction,
-                        "| TD3 accepted:",
-                        td3_accepted_fraction,
-                        "| LS fallback:",
-                        ls_fallback_fraction,
-                        "| nominal fallback:",
-                        nominal_fallback_fraction,
+                        "| TD3 executed (subepisode):",
+                        td3_sub_fraction,
+                        "| LS fallback (subepisode):",
+                        ls_sub_fraction,
+                        "| nominal fallback (subepisode):",
+                        nominal_sub_fraction,
+                        "| TD3/LS/nominal post-warm cumulative:",
+                        (td3_post_fraction, ls_post_fraction, nominal_post_fraction),
                         "| avg z:",
                         mean_z,
                     )
@@ -1642,6 +1796,14 @@ def summarize_history(config, ctx, history):
     td3_accepted_fraction = float(np.mean(history["rl_action_source_log"] == 2)) if nFE else 0.0
     ls_fallback_fraction = float(np.mean(history["rl_action_source_log"] == 3)) if nFE else 0.0
     nominal_fallback_fraction = float(np.mean(history["rl_action_source_log"] == 4)) if nFE else 0.0
+    post_warm_start_step = min(nFE, int(ctx["warm_start_step"]) + 1)
+    post_sources = history["rl_action_source_log"][post_warm_start_step:nFE]
+    post_accepted = history["accepted_log"][post_warm_start_step:nFE]
+    has_post_warm = post_sources.size > 0
+    accepted_fraction_post_warm = float(np.mean(post_accepted)) if has_post_warm else 0.0
+    td3_accepted_fraction_post_warm = float(np.mean(post_sources == 2)) if has_post_warm else 0.0
+    ls_fallback_fraction_post_warm = float(np.mean(post_sources == 3)) if has_post_warm else 0.0
+    nominal_fallback_fraction_post_warm = float(np.mean(post_sources == 4)) if has_post_warm else 0.0
     replay_push_count = int(np.sum(history["rl_replay_pushed_log"]))
     train_update_count = int(np.sum(history["rl_train_updated_log"]))
     return {
@@ -1656,6 +1818,11 @@ def summarize_history(config, ctx, history):
         "td3_accepted_fraction": td3_accepted_fraction,
         "ls_fallback_fraction": ls_fallback_fraction,
         "nominal_fallback_fraction": nominal_fallback_fraction,
+        "post_warm_start_step": int(post_warm_start_step),
+        "accepted_fraction_post_warm": accepted_fraction_post_warm,
+        "td3_accepted_fraction_post_warm": td3_accepted_fraction_post_warm,
+        "ls_fallback_fraction_post_warm": ls_fallback_fraction_post_warm,
+        "nominal_fallback_fraction_post_warm": nominal_fallback_fraction_post_warm,
         "reward_mean": float(np.mean(history["rewards"])) if nFE else np.nan,
         "reward_final_episode": float(history["avg_rewards"][-1]) if history["avg_rewards"].size else np.nan,
         "gain_drift_mean": float(np.nanmean(history["gain_drift_log"])) if nFE else np.nan,
@@ -1762,6 +1929,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "basis_family": str(config["basis_family"]),
         "basis_labels": list(basis_labels),
         "markov_z_bound": float(config["z_bound"]),
+        "z_safety": deepcopy(config.get("z_safety", {})),
         "markov_s_pred_min": float(config["s_pred_min"]),
         "markov_gain_drift_max": float(config["gain_drift_max"]),
         "z_log": history["z_log"],
@@ -1781,6 +1949,8 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "rl_executed_raw_action_log": history["rl_executed_raw_action_log"],
         "rl_requested_z_log": history["rl_requested_z_log"],
         "rl_ls_z_log": history["rl_ls_z_log"],
+        "rl_requested_z_uncapped_log": history["rl_requested_z_uncapped_log"],
+        "rl_ls_z_uncapped_log": history["rl_ls_z_uncapped_log"],
         "rl_action_source_log": history["rl_action_source_log"],
         "rl_action_source_names": history["rl_action_source_names"],
         "rl_decision_taken_log": history["rl_decision_taken_log"],
@@ -1799,6 +1969,19 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "td3_probation_trigger_log": history["td3_probation_trigger_log"],
         "td3_probation_trigger_count": int(history.get("_td3_probation_trigger_count", 0)),
         "td3_warm_release_reference_reward": history.get("_td3_warm_release_reference_reward"),
+        "z_safety_effective_cap_log": history["z_safety_effective_cap_log"],
+        "z_safety_requested_norm_before_log": history["z_safety_requested_norm_before_log"],
+        "z_safety_requested_norm_after_log": history["z_safety_requested_norm_after_log"],
+        "z_safety_requested_projection_scale_log": history["z_safety_requested_projection_scale_log"],
+        "z_safety_requested_projection_active_log": history["z_safety_requested_projection_active_log"],
+        "z_safety_requested_coord_clip_active_log": history["z_safety_requested_coord_clip_active_log"],
+        "z_safety_requested_vector_projection_active_log": history["z_safety_requested_vector_projection_active_log"],
+        "z_safety_ls_norm_before_log": history["z_safety_ls_norm_before_log"],
+        "z_safety_ls_norm_after_log": history["z_safety_ls_norm_after_log"],
+        "z_safety_ls_projection_scale_log": history["z_safety_ls_projection_scale_log"],
+        "z_safety_ls_projection_active_log": history["z_safety_ls_projection_active_log"],
+        "z_safety_ls_coord_clip_active_log": history["z_safety_ls_coord_clip_active_log"],
+        "z_safety_ls_vector_projection_active_log": history["z_safety_ls_vector_projection_active_log"],
         "u_sequence_nominal_log": history["u_sequence_nominal_log"],
         "u_sequence_requested_log": history["u_sequence_requested_log"],
         "u_sequence_ls_log": history["u_sequence_ls_log"],

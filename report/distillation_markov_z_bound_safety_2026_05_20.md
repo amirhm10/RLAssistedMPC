@@ -2,6 +2,8 @@
 
 Date: 2026-05-20
 
+Implementation note: this audit analyzes saved runs whose bundles used `z_bound = 0.05`. Later on 2026-05-20, the active distillation Markov default was changed to `z_bound = 0.04` with the moderate dynamic z-safety layer documented in `change-reports/2026-05-20_distillation_markov_z_safety.md`.
+
 ## Scope
 
 This report audits the executed Markov correction variable `z` for the distillation Markov TD3 runs. The goal is to answer:

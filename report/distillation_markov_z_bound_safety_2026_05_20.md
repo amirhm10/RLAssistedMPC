@@ -100,13 +100,13 @@ The latest guarded run is weaker than the best recent guarded run. That means th
 
 | Metric | Guarded latest | Guarded best recent | TD3-only no-safeguard |
 |---|---:|---:|---:|
-| `q75(|z_i|)` | 0.0158 | 0.0100 | 0.0116 |
-| `q90(|z_i|)` | 0.0337 | 0.0216 | 0.0480 |
-| `q95(|z_i|)` | 0.0396 | 0.0363 | 0.0499 |
-| `q99(|z_i|)` | 0.0486 | 0.0498 | 0.0500 |
-| `q95(||z||2)` | 0.0685 | 0.0665 | 0.0923 |
-| `q95(|Delta z_i|)` | 0.0190 | 0.0145 | 0.0152 |
-| `q99(|Delta z_i|)` | 0.0468 | 0.0487 | 0.0542 |
+| `q75 abs z_i` | 0.0158 | 0.0100 | 0.0116 |
+| `q90 abs z_i` | 0.0337 | 0.0216 | 0.0480 |
+| `q95 abs z_i` | 0.0396 | 0.0363 | 0.0499 |
+| `q99 abs z_i` | 0.0486 | 0.0498 | 0.0500 |
+| `q95 z 2-norm` | 0.0685 | 0.0665 | 0.0923 |
+| `q95 abs Delta z_i` | 0.0190 | 0.0145 | 0.0152 |
+| `q99 abs Delta z_i` | 0.0468 | 0.0487 | 0.0542 |
 
 The most important pattern is the `q90` row. The guarded best run keeps 90% of absolute coordinate moves below `0.0216`, while the TD3-only/no-safeguard run pushes the 90th percentile almost to the hard cap at `0.0480`.
 
@@ -116,7 +116,7 @@ This says the current `0.05` bound is not just a loose theoretical bound. The co
 
 ![z coordinate ranges](figures/distillation_markov_z_safety_20260520/fig_z_coordinate_ranges.png)
 
-| Run | Coordinate | `q95(|z_i|)` | Steps with `|z_i| > 0.04` |
+| Run | Coordinate | `q95 abs z_i` | Steps with `abs z_i > 0.04` |
 |---|---|---:|---:|
 | Guarded latest | `y1_u1` | 0.0394 | 4.6% |
 | Guarded latest | `y1_u2` | 0.0379 | 3.4% |
@@ -161,10 +161,10 @@ The `0.04` cap is attractive because it clips less than 10% of the best guarded 
 
 | Condition | Guarded latest mean reward / negative steps | Guarded best mean reward / negative steps | TD3-only mean reward / negative steps |
 |---|---:|---:|---:|
-| `||z||2 >= 0.03` | -7.56 / 73.2% | -14.29 / 77.6% | -15.17 / 88.4% |
-| `||z||2 >= 0.05` | -12.39 / 90.4% | -25.91 / 94.4% | -17.53 / 93.1% |
-| `||z||2 >= 0.07` | -25.56 / 97.7% | -38.53 / 99.7% | -22.65 / 98.8% |
-| `||z||2 >= 0.09` | -44.73 / 100.0% | -45.02 / 100.0% | -19.25 / 99.2% |
+| `z 2-norm >= 0.03` | -7.56 / 73.2% | -14.29 / 77.6% | -15.17 / 88.4% |
+| `z 2-norm >= 0.05` | -12.39 / 90.4% | -25.91 / 94.4% | -17.53 / 93.1% |
+| `z 2-norm >= 0.07` | -25.56 / 97.7% | -38.53 / 99.7% | -22.65 / 98.8% |
+| `z 2-norm >= 0.09` | -44.73 / 100.0% | -45.02 / 100.0% | -19.25 / 99.2% |
 
 Large `z` norm is strongly associated with negative step rewards. This is still correlation, not proof of causality. Large `z` may be selected during difficult transients, setpoint moves, or disturbances where the reward would already be poor.
 
@@ -209,7 +209,7 @@ Add a coordinate-wise rate limit:
 
 $$ |z_i(t)-z_i(t-1)| \leq \Delta z_{\max}. $$
 
-A good first value is `Delta z_max = 0.015` per coordinate. That is close to the guarded-run `q95(|Delta z_i|)`, so it should mostly block abrupt jumps rather than normal action changes.
+A good first value is `Delta z_max = 0.015` per coordinate. That is close to the guarded-run `q95 abs Delta z_i`, so it should mostly block abrupt jumps rather than normal action changes.
 
 ### 3. Vector Norm Cap
 
@@ -222,7 +222,7 @@ Suggested first tests:
 - `z_norm_max = 0.06` as a moderate safety layer.
 - `z_norm_max = 0.05` as a stricter safety layer.
 
-This is useful because the per-coordinate cap still allows all four coordinates to be large at once. The TD3-only/no-safeguard run has `q95(||z||2) = 0.0923`, which is very close to the theoretical maximum of `0.10`.
+This is useful because the per-coordinate cap still allows all four coordinates to be large at once. The TD3-only/no-safeguard run has `q95 z 2-norm = 0.0923`, which is very close to the theoretical maximum of `0.10`.
 
 ### 4. Backtracking Candidate Shield
 

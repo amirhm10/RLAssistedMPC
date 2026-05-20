@@ -1,0 +1,462 @@
+{
+  "baseline_path": "C:/Users/hamediaa/Desktop/RL_assisted_MPC/Distillation/Data/mpc_results_disturb_fluctuation.pickle",
+  "latest_family_summary": [
+    {
+      "family": "residual",
+      "label": "Residual TD3",
+      "latest_run": "20260519_200250",
+      "latest_path": "C:/Users/hamediaa/Desktop/RL_assisted_MPC/Distillation/Results/distillation_residual_td3_disturb_fluctuation_mismatch_rho_unified/20260519_200250/input_data.pkl",
+      "state_mode": "mismatch",
+      "agent_kind": "td3",
+      "algorithm": "td3",
+      "tail_reward": 13.847922452279851,
+      "final_reward": 15.539375179924486,
+      "baseline_tail_reward": -0.30274535595606167,
+      "tail_reward_minus_baseline": 14.150667808235912,
+      "mpc_tail_reward_in_bundle": null,
+      "best_previous_run": "20260507_212833",
+      "best_previous_tail_reward": 18.82427456677425,
+      "tail_reward_minus_best_previous": -4.976352114494398,
+      "best_previous_same_agent_run": "20260507_212833",
+      "best_previous_same_agent_tail_reward": 18.82427456677425,
+      "tail_reward_minus_best_previous_same_agent": -4.976352114494398,
+      "max_abs_y_rl_minus_bundle_mpc": 0.0,
+      "max_abs_u_rl_minus_bundle_mpc": 0.0,
+      "max_abs_y_rl_minus_canonical_mpc": 2.365441024251588,
+      "max_abs_u_rl_minus_canonical_mpc": 10264.129931947973,
+      "warm_start_step": 4000,
+      "behavioral_cloning_enabled": true,
+      "bc_active_fraction": 0.1,
+      "post_warm_start_action_freeze_subepisodes": 5,
+      "post_warm_start_actor_freeze_subepisodes": 5,
+      "reward_signature": {},
+      "latest_iae_y1": 13635.235715688426,
+      "latest_iae_y2": 1765163.2767680055,
+      "latest_rmse_y1": 0.17065701912009393,
+      "latest_rmse_y2": 22.093635830076995,
+      "latest_tail_rmse_y1": 0.17091955647738732,
+      "latest_tail_rmse_y2": 22.095542694547373,
+      "latest_input_tv": 10581905.847480427,
+      "phase1_action_source_log_finite_mean": 1.879975,
+      "phase1_action_source_log_positive_fraction": 0.9499875
+    },
+    {
+      "family": "weights",
+      "label": "Weights TD3",
+      "latest_run": "20260519_201951",
+      "latest_path": "C:/Users/hamediaa/Desktop/RL_assisted_MPC/Distillation/Results/distillation_weights_td3_disturb_fluctuation_mismatch_unified/20260519_201951/input_data.pkl",
+      "state_mode": "mismatch",
+      "agent_kind": "td3",
+      "algorithm": "td3",
+      "tail_reward": 10.043590885276906,
+      "final_reward": 10.930228913271751,
+      "baseline_tail_reward": -0.30274535595606167,
+      "tail_reward_minus_baseline": 10.346336241232967,
+      "mpc_tail_reward_in_bundle": null,
+      "best_previous_run": "20260507_214023",
+      "best_previous_tail_reward": 20.578899289492874,
+      "tail_reward_minus_best_previous": -10.535308404215968,
+      "best_previous_same_agent_run": "20260414_164410",
+      "best_previous_same_agent_tail_reward": -0.2828050943881797,
+      "tail_reward_minus_best_previous_same_agent": 10.326395979665087,
+      "max_abs_y_rl_minus_bundle_mpc": 0.0,
+      "max_abs_u_rl_minus_bundle_mpc": 0.0,
+      "max_abs_y_rl_minus_canonical_mpc": 3.829958503855309,
+      "max_abs_u_rl_minus_canonical_mpc": 12831.435920653515,
+      "warm_start_step": 4000,
+      "behavioral_cloning_enabled": false,
+      "bc_active_fraction": 0.0,
+      "post_warm_start_action_freeze_subepisodes": 5,
+      "post_warm_start_actor_freeze_subepisodes": 5,
+      "reward_signature": {},
+      "latest_iae_y1": 13612.727852916203,
+      "latest_iae_y2": 1763026.3289451578,
+      "latest_rmse_y1": 0.17038806263139697,
+      "latest_rmse_y2": 22.07018813839382,
+      "latest_tail_rmse_y1": 0.17033406011996388,
+      "latest_tail_rmse_y2": 22.051891624818374,
+      "latest_input_tv": 10074181.771951796,
+      "phase1_action_source_log_finite_mean": 1.879975,
+      "phase1_action_source_log_positive_fraction": 0.9499875
+    },
+    {
+      "family": "horizon",
+      "label": "Horizon DDQN",
+      "latest_run": "20260519_202111",
+      "latest_path": "C:/Users/hamediaa/Desktop/RL_assisted_MPC/Distillation/Results/distillation_horizon_disturb_fluctuation_mismatch_unified/20260519_202111/input_data.pkl",
+      "state_mode": "mismatch",
+      "agent_kind": null,
+      "algorithm": "ddqn",
+      "tail_reward": 16.922244186504216,
+      "final_reward": 14.890792661340617,
+      "baseline_tail_reward": -0.30274535595606167,
+      "tail_reward_minus_baseline": 17.22498954246028,
+      "mpc_tail_reward_in_bundle": null,
+      "best_previous_run": "20260507_214708",
+      "best_previous_tail_reward": 19.966851315929752,
+      "tail_reward_minus_best_previous": -3.044607129425536,
+      "best_previous_same_agent_run": "20260507_214708",
+      "best_previous_same_agent_tail_reward": 19.966851315929752,
+      "tail_reward_minus_best_previous_same_agent": -3.044607129425536,
+      "max_abs_y_rl_minus_bundle_mpc": 0.0,
+      "max_abs_u_rl_minus_bundle_mpc": 0.0,
+      "max_abs_y_rl_minus_canonical_mpc": 4.392010666955805,
+      "max_abs_u_rl_minus_canonical_mpc": 30059.046942732006,
+      "warm_start_step": 4000,
+      "behavioral_cloning_enabled": false,
+      "bc_active_fraction": 0.0,
+      "post_warm_start_action_freeze_subepisodes": null,
+      "post_warm_start_actor_freeze_subepisodes": null,
+      "reward_signature": {
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ],
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "beta": 7.0,
+        "reward_scale": 1.0
+      },
+      "latest_iae_y1": 13616.046074694113,
+      "latest_iae_y2": 1764291.9864145431,
+      "latest_rmse_y1": 0.17037511144995943,
+      "latest_rmse_y2": 22.085482792105175,
+      "latest_tail_rmse_y1": 0.17019378899087487,
+      "latest_tail_rmse_y2": 22.080963208639073,
+      "latest_input_tv": 12920673.128064172
+    },
+    {
+      "family": "dueling",
+      "label": "Dueling DDQN",
+      "latest_run": "20260519_204534",
+      "latest_path": "C:/Users/hamediaa/Desktop/RL_assisted_MPC/Distillation/Results/distillation_dueling_horizon_disturb_fluctuation_mismatch_unified/20260519_204534/input_data.pkl",
+      "state_mode": "mismatch",
+      "agent_kind": null,
+      "algorithm": "dueling_ddqn",
+      "tail_reward": 14.605801590429559,
+      "final_reward": 15.326029930428467,
+      "baseline_tail_reward": -0.30274535595606167,
+      "tail_reward_minus_baseline": 14.90854694638562,
+      "mpc_tail_reward_in_bundle": null,
+      "best_previous_run": "20260516_162510",
+      "best_previous_tail_reward": 19.970843722980533,
+      "tail_reward_minus_best_previous": -5.365042132550974,
+      "best_previous_same_agent_run": "20260516_162510",
+      "best_previous_same_agent_tail_reward": 19.970843722980533,
+      "tail_reward_minus_best_previous_same_agent": -5.365042132550974,
+      "max_abs_y_rl_minus_bundle_mpc": 0.0,
+      "max_abs_u_rl_minus_bundle_mpc": 0.0,
+      "max_abs_y_rl_minus_canonical_mpc": 4.793983211709907,
+      "max_abs_u_rl_minus_canonical_mpc": 34970.665903812565,
+      "warm_start_step": 4000,
+      "behavioral_cloning_enabled": false,
+      "bc_active_fraction": 0.0,
+      "post_warm_start_action_freeze_subepisodes": null,
+      "post_warm_start_actor_freeze_subepisodes": null,
+      "reward_signature": {
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ],
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "beta": 7.0,
+        "reward_scale": 1.0
+      },
+      "latest_iae_y1": 13598.76859252093,
+      "latest_iae_y2": 1764047.4841138823,
+      "latest_rmse_y1": 0.17017267772572411,
+      "latest_rmse_y2": 22.082472643533336,
+      "latest_tail_rmse_y1": 0.1703443951035947,
+      "latest_tail_rmse_y2": 22.084635916784997,
+      "latest_input_tv": 13988249.276214475
+    },
+    {
+      "family": "markov",
+      "label": "Markov TD3",
+      "latest_run": "20260519_210736",
+      "latest_path": "C:/Users/hamediaa/Desktop/RL_assisted_MPC/Distillation/Results/distillation_markov_td3_disturb_fluctuation_unified/20260519_210736/input_data.pkl",
+      "state_mode": null,
+      "agent_kind": "td3",
+      "algorithm": null,
+      "tail_reward": 17.349703707013237,
+      "final_reward": 14.611994782234968,
+      "baseline_tail_reward": -0.30274535595606167,
+      "tail_reward_minus_baseline": 17.6524490629693,
+      "mpc_tail_reward_in_bundle": null,
+      "best_previous_run": "20260518_091937",
+      "best_previous_tail_reward": 21.978394021344364,
+      "tail_reward_minus_best_previous": -4.628690314331127,
+      "best_previous_same_agent_run": "20260518_091937",
+      "best_previous_same_agent_tail_reward": 21.978394021344364,
+      "tail_reward_minus_best_previous_same_agent": -4.628690314331127,
+      "max_abs_y_rl_minus_bundle_mpc": 0.0,
+      "max_abs_u_rl_minus_bundle_mpc": 0.0,
+      "max_abs_y_rl_minus_canonical_mpc": 5.314613546880754,
+      "max_abs_u_rl_minus_canonical_mpc": 70318.48442423443,
+      "warm_start_step": 4000,
+      "behavioral_cloning_enabled": false,
+      "bc_active_fraction": 0.0,
+      "post_warm_start_action_freeze_subepisodes": null,
+      "post_warm_start_actor_freeze_subepisodes": null,
+      "reward_signature": {
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ],
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "beta": 7.0,
+        "reward_scale": 1.0
+      },
+      "latest_iae_y1": 13611.582021359716,
+      "latest_iae_y2": 1767996.644297963,
+      "latest_rmse_y1": 0.1703487725924588,
+      "latest_rmse_y2": 22.128039353732927,
+      "latest_tail_rmse_y1": 0.17099991239638798,
+      "latest_tail_rmse_y2": 22.10889186760488,
+      "latest_input_tv": 12371567.548489626,
+      "fallback_log_finite_mean": 0.046575,
+      "fallback_log_positive_fraction": 0.046575,
+      "accepted_log_finite_mean": 0.953425,
+      "accepted_log_positive_fraction": 0.953425
+    }
+  ],
+  "defaults": {
+    "residual": {
+      "agent_kind_default": "td3",
+      "state_mode_default": "mismatch",
+      "hidden_layers": null,
+      "actor_hidden": [
+        128,
+        128
+      ],
+      "critic_hidden": [
+        128,
+        128
+      ],
+      "gamma": 0.99,
+      "n_step": 1,
+      "multistep_mode": "one_step",
+      "target_update": null,
+      "policy_delay": 2,
+      "exploration_mode": "gaussian",
+      "eps_start": null,
+      "std_start": 0.01,
+      "param_noise_std_start": 0.01,
+      "reward": {
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ],
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "beta": 7.0,
+        "reward_scale": 1.0
+      }
+    },
+    "weights": {
+      "agent_kind_default": "td3",
+      "state_mode_default": "mismatch",
+      "hidden_layers": null,
+      "actor_hidden": [
+        128,
+        128
+      ],
+      "critic_hidden": [
+        128,
+        128
+      ],
+      "gamma": 0.99,
+      "n_step": 1,
+      "multistep_mode": "one_step",
+      "target_update": null,
+      "policy_delay": 2,
+      "exploration_mode": "param_noise",
+      "eps_start": null,
+      "std_start": 0.2,
+      "param_noise_std_start": null,
+      "reward": {
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ],
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "beta": 7.0,
+        "reward_scale": 1.0
+      }
+    },
+    "horizon": {
+      "agent_kind_default": "dqn",
+      "state_mode_default": "mismatch",
+      "hidden_layers": [
+        128,
+        128
+      ],
+      "actor_hidden": null,
+      "critic_hidden": null,
+      "gamma": 0.99,
+      "n_step": 1,
+      "multistep_mode": "one_step",
+      "target_update": "soft",
+      "policy_delay": null,
+      "exploration_mode": "noisy",
+      "eps_start": 0.3,
+      "std_start": null,
+      "param_noise_std_start": null,
+      "reward": {
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ],
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "beta": 7.0,
+        "reward_scale": 1.0
+      }
+    },
+    "dueling": {
+      "agent_kind_default": "dueling_dqn",
+      "state_mode_default": "mismatch",
+      "hidden_layers": [
+        128,
+        128
+      ],
+      "actor_hidden": null,
+      "critic_hidden": null,
+      "gamma": 0.99,
+      "n_step": 1,
+      "multistep_mode": "n_step",
+      "target_update": "hard",
+      "policy_delay": null,
+      "exploration_mode": "noisy",
+      "eps_start": 0.3,
+      "std_start": null,
+      "param_noise_std_start": null,
+      "reward": {
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ],
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "beta": 7.0,
+        "reward_scale": 1.0
+      }
+    },
+    "markov": {
+      "agent_kind_default": "td3",
+      "state_mode_default": null,
+      "hidden_layers": null,
+      "actor_hidden": [
+        128,
+        128
+      ],
+      "critic_hidden": [
+        128,
+        128
+      ],
+      "gamma": 0.99,
+      "n_step": 1,
+      "multistep_mode": "one_step",
+      "target_update": null,
+      "policy_delay": 2,
+      "exploration_mode": "gaussian",
+      "eps_start": null,
+      "std_start": 0.01,
+      "param_noise_std_start": 0.01,
+      "reward": {
+        "k_rel": [
+          0.3,
+          0.01
+        ],
+        "band_floor_phys": [
+          0.003,
+          0.2
+        ],
+        "Q_diag": [
+          37000.0,
+          5000.0
+        ],
+        "R_diag": [
+          2500.0,
+          2500.0
+        ],
+        "beta": 7.0,
+        "reward_scale": 1.0
+      }
+    }
+  },
+  "history_count": 48
+}

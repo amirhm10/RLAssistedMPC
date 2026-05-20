@@ -164,6 +164,19 @@ def reward_signature(bundle: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+def reward_regime(signature: dict[str, Any]) -> str:
+    q_diag = signature.get("Q_diag")
+    band = signature.get("band_floor_phys")
+    k_rel = signature.get("k_rel")
+    if q_diag == [37000.0, 5000.0] and band == [0.003, 0.2] and k_rel == [0.3, 0.01]:
+        return "current_tight"
+    if q_diag == [37000.0, 1500.0] and band == [0.003, 0.3] and k_rel == [0.3, 0.02]:
+        return "previous_wide"
+    if not signature:
+        return "not_logged"
+    return "other"
+
+
 def summarize_history(spec: FamilySpec) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for pattern in spec.history_globs:
@@ -308,7 +321,7 @@ def write_csv(rows: list[dict[str, Any]], path: Path) -> None:
         writer.writerows(rows)
 
 
-def json_safe(value: Any) -> Any:
+def json_safe_leaf(value: Any) -> Any:
     if isinstance(value, np.ndarray):
         return value.tolist()
     if isinstance(value, np.generic):
@@ -316,6 +329,20 @@ def json_safe(value: Any) -> Any:
     if isinstance(value, float) and not np.isfinite(value):
         return None
     return str(value)
+
+
+def sanitize_json(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): sanitize_json(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [sanitize_json(item) for item in value]
+    if isinstance(value, np.ndarray):
+        return sanitize_json(value.tolist())
+    if isinstance(value, np.generic):
+        return sanitize_json(value.item())
+    if isinstance(value, float) and not np.isfinite(value):
+        return None
+    return value
 
 
 def make_figures(latest_rows: list[dict[str, Any]], history_rows: list[dict[str, Any]]) -> None:
@@ -375,6 +402,156 @@ def make_figures(latest_rows: list[dict[str, Any]], history_rows: list[dict[str,
     fig.savefig(OUT_DIR / "fig_history_tail_rewards_by_family.png", dpi=180)
     plt.close(fig)
 
+    make_reward_trace_figure(latest_rows)
+    make_latest_tracking_figure(latest_rows)
+    make_metric_dashboard(latest_rows)
+    make_reward_regime_figure(history_rows)
+    make_root_cause_matrix_figure()
+
+
+def make_reward_trace_figure(latest_rows: list[dict[str, Any]]) -> None:
+    fig, axes = plt.subplots(len(FAMILIES), 1, figsize=(11, 12), sharex=True, constrained_layout=True)
+    for ax, spec, latest_row in zip(axes, FAMILIES, latest_rows):
+        latest_bundle = load_pickle(spec.latest_path)
+        best_path = Path(str(latest_row["best_previous_run"] or ""))
+        best_bundle = None
+        if latest_row["best_previous_run"]:
+            for pattern in spec.history_globs:
+                candidates = list(RESULTS_ROOT.glob(pattern))
+                for candidate in candidates:
+                    if candidate.parent.name == latest_row["best_previous_run"]:
+                        best_bundle = load_pickle(candidate)
+                        break
+                if best_bundle is not None:
+                    break
+
+        ax.plot(as_float_array(latest_bundle.get("avg_rewards")), label=f"latest {spec.latest_path.parent.name}", color="#f58518", linewidth=2.0)
+        if best_bundle is not None:
+            ax.plot(as_float_array(best_bundle.get("avg_rewards")), label=f"best previous {best_path}", color="#4c78a8", linewidth=2.0)
+        ax.axhline(float(latest_row["baseline_tail_reward"]), color="#54a24b", linewidth=1.2, linestyle="--", label="MPC tail reward")
+        ax.axvline(int(latest_row.get("warm_start_step", 4000)) / 400.0, color="black", linewidth=0.8, linestyle=":", label="warm-start boundary" if spec.key == "residual" else None)
+        ax.set_title(spec.label)
+        ax.set_ylabel("Avg reward")
+        ax.grid(alpha=0.2)
+        ax.legend(frameon=False, fontsize=8, loc="best")
+    axes[-1].set_xlabel("Subepisode")
+    fig.suptitle("Reward traces: latest run versus historical best", fontsize=14)
+    fig.savefig(OUT_DIR / "fig_latest_vs_best_reward_traces.png", dpi=180)
+    plt.close(fig)
+
+
+def make_latest_tracking_figure(latest_rows: list[dict[str, Any]]) -> None:
+    baseline = load_pickle(BASELINE_PATH)
+    y_mpc = as_float_array(baseline.get("y"))
+    window = 4000
+    fig, axes = plt.subplots(len(FAMILIES), 2, figsize=(13, 13), sharex=True, constrained_layout=True)
+    output_labels = ["Tray-24 C2 composition", "Tray-85 temperature"]
+    for row_idx, (spec, latest_row) in enumerate(zip(FAMILIES, latest_rows)):
+        bundle = load_pickle(spec.latest_path)
+        y = as_float_array(bundle.get("y_rl"))
+        y_sp = as_float_array(bundle.get("y_sp"))
+        n = min(window, y_sp.shape[0], y.shape[0] - 1)
+        t = np.arange(n)
+        for output_idx in range(2):
+            ax = axes[row_idx, output_idx]
+            ax.plot(t, y[-n - 1 : -1, output_idx], color="#f58518", linewidth=1.2, label="latest RL")
+            if y_mpc.ndim == 2 and y_mpc.shape[0] >= n + 1:
+                ax.plot(t, y_mpc[-n - 1 : -1, output_idx], color="#54a24b", linewidth=1.0, alpha=0.75, label="canonical MPC")
+            ax.plot(t, y_sp[-n:, output_idx], color="black", linewidth=1.0, linestyle="--", label="setpoint")
+            ax.set_title(f"{latest_row['label']} - {output_labels[output_idx]}")
+            ax.grid(alpha=0.2)
+            if output_idx == 0:
+                ax.set_ylabel("Physical output")
+            if row_idx == 0 and output_idx == 0:
+                ax.legend(frameon=False, fontsize=8, loc="best")
+    axes[-1, 0].set_xlabel("Tail sample index")
+    axes[-1, 1].set_xlabel("Tail sample index")
+    fig.suptitle("Latest final-tail tracking against setpoint and canonical MPC", fontsize=14)
+    fig.savefig(OUT_DIR / "fig_latest_final_tail_tracking.png", dpi=180)
+    plt.close(fig)
+
+
+def make_metric_dashboard(latest_rows: list[dict[str, Any]]) -> None:
+    labels = [row["label"] for row in latest_rows]
+    x = np.arange(len(labels))
+    fig, axes = plt.subplots(2, 2, figsize=(13, 8), constrained_layout=True)
+    panels = [
+        ("latest_tail_rmse_y1", "Tail RMSE: tray-24 C2 composition", "#4c78a8"),
+        ("latest_tail_rmse_y2", "Tail RMSE: tray-85 temperature", "#f58518"),
+        ("latest_input_tv", "Total input movement", "#b279a2"),
+        ("tail_reward_minus_best_previous", "Tail reward gap to previous best", "#e45756"),
+    ]
+    for ax, (key, title, color) in zip(axes.reshape(-1), panels):
+        values = [float(row.get(key, np.nan)) for row in latest_rows]
+        ax.axhline(0.0, color="black", linewidth=0.8) if "gap" in title.lower() else None
+        ax.bar(x, values, color=color)
+        ax.set_xticks(x, labels, rotation=25, ha="right")
+        ax.set_title(title)
+        ax.grid(axis="y", alpha=0.2)
+    fig.suptitle("Latest-run tracking and reward diagnostics", fontsize=14)
+    fig.savefig(OUT_DIR / "fig_latest_tracking_metric_dashboard.png", dpi=180)
+    plt.close(fig)
+
+
+def make_reward_regime_figure(history_rows: list[dict[str, Any]]) -> None:
+    selected = [row for row in history_rows if row["family"] in {"horizon", "dueling", "markov"} and np.isfinite(row["tail_reward"])]
+    regimes = ["previous_wide", "current_tight", "other"]
+    labels = {"previous_wide": "Previous wider reward", "current_tight": "Current tighter reward", "other": "Other reward"}
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4), sharey=True, constrained_layout=True)
+    for ax, family in zip(axes, ["horizon", "dueling", "markov"]):
+        rows = [row for row in selected if row["family"] == family]
+        means = []
+        counts = []
+        for regime in regimes:
+            vals = [row["tail_reward"] for row in rows if reward_regime(row.get("reward_signature", {})) == regime]
+            means.append(float(np.mean(vals)) if vals else np.nan)
+            counts.append(len(vals))
+        bars = ax.bar(np.arange(len(regimes)), means, color=["#4c78a8", "#f58518", "#bab0ac"])
+        for bar, count in zip(bars, counts):
+            if count:
+                ax.text(bar.get_x() + bar.get_width() / 2.0, bar.get_height(), f"n={count}", ha="center", va="bottom", fontsize=8)
+        ax.set_xticks(np.arange(len(regimes)), [labels[r] for r in regimes], rotation=25, ha="right")
+        ax.set_title(family)
+        ax.grid(axis="y", alpha=0.2)
+    axes[0].set_ylabel("Mean tail reward")
+    fig.suptitle("Reward-regime evidence for horizon, dueling, and Markov families", fontsize=14)
+    fig.savefig(OUT_DIR / "fig_reward_regime_tail_rewards.png", dpi=180)
+    plt.close(fig)
+
+
+def make_root_cause_matrix_figure() -> None:
+    families = ["Residual", "Weights", "Horizon", "Dueling", "Markov"]
+    causes = ["Reward shaping", "Algorithm mismatch", "Guard/execution mode", "Unlogged variability", "Network/gamma"]
+    values = np.asarray(
+        [
+            [0.25, 0.00, 0.25, 0.75, 0.00],
+            [0.00, 1.00, 0.00, 0.25, 0.00],
+            [1.00, 0.00, 0.00, 0.25, 0.00],
+            [1.00, 0.00, 0.00, 0.25, 0.00],
+            [0.00, 0.00, 1.00, 0.25, 0.00],
+        ],
+        dtype=float,
+    )
+    annotations = [
+        ["uncertain", "", "possible", "likely", "no evidence"],
+        ["", "strong", "", "minor", "no evidence"],
+        ["strong", "", "", "minor", "no evidence"],
+        ["strong", "", "", "minor", "no evidence"],
+        ["", "", "strong", "minor", "no evidence"],
+    ]
+    fig, ax = plt.subplots(figsize=(10, 4.5), constrained_layout=True)
+    im = ax.imshow(values, cmap="YlOrRd", vmin=0.0, vmax=1.0)
+    ax.set_xticks(np.arange(len(causes)), causes, rotation=25, ha="right")
+    ax.set_yticks(np.arange(len(families)), families)
+    for i in range(values.shape[0]):
+        for j in range(values.shape[1]):
+            ax.text(j, i, annotations[i][j], ha="center", va="center", fontsize=8)
+    ax.set_title("Qualitative root-cause evidence matrix")
+    cbar = fig.colorbar(im, ax=ax)
+    cbar.set_label("Evidence strength")
+    fig.savefig(OUT_DIR / "fig_root_cause_evidence_matrix.png", dpi=180)
+    plt.close(fig)
+
 
 def main() -> None:
     baseline = load_pickle(BASELINE_PATH)
@@ -393,15 +570,18 @@ def main() -> None:
 
     with (OUT_DIR / "summary.json").open("w", encoding="utf-8") as handle:
         json.dump(
-            {
+            sanitize_json(
+                {
                 "baseline_path": BASELINE_PATH.as_posix(),
                 "latest_family_summary": latest_rows,
                 "defaults": defaults,
                 "history_count": len(all_history),
-            },
+                }
+            ),
             handle,
             indent=2,
-            default=json_safe,
+            allow_nan=False,
+            default=json_safe_leaf,
         )
 
 

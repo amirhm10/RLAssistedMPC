@@ -449,7 +449,11 @@ REPLAY_SETTINGS = {
 }
 
 OFFLINE_MULTIPLIER_DIAGNOSTICS = dict(CTRL.get("offline_multiplier_diagnostics", {}))
-RELEASE_PROTECTED_ADVISORY_CAPS = dict(CTRL.get("release_protected_advisory_caps", {}))
+RELEASE_PROTECTED_ADVISORY_CAPS = (
+    dict(CTRL.get("release_protected_advisory_caps", {}))
+    if ENABLE_MATRIX
+    else {"enabled": False}
+)
 offline_multiplier_diagnostic_result = None
 if ENABLE_MATRIX and bool(OFFLINE_MULTIPLIER_DIAGNOSTICS.get("enabled", False)):
     offline_multiplier_diagnostic_result = run_scalar_matrix_sensitivity(

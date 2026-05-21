@@ -534,7 +534,11 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         )
         residual_agent.actor_freeze = int(residual_phase1["effective_actor_freeze"])
 
-    release_cfg = dict(matrix_cfg.get("release_protected_advisory_caps", {}))
+    release_cfg = (
+        dict(matrix_cfg.get("release_protected_advisory_caps", {}))
+        if matrix_enabled
+        else {"enabled": False}
+    )
     release_labels = ["alpha"] + [f"B_col_{idx + 1}" for idx in range(n_inputs)]
     release_action_freeze_end_step = matrix_phase1["action_freeze_end_step"] if matrix_phase1 is not None else warm_start_step
     matrix_release_schedule = build_release_authority_schedule(

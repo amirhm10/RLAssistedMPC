@@ -1036,6 +1036,7 @@ def _plot_phase1_release_window_single_agent(bundle, out_dir, time_label, save_p
 
 def _plot_phase1_release_window_combined(bundle, out_dir, time_label, save_pdf):
     families = [
+        ("markov_", "Markov"),
         ("matrix_", "Matrix"),
         ("weight_", "Weights"),
         ("residual_", "Residual"),
@@ -4555,6 +4556,159 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             axs[0].legend(loc="best")
             _save_fig(fig, out_dir, "fig_combined_matrix_step2_effective_bounds", save_pdf=save_pdf)
 
+    if active_agents.get("markov") and bundle.get("markov_z_log") is not None:
+        z_exec_full = np.asarray(bundle["markov_z_log"], float)
+        if z_exec_full.ndim == 1:
+            z_exec_full = z_exec_full.reshape(-1, 1)
+        z_req_full = bundle.get("markov_requested_z_log")
+        z_ls_full = bundle.get("markov_ls_z_log")
+        z_req_full = np.zeros_like(z_exec_full) if z_req_full is None else np.asarray(z_req_full, float)
+        z_ls_full = np.zeros_like(z_exec_full) if z_ls_full is None else np.asarray(z_ls_full, float)
+        if z_req_full.ndim == 1:
+            z_req_full = z_req_full.reshape(-1, 1)
+        if z_ls_full.ndim == 1:
+            z_ls_full = z_ls_full.reshape(-1, 1)
+        z_exec_seg = z_exec_full[start_step : start_step + W, :]
+        z_req_seg = z_req_full[start_step : start_step + W, :]
+        z_ls_seg = z_ls_full[start_step : start_step + W, :]
+        n_z = int(z_exec_seg.shape[1])
+        z_labels = list(bundle.get("markov_basis_labels") or [])
+        if len(z_labels) < n_z:
+            z_labels.extend([f"z{idx + 1}" for idx in range(len(z_labels), n_z)])
+        z_bound = bundle.get("markov_z_bound")
+        cap_log = bundle.get("markov_z_safety_effective_cap_log")
+        cap_seg = None if cap_log is None else np.asarray(cap_log, float)[start_step : start_step + W]
+
+        def plot_markov_z(prefix, exec_values, req_values, ls_values, cap_values, t_values, segment_start, segment_len):
+            if exec_values.size == 0:
+                return
+            n_plot = min(len(t_values), exec_values.shape[0], req_values.shape[0], ls_values.shape[0])
+            fig, axs = plt.subplots(n_z, 1, figsize=(8.8, 3.0 + 2.0 * max(1, n_z - 1)), sharex=True)
+            if n_z == 1:
+                axs = [axs]
+            for idx, ax in enumerate(axs):
+                ax.step(t_values[:n_plot], exec_values[:n_plot, idx], where="post", label="Executed")
+                ax.step(t_values[:n_plot], req_values[:n_plot, idx], where="post", linestyle="--", label="TD3 requested")
+                ax.step(t_values[:n_plot], ls_values[:n_plot, idx], where="post", linestyle=":", label="LS")
+                if cap_values is not None and len(cap_values) >= n_plot:
+                    ax.step(t_values[:n_plot], cap_values[:n_plot], where="post", color="#7D8597", linewidth=1.0)
+                    ax.step(t_values[:n_plot], -cap_values[:n_plot], where="post", color="#7D8597", linewidth=1.0)
+                elif z_bound is not None:
+                    ax.axhline(float(z_bound), color="#7D8597", linestyle=":", linewidth=1.0)
+                    ax.axhline(-float(z_bound), color="#7D8597", linestyle=":", linewidth=1.0)
+                shade_segment(ax, segment_start, segment_len)
+                ax.set_ylabel(z_labels[idx])
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel(time_label)
+            axs[0].legend(loc="best")
+            _save_fig(fig, out_dir, prefix, save_pdf=save_pdf)
+
+        plot_markov_z(
+            "fig_combined_markov_z_full",
+            z_exec_seg,
+            z_req_seg,
+            z_ls_seg,
+            cap_seg,
+            t_step,
+            start_step,
+            W,
+        )
+        plot_markov_z(
+            "fig_combined_markov_z_last_block",
+            z_exec_seg[s_last : s_last + last_steps, :],
+            z_req_seg[s_last : s_last + last_steps, :],
+            z_ls_seg[s_last : s_last + last_steps, :],
+            None if cap_seg is None else cap_seg[s_last : s_last + last_steps],
+            t_step_blk,
+            start_step + s_last,
+            last_steps,
+        )
+
+        source_log = bundle.get("markov_action_source_log")
+        if source_log is not None:
+            source_seg = np.asarray(source_log, int)[start_step : start_step + W]
+            fig, ax = plt.subplots(figsize=(8.2, 4.6))
+            ax.step(t_step, source_seg, where="post")
+            shade_segment(ax, start_step, W)
+            ax.set_ylabel("Markov source")
+            ax.set_xlabel(time_label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+            _save_fig(fig, out_dir, "fig_combined_markov_action_source", save_pdf=save_pdf)
+
+            source_names = {
+                0: "Nominal/warm",
+                1: "LS warm",
+                2: "TD3",
+                3: "LS fallback",
+                4: "Nominal fallback",
+                5: "LS-only",
+            }
+            counts = collections.Counter(source_seg.tolist())
+            keys = sorted(counts)
+            fig, ax = plt.subplots(figsize=(8.0, 4.5))
+            ax.bar(np.arange(len(keys)), [counts[k] / max(1, len(source_seg)) for k in keys], color="#355070")
+            ax.set_xticks(np.arange(len(keys)))
+            ax.set_xticklabels([source_names.get(k, str(k)) for k in keys], rotation=15)
+            ax.set_ylabel("Fraction of plotted steps")
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+            _save_fig(fig, out_dir, "fig_combined_markov_source_fractions", save_pdf=save_pdf)
+
+        safety_items = []
+        for key, label in (
+            ("markov_z_safety_effective_cap_log", "coord cap"),
+            ("markov_z_safety_requested_norm_before_log", "TD3 norm before"),
+            ("markov_z_safety_requested_norm_after_log", "TD3 norm after"),
+            ("markov_z_safety_ls_norm_after_log", "LS norm after"),
+            ("markov_td3_authority_scale_log", "TD3 authority"),
+            ("markov_td3_probation_active_log", "probation"),
+        ):
+            series = bundle.get(key)
+            if series is not None:
+                safety_items.append((label, np.asarray(series, float)[start_step : start_step + W]))
+        if safety_items:
+            fig, axs = plt.subplots(len(safety_items), 1, figsize=(8.6, 3.0 + 1.8 * max(1, len(safety_items) - 1)), sharex=True)
+            if len(safety_items) == 1:
+                axs = [axs]
+            for ax, (label, series) in zip(axs, safety_items):
+                ax.step(t_step, series, where="post")
+                shade_segment(ax, start_step, W)
+                ax.set_ylabel(label)
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                _make_axes_bold(ax)
+            axs[-1].set_xlabel(time_label)
+            _save_fig(fig, out_dir, "fig_combined_markov_z_safety", save_pdf=save_pdf)
+
+        projection_keys = [
+            "markov_z_safety_requested_projection_active_log",
+            "markov_z_safety_requested_coord_clip_active_log",
+            "markov_z_safety_requested_vector_projection_active_log",
+            "markov_z_safety_ls_projection_active_log",
+            "markov_z_safety_ls_coord_clip_active_log",
+            "markov_z_safety_ls_vector_projection_active_log",
+        ]
+        projection_labels = ["TD3 any", "TD3 coord", "TD3 norm", "LS any", "LS coord", "LS norm"]
+        projection_values = []
+        for key in projection_keys:
+            series = bundle.get(key)
+            projection_values.append(0.0 if series is None else float(np.mean(np.asarray(series, float)[start_step : start_step + W])))
+        fig, ax = plt.subplots(figsize=(8.0, 4.5))
+        ax.bar(np.arange(len(projection_values)), projection_values, color="#2D6A4F")
+        ax.set_xticks(np.arange(len(projection_values)))
+        ax.set_xticklabels(projection_labels, rotation=15)
+        ax.set_ylim(0.0, 1.0)
+        ax.set_ylabel("Fraction of plotted steps")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+        _save_fig(fig, out_dir, "fig_combined_markov_projection_fractions", save_pdf=save_pdf)
+
     if active_agents.get("weights") and bundle.get("weight_log") is not None:
         weight_full = np.asarray(bundle["weight_log"], float)
         weight_seg = weight_full[start_step : start_step + W, :]
@@ -4729,6 +4883,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
     decision_labels = []
     for name, key in (
         ("Horizon", "horizon_decision_log"),
+        ("Markov", "markov_decision_log"),
         ("Matrix", "matrix_decision_log"),
         ("Weights", "weight_decision_log"),
         ("Residual", "residual_decision_log"),
@@ -4799,10 +4954,16 @@ def plot_combined_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
             _save_fig(fig, out_dir, "fig_combined_residual_projection_fractions", save_pdf=save_pdf)
 
-    for key in ("horizon", "matrix", "weight", "residual"):
+    for key in ("horizon", "markov", "matrix", "weight", "residual"):
         plot_named_mismatch(key, key.capitalize())
 
-    for prefix, label in (("horizon", "Horizon"), ("matrix", "Matrix"), ("weight", "Weights"), ("residual", "Residual")):
+    for prefix, label in (
+        ("horizon", "Horizon"),
+        ("markov", "Markov"),
+        ("matrix", "Matrix"),
+        ("weight", "Weights"),
+        ("residual", "Residual"),
+    ):
         plot_training_diagnostics(prefix, label)
 
     _plot_phase1_release_window_combined(bundle, out_dir, time_label, save_pdf)

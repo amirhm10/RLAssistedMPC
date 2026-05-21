@@ -183,6 +183,21 @@ def _copy_td3_priority_fallback_defaults(enabled=True):
     }
 
 
+def _copy_markov_z_safety_defaults(enabled=True):
+    return {
+        "enabled": bool(enabled),
+        "protected_cap": 0.025,
+        "ramp_start_cap": 0.035,
+        "ramp_end_cap": 0.05,
+        "full_cap": 0.05,
+        "probation_cap": 0.025,
+        "vector_norm_cap": {
+            "enabled": True,
+            "max_norm": 0.075,
+        },
+    }
+
+
 def _copy_mismatch_defaults():
     return {
         "mismatch_clip": 3.0,
@@ -730,6 +745,7 @@ POLYMER_MARKOV_DEFAULTS = {
         "force_td3_execute": False,
         "rl_store_executed_action_in_replay": True,
         "td3_priority_fallback": _copy_td3_priority_fallback_defaults(enabled=True),
+        "z_safety": _copy_markov_z_safety_defaults(enabled=True),
         "rl_save_agent_checkpoint": True,
         "debug_validate_lifted": False,
         "debug_run_shadow_ls": False,
@@ -1118,7 +1134,10 @@ POLYMER_COMBINED_DEFAULTS = {
     "enable_horizon": True,
     "horizon_agent_kind": "dqn",
     "horizon_state_mode": "mismatch",
-    "enable_matrix": True,
+    "enable_markov": True,
+    "markov_agent_kind": "td3",
+    "markov_state_mode": "mismatch",
+    "enable_matrix": False,
     "matrix_agent_kind": "td3",
     "matrix_state_mode": "mismatch",
     "enable_weights": True,
@@ -1146,6 +1165,22 @@ POLYMER_COMBINED_DEFAULTS = {
         "Q2_penalty": 1.0,
         "R1_penalty": 1.0,
         "R2_penalty": 1.0,
+        "basis_family": POLYMER_MARKOV_DEFAULTS["controller"]["basis_family"],
+        "z_bound": POLYMER_MARKOV_DEFAULTS["controller"]["z_bound"],
+        "prediction_window": POLYMER_MARKOV_DEFAULTS["controller"]["prediction_window"],
+        "lambda_z": POLYMER_MARKOV_DEFAULTS["controller"]["lambda_z"],
+        "s_pred_min": POLYMER_MARKOV_DEFAULTS["controller"]["s_pred_min"],
+        "gain_drift_max": POLYMER_MARKOV_DEFAULTS["controller"]["gain_drift_max"],
+        "nominal_cost_relative_tol": POLYMER_MARKOV_DEFAULTS["controller"]["nominal_cost_relative_tol"],
+        "nominal_cost_absolute_tol": POLYMER_MARKOV_DEFAULTS["controller"]["nominal_cost_absolute_tol"],
+        "run_adaptive_ls": POLYMER_MARKOV_DEFAULTS["controller"]["run_adaptive_ls"],
+        "run_live_corrected_mpc": POLYMER_MARKOV_DEFAULTS["controller"]["run_live_corrected_mpc"],
+        "run_rl_proposal": POLYMER_MARKOV_DEFAULTS["controller"]["run_rl_proposal"],
+        "rl_fallback_to_ls": POLYMER_MARKOV_DEFAULTS["controller"]["rl_fallback_to_ls"],
+        "force_td3_execute": POLYMER_MARKOV_DEFAULTS["controller"]["force_td3_execute"],
+        "rl_store_executed_action_in_replay": POLYMER_MARKOV_DEFAULTS["controller"]["rl_store_executed_action_in_replay"],
+        "td3_priority_fallback": deepcopy(POLYMER_MARKOV_DEFAULTS["controller"]["td3_priority_fallback"]),
+        "z_safety": deepcopy(POLYMER_MARKOV_DEFAULTS["controller"]["z_safety"]),
         "model_low": _polymer_matrix_multiplier_bounds()[0],
         "model_high": _polymer_matrix_multiplier_bounds()[1],
         "weights_low": POLYMER_WEIGHT_DEFAULTS["controller"]["low_coef"].copy(),
@@ -1166,6 +1201,7 @@ POLYMER_COMBINED_DEFAULTS = {
     },
     "horizon_agent": deepcopy(POLYMER_HORIZON_STANDARD_DEFAULTS["agent"]),
     "horizon_dueling_agent": deepcopy(POLYMER_HORIZON_DUELING_DEFAULTS["agent"]),
+    "markov_td3_agent": deepcopy(POLYMER_MARKOV_DEFAULTS["td3_agent"]),
     "matrix_td3_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
     "matrix_sac_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["sac_agent"]),
     "weights_td3_agent": deepcopy(POLYMER_WEIGHT_DEFAULTS["td3_agent"]),

@@ -222,6 +222,9 @@ def _copy_residual_authority_defaults():
 POLYMER_MATRIX_ALPHA_UPPER_CAP = 1.0566
 POLYMER_DEFAULT_MULTIPLIER_LOW = 0.6
 POLYMER_DEFAULT_MULTIPLIER_HIGH = 1.3
+POLYMER_DEFAULT_DQN_HIDDEN = [512, 512, 512, 512, 512]
+POLYMER_DEFAULT_ACTOR_HIDDEN = [512, 512, 512, 512, 512]
+POLYMER_DEFAULT_CRITIC_HIDDEN = [512, 512, 512, 512, 512]
 
 
 def _polymer_matrix_multiplier_bounds():
@@ -435,7 +438,7 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
         "ha_change": 0.85,
     },
     "agent": {
-        "hidden_layers": [256, 256],
+        "hidden_layers": list(POLYMER_DEFAULT_DQN_HIDDEN),
         **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,  # Positive integer. Keep 1 for the baseline; common research values are 3 or decision_interval.
@@ -514,7 +517,7 @@ POLYMER_HORIZON_DUELING_DEFAULTS = {
     },
     "agent": {
         "seed": 7,
-        "hidden_layers": [256, 256],
+        "hidden_layers": list(POLYMER_DEFAULT_DQN_HIDDEN),
         **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,
@@ -595,8 +598,8 @@ POLYMER_MATRIX_DEFAULTS = {
     },
     "td3_agent": {
         "seed": 7,
-        "actor_hidden": [256, 256],
-        "critic_hidden": [256, 256],
+        "actor_hidden": list(POLYMER_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(POLYMER_DEFAULT_CRITIC_HIDDEN),
         **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,  # Positive integer. Typical TD3 ablations use 1, 3, or 5.
@@ -620,8 +623,8 @@ POLYMER_MATRIX_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "sac_agent": {
-        "actor_hidden": [256, 256],
-        "critic_hidden": [256, 256],
+        "actor_hidden": list(POLYMER_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(POLYMER_DEFAULT_CRITIC_HIDDEN),
         **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,  # Positive integer. SAC often benefits from 3-step returns in this repo.
@@ -950,8 +953,8 @@ POLYMER_WEIGHT_DEFAULTS = {
         "ha_change": 0.85,
     },
     "td3_agent": {
-        "actor_hidden": [256, 256],
-        "critic_hidden": [256, 256],
+        "actor_hidden": list(POLYMER_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(POLYMER_DEFAULT_CRITIC_HIDDEN),
         **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,
@@ -975,8 +978,8 @@ POLYMER_WEIGHT_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "sac_agent": {
-        "actor_hidden": [256, 256],
-        "critic_hidden": [256, 256],
+        "actor_hidden": list(POLYMER_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(POLYMER_DEFAULT_CRITIC_HIDDEN),
         **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,
@@ -1049,8 +1052,8 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "ha_change": 0.85,
     },
     "td3_agent": {
-        "actor_hidden": [256, 256],
-        "critic_hidden": [256, 256],
+        "actor_hidden": list(POLYMER_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(POLYMER_DEFAULT_CRITIC_HIDDEN),
         **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,
@@ -1074,8 +1077,8 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "sac_agent": {
-        "actor_hidden": [256, 256],
-        "critic_hidden": [256, 256],
+        "actor_hidden": list(POLYMER_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(POLYMER_DEFAULT_CRITIC_HIDDEN),
         **_copy_replay_defaults(),
         "gamma": 0.99,
         "n_step": 1,
@@ -1216,6 +1219,9 @@ def get_polymer_notebook_defaults(family: str) -> dict:
 
 
 __all__ = [
+    "POLYMER_DEFAULT_ACTOR_HIDDEN",
+    "POLYMER_DEFAULT_CRITIC_HIDDEN",
+    "POLYMER_DEFAULT_DQN_HIDDEN",
     "POLYMER_NOTEBOOK_DEFAULTS",
     "get_polymer_notebook_defaults",
 ]

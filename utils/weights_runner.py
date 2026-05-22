@@ -2,6 +2,16 @@ import numpy as np
 import scipy.optimize as spo
 
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
+from utils.behavioral_cloning import (
+    build_behavioral_cloning_bundle_fields,
+    build_behavioral_cloning_schedule,
+    build_protected_bc_release_gate_bundle_fields,
+    init_behavioral_cloning_logs,
+    init_protected_bc_release_gate,
+    record_behavioral_cloning_step,
+    resolve_behavioral_cloning_context,
+    update_protected_bc_release_gate,
+)
 from utils.helpers import (
     apply_min_max,
     build_polymer_disturbance_schedule,
@@ -156,6 +166,25 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         if disturbance_schedule is None:
             disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
 
+    bc_schedule = build_behavioral_cloning_schedule(
+        config=weight_cfg.get("behavioral_cloning", {}),
+        warm_start_step=warm_start_step,
+        time_in_sub_episodes=time_in_sub_episodes,
+        n_steps=nFE,
+    )
+    bc_logs = init_behavioral_cloning_logs(nFE)
+    bc_release_gate = init_protected_bc_release_gate(bc_schedule, nFE)
+    bc_action_gap_tolerance = float(bc_schedule.get("action_gap_tolerance", 0.0))
+    bc_train_start_step = (
+        int(bc_schedule.get("start_step", warm_start_step))
+        if bool(bc_schedule.get("enabled", False))
+        else int(warm_start_step)
+    )
+    protected_bc_release_enabled = bool(
+        bc_schedule.get("enabled", False)
+        and dict(bc_schedule.get("release_gate", {}) or {}).get("enabled", False)
+    )
+
     phase1 = None
     phase1_action_source_log = None
     policy_action_raw_log = None
@@ -168,13 +197,17 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             time_in_sub_episodes=time_in_sub_episodes,
             n_steps=nFE,
             test_train_dict=test_train_dict,
-            action_freeze_subepisodes=weight_cfg.get("post_warm_start_action_freeze_subepisodes", 0),
-            actor_freeze_subepisodes=weight_cfg.get("post_warm_start_actor_freeze_subepisodes", 0),
+            action_freeze_subepisodes=0
+            if protected_bc_release_enabled
+            else weight_cfg.get("post_warm_start_action_freeze_subepisodes", 0),
+            actor_freeze_subepisodes=0
+            if protected_bc_release_enabled
+            else weight_cfg.get("post_warm_start_actor_freeze_subepisodes", 0),
             batch_size=getattr(agent, "batch_size", 1),
             initial_buffer_size=len(getattr(agent, "buffer", [])),
             base_actor_freeze=getattr(agent, "actor_freeze", 0),
             push_start_step=0,
-            train_start_step=warm_start_step,
+            train_start_step=bc_train_start_step,
         )
         agent.actor_freeze = int(phase1["effective_actor_freeze"])
         phase1_action_source_log = np.zeros(nFE, dtype=int)
@@ -260,6 +293,20 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
+        policy_action_for_gate = identity_action.copy()
+        if agent_kind == "td3":
+            policy_action_for_gate = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
+            if policy_action_for_gate.size != action_dim or not np.all(np.isfinite(policy_action_for_gate)):
+                policy_action_for_gate = identity_action.copy()
+        release_info = update_protected_bc_release_gate(
+            bc_release_gate["state"],
+            bc_release_gate["logs"],
+            step_idx=i,
+            warm_start_step=warm_start_step,
+            policy_action=policy_action_for_gate,
+            target_action=identity_action,
+        )
+
         action_decision = select_continuous_action(
             agent=agent,
             state=current_rl_state,
@@ -272,14 +319,16 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         )
         action = action_decision.action
         policy_action = action_decision.policy_action
+        if bool(release_info.get("blocked", False)):
+            action = identity_action.copy()
 
         if phase1 is not None:
             policy_action_raw_log[i, :] = np.asarray(
-                policy_action if policy_action is not None else identity_action,
+                policy_action if policy_action is not None else policy_action_for_gate,
                 float,
             ).reshape(-1)
             executed_action_raw_log[i, :] = np.asarray(action, float).reshape(-1)
-            phase1_action_source_log[i] = int(action_decision.source)
+            phase1_action_source_log[i] = 1 if bool(release_info.get("blocked", False)) else int(action_decision.source)
 
         multipliers = _map_to_bounds(action, low_coef, high_coef).reshape(-1)
         weight_log[i, :] = multipliers
@@ -364,7 +413,17 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             mismatch_transform_post_clip=mismatch_cfg["mismatch_transform_post_clip"],
         )
 
-        replay_train_continuous_agent(
+        bc_context = None
+        if agent_kind == "td3" and not test:
+            if float(np.max(np.abs(policy_action_for_gate - identity_action))) > bc_action_gap_tolerance:
+                bc_context = resolve_behavioral_cloning_context(
+                    bc_schedule,
+                    step_idx=i,
+                    target_action=identity_action,
+                    policy_action=policy_action_for_gate,
+                )
+
+        train_result = replay_train_continuous_agent(
             agent=agent,
             state=current_rl_state,
             action=action,
@@ -373,8 +432,18 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             done=0.0,
             step=i,
             test=test,
-            train_start_step=warm_start_step,
+            train_start_step=bc_train_start_step,
             phase1_train_traces=phase1_train_traces if phase1 is not None else None,
+            bc_context=bc_context,
+        )
+        record_behavioral_cloning_step(
+            bc_logs,
+            step_idx=i,
+            bc_context=bc_context,
+            policy_action=policy_action_for_gate,
+            target_action=identity_action,
+            target_mode=str(bc_schedule.get("target_mode", "nominal_only")),
+            train_meta=train_result.get("train_meta"),
         )
 
         if i in sub_episodes_changes_dict:
@@ -482,6 +551,8 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
+    result_bundle.update(build_behavioral_cloning_bundle_fields(bc_schedule, bc_logs))
+    result_bundle.update(build_protected_bc_release_gate_bundle_fields(bc_release_gate))
     if phase1 is not None:
         result_bundle.update(
             build_phase1_bundle_fields(

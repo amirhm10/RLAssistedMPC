@@ -10,9 +10,12 @@ from utils.agent_step_runtime import replay_train_continuous_agent, select_conti
 from utils.behavioral_cloning import (
     build_behavioral_cloning_bundle_fields,
     build_behavioral_cloning_schedule,
+    build_protected_bc_release_gate_bundle_fields,
     init_behavioral_cloning_logs,
+    init_protected_bc_release_gate,
     record_behavioral_cloning_step,
     resolve_behavioral_cloning_context,
+    update_protected_bc_release_gate,
 )
 from utils.helpers import (
     apply_min_max,
@@ -576,6 +579,8 @@ def make_td3_markov_agent(config, state_dim, action_dim, *, set_points_len):
         std_decay_rate=float(td3_cfg.get("std_decay_rate", 0.99995)),
         std_decay_mode=str(td3_cfg.get("std_decay_mode", "exp")),
         exploration_mode=str(td3_cfg.get("exploration_mode", "param_noise")),
+        param_noise_std_start=float(td3_cfg.get("param_noise_std_start", 0.2)),
+        param_noise_std_end=float(td3_cfg.get("param_noise_std_end", 0.02)),
         param_noise_resample_interval=int(td3_cfg.get("param_noise_resample_interval", 4)),
         loss_type=str(td3_cfg.get("loss_type", "huber")),
         buffer_size=buffer_size,
@@ -1129,6 +1134,14 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         n_steps=nFE,
     )
     bc_logs = init_behavioral_cloning_logs(nFE)
+    bc_release_gate = init_protected_bc_release_gate(bc_schedule, nFE)
+    if bool(bc_release_gate["state"].get("enabled", False)):
+        action_warm_start_step = int(ctx["warm_start_step"])
+    bc_train_start_step = (
+        int(bc_schedule.get("start_step", ctx["warm_start_step"]))
+        if bool(bc_schedule.get("enabled", False))
+        else int(ctx["warm_start_step"])
+    )
 
     rl_agent = None
     if use_rl:
@@ -1191,7 +1204,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 done=done,
                 step=pending_step,
                 test=pending_transition["test"],
-                train_start_step=ctx["warm_start_step"],
+                train_start_step=bc_train_start_step,
                 bc_context=bc_context,
             )
             history["rl_replay_pushed_log"][pending_step] = int(train_info["pushed"])
@@ -1439,13 +1452,27 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             flush_pending_transition(rl_state, 0.0)
 
             if use_markov and bool(config.get("run_live_corrected_mpc", True)) and (
-                force_td3_execute or step >= predict_h
+                rl_agent is not None or force_td3_execute or step >= predict_h
             ):
                 if rl_agent is not None:
                     baseline_raw = z_to_raw_action(z_ls_safe, config["z_bound"])
                     bc_target_raw = baseline_raw.copy()
                     bc_target_is_ls = bool(ls_accepted and U_ls is not None)
                     test_step = bool(test_flags[step])
+                    policy_raw_for_gate = np.asarray(rl_agent.act_eval(rl_state), float).reshape(-1)
+                    if policy_raw_for_gate.size != z_dim or not np.all(np.isfinite(policy_raw_for_gate)):
+                        policy_raw_for_gate = baseline_raw.copy()
+                    release_info = update_protected_bc_release_gate(
+                        bc_release_gate["state"],
+                        bc_release_gate["logs"],
+                        step_idx=step,
+                        warm_start_step=ctx["warm_start_step"],
+                        policy_action=policy_raw_for_gate,
+                        target_action=baseline_raw,
+                    )
+                    td3_live_released = bool(release_info.get("released", False))
+                    if force_td3_execute and not bool(release_info.get("enabled", False)):
+                        td3_live_released = True
                     decision = select_continuous_action(
                         agent=rl_agent,
                         state=rl_state,
@@ -1459,11 +1486,16 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         action_dim=z_dim,
                         nonfinite_fallback=True,
                     )
-                    raw_actor_requested = np.asarray(decision.action, float).reshape(-1)
-                    raw_requested = raw_actor_requested.copy()
+                    raw_actor_requested = policy_raw_for_gate.copy()
+                    raw_requested = np.asarray(decision.action, float).reshape(-1)
                     authority_scale = (
                         _td3_priority_authority_scale(config, ctx, step, probation_active=probation_active)
-                        if _td3_priority_enabled(config) and not force_td3_execute and step > ctx["warm_start_step"]
+                        if (
+                            td3_live_released
+                            and _td3_priority_enabled(config)
+                            and not force_td3_execute
+                            and step > ctx["warm_start_step"]
+                        )
                         else 1.0
                     )
                     if authority_scale < 1.0:
@@ -1494,7 +1526,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     history["rl_requested_z_log"][step, :] = z_requested
                     history["z_proposed_log"][step, :] = z_requested
 
-                    if force_td3_execute:
+                    if force_td3_execute and td3_live_released:
                         rl_score = prediction_improvement_score(
                             z=z_requested,
                             history=history,
@@ -1523,7 +1555,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         z_prev = z_exec
                         executed_eval = rl_eval
                         executed_score = rl_score
-                    elif step > ctx["warm_start_step"]:
+                    elif td3_live_released and step > ctx["warm_start_step"]:
                         rl_score = prediction_improvement_score(
                             z=z_requested,
                             history=history,
@@ -1778,6 +1810,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         history["_markov_state_norm_stats"] = state_conditioner.export_state()
         history["_behavioral_cloning_schedule"] = bc_schedule
         history["_behavioral_cloning_logs"] = bc_logs
+        history["_protected_bc_release_gate"] = bc_release_gate
         history["_td3_probation_trigger_count"] = int(probation_trigger_count)
         history["_td3_warm_release_reference_reward"] = warm_release_reference_reward
         history["_rl_agent"] = rl_agent
@@ -2035,6 +2068,12 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         build_behavioral_cloning_bundle_fields(
             history.get("_behavioral_cloning_schedule", {}),
             history.get("_behavioral_cloning_logs", init_behavioral_cloning_logs(int(ctx["nFE"]))),
+        )
+    )
+    result_bundle.update(
+        build_protected_bc_release_gate_bundle_fields(
+            history.get("_protected_bc_release_gate", {}),
+            prefix="rl_",
         )
     )
     return result_bundle

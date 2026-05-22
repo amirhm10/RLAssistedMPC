@@ -68,6 +68,35 @@ def _copy_replay_defaults():
     }
 
 
+def _copy_active_replay_defaults():
+    defaults = _copy_replay_defaults()
+    defaults.update(
+        {
+            "buffer_size": 50_000,
+            "replay_frac_per": 0.4,
+            "replay_frac_recent": 0.3,
+            "replay_recent_window_mult": 10,
+            "replay_recent_window": None,
+        }
+    )
+    return defaults
+
+
+def _copy_active_td3_noise_defaults():
+    return {
+        "target_policy_smoothing_noise_std": 0.1,
+        "noise_clip": 0.2,
+        "std_start": 0.2,
+        "std_end": 0.02,
+        "param_noise_std_start": 0.2,
+        "param_noise_std_end": 0.02,
+        "std_decay_rate": 0.99995,
+        "std_decay_mode": "exp",
+        "exploration_mode": "param_noise",
+        "param_noise_resample_interval": 4,
+    }
+
+
 def _copy_offline_multiplier_diagnostic_defaults(enabled=False):
     return {
         "enabled": bool(enabled),
@@ -150,23 +179,108 @@ def _copy_behavioral_cloning_defaults(
     target_mode="nominal_only",
     lambda_bc_start=0.1,
     lambda_bc_end=0.0,
+    decay_mode="exp",
     active_subepisodes=10,
+    start_after_warm_start=True,
     coordinate_weights=None,
     label_weight_overrides=None,
     action_gap_tolerance=0.0,
+    release_gate=None,
+    tail_anchor=None,
 ):
+    if release_gate is None:
+        release_gate = {
+            "enabled": False,
+            "window_subepisodes": 1,
+            "mean_action_gap_max": 0.25,
+            "max_coordinate_gap_max": 0.20,
+            "min_window_fraction": 1.0,
+        }
     return {
         "enabled": bool(enabled),
         "target_mode": str(target_mode),
         "lambda_bc_start": float(lambda_bc_start),
         "lambda_bc_end": float(lambda_bc_end),
-        "decay_mode": "exp",
+        "decay_mode": str(decay_mode),
         "active_subepisodes": int(active_subepisodes),
-        "start_after_warm_start": True,
+        "start_after_warm_start": bool(start_after_warm_start),
         "log_diagnostics": True,
         "coordinate_weights": None if coordinate_weights is None else np.asarray(coordinate_weights, float).copy(),
         "label_weight_overrides": {} if label_weight_overrides is None else dict(label_weight_overrides),
         "action_gap_tolerance": float(action_gap_tolerance),
+        "release_gate": dict(release_gate),
+        "tail_anchor": None if tail_anchor is None else dict(tail_anchor),
+    }
+
+
+def _copy_protected_bc_defaults(*, target_mode, action_gap_tolerance=0.0):
+    return _copy_behavioral_cloning_defaults(
+        enabled=True,
+        target_mode=target_mode,
+        lambda_bc_start=1.0,
+        lambda_bc_end=0.05,
+        decay_mode="exp",
+        active_subepisodes=15,
+        start_after_warm_start=False,
+        action_gap_tolerance=action_gap_tolerance,
+        release_gate={
+            "enabled": True,
+            "window_subepisodes": 1,
+            "mean_action_gap_max": 0.25,
+            "max_coordinate_gap_max": 0.20,
+            "min_window_fraction": 1.0,
+        },
+    )
+
+
+def _copy_active_td3_agent_defaults():
+    return {
+        "actor_hidden": list(DISTILLATION_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(DISTILLATION_DEFAULT_CRITIC_HIDDEN),
+        **_copy_active_replay_defaults(),
+        "gamma": DISTILLATION_DEFAULT_GAMMA,
+        "n_step": 1,
+        "multistep_mode": "one_step",
+        "lambda_value": 0.9,
+        "actor_lr": 1e-4,
+        "critic_lr": 1e-4,
+        "batch_size": 128,
+        "policy_delay": 2,
+        **_copy_active_td3_noise_defaults(),
+        "max_action": 1.0,
+        "tau": 0.005,
+        "actor_freeze": 0,
+        "loss_type": "huber",
+    }
+
+
+def _copy_active_sac_agent_defaults():
+    return {
+        "actor_hidden": list(DISTILLATION_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(DISTILLATION_DEFAULT_CRITIC_HIDDEN),
+        **_copy_active_replay_defaults(),
+        "gamma": DISTILLATION_DEFAULT_GAMMA,
+        "n_step": 1,
+        "multistep_mode": "one_step",
+        "lambda_value": 0.9,
+        "actor_lr": 1e-4,
+        "critic_lr": 1e-4,
+        "alpha_lr": 1e-4,
+        "batch_size": 128,
+        "grad_clip_norm": 10.0,
+        "init_alpha": 0.01,
+        "learn_alpha": True,
+        "target_entropy": "auto_negative_action_dim",
+        "target_update": "soft",
+        "tau": 0.005,
+        "hard_update_interval": 10_000,
+        "activation": "relu",
+        "use_layernorm": False,
+        "dropout": 0.0,
+        "max_action": 1.0,
+        "use_adamw": True,
+        "actor_freeze": 0,
+        "loss_type": "huber",
     }
 
 
@@ -403,7 +517,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
     },
     "agent": {
         "hidden_layers": list(DISTILLATION_DEFAULT_DQN_HIDDEN),
-        **_copy_replay_defaults(),
+        **_copy_active_replay_defaults(),
         "gamma": DISTILLATION_DEFAULT_GAMMA,
         "n_step": 1,  # Positive integer. Keep 1 for the baseline; common DDQN ablations use 3.
         "multistep_mode": "one_step",  # Options: "one_step" | "n_step" | "lambda" | "retrace"
@@ -420,6 +534,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
         "dropout": 0.0,
         "target_combine": "q1",
         "exploration_mode": "noisy",
+        "noisy_sigma_init": 0.5,
         "loss_type": "huber",
         "eps_start": 0.3,
         "eps_end": 0.01,
@@ -445,7 +560,7 @@ DISTILLATION_HORIZON_DUELING_DEFAULTS = {
     "agent": {
         "seed": 7,
         "hidden_layers": list(DISTILLATION_DEFAULT_DQN_HIDDEN),
-        **_copy_replay_defaults(),
+        **_copy_active_replay_defaults(),
         "gamma": DISTILLATION_DEFAULT_GAMMA,
         "n_step": 1,
         "multistep_mode": "n_step",
@@ -462,6 +577,7 @@ DISTILLATION_HORIZON_DUELING_DEFAULTS = {
         "dropout": 0.0,
         "target_combine": "q1",
         "exploration_mode": "noisy",
+        "noisy_sigma_init": 0.5,
         "loss_type": "huber",
         "eps_start": 0.30,
         "eps_end": 0.01,
@@ -653,12 +769,7 @@ DISTILLATION_MARKOV_DEFAULTS = {
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
-    "behavioral_cloning": _copy_behavioral_cloning_defaults(
-        enabled=False,
-        target_mode="ls_action",
-        lambda_bc_start=0.2,
-        active_subepisodes=0,
-    ),
+    "behavioral_cloning": _copy_protected_bc_defaults(target_mode="ls_action"),
     "run_profiles": deepcopy(DISTILLATION_MARKOV_RUN_PROFILES),
     "controller": {
         "predict_h": 6,
@@ -708,7 +819,7 @@ DISTILLATION_MARKOV_DEFAULTS = {
         "debug_validate_lifted": False,
         "debug_run_shadow_ls": False,
     },
-    "td3_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["td3_agent"]),
+    "td3_agent": _copy_active_td3_agent_defaults(),
     "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
 }
@@ -725,6 +836,7 @@ DISTILLATION_WEIGHT_DEFAULTS = {
     "run_profiles": deepcopy(DISTILLATION_WEIGHT_RUN_PROFILES),
     "post_warm_start_action_freeze_subepisodes": 5,
     "post_warm_start_actor_freeze_subepisodes": 5,
+    "behavioral_cloning": _copy_protected_bc_defaults(target_mode="nominal_only"),
     "controller": {
         "predict_h": 6,
         "cont_h": 3,
@@ -743,58 +855,8 @@ DISTILLATION_WEIGHT_DEFAULTS = {
         "qs_change": 1.0,
         "ha_change": 1.0,
     },
-    "td3_agent": {
-        "actor_hidden": list(DISTILLATION_DEFAULT_ACTOR_HIDDEN),
-        "critic_hidden": list(DISTILLATION_DEFAULT_CRITIC_HIDDEN),
-        **_copy_replay_defaults(),
-        "gamma": DISTILLATION_DEFAULT_GAMMA,
-        "n_step": 1,
-        "multistep_mode": "one_step",
-        "lambda_value": 0.9,
-        "actor_lr": 1e-4,
-        "critic_lr": 1e-4,
-        "batch_size": 128,
-        "policy_delay": 2,
-        "target_policy_smoothing_noise_std": 0.1,
-        "noise_clip": 0.2,
-        "max_action": 1.0,
-        "tau": 0.005,
-        "std_start": 0.2,
-        "std_end": 0.02,
-        "std_decay_rate": 0.99995,
-        "std_decay_mode": "exp",
-        "actor_freeze": 0,
-        "exploration_mode": "param_noise",
-        "loss_type": "huber",
-        "param_noise_resample_interval": 4,
-    },
-    "sac_agent": {
-        "actor_hidden": list(DISTILLATION_DEFAULT_ACTOR_HIDDEN),
-        "critic_hidden": list(DISTILLATION_DEFAULT_CRITIC_HIDDEN),
-        **_copy_replay_defaults(),
-        "gamma": DISTILLATION_DEFAULT_GAMMA,
-        "n_step": 1,
-        "multistep_mode": "one_step",
-        "lambda_value": 0.9,
-        "actor_lr": 1e-4,
-        "critic_lr": 1e-4,
-        "alpha_lr": 1e-4,
-        "batch_size": 128,
-        "grad_clip_norm": 10.0,
-        "init_alpha": 0.01,
-        "learn_alpha": True,
-        "target_entropy": "auto_negative_action_dim",
-        "target_update": "soft",
-        "tau": 0.005,
-        "hard_update_interval": 10_000,
-        "activation": "relu",
-        "use_layernorm": False,
-        "dropout": 0.0,
-        "max_action": 1.0,
-        "use_adamw": True,
-        "actor_freeze": 0,
-        "loss_type": "huber",
-    },
+    "td3_agent": _copy_active_td3_agent_defaults(),
+    "sac_agent": _copy_active_sac_agent_defaults(),
     "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
 }
@@ -813,11 +875,8 @@ DISTILLATION_RESIDUAL_DEFAULTS = {
     "run_profiles": deepcopy(DISTILLATION_RESIDUAL_RUN_PROFILES),
     "post_warm_start_action_freeze_subepisodes": 5,
     "post_warm_start_actor_freeze_subepisodes": 5,
-    "behavioral_cloning": _copy_behavioral_cloning_defaults(
-        enabled=True,
+    "behavioral_cloning": _copy_protected_bc_defaults(
         target_mode="executed_action",
-        lambda_bc_start=0.3,
-        active_subepisodes=20,
         action_gap_tolerance=1e-6,
     ),
     "controller": {
@@ -838,8 +897,8 @@ DISTILLATION_RESIDUAL_DEFAULTS = {
         "qs_change": 1.0,
         "ha_change": 1.0,
     },
-    "td3_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["td3_agent"]),
-    "sac_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["sac_agent"]),
+    "td3_agent": _copy_active_td3_agent_defaults(),
+    "sac_agent": _copy_active_sac_agent_defaults(),
     "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
 }

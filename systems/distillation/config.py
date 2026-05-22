@@ -49,14 +49,14 @@ WEIGHT_MULTIPLIER_BOUNDS = {
     "high": np.array([2.0, 2.0, 2.0, 2.0], dtype=float),
 }
 RESIDUAL_BOUNDS = {
-    "low": np.array([-0.05, -0.05], dtype=float),
-    "high": np.array([0.05, 0.05], dtype=float),
+    "low": np.array([-0.02, -0.02], dtype=float),
+    "high": np.array([0.02, 0.02], dtype=float),
 }
 
 RL_REWARD_DEFAULTS = {
     "k_rel": np.array([0.3, 0.01], dtype=float),
     "band_floor_phys": np.array([0.003, 0.2], dtype=float),
-    "Q_diag": np.array([3.7e4, 1.5e3], dtype=float),
+    "Q_diag": np.array([3.7e4, 5.0e3], dtype=float),
     "R_diag": np.array([2.5e3, 2.5e3], dtype=float),
     "tau_frac": 0.7,
     "gamma_out": 0.5,

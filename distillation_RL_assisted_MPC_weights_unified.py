@@ -53,6 +53,7 @@ WARM_START_OVERRIDE = NB["warm_start_override"]
 TEST_CYCLE_OVERRIDE = NB["test_cycle_override"]
 PLOT_START_EPISODE_OVERRIDE = NB["plot_start_episode_override"]
 COMPARE_START_EPISODE_OVERRIDE = NB["compare_start_episode_override"]
+BEHAVIORAL_CLONING_CFG = dict(NB["behavioral_cloning"])
 REPO_ROOT, DATA_DIR, RESULT_DIR, DISTURBANCE_PROFILE, DYN_PATH, SNAPS_PATH, ASPEN_SOURCE = prepare_distillation_notebook_env(run_mode=RUN_MODE, disturbance_profile=DISTURBANCE_PROFILE, family="weights", aspen_preset=ASPEN_PRESET, dyn_path_override=ASPEN_PATH_OVERRIDE, snaps_path_override=SNAPS_PATH_OVERRIDE, aspen_root_override=ASPEN_ROOT_OVERRIDE, data_dir_override=DISTILLATION_DATA_DIR_OVERRIDE, results_dir_override=DISTILLATION_RESULTS_DIR_OVERRIDE)
 os.chdir(REPO_ROOT)
 
@@ -136,6 +137,8 @@ TD3_MULTISTEP_MODE = TD3_CFG["multistep_mode"]
 TD3_LAMBDA_VALUE = float(TD3_CFG["lambda_value"])
 TD3_LOSS_TYPE = TD3_CFG["loss_type"]
 TD3_PARAM_NOISE_RESAMPLE_INTERVAL = TD3_CFG["param_noise_resample_interval"]
+TD3_PARAM_NOISE_STD_START = float(TD3_CFG["param_noise_std_start"])
+TD3_PARAM_NOISE_STD_END = float(TD3_CFG["param_noise_std_end"])
 TD3_BUFFER_SIZE = int(TD3_CFG["buffer_size"])
 TD3_REPLAY_FRAC_PER = float(TD3_CFG["replay_frac_per"])
 TD3_REPLAY_FRAC_RECENT = float(TD3_CFG["replay_frac_recent"])
@@ -185,7 +188,7 @@ ha_change = CTRL["ha_change"]
 MPC_obj = MpcSolverGeneral(A_aug, B_aug, C_aug, Q_out=np.array([Q1_penalty, Q2_penalty], float), R_in=np.array([R1_penalty, R2_penalty], float), NP=predict_h, NC=cont_h)
 # Agent setup.
 if AGENT_KIND == "td3":
-    weight_agent = TD3Agent(state_dim=STATE_DIM, action_dim=ACTION_DIM, actor_hidden=list(TD3_CFG["actor_hidden"]), critic_hidden=list(TD3_CFG["critic_hidden"]), gamma=TD3_CFG["gamma"], actor_lr=TD3_CFG["actor_lr"], critic_lr=TD3_CFG["critic_lr"], batch_size=TD3_CFG["batch_size"], policy_delay=TD3_CFG["policy_delay"], target_policy_smoothing_noise_std=TD3_CFG["target_policy_smoothing_noise_std"], noise_clip=TD3_CFG["noise_clip"], max_action=TD3_CFG["max_action"], tau=TD3_CFG["tau"], std_start=TD3_CFG["std_start"], std_end=TD3_CFG["std_end"], std_decay_rate=TD3_CFG["std_decay_rate"], std_decay_mode=TD3_CFG["std_decay_mode"], buffer_size=TD3_BUFFER_SIZE, replay_frac_per=TD3_REPLAY_FRAC_PER, replay_frac_recent=TD3_REPLAY_FRAC_RECENT, replay_recent_window=TD3_REPLAY_RECENT_WINDOW, replay_alpha=TD3_REPLAY_ALPHA, replay_beta_start=TD3_REPLAY_BETA_START, replay_beta_end=TD3_REPLAY_BETA_END, replay_beta_steps=TD3_REPLAY_BETA_STEPS, device=DEVICE, actor_freeze=TD3_CFG["actor_freeze"], exploration_mode=TD3_EXPLORATION_MODE, loss_type=TD3_LOSS_TYPE, param_noise_resample_interval=TD3_PARAM_NOISE_RESAMPLE_INTERVAL, n_step=TD3_N_STEP, multistep_mode=TD3_MULTISTEP_MODE, lambda_value=TD3_LAMBDA_VALUE)
+    weight_agent = TD3Agent(state_dim=STATE_DIM, action_dim=ACTION_DIM, actor_hidden=list(TD3_CFG["actor_hidden"]), critic_hidden=list(TD3_CFG["critic_hidden"]), gamma=TD3_CFG["gamma"], actor_lr=TD3_CFG["actor_lr"], critic_lr=TD3_CFG["critic_lr"], batch_size=TD3_CFG["batch_size"], policy_delay=TD3_CFG["policy_delay"], target_policy_smoothing_noise_std=TD3_CFG["target_policy_smoothing_noise_std"], noise_clip=TD3_CFG["noise_clip"], max_action=TD3_CFG["max_action"], tau=TD3_CFG["tau"], std_start=TD3_CFG["std_start"], std_end=TD3_CFG["std_end"], std_decay_rate=TD3_CFG["std_decay_rate"], std_decay_mode=TD3_CFG["std_decay_mode"], buffer_size=TD3_BUFFER_SIZE, replay_frac_per=TD3_REPLAY_FRAC_PER, replay_frac_recent=TD3_REPLAY_FRAC_RECENT, replay_recent_window=TD3_REPLAY_RECENT_WINDOW, replay_alpha=TD3_REPLAY_ALPHA, replay_beta_start=TD3_REPLAY_BETA_START, replay_beta_end=TD3_REPLAY_BETA_END, replay_beta_steps=TD3_REPLAY_BETA_STEPS, device=DEVICE, actor_freeze=TD3_CFG["actor_freeze"], exploration_mode=TD3_EXPLORATION_MODE, loss_type=TD3_LOSS_TYPE, param_noise_std_start=TD3_PARAM_NOISE_STD_START, param_noise_std_end=TD3_PARAM_NOISE_STD_END, param_noise_resample_interval=TD3_PARAM_NOISE_RESAMPLE_INTERVAL, n_step=TD3_N_STEP, multistep_mode=TD3_MULTISTEP_MODE, lambda_value=TD3_LAMBDA_VALUE)
 elif AGENT_KIND == "sac":
     target_entropy = -ACTION_DIM if SAC_CFG["target_entropy"] == "auto_negative_action_dim" else SAC_CFG["target_entropy"]
     weight_agent = SACAgent(state_dim=STATE_DIM, action_dim=ACTION_DIM, actor_hidden=list(SAC_CFG["actor_hidden"]), critic_hidden=list(SAC_CFG["critic_hidden"]), gamma=SAC_CFG["gamma"], actor_lr=SAC_CFG["actor_lr"], critic_lr=SAC_CFG["critic_lr"], alpha_lr=SAC_CFG["alpha_lr"], batch_size=SAC_CFG["batch_size"], grad_clip_norm=SAC_CFG["grad_clip_norm"], init_alpha=SAC_CFG["init_alpha"], learn_alpha=SAC_CFG["learn_alpha"], target_entropy=target_entropy, target_update=SAC_CFG["target_update"], tau=SAC_CFG["tau"], hard_update_interval=SAC_CFG["hard_update_interval"], activation=SAC_CFG["activation"], use_layernorm=SAC_CFG["use_layernorm"], dropout=SAC_CFG["dropout"], max_action=SAC_CFG["max_action"], buffer_size=SAC_BUFFER_SIZE, replay_frac_per=SAC_REPLAY_FRAC_PER, replay_frac_recent=SAC_REPLAY_FRAC_RECENT, replay_recent_window=SAC_REPLAY_RECENT_WINDOW, replay_alpha=SAC_REPLAY_ALPHA, replay_beta_start=SAC_REPLAY_BETA_START, replay_beta_end=SAC_REPLAY_BETA_END, replay_beta_steps=SAC_REPLAY_BETA_STEPS, device=DEVICE, use_adamw=SAC_CFG["use_adamw"], actor_freeze=SAC_CFG["actor_freeze"], loss_type=SAC_LOSS_TYPE, n_step=SAC_N_STEP, multistep_mode=SAC_MULTISTEP_MODE, lambda_value=SAC_LAMBDA_VALUE)
@@ -207,6 +210,7 @@ print_grouped_notebook_summary(
         "Reward": reward_params,
         "Agent": {"supervisor": "weight multiplier", "buffer_size": (TD3_CFG if AGENT_KIND == "td3" else SAC_CFG)["buffer_size"], "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": TD3_EXPLORATION_MODE if AGENT_KIND == "td3" else "policy_stochastic", "loss_type": TD3_LOSS_TYPE if AGENT_KIND == "td3" else SAC_LOSS_TYPE},
         "Replay": REPLAY_SETTINGS,
+        "Behavioral cloning": dict(BEHAVIORAL_CLONING_CFG),
         "Mismatch": {"clip": MISMATCH_CLIP, "innovation_scale_mode": INNOVATION_SCALE_MODE, "tracking_scale_mode": TRACKING_SCALE_MODE, "tracking_eta_tol": TRACKING_ETA_TOL, "tracking_scale_floor_mode": TRACKING_SCALE_FLOOR_MODE},
         "Plotting / export": {"style_profile": STYLE_PROFILE, "save_pdf": SAVE_PDF, "result_prefix": RESULT_PREFIX, "compare_prefix": COMPARE_PREFIX, "plot_start_episode": PLOT_START_EPISODE, "compare_start_episode": COMPARE_START_EPISODE},
     },
@@ -244,6 +248,7 @@ weight_cfg = {
     "warm_start": warm_start,
     "post_warm_start_action_freeze_subepisodes": int(NB["post_warm_start_action_freeze_subepisodes"]),
     "post_warm_start_actor_freeze_subepisodes": int(NB["post_warm_start_actor_freeze_subepisodes"]),
+    "behavioral_cloning": dict(BEHAVIORAL_CLONING_CFG),
     "test_cycle": TEST_CYCLE,
     "predict_h": predict_h,
     "cont_h": cont_h,

@@ -5,9 +5,12 @@ from utils.agent_step_runtime import replay_train_continuous_agent, select_conti
 from utils.behavioral_cloning import (
     build_behavioral_cloning_bundle_fields,
     build_behavioral_cloning_schedule,
+    build_protected_bc_release_gate_bundle_fields,
     init_behavioral_cloning_logs,
+    init_protected_bc_release_gate,
     record_behavioral_cloning_step,
     resolve_behavioral_cloning_context,
+    update_protected_bc_release_gate,
 )
 from utils.helpers import (
     apply_min_max,
@@ -131,6 +134,26 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         if disturbance_schedule is None:
             disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
 
+    bc_schedule = build_behavioral_cloning_schedule(
+        config=residual_cfg.get("behavioral_cloning", {}),
+        warm_start_step=warm_start_step,
+        time_in_sub_episodes=time_in_sub_episodes,
+        n_steps=nFE,
+    )
+    bc_logs = init_behavioral_cloning_logs(nFE)
+    bc_release_gate = init_protected_bc_release_gate(bc_schedule, nFE)
+    bc_action_gap_tolerance = float(bc_schedule.get("action_gap_tolerance", 0.0))
+    bc_target_mode = str(bc_schedule.get("target_mode", "nominal_only")).strip().lower()
+    bc_train_start_step = (
+        int(bc_schedule.get("start_step", warm_start_step))
+        if bool(bc_schedule.get("enabled", False))
+        else int(warm_start_step)
+    )
+    protected_bc_release_enabled = bool(
+        bc_schedule.get("enabled", False)
+        and dict(bc_schedule.get("release_gate", {}) or {}).get("enabled", False)
+    )
+
     phase1 = None
     phase1_action_source_log = None
     phase1_train_traces = None
@@ -141,30 +164,25 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             time_in_sub_episodes=time_in_sub_episodes,
             n_steps=nFE,
             test_train_dict=test_train_dict,
-            action_freeze_subepisodes=residual_cfg.get("post_warm_start_action_freeze_subepisodes", 0),
-            actor_freeze_subepisodes=residual_cfg.get("post_warm_start_actor_freeze_subepisodes", 0),
+            action_freeze_subepisodes=0
+            if protected_bc_release_enabled
+            else residual_cfg.get("post_warm_start_action_freeze_subepisodes", 0),
+            actor_freeze_subepisodes=0
+            if protected_bc_release_enabled
+            else residual_cfg.get("post_warm_start_actor_freeze_subepisodes", 0),
             batch_size=getattr(agent, "batch_size", 1),
             initial_buffer_size=len(getattr(agent, "buffer", [])),
             base_actor_freeze=getattr(agent, "actor_freeze", 0),
             push_start_step=0,
-            train_start_step=warm_start_step,
+            train_start_step=bc_train_start_step,
         )
         agent.actor_freeze = int(phase1["effective_actor_freeze"])
         phase1_action_source_log = np.zeros(nFE, dtype=int)
         phase1_train_traces = init_phase1_train_traces()
-    bc_schedule = build_behavioral_cloning_schedule(
-        config=residual_cfg.get("behavioral_cloning", {}),
-        warm_start_step=warm_start_step,
-        time_in_sub_episodes=time_in_sub_episodes,
-        n_steps=nFE,
-        start_step_override=(phase1["first_live_action_step"] if phase1 is not None else None),
-    )
-    bc_logs = init_behavioral_cloning_logs(nFE)
-    bc_action_gap_tolerance = float(bc_schedule.get("action_gap_tolerance", 0.0))
-    bc_target_mode = str(bc_schedule.get("target_mode", "nominal_only")).strip().lower()
     policy_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
     executed_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
     policy_executed_gap_norm_log = np.zeros(nFE, dtype=float)
+    residual_raw_executed_norm_ratio_log = np.full(nFE, np.nan, dtype=float)
 
     n_inputs = int(B_aug.shape[1])
     n_outputs = int(C_aug.shape[0])
@@ -287,6 +305,20 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
+        policy_action_for_log = zero_action.copy()
+        if agent_kind == "td3":
+            policy_action_for_log = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
+            if policy_action_for_log.size != action_dim or not np.all(np.isfinite(policy_action_for_log)):
+                policy_action_for_log = zero_action.copy()
+        release_info = update_protected_bc_release_gate(
+            bc_release_gate["state"],
+            bc_release_gate["logs"],
+            step_idx=i,
+            warm_start_step=warm_start_step,
+            policy_action=policy_action_for_log,
+            target_action=zero_action,
+        )
+
         action_decision = select_continuous_action(
             agent=agent,
             state=current_rl_state,
@@ -298,14 +330,10 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             action_dim=action_dim,
         )
         action = action_decision.action
+        if bool(release_info.get("blocked", False)):
+            action = zero_action.copy()
 
         a_res_raw_log[i, :] = np.asarray(action, float).reshape(-1)
-        if i > warm_start_step:
-            policy_action_for_log = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
-            if not np.all(np.isfinite(policy_action_for_log)):
-                policy_action_for_log = zero_action.copy()
-        else:
-            policy_action_for_log = zero_action.copy()
         policy_action_raw_log[i, :] = policy_action_for_log
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
@@ -364,8 +392,11 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         policy_executed_gap_norm_log[i] = float(
             np.linalg.norm(policy_action_raw_log[i, :] - executed_action_raw_log[i, :])
         )
+        raw_norm = float(np.linalg.norm(policy_action_raw_log[i, :]))
+        exec_norm = float(np.linalg.norm(a_res_exec_log[i, :]))
+        residual_raw_executed_norm_ratio_log[i] = exec_norm / max(raw_norm, 1.0e-12)
         if phase1 is not None:
-            phase1_action_source_log[i] = int(action_decision.source)
+            phase1_action_source_log[i] = 1 if bool(release_info.get("blocked", False)) else int(action_decision.source)
         u_rl_scaled[i, :] = projection["u_applied_scaled_abs"]
 
         delta_u = u_rl_scaled[i, :] - scaled_current_input
@@ -449,7 +480,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         else:
             bc_target_action = zero_action.copy()
         bc_context = None
-        if not test and i >= warm_start_step:
+        if not test:
             if float(np.max(np.abs(policy_action_raw_log[i, :] - bc_target_action))) > bc_action_gap_tolerance:
                 bc_context = resolve_behavioral_cloning_context(
                     bc_schedule,
@@ -466,7 +497,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             done=0.0,
             step=i,
             test=test,
-            train_start_step=warm_start_step,
+            train_start_step=bc_train_start_step,
             phase1_train_traces=phase1_train_traces if phase1 is not None else None,
             bc_context=bc_context,
         )
@@ -535,6 +566,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "policy_action_raw_log": policy_action_raw_log,
         "executed_action_raw_log": executed_action_raw_log,
         "policy_executed_gap_norm_log": policy_executed_gap_norm_log,
+        "residual_raw_executed_norm_ratio_log": residual_raw_executed_norm_ratio_log,
+        "residual_bc_target_gap_log": bc_logs["bc_policy_target_distance_log"],
         "rho_log": rho_log,
         "rho_raw_log": rho_raw_log,
         "rho_eff_log": rho_eff_log,
@@ -617,6 +650,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
     result_bundle.update(build_behavioral_cloning_bundle_fields(bc_schedule, bc_logs))
+    result_bundle.update(build_protected_bc_release_gate_bundle_fields(bc_release_gate))
     if phase1 is not None:
         result_bundle.update(
             build_phase1_bundle_fields(

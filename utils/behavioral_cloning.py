@@ -36,6 +36,7 @@ def build_behavioral_cloning_schedule(
     label_weight_overrides_cfg = cfg.get("label_weight_overrides")
     action_gap_tolerance = float(cfg.get("action_gap_tolerance", 0.0))
     tail_anchor_cfg = cfg.get("tail_anchor")
+    release_gate_cfg = cfg.get("release_gate")
 
     if target_mode not in {"nominal_only", "executed_action", "ls_action"}:
         raise ValueError(
@@ -95,6 +96,41 @@ def build_behavioral_cloning_schedule(
                 "behavioral_cloning tail_anchor action_gap_tolerance must be finite and non-negative."
             )
 
+    if release_gate_cfg is None:
+        release_gate = {
+            "enabled": False,
+            "window_subepisodes": 1,
+            "mean_action_gap_max": 0.25,
+            "max_coordinate_gap_max": 0.20,
+            "min_window_fraction": 1.0,
+        }
+    else:
+        if not isinstance(release_gate_cfg, dict):
+            raise ValueError("behavioral_cloning release_gate must be a dict when provided.")
+        release_gate = {
+            "enabled": bool(release_gate_cfg.get("enabled", False)),
+            "window_subepisodes": int(max(1, release_gate_cfg.get("window_subepisodes", 1))),
+            "mean_action_gap_max": float(release_gate_cfg.get("mean_action_gap_max", 0.25)),
+            "max_coordinate_gap_max": float(release_gate_cfg.get("max_coordinate_gap_max", 0.20)),
+            "min_window_fraction": float(release_gate_cfg.get("min_window_fraction", 1.0)),
+        }
+        if (
+            not math.isfinite(release_gate["mean_action_gap_max"])
+            or release_gate["mean_action_gap_max"] < 0.0
+        ):
+            raise ValueError("behavioral_cloning release_gate mean_action_gap_max must be finite and non-negative.")
+        if (
+            not math.isfinite(release_gate["max_coordinate_gap_max"])
+            or release_gate["max_coordinate_gap_max"] < 0.0
+        ):
+            raise ValueError("behavioral_cloning release_gate max_coordinate_gap_max must be finite and non-negative.")
+        if (
+            not math.isfinite(release_gate["min_window_fraction"])
+            or release_gate["min_window_fraction"] <= 0.0
+            or release_gate["min_window_fraction"] > 1.0
+        ):
+            raise ValueError("behavioral_cloning release_gate min_window_fraction must be in (0, 1].")
+
     n_steps = int(max(0, n_steps))
     time_in_sub_episodes = int(max(1, time_in_sub_episodes))
     active_steps = int(active_subepisodes * time_in_sub_episodes)
@@ -129,6 +165,8 @@ def build_behavioral_cloning_schedule(
         "end_step": int(end_step if active_enabled else start_step - 1),
         "active_log": active_log,
         "tail_anchor": dict(tail_anchor),
+        "release_gate": dict(release_gate),
+        "release_gate_window_steps": int(release_gate["window_subepisodes"] * time_in_sub_episodes),
     }
 
 
@@ -329,10 +367,160 @@ def build_behavioral_cloning_bundle_fields(schedule, logs):
     }
 
 
+def init_protected_bc_release_gate(schedule, n_steps: int):
+    n_steps = int(max(0, n_steps))
+    release_gate = dict(schedule.get("release_gate", {}) or {})
+    window_steps = int(max(1, schedule.get("release_gate_window_steps", 1)))
+    enabled = bool(schedule.get("enabled", False) and release_gate.get("enabled", False))
+    return {
+        "state": {
+            "enabled": enabled,
+            "released": not enabled,
+            "release_step": -1,
+            "window_steps": window_steps,
+            "mean_action_gap_max": float(release_gate.get("mean_action_gap_max", 0.25)),
+            "max_coordinate_gap_max": float(release_gate.get("max_coordinate_gap_max", 0.20)),
+            "min_window_fraction": float(release_gate.get("min_window_fraction", 1.0)),
+        },
+        "logs": {
+            "release_gate_action_gap_norm_log": np.full(n_steps, np.nan, dtype=float),
+            "release_gate_max_coordinate_gap_log": np.full(n_steps, np.nan, dtype=float),
+            "release_gate_rolling_mean_gap_log": np.full(n_steps, np.nan, dtype=float),
+            "release_gate_rolling_max_coordinate_gap_log": np.full(n_steps, np.nan, dtype=float),
+            "release_gate_window_count_log": np.zeros(n_steps, dtype=int),
+            "release_gate_pass_log": np.zeros(n_steps, dtype=int),
+            "release_gate_released_log": np.zeros(n_steps, dtype=int),
+            "release_gate_blocked_log": np.zeros(n_steps, dtype=int),
+            "release_gate_release_step_log": np.full(n_steps, -1, dtype=int),
+        },
+    }
+
+
+def update_protected_bc_release_gate(
+    gate_state,
+    gate_logs,
+    *,
+    step_idx: int,
+    warm_start_step: int,
+    policy_action,
+    target_action,
+):
+    step_idx = int(step_idx)
+    warm_start_step = int(warm_start_step)
+    policy = np.asarray(policy_action, float).reshape(-1)
+    target = np.asarray(target_action, float).reshape(-1)
+    if policy.shape != target.shape:
+        raise ValueError(
+            f"release-gate policy action size {policy.size} does not match target action size {target.size}."
+        )
+    gap_vec = policy - target
+    gap_norm = float(np.linalg.norm(gap_vec))
+    max_coord_gap = float(np.max(np.abs(gap_vec))) if gap_vec.size else 0.0
+    gate_logs["release_gate_action_gap_norm_log"][step_idx] = gap_norm
+    gate_logs["release_gate_max_coordinate_gap_log"][step_idx] = max_coord_gap
+
+    enabled = bool(gate_state.get("enabled", False))
+    if not enabled:
+        gate_logs["release_gate_released_log"][step_idx] = int(step_idx > warm_start_step)
+        gate_logs["release_gate_release_step_log"][step_idx] = int(max(0, warm_start_step + 1))
+        return {
+            "enabled": False,
+            "released": bool(step_idx > warm_start_step),
+            "blocked": False,
+            "passed": bool(step_idx > warm_start_step),
+            "gap_norm": gap_norm,
+            "max_coordinate_gap": max_coord_gap,
+            "rolling_mean_gap": gap_norm,
+            "rolling_max_coordinate_gap": max_coord_gap,
+            "window_count": 1,
+            "release_step": int(max(0, warm_start_step + 1)),
+        }
+
+    window_steps = int(max(1, gate_state.get("window_steps", 1)))
+    start = max(0, step_idx - window_steps + 1)
+    norm_window = np.asarray(gate_logs["release_gate_action_gap_norm_log"][start : step_idx + 1], float)
+    coord_window = np.asarray(gate_logs["release_gate_max_coordinate_gap_log"][start : step_idx + 1], float)
+    mask = np.isfinite(norm_window) & np.isfinite(coord_window)
+    count = int(np.sum(mask))
+    min_count = int(math.ceil(float(gate_state.get("min_window_fraction", 1.0)) * window_steps))
+    rolling_mean = float(np.mean(norm_window[mask])) if count else float("nan")
+    rolling_max_coord = float(np.max(coord_window[mask])) if count else float("nan")
+    passed = bool(
+        step_idx > warm_start_step
+        and count >= min_count
+        and np.isfinite(rolling_mean)
+        and np.isfinite(rolling_max_coord)
+        and rolling_mean <= float(gate_state["mean_action_gap_max"])
+        and rolling_max_coord <= float(gate_state["max_coordinate_gap_max"])
+    )
+    if passed and not bool(gate_state.get("released", False)):
+        gate_state["released"] = True
+        gate_state["release_step"] = step_idx
+    released = bool(gate_state.get("released", False) and step_idx > warm_start_step)
+    blocked = bool(step_idx > warm_start_step and not released)
+
+    gate_logs["release_gate_rolling_mean_gap_log"][step_idx] = rolling_mean
+    gate_logs["release_gate_rolling_max_coordinate_gap_log"][step_idx] = rolling_max_coord
+    gate_logs["release_gate_window_count_log"][step_idx] = count
+    gate_logs["release_gate_pass_log"][step_idx] = int(passed)
+    gate_logs["release_gate_released_log"][step_idx] = int(released)
+    gate_logs["release_gate_blocked_log"][step_idx] = int(blocked)
+    gate_logs["release_gate_release_step_log"][step_idx] = int(gate_state.get("release_step", -1))
+    return {
+        "enabled": True,
+        "released": released,
+        "blocked": blocked,
+        "passed": passed,
+        "gap_norm": gap_norm,
+        "max_coordinate_gap": max_coord_gap,
+        "rolling_mean_gap": rolling_mean,
+        "rolling_max_coordinate_gap": rolling_max_coord,
+        "window_count": count,
+        "release_step": int(gate_state.get("release_step", -1)),
+    }
+
+
+def build_protected_bc_release_gate_bundle_fields(gate_bundle, *, prefix=""):
+    prefix = str(prefix)
+    if not gate_bundle:
+        return {}
+    state = dict(gate_bundle.get("state", {}) or {})
+    logs = dict(gate_bundle.get("logs", {}) or {})
+    return {
+        f"{prefix}protected_bc_release_gate": dict(state),
+        f"{prefix}protected_bc_release_gate_enabled": bool(state.get("enabled", False)),
+        f"{prefix}protected_bc_release_gate_release_step": int(state.get("release_step", -1)),
+        f"{prefix}release_gate_action_gap_norm_log": np.asarray(
+            logs.get("release_gate_action_gap_norm_log", []), float
+        ),
+        f"{prefix}release_gate_max_coordinate_gap_log": np.asarray(
+            logs.get("release_gate_max_coordinate_gap_log", []), float
+        ),
+        f"{prefix}release_gate_rolling_mean_gap_log": np.asarray(
+            logs.get("release_gate_rolling_mean_gap_log", []), float
+        ),
+        f"{prefix}release_gate_rolling_max_coordinate_gap_log": np.asarray(
+            logs.get("release_gate_rolling_max_coordinate_gap_log", []), float
+        ),
+        f"{prefix}release_gate_window_count_log": np.asarray(
+            logs.get("release_gate_window_count_log", []), int
+        ),
+        f"{prefix}release_gate_pass_log": np.asarray(logs.get("release_gate_pass_log", []), int),
+        f"{prefix}release_gate_released_log": np.asarray(logs.get("release_gate_released_log", []), int),
+        f"{prefix}release_gate_blocked_log": np.asarray(logs.get("release_gate_blocked_log", []), int),
+        f"{prefix}release_gate_release_step_log": np.asarray(
+            logs.get("release_gate_release_step_log", []), int
+        ),
+    }
+
+
 __all__ = [
+    "build_protected_bc_release_gate_bundle_fields",
     "build_behavioral_cloning_bundle_fields",
     "build_behavioral_cloning_schedule",
     "init_behavioral_cloning_logs",
+    "init_protected_bc_release_gate",
     "record_behavioral_cloning_step",
     "resolve_behavioral_cloning_context",
+    "update_protected_bc_release_gate",
 ]

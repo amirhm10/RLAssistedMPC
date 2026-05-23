@@ -54,6 +54,7 @@ TEST_CYCLE_OVERRIDE = NB["test_cycle_override"]
 PLOT_START_EPISODE_OVERRIDE = NB["plot_start_episode_override"]
 COMPARE_START_EPISODE_OVERRIDE = NB["compare_start_episode_override"]
 BEHAVIORAL_CLONING_CFG = dict(NB["behavioral_cloning"])
+TD3_AUTHORITY_RAMP_CFG = dict(NB.get("td3_authority_ramp", {}))
 REPO_ROOT, DATA_DIR, RESULT_DIR, DISTURBANCE_PROFILE, DYN_PATH, SNAPS_PATH, ASPEN_SOURCE = prepare_distillation_notebook_env(run_mode=RUN_MODE, disturbance_profile=DISTURBANCE_PROFILE, family="weights", aspen_preset=ASPEN_PRESET, dyn_path_override=ASPEN_PATH_OVERRIDE, snaps_path_override=SNAPS_PATH_OVERRIDE, aspen_root_override=ASPEN_ROOT_OVERRIDE, data_dir_override=DISTILLATION_DATA_DIR_OVERRIDE, results_dir_override=DISTILLATION_RESULTS_DIR_OVERRIDE)
 os.chdir(REPO_ROOT)
 
@@ -211,6 +212,7 @@ print_grouped_notebook_summary(
         "Agent": {"supervisor": "weight multiplier", "buffer_size": (TD3_CFG if AGENT_KIND == "td3" else SAC_CFG)["buffer_size"], "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": TD3_EXPLORATION_MODE if AGENT_KIND == "td3" else "policy_stochastic", "loss_type": TD3_LOSS_TYPE if AGENT_KIND == "td3" else SAC_LOSS_TYPE},
         "Replay": REPLAY_SETTINGS,
         "Behavioral cloning": dict(BEHAVIORAL_CLONING_CFG),
+        "TD3 controlled authority": dict(TD3_AUTHORITY_RAMP_CFG),
         "Mismatch": {"clip": MISMATCH_CLIP, "innovation_scale_mode": INNOVATION_SCALE_MODE, "tracking_scale_mode": TRACKING_SCALE_MODE, "tracking_eta_tol": TRACKING_ETA_TOL, "tracking_scale_floor_mode": TRACKING_SCALE_FLOOR_MODE},
         "Plotting / export": {"style_profile": STYLE_PROFILE, "save_pdf": SAVE_PDF, "result_prefix": RESULT_PREFIX, "compare_prefix": COMPARE_PREFIX, "plot_start_episode": PLOT_START_EPISODE, "compare_start_episode": COMPARE_START_EPISODE},
     },
@@ -249,6 +251,7 @@ weight_cfg = {
     "post_warm_start_action_freeze_subepisodes": int(NB["post_warm_start_action_freeze_subepisodes"]),
     "post_warm_start_actor_freeze_subepisodes": int(NB["post_warm_start_actor_freeze_subepisodes"]),
     "behavioral_cloning": dict(BEHAVIORAL_CLONING_CFG),
+    "td3_authority_ramp": dict(TD3_AUTHORITY_RAMP_CFG),
     "test_cycle": TEST_CYCLE,
     "predict_h": predict_h,
     "cont_h": cont_h,

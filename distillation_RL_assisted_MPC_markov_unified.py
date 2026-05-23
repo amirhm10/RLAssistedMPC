@@ -128,6 +128,7 @@ CTRL = NB["controller"]
 TD3_CFG = NB["td3_agent"]
 REWARD_CFG = NB["reward"]
 BEHAVIORAL_CLONING = dict(NB.get("behavioral_cloning", {}))
+TD3_AUTHORITY_RAMP_CFG = dict(CTRL.get("td3_authority_ramp", {}))
 
 n_tests = int(EPISODE_CFG["n_tests"] if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
 set_points_len = int(EPISODE_CFG["set_points_len"] if SET_POINTS_LEN_OVERRIDE is None else SET_POINTS_LEN_OVERRIDE)
@@ -221,6 +222,7 @@ print_grouped_notebook_summary(
             "gain_drift_max": gain_drift_max,
             "nominal_solver_mode": nominal_solver_mode,
             "force_td3_execute": force_td3_execute,
+            "td3_controlled_authority": TD3_AUTHORITY_RAMP_CFG,
             "td3_priority_fallback_enabled": bool(CTRL.get("td3_priority_fallback", {}).get("enabled", False)),
             "td3_authority_ramp_enabled": bool(CTRL.get("td3_priority_fallback", {}).get("authority_ramp", {}).get("enabled", False)),
             "td3_reward_probation_enabled": bool(CTRL.get("td3_priority_fallback", {}).get("reward_probation", {}).get("enabled", False)),
@@ -265,6 +267,7 @@ markov_cfg = {
     "run_rl_proposal": run_rl_proposal,
     "rl_fallback_to_ls": rl_fallback_to_ls,
     "force_td3_execute": force_td3_execute,
+    "td3_authority_ramp": dict(TD3_AUTHORITY_RAMP_CFG),
     "td3_priority_fallback": CTRL.get("td3_priority_fallback", {}),
     "rl_store_executed_action_in_replay": rl_store_executed_action_in_replay,
     "rl_save_agent_checkpoint": rl_save_agent_checkpoint,

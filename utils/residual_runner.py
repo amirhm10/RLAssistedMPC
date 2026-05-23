@@ -29,12 +29,19 @@ from utils.phase1_hidden_release import (
     init_phase1_train_traces,
 )
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
-from utils.residual_authority import compute_residual_rho, map_from_bounds, project_residual_action
+from utils.residual_authority import compute_residual_rho, map_from_bounds, map_to_bounds, project_residual_action
 from utils.state_features import (
     build_rl_state,
     compute_tracking_scale_now,
     make_state_conditioner_from_settings,
     resolve_mismatch_settings,
+)
+from utils.td3_authority_ramp import (
+    apply_symmetric_deviation_cap,
+    build_td3_authority_ramp_bundle_fields,
+    init_td3_authority_ramp_logs,
+    record_td3_authority_ramp_step,
+    resolve_td3_authority_ramp,
 )
 
 
@@ -153,6 +160,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         bc_schedule.get("enabled", False)
         and dict(bc_schedule.get("release_gate", {}) or {}).get("enabled", False)
     )
+    td3_authority_ramp_cfg = dict(residual_cfg.get("td3_authority_ramp", {}) or {}) if agent_kind == "td3" else {}
+    td3_authority_ramp_logs = init_td3_authority_ramp_logs(nFE, action_dim)
 
     phase1 = None
     phase1_action_source_log = None
@@ -330,8 +339,38 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             action_dim=action_dim,
         )
         action = action_decision.action
-        if bool(release_info.get("blocked", False)):
+        action_preclip = np.asarray(action, float).reshape(-1)
+        ramp_info = resolve_td3_authority_ramp(
+            td3_authority_ramp_cfg,
+            step_idx=i,
+            warm_start_step=warm_start_step,
+            time_in_sub_episodes=time_in_sub_episodes,
+        )
+        gate_override = bool(release_info.get("blocked", False) and ramp_info["live_enabled"])
+        if bool(release_info.get("blocked", False)) and not ramp_info["live_enabled"]:
             action = zero_action.copy()
+            ramp_clip_info = {"projection_active": False, "delta_norm": 0.0}
+        else:
+            residual_preclip = map_to_bounds(action, low_coef, high_coef).reshape(-1)
+            residual_clipped, ramp_clip_info = apply_symmetric_deviation_cap(
+                residual_preclip,
+                center=np.zeros(action_dim, dtype=float),
+                cap=ramp_info["cap"],
+                low=low_coef,
+                high=high_coef,
+                active=ramp_info["live_enabled"],
+            )
+            action = np.clip(map_from_bounds(residual_clipped, low_coef, high_coef), -1.0, 1.0)
+        record_td3_authority_ramp_step(
+            td3_authority_ramp_logs,
+            step_idx=i,
+            ramp_info=ramp_info,
+            preclip_action=action_preclip,
+            postclip_action=action,
+            projection_active=ramp_clip_info["projection_active"],
+            delta_norm=ramp_clip_info["delta_norm"],
+            gate_override=gate_override,
+        )
 
         a_res_raw_log[i, :] = np.asarray(action, float).reshape(-1)
         policy_action_raw_log[i, :] = policy_action_for_log
@@ -396,7 +435,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         exec_norm = float(np.linalg.norm(a_res_exec_log[i, :]))
         residual_raw_executed_norm_ratio_log[i] = exec_norm / max(raw_norm, 1.0e-12)
         if phase1 is not None:
-            phase1_action_source_log[i] = 1 if bool(release_info.get("blocked", False)) else int(action_decision.source)
+            hard_blocked = bool(release_info.get("blocked", False)) and not ramp_info["live_enabled"]
+            phase1_action_source_log[i] = 1 if hard_blocked else int(action_decision.source)
         u_rl_scaled[i, :] = projection["u_applied_scaled_abs"]
 
         delta_u = u_rl_scaled[i, :] - scaled_current_input
@@ -651,6 +691,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
     result_bundle.update(build_behavioral_cloning_bundle_fields(bc_schedule, bc_logs))
     result_bundle.update(build_protected_bc_release_gate_bundle_fields(bc_release_gate))
+    result_bundle.update(build_td3_authority_ramp_bundle_fields(td3_authority_ramp_cfg, td3_authority_ramp_logs))
     if phase1 is not None:
         result_bundle.update(
             build_phase1_bundle_fields(

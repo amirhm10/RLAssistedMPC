@@ -35,6 +35,12 @@ from utils.state_features import (
     make_state_conditioner_from_settings,
     resolve_mismatch_settings,
 )
+from utils.td3_authority_ramp import (
+    build_td3_authority_ramp_bundle_fields,
+    init_td3_authority_ramp_logs,
+    record_td3_authority_ramp_step,
+    resolve_td3_authority_ramp,
+)
 
 
 MARKOV_ACTION_SOURCE = {
@@ -719,6 +725,7 @@ def initialize_history(nFE, nx, ny, nu, z_dim, control_horizon, rl_state_dim=0):
         "rl_test_step_log": np.zeros(nFE, dtype=int),
         "td3_priority_phase_log": np.zeros(nFE, dtype=int),
         "td3_authority_scale_log": np.ones(nFE, dtype=float),
+        "td3_authority_ramp_logs": init_td3_authority_ramp_logs(nFE, z_dim),
         "td3_probation_active_log": np.zeros(nFE, dtype=int),
         "td3_probation_trigger_log": np.zeros(nFE, dtype=int),
         "z_safety_effective_cap_log": np.full(nFE, np.nan, dtype=float),
@@ -1142,6 +1149,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         if bool(bc_schedule.get("enabled", False))
         else int(ctx["warm_start_step"])
     )
+    td3_authority_ramp_cfg = dict(config.get("td3_authority_ramp", {}) or {})
 
     rl_agent = None
     if use_rl:
@@ -1470,7 +1478,16 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         policy_action=policy_raw_for_gate,
                         target_action=baseline_raw,
                     )
+                    ramp_info = resolve_td3_authority_ramp(
+                        td3_authority_ramp_cfg,
+                        step_idx=step,
+                        warm_start_step=ctx["warm_start_step"],
+                        time_in_sub_episodes=ctx["time_in_sub_episodes"],
+                    )
                     td3_live_released = bool(release_info.get("released", False))
+                    gate_override = bool(release_info.get("blocked", False) and ramp_info["live_enabled"])
+                    if gate_override:
+                        td3_live_released = True
                     if force_td3_execute and not bool(release_info.get("enabled", False)):
                         td3_live_released = True
                     decision = select_continuous_action(
@@ -1500,6 +1517,16 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     )
                     if authority_scale < 1.0:
                         raw_requested = np.clip(raw_requested * authority_scale, -1.0, 1.0)
+                    record_td3_authority_ramp_step(
+                        history["td3_authority_ramp_logs"],
+                        step_idx=step,
+                        ramp_info=ramp_info,
+                        preclip_action=np.asarray(decision.action, float).reshape(-1),
+                        postclip_action=raw_requested,
+                        projection_active=bool(authority_scale < 1.0),
+                        delta_norm=float(np.linalg.norm(raw_requested - np.asarray(decision.action, float).reshape(-1))),
+                        gate_override=gate_override,
+                    )
                     last_action_test = decision.last_action_test
                     history["rl_decision_taken_log"][step] = int(decision.decision_taken)
                     history["rl_policy_source_log"][step] = int(decision.source)
@@ -1829,9 +1856,16 @@ def summarize_history(config, ctx, history):
     td3_accepted_fraction = float(np.mean(history["rl_action_source_log"] == 2)) if nFE else 0.0
     ls_fallback_fraction = float(np.mean(history["rl_action_source_log"] == 3)) if nFE else 0.0
     nominal_fallback_fraction = float(np.mean(history["rl_action_source_log"] == 4)) if nFE else 0.0
+    ramp_logs = history.get("td3_authority_ramp_logs", {})
+    ramp_live_log = np.asarray(ramp_logs.get("td3_authority_ramp_live_log", []), int)
+    ramp_override_log = np.asarray(ramp_logs.get("td3_authority_ramp_gate_override_log", []), int)
     post_warm_start_step = min(nFE, int(ctx["warm_start_step"]) + 1)
     post_sources = history["rl_action_source_log"][post_warm_start_step:nFE]
     post_accepted = history["accepted_log"][post_warm_start_step:nFE]
+    post_ramp_live = ramp_live_log[post_warm_start_step:nFE] if ramp_live_log.size >= nFE else np.asarray([], int)
+    post_ramp_override = (
+        ramp_override_log[post_warm_start_step:nFE] if ramp_override_log.size >= nFE else np.asarray([], int)
+    )
     has_post_warm = post_sources.size > 0
     accepted_fraction_post_warm = float(np.mean(post_accepted)) if has_post_warm else 0.0
     td3_accepted_fraction_post_warm = float(np.mean(post_sources == 2)) if has_post_warm else 0.0
@@ -1861,6 +1895,10 @@ def summarize_history(config, ctx, history):
         "gain_drift_mean": float(np.nanmean(history["gain_drift_log"])) if nFE else np.nan,
         "prediction_score_mean": float(np.nanmean(history["s_pred_log"])) if nFE else np.nan,
         "td3_authority_scale_mean": float(np.nanmean(history["td3_authority_scale_log"])) if nFE else np.nan,
+        "td3_authority_ramp_live_fraction_post_warm": float(np.mean(post_ramp_live)) if post_ramp_live.size else 0.0,
+        "td3_authority_ramp_gate_override_fraction_post_warm": float(np.mean(post_ramp_override))
+        if post_ramp_override.size
+        else 0.0,
         "td3_probation_active_fraction": float(np.mean(history["td3_probation_active_log"])) if nFE else 0.0,
         "td3_probation_trigger_count": int(history.get("_td3_probation_trigger_count", 0)),
         "td3_warm_release_reference_reward": history.get("_td3_warm_release_reference_reward"),
@@ -1916,6 +1954,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "run_mode": ctx["run_mode"],
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
         "td3_priority_fallback": deepcopy(config.get("td3_priority_fallback", {})),
+        "td3_authority_ramp": deepcopy(config.get("td3_authority_ramp", {})),
         "force_td3_execute": bool(config.get("force_td3_execute", False)),
         "rl_store_executed_action_in_replay": bool(config.get("rl_store_executed_action_in_replay", True)),
         "replay_storage_mode": "executed"
@@ -1998,6 +2037,11 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "td3_priority_phase_log": history["td3_priority_phase_log"],
         "td3_priority_phase_codes": dict(TD3_PRIORITY_PHASE_CODE),
         "td3_authority_scale_log": history["td3_authority_scale_log"],
+        **build_td3_authority_ramp_bundle_fields(
+            config.get("td3_authority_ramp", {}),
+            history["td3_authority_ramp_logs"],
+            prefix="rl_",
+        ),
         "td3_probation_active_log": history["td3_probation_active_log"],
         "td3_probation_trigger_log": history["td3_probation_trigger_log"],
         "td3_probation_trigger_count": int(history.get("_td3_probation_trigger_count", 0)),

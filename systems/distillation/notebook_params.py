@@ -233,6 +233,44 @@ def _copy_protected_bc_defaults(*, target_mode, action_gap_tolerance=0.0):
     )
 
 
+def _copy_td3_authority_ramp_defaults(kind):
+    kind = str(kind).strip().lower()
+    if kind == "weights":
+        return {
+            "enabled": True,
+            "mode": "multiplier_deviation_cap",
+            "units": "physical_multiplier_deviation_from_identity",
+            "start_cap": 0.05,
+            "end_cap": 0.25,
+            "protected_subepisodes": 0,
+            "ramp_subepisodes": 30,
+            "diagnostic_release_gate_only": True,
+        }
+    if kind == "residual":
+        return {
+            "enabled": True,
+            "mode": "residual_delta_u_cap",
+            "units": "scaled_input_delta",
+            "start_cap": 0.005,
+            "end_cap": 0.02,
+            "protected_subepisodes": 0,
+            "ramp_subepisodes": 30,
+            "diagnostic_release_gate_only": True,
+        }
+    if kind == "markov":
+        return {
+            "enabled": True,
+            "mode": "z_safety_live_release",
+            "units": "z_safety_controls_authority",
+            "start_cap": 0.0,
+            "end_cap": 0.0,
+            "protected_subepisodes": 0,
+            "ramp_subepisodes": 1,
+            "diagnostic_release_gate_only": True,
+        }
+    raise ValueError(f"Unknown TD3 authority ramp kind: {kind}")
+
+
 def _copy_active_td3_agent_defaults():
     return {
         "actor_hidden": list(DISTILLATION_DEFAULT_ACTOR_HIDDEN),
@@ -813,6 +851,7 @@ DISTILLATION_MARKOV_DEFAULTS = {
         "run_rl_proposal": True,
         "rl_fallback_to_ls": True,
         "force_td3_execute": False,
+        "td3_authority_ramp": _copy_td3_authority_ramp_defaults("markov"),
         "rl_store_executed_action_in_replay": True,
         "td3_priority_fallback": _copy_td3_priority_fallback_defaults(enabled=True),
         "rl_save_agent_checkpoint": True,
@@ -837,6 +876,7 @@ DISTILLATION_WEIGHT_DEFAULTS = {
     "post_warm_start_action_freeze_subepisodes": 5,
     "post_warm_start_actor_freeze_subepisodes": 5,
     "behavioral_cloning": _copy_protected_bc_defaults(target_mode="nominal_only"),
+    "td3_authority_ramp": _copy_td3_authority_ramp_defaults("weights"),
     "controller": {
         "predict_h": 6,
         "cont_h": 3,
@@ -879,6 +919,7 @@ DISTILLATION_RESIDUAL_DEFAULTS = {
         target_mode="executed_action",
         action_gap_tolerance=1e-6,
     ),
+    "td3_authority_ramp": _copy_td3_authority_ramp_defaults("residual"),
     "controller": {
         "predict_h": 6,
         "cont_h": 3,

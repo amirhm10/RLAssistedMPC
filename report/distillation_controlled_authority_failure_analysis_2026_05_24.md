@@ -455,6 +455,76 @@ The lesson is not "all TD3 authority is bad." The lesson is:
 - residual authority can be useful when the final executed action is strongly safety-filtered;
 - weights and Markov need stricter usefulness gates before they get live authority.
 
+## Residual Rho Authority Audit
+
+Date added: 2026-05-25
+
+Runs analyzed: all canonical saved distillation residual unified bundles under `Distillation/Results/distillation_residual_*_unified/*/input_data.pkl`
+
+This audit was added because the new BC-handoff diagnostic profile disabled residual rho authority. That change was made only to isolate the handoff experiment with hard bounds, not because rho was proven harmful. The saved residual history shows the opposite: rho authority is probably one of the reasons residual TD3 was the only continuous distillation family that did not collapse.
+
+The residual actor first proposes a raw scaled-input correction:
+
+$$ \Delta u_{\mathrm{res,raw},i} = -0.02 + 0.02(a_i+1),\qquad a_i \in [-1,1]. $$
+
+Rho authority then turns tracking difficulty into a state-dependent executable cap:
+
+$$ \rho = 1-\exp(-0.55 e_{\max}),\qquad \rho_{\mathrm{eff}} = 0.2 + 0.8\rho. $$
+
+The final residual authority window is:
+
+$$ h_i = \rho_{\mathrm{eff}}\,0.3\left(\left\lvert \Delta u_{\mathrm{MPC},i}\right\rvert + 0.003\right),\qquad \Delta u_{\mathrm{res,exec},i}\in[-h_i,h_i]. $$
+
+The deadband layer is even stricter near setpoint:
+
+$$ \Delta u_{\mathrm{res,exec}} = 0 \quad \text{if max raw tracking error <= 0.1 and max raw innovation <= 0.1}. $$
+
+So the mechanism matches the intuition: when the column is close to setpoint and the observer innovation is small, residual correction is suppressed; when the column is far away or the MPC move is active, residual correction is allowed but still capped.
+
+There is also a separate state question. In mismatch mode, the runner computes `rho_state` and appends it to the residual TD3 state when `append_rho_to_state=True`:
+
+$$ s_{\mathrm{res}} = [\text{mismatch features},\rho] \quad \text{when append rho to state is enabled}. $$
+
+This state feature is independent of the authority projection. With the current post-BC-handoff defaults, `append_rho_to_state=True`, but `residual_authority_enabled=False` and `authority_use_rho=False`. That means the network can still see rho, but rho no longer protects execution unless we re-enable the residual authority projection.
+
+The audit script found 18 canonical residual runs, including 15 disturbed fluctuation runs and 13 TD3 disturbed fluctuation runs. The best disturbed residual run in this set was `TD3 20260507_212833` with current-reward tail mean `15.593`. It used active rho/deadband projection, with tail authority-projection fraction `0.717`, deadband-projection fraction `0.279`, raw residual norm `0.0377`, and executed residual norm `0.0021`.
+
+The latest residual TD3 run, `TD3 20260523_203649`, also supports this mechanism. Its tail reward was `14.620`; the raw residual norm was `0.0150`, but the executed residual norm was only `0.0020`. Rho/deadband projected every tail step: authority projection fraction `0.703`, deadband fraction `0.280`, and near-setpoint executed/raw residual ratio about `0.000007`.
+
+![Residual rho authority history](figures/distillation_residual_rho_authority_20260525/fig_residual_rho_history_metrics.png)
+
+The near/far split makes the steady-state role clearer. Near setpoint, the executed residual is essentially zero even when the actor proposes a nonzero raw residual. Farther from setpoint, the residual is still reduced, but not fully suppressed.
+
+![Residual near/far suppression](figures/distillation_residual_rho_authority_20260525/fig_residual_near_far_suppression.png)
+
+The tail traces show the same pattern in time. Rho authority rises during harder tracking windows and falls back toward its floor as the controller settles. The executed residual stays much smaller than the raw residual.
+
+![Residual rho tail traces](figures/distillation_residual_rho_authority_20260525/fig_residual_rho_tail_mechanism.png)
+
+Key residual history rows:
+
+| Run | Tail reward | Authority projection frac | Deadband projection frac | Raw residual norm | Executed residual norm | Executed/raw ratio |
+|---|---:|---:|---:|---:|---:|---:|
+| TD3 20260507_212833 best disturbed | 15.593 | 0.717 | 0.279 | 0.0377 | 0.0021 | 0.0549 |
+| TD3 20260523_203649 latest live residual | 14.620 | 0.703 | 0.280 | 0.0150 | 0.0020 | 0.1321 |
+| TD3 20260522_180223 blocked zero-residual reference | 13.898 | 0.000 | 0.000 | 0.0000 | 0.0000 | not defined |
+| TD3 20260521_152021 bad residual | 0.035 | 0.980 | 0.020 | 0.0707 | 0.0033 | 0.0464 |
+
+The interpretation is not that rho guarantees success. The bad `20260521` run had rho active and still failed, because the raw residual behavior was already pathological. But the stronger conclusion is that successful residual runs consistently depended on rho/headroom/deadband turning raw residual proposals into small, local corrections.
+
+Recommendation from this audit: keep rho authority active for distillation residual. If we want a clean ablation, run two explicit residual variants named `rho_on` and `rho_off`; do not make `rho_off` the only default before the next residual run.
+
+Analysis artifacts:
+
+| Artifact | Purpose |
+|---|---|
+| `report/scripts/analyze_distillation_residual_rho_authority_20260525.py` | Recomputes residual rho, projection, and current-reward diagnostics across saved residual bundles. |
+| `report/figures/distillation_residual_rho_authority_20260525/residual_rho_authority_summary.csv` | Per-run residual rho/projection metrics. |
+| `report/figures/distillation_residual_rho_authority_20260525/residual_rho_authority_summary.json` | Machine-readable audit summary. |
+| `report/figures/distillation_residual_rho_authority_20260525/fig_residual_rho_history_metrics.png` | Residual reward and authority projection history. |
+| `report/figures/distillation_residual_rho_authority_20260525/fig_residual_near_far_suppression.png` | Near-setpoint versus far-from-setpoint residual suppression. |
+| `report/figures/distillation_residual_rho_authority_20260525/fig_residual_rho_tail_mechanism.png` | Tail traces for best, latest, blocked, and failed residual runs. |
+
 ## Root Cause Summary
 
 The failure chain is:
@@ -509,6 +579,8 @@ Residual should not be rolled back immediately. It is the only continuous TD3 ru
 - whether projection remains responsible for safety;
 - whether raw/executed residual ratio remains bounded;
 - whether the actor learns a meaningful residual or only benefits from projection-shaped noise.
+
+After the 2026-05-25 rho audit, the recommendation is stronger: keep `append_rho_to_state=True` and re-enable residual rho authority for the next residual run. Disabling rho authority is still useful as an ablation, but it should be labeled as `rho_off`, not treated as the main residual default.
 
 ### DQN/Dueling Horizon: Leave Alone
 

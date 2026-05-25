@@ -50,6 +50,12 @@ from utils.td3_authority_ramp import (
 )
 
 
+def _float_or_nan(value):
+    if value is None:
+        return float("nan")
+    return float(value)
+
+
 def run_residual_supervisor(residual_cfg, runtime_ctx):
     """
     Run the TD3/SAC residual-correction supervisor and return a normalized result bundle.
@@ -252,9 +258,9 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     a_res_exec_log = np.zeros((nFE, n_inputs), dtype=float)
     delta_u_res_raw_log = np.zeros((nFE, n_inputs), dtype=float)
     delta_u_res_exec_log = np.zeros((nFE, n_inputs), dtype=float)
-    rho_log = np.zeros(nFE) if state_mode == "mismatch" else None
-    rho_raw_log = np.zeros(nFE) if state_mode == "mismatch" else None
-    rho_eff_log = np.zeros(nFE) if state_mode == "mismatch" else None
+    rho_log = np.full(nFE, np.nan) if state_mode == "mismatch" else None
+    rho_raw_log = np.full(nFE, np.nan) if state_mode == "mismatch" else None
+    rho_eff_log = np.full(nFE, np.nan) if state_mode == "mismatch" else None
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     innovation_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
@@ -439,9 +445,9 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             residual_zero_innovation_raw_threshold=residual_zero_innovation_raw_threshold,
         )
         if rho_log is not None:
-            rho_log[i] = float(projection["rho"])
-            rho_raw_log[i] = float(projection["rho_raw"])
-            rho_eff_log[i] = float(projection["rho_eff"])
+            rho_log[i] = _float_or_nan(projection["rho"])
+            rho_raw_log[i] = _float_or_nan(projection["rho_raw"])
+            rho_eff_log[i] = _float_or_nan(projection["rho_eff"])
         deadband_active_log[i] = int(projection["deadband_active"])
         projection_active_log[i] = int(projection["projection_active"])
         projection_due_to_deadband_log[i] = int(projection["projection_due_to_deadband"])

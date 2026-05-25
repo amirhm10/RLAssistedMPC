@@ -389,7 +389,7 @@ def _copy_mismatch_defaults():
 
 def _copy_residual_authority_defaults(action_dim):
     return {
-        "append_rho_to_state": True,
+        "append_rho_to_state": False,
         "authority_use_rho": True,
         "authority_beta_res": np.full(int(action_dim), 0.3, dtype=float),
         "authority_du0_res": np.full(int(action_dim), 0.003, dtype=float),

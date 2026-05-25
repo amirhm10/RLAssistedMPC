@@ -485,7 +485,9 @@ There is also a separate state question. In mismatch mode, the runner computes `
 
 $$ s_{\mathrm{res}} = [\text{mismatch features},\rho] \quad \text{when append rho to state is enabled}. $$
 
-This state feature is independent of the authority projection. With the current post-BC-handoff defaults, `append_rho_to_state=True`, but `residual_authority_enabled=False` and `authority_use_rho=False`. That means the network can still see rho, but rho no longer protects execution unless we re-enable the residual authority projection.
+This state feature is independent of the authority projection. At the time of this audit, the post-BC-handoff defaults still had `append_rho_to_state=True`, but `residual_authority_enabled=False` and `authority_use_rho=False`. That meant the network could still see rho even though rho no longer protected execution.
+
+For the next diagnostic run, we changed the distillation residual defaults to `append_rho_to_state=False`. This tests whether TD3 can learn the same near-setpoint suppression behavior from the raw mismatch, tracking, and innovation features rather than receiving the engineered scalar rho directly.
 
 The audit script found 18 canonical residual runs, including 15 disturbed fluctuation runs and 13 TD3 disturbed fluctuation runs. The best disturbed residual run in this set was `TD3 20260507_212833` with current-reward tail mean `15.593`. It used active rho/deadband projection, with tail authority-projection fraction `0.717`, deadband-projection fraction `0.279`, raw residual norm `0.0377`, and executed residual norm `0.0021`.
 
@@ -512,7 +514,7 @@ Key residual history rows:
 
 The interpretation is not that rho guarantees success. The bad `20260521` run had rho active and still failed, because the raw residual behavior was already pathological. But the stronger conclusion is that successful residual runs consistently depended on rho/headroom/deadband turning raw residual proposals into small, local corrections.
 
-Recommendation from this audit: keep rho authority active for distillation residual. If we want a clean ablation, run two explicit residual variants named `rho_on` and `rho_off`; do not make `rho_off` the only default before the next residual run.
+Recommendation from this audit: keep the distinction explicit. It is reasonable to remove rho from the network state for this diagnostic run. For execution safety, rho authority should still be treated as a separate ablation decision; if we disable it, the run should be interpreted as `rho_state_off` and possibly `rho_authority_off`, not as evidence that residual TD3 no longer needs near-setpoint suppression.
 
 Analysis artifacts:
 
@@ -580,7 +582,7 @@ Residual should not be rolled back immediately. It is the only continuous TD3 ru
 - whether raw/executed residual ratio remains bounded;
 - whether the actor learns a meaningful residual or only benefits from projection-shaped noise.
 
-After the 2026-05-25 rho audit, the recommendation is stronger: keep `append_rho_to_state=True` and re-enable residual rho authority for the next residual run. Disabling rho authority is still useful as an ablation, but it should be labeled as `rho_off`, not treated as the main residual default.
+After the 2026-05-25 rho audit and follow-up decision, the cleaner next diagnostic is: set `append_rho_to_state=False` so the actor does not receive the engineered rho scalar, then decide separately whether execution-time rho authority should remain active. Disabling rho from the state is a learning-ablation; disabling rho authority is a safety-ablation.
 
 ### DQN/Dueling Horizon: Leave Alone
 

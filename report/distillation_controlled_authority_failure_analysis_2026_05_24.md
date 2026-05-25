@@ -103,6 +103,196 @@ $$ z_{\mathrm{exec}} = \Pi_{\mathrm{z\mbox{-}safety}}\left(z_\theta\right). $$
 
 The intended idea was modest: let TD3 touch the plant gently. The observed behavior was different: the actor saturated, and the ramp merely converted saturation into fixed boundary actions.
 
+## Active TD3 Safety Layers And Ranges
+
+This section lists the extra safety and authority layers currently active for the three continuous TD3 families. This is the checklist I would use before changing code again.
+
+### Shared protected-BC release gate
+
+All three TD3 families use a protected behavioral-cloning phase. The actor is trained toward a safe label, but live authority should only release when the policy action is close to that label over one full subepisode.
+
+The BC weight is active for 15 subepisodes and decays exponentially:
+
+$$ \lambda_{\mathrm{BC}}(p) = \lambda_{\mathrm{end}} + (\lambda_{\mathrm{start}}-\lambda_{\mathrm{end}})\frac{\exp(-5p)-\exp(-5)}{1-\exp(-5)}, \qquad \lambda_{\mathrm{start}}=1.0,\quad \lambda_{\mathrm{end}}=0.05. $$
+
+The release gate compares the actor action with the safe target action:
+
+$$ g_t = a_\theta(s_t)-a_{\mathrm{safe},t}. $$
+
+Release requires both:
+
+$$ \frac{1}{W}\sum_{j=t-W+1}^{t} \lVert g_j\rVert_2 \le 0.25,\qquad \max_{j=t-W+1,\dots,t}\lVert g_j\rVert_\infty \le 0.20. $$
+
+Here `W` is one subepisode. In the latest TD3 runs this gate did not release. The controlled-authority ramp made actions live anyway, so the gate became diagnostic rather than binding.
+
+| Family | BC target | Raw actor range | Release rule |
+|---|---|---:|---|
+| Weights | nominal identity multipliers | `[-1, 1]^4` | mean gap <= `0.25`, max coordinate gap <= `0.20` |
+| Residual | executed projection-safe residual action | `[-1, 1]^2` | mean gap <= `0.25`, max coordinate gap <= `0.20` |
+| Markov | LS action mapped as `z_to_raw_action(z_LS_safe)` | `[-1, 1]^4` | mean gap <= `0.25`, max coordinate gap <= `0.20` |
+
+### Controlled-authority ramp
+
+The new controlled-authority layer is the one that converted a blocked release gate into a live clipped action. It resolves a cap after warm start:
+
+$$ c_k = c_{\mathrm{start}} + \alpha_k(c_{\mathrm{end}}-c_{\mathrm{start}}),\qquad \alpha_k \in [0,1]. $$
+
+For weights and residual, this cap clips the physical action before execution. For Markov, the cap does not directly clip `z`; it enables live Markov TD3 even when the BC gate is blocked, then Markov-specific priority and z-safety layers take over.
+
+| Family | Ramp units | Start cap | End cap | Ramp length | Current effect |
+|---|---|---:|---:|---:|---|
+| Weights | multiplier deviation from identity | `0.05` | `0.25` | 30 subepisodes | makes blocked actor executable inside `[1-c_k, 1+c_k]` |
+| Residual | scaled input delta | `0.005` | `0.02` | 30 subepisodes | makes blocked actor executable inside `[-c_k, c_k]` before rho/headroom projection |
+| Markov | live-release flag only | `0.0` | `0.0` | 1 subepisode | makes blocked actor live, then priority scale and z-safety decide final `z` |
+
+For weights:
+
+$$ m_{\mathrm{ramp},i} = \mathrm{clip}(m_{\theta,i}, 1-c_k, 1+c_k),\qquad m_i \in [0.75,2.0]. $$
+
+For residual:
+
+$$ \Delta u_{\mathrm{ramp},i} = \mathrm{clip}(\Delta u_{\theta,i}, -c_k, c_k),\qquad \Delta u_{\theta,i} \in [-0.02,0.02]. $$
+
+For Markov:
+
+$$ a_{\mathrm{scaled}} = s_k a_\theta,\qquad z_{\mathrm{pre}} = z_{\max} a_{\mathrm{scaled}},\qquad z_{\max}=0.04. $$
+
+The Markov priority scale `s_k` is separate from the controlled-authority ramp. It is `0.25` in the protected phase, ramps to `1.0`, and returns to `0.25` during reward probation.
+
+### Weights safety and range
+
+The weights actor chooses four penalty multipliers:
+
+$$ m = [m_{Q_1},m_{Q_2},m_{R_1},m_{R_2}]. $$
+
+The raw actor action is mapped to physical multiplier bounds:
+
+$$ m_i = 0.75 + \frac{a_i+1}{2}(2.0-0.75),\qquad a_i\in[-1,1]. $$
+
+So the full possible multiplier range is:
+
+| Quantity | Range |
+|---|---:|
+| raw actor action `a_i` | `[-1, 1]` |
+| physical multiplier `m_i` | `[0.75, 2.0]` |
+| ramped multiplier early post-warm | `[0.95, 1.05]` |
+| ramped multiplier after 30 subepisodes | `[0.75, 1.25]` |
+
+The important detail is that the ramp does not allow the upper full bound `2.0`. It clips around identity. In the failed run the actor saturated, and the ramp converted that to:
+
+$$ m_{\mathrm{exec}} = [0.75,0.75,0.75,1.25]. $$
+
+This is a ramp-boundary policy, not a freely learned use of the full `[0.75,2.0]` multiplier range.
+
+### Residual safety and range
+
+The residual actor chooses an additive scaled-input correction after nominal MPC:
+
+$$ u_{\mathrm{exec}} = u_{\mathrm{MPC}} + \Delta u_{\mathrm{res,exec}}. $$
+
+The raw TD3 action maps to:
+
+$$ \Delta u_{\mathrm{res,raw},i} = -0.02 + \frac{a_i+1}{2}(0.04),\qquad a_i\in[-1,1]. $$
+
+The nominal residual range is therefore:
+
+| Quantity | Range |
+|---|---:|
+| raw actor action `a_i` | `[-1, 1]` |
+| raw residual correction `Delta u_res_raw,i` | `[-0.02, 0.02]` |
+| early ramp correction | `[-0.005, 0.005]` |
+| final ramp correction | `[-0.02, 0.02]` |
+
+Then the rho/headroom authority projection applies a second, state-dependent cap:
+
+$$ \rho = 1-\exp(-0.55 e_{\max}),\qquad \rho_{\mathrm{eff}} = 0.2 + 0.8\rho. $$
+
+Here `e_max` is the maximum absolute raw tracking error used by the residual authority layer. The executable residual is bounded by:
+
+$$ \Delta u_{\mathrm{res,exec},i} \in [-h_i,h_i],\qquad h_i = \rho_{\mathrm{eff}}\beta_i\left(\lvert \Delta u_{\mathrm{MPC},i}\rvert + d_{0,i}\right). $$
+
+Current defaults are:
+
+| Parameter | Value |
+|---|---:|
+| `beta_i` | `0.3` |
+| `d0_i` | `0.003` |
+| `rho_floor` | `0.2` |
+| `rho_mapping` | `1 - exp(-0.55 e_max)` |
+| zero deadband tracking threshold | `0.1` |
+| zero deadband innovation threshold | `0.1` |
+
+A final headroom projection enforces physical scaled-input bounds:
+
+$$ u_{\min} \le u_{\mathrm{MPC}}+\Delta u_{\mathrm{res,exec}} \le u_{\max}. $$
+
+This is why residual improved in the latest batch without becoming fully trusted. The raw residual was still larger than the executed residual, but the state-dependent projection made the actual correction small.
+
+### Markov safety and range
+
+The Markov actor chooses a four-dimensional lifted-response correction:
+
+$$ z = [z_{y_1u_1},z_{y_1u_2},z_{y_2u_1},z_{y_2u_2}]. $$
+
+The raw TD3 action maps to:
+
+$$ z_i = z_{\max}a_i,\qquad a_i\in[-1,1],\qquad z_{\max}=0.04. $$
+
+So the nominal coordinate range is:
+
+| Quantity | Range |
+|---|---:|
+| raw actor action `a_i` | `[-1, 1]` |
+| nominal Markov coordinate `z_i` | `[-0.04, 0.04]` |
+| protected z cap | `[-0.02, 0.02]` |
+| ramp z cap | `[-0.03, 0.03]` to `[-0.04, 0.04]` |
+| full z cap | `[-0.04, 0.04]` |
+| probation z cap | `[-0.02, 0.02]` |
+| vector 2-norm cap | `0.06` |
+
+The active coordinate cap is:
+
+$$ c_{z,k} = \min(c_{\mathrm{phase},k}, c_{\mathrm{probation}} \ \text{if probation is active}, z_{\max}). $$
+
+The z-safety projection first clips each coordinate:
+
+$$ \tilde{z}_i = \mathrm{clip}(z_i,-c_{z,k},c_{z,k}). $$
+
+Then it projects the vector if the 2-norm is too large:
+
+$$ z_{\mathrm{exec}} = \begin{cases}\tilde{z}, & \lVert \tilde{z}\rVert_2 \le 0.06,\\ 0.06\tilde{z}/\lVert \tilde{z}\rVert_2, & \lVert \tilde{z}\rVert_2 > 0.06. \end{cases} $$
+
+Markov also has TD3-priority candidate checks. A TD3 Markov candidate is allowed only if the solver succeeds, gain drift is below the limit, and the nominal-cost margin is below the phase cap:
+
+$$ d_{\mathrm{gain}} \le 0.10. $$
+
+$$ J_{\mathrm{cand}}-J_0 \le \epsilon_{\mathrm{abs},p}+\epsilon_{\mathrm{rel},p}\lvert J_0\rvert. $$
+
+The current phase caps are:
+
+| Phase | Absolute cost cap | Relative cost cap | Authority scale |
+|---|---:|---:|---:|
+| protected | `0.02` | `5.0` | `0.25` |
+| ramp | `0.05` | `20.0` | `0.25` to `1.0` |
+| full | `0.10` | `50.0` | `1.0` |
+| reward probation | unchanged cost caps | unchanged cost caps | min with `0.25` |
+
+The prediction-score hard minimum is currently disabled:
+
+$$ s_{\min} = \mathrm{None}. $$
+
+That means a negative prediction score is logged but does not veto the candidate unless another guard fails. This is one reason the failed Markov run could have:
+
+$$ s_{\mathrm{pred}} < 0,\qquad \text{probation active},\qquad \text{TD3 accepted}. $$
+
+### Replay safety detail
+
+The continuous TD3 runs are configured to store executed safe actions where applicable. For Markov:
+
+$$ a_{\mathrm{replay}} = a_{\mathrm{exec}} \quad \text{when executed-action replay is enabled}. $$
+
+For residual, replay uses the projection-safe executed residual action. This is good for consistency, but it also means that if a bad live-authority loop dominates the plant, replay becomes dominated by the filtered behavior from that loop.
+
 ## Performance Results
 
 All rewards below are recomputed using the current shared distillation reward settings.

@@ -187,6 +187,7 @@ def _copy_behavioral_cloning_defaults(
     action_gap_tolerance=0.0,
     release_gate=None,
     tail_anchor=None,
+    handoff=None,
 ):
     if release_gate is None:
         release_gate = {
@@ -195,6 +196,14 @@ def _copy_behavioral_cloning_defaults(
             "mean_action_gap_max": 0.25,
             "max_coordinate_gap_max": 0.20,
             "min_window_fraction": 1.0,
+        }
+    if handoff is None:
+        handoff = {
+            "enabled": False,
+            "mode": "raw_action_blend",
+            "start_authority": 1.0,
+            "end_authority": 1.0,
+            "active_subepisodes": 0,
         }
     return {
         "enabled": bool(enabled),
@@ -210,6 +219,7 @@ def _copy_behavioral_cloning_defaults(
         "action_gap_tolerance": float(action_gap_tolerance),
         "release_gate": dict(release_gate),
         "tail_anchor": None if tail_anchor is None else dict(tail_anchor),
+        "handoff": dict(handoff),
     }
 
 
@@ -220,15 +230,22 @@ def _copy_protected_bc_defaults(*, target_mode, action_gap_tolerance=0.0):
         lambda_bc_start=1.0,
         lambda_bc_end=0.05,
         decay_mode="exp",
-        active_subepisodes=15,
+        active_subepisodes=10,
         start_after_warm_start=False,
         action_gap_tolerance=action_gap_tolerance,
         release_gate={
-            "enabled": True,
+            "enabled": False,
             "window_subepisodes": 1,
             "mean_action_gap_max": 0.25,
             "max_coordinate_gap_max": 0.20,
             "min_window_fraction": 1.0,
+        },
+        handoff={
+            "enabled": True,
+            "mode": "raw_action_blend",
+            "start_authority": 0.1,
+            "end_authority": 1.0,
+            "active_subepisodes": 10,
         },
     )
 
@@ -237,7 +254,7 @@ def _copy_td3_authority_ramp_defaults(kind):
     kind = str(kind).strip().lower()
     if kind == "weights":
         return {
-            "enabled": True,
+            "enabled": False,
             "mode": "multiplier_deviation_cap",
             "units": "physical_multiplier_deviation_from_identity",
             "start_cap": 0.05,
@@ -248,7 +265,7 @@ def _copy_td3_authority_ramp_defaults(kind):
         }
     if kind == "residual":
         return {
-            "enabled": True,
+            "enabled": False,
             "mode": "residual_delta_u_cap",
             "units": "scaled_input_delta",
             "start_cap": 0.005,
@@ -259,7 +276,7 @@ def _copy_td3_authority_ramp_defaults(kind):
         }
     if kind == "markov":
         return {
-            "enabled": True,
+            "enabled": False,
             "mode": "z_safety_live_release",
             "units": "z_safety_controls_authority",
             "start_cap": 0.0,
@@ -335,14 +352,14 @@ def _copy_td3_priority_fallback_defaults(enabled=True):
             "full": {"absolute": 0.10, "relative": 50.0},
         },
         "authority_ramp": {
-            "enabled": True,
+            "enabled": bool(enabled),
             "protected_scale": 0.25,
             "ramp_start_scale": 0.25,
             "ramp_end_scale": 1.0,
             "full_scale": 1.0,
         },
         "reward_probation": {
-            "enabled": True,
+            "enabled": bool(enabled),
             "reference_warm_episodes": 3,
             "collapse_threshold": 5.0,
             "cooldown_subepisodes": 2,
@@ -829,11 +846,11 @@ DISTILLATION_MARKOV_DEFAULTS = {
         "z_bound": 0.04,
         "z_safety": {
             "enabled": True,
-            "protected_cap": 0.02,
-            "ramp_start_cap": 0.03,
+            "protected_cap": 0.04,
+            "ramp_start_cap": 0.04,
             "ramp_end_cap": 0.04,
             "full_cap": 0.04,
-            "probation_cap": 0.02,
+            "probation_cap": 0.04,
             "vector_norm_cap": {
                 "enabled": True,
                 "max_norm": 0.06,
@@ -849,11 +866,11 @@ DISTILLATION_MARKOV_DEFAULTS = {
         "run_adaptive_ls": True,
         "run_live_corrected_mpc": True,
         "run_rl_proposal": True,
-        "rl_fallback_to_ls": True,
-        "force_td3_execute": False,
+        "rl_fallback_to_ls": False,
+        "force_td3_execute": True,
         "td3_authority_ramp": _copy_td3_authority_ramp_defaults("markov"),
         "rl_store_executed_action_in_replay": True,
-        "td3_priority_fallback": _copy_td3_priority_fallback_defaults(enabled=True),
+        "td3_priority_fallback": _copy_td3_priority_fallback_defaults(enabled=False),
         "rl_save_agent_checkpoint": True,
         "debug_validate_lifted": False,
         "debug_run_shadow_ls": False,
@@ -873,8 +890,8 @@ DISTILLATION_WEIGHT_DEFAULTS = {
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": deepcopy(DISTILLATION_WEIGHT_RUN_PROFILES),
-    "post_warm_start_action_freeze_subepisodes": 5,
-    "post_warm_start_actor_freeze_subepisodes": 5,
+    "post_warm_start_action_freeze_subepisodes": 0,
+    "post_warm_start_actor_freeze_subepisodes": 0,
     "behavioral_cloning": _copy_protected_bc_defaults(target_mode="nominal_only"),
     "td3_authority_ramp": _copy_td3_authority_ramp_defaults("weights"),
     "controller": {
@@ -907,16 +924,18 @@ DISTILLATION_RESIDUAL_DEFAULTS = {
     "disturbance_profile": "fluctuation",
     "state_mode": "mismatch",
     **_copy_residual_authority_defaults(action_dim=2),
-    "use_rho_authority": True,
+    "residual_authority_enabled": False,
+    "authority_use_rho": False,
+    "use_rho_authority": False,
     **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": deepcopy(DISTILLATION_RESIDUAL_RUN_PROFILES),
-    "post_warm_start_action_freeze_subepisodes": 5,
-    "post_warm_start_actor_freeze_subepisodes": 5,
+    "post_warm_start_action_freeze_subepisodes": 0,
+    "post_warm_start_actor_freeze_subepisodes": 0,
     "behavioral_cloning": _copy_protected_bc_defaults(
-        target_mode="executed_action",
+        target_mode="nominal_only",
         action_gap_tolerance=1e-6,
     ),
     "td3_authority_ramp": _copy_td3_authority_ramp_defaults("residual"),

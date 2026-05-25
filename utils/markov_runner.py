@@ -8,12 +8,17 @@ import scipy.optimize as spo
 from TD3Agent.agent import TD3Agent
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
 from utils.behavioral_cloning import (
+    apply_bc_handoff_action,
     build_behavioral_cloning_bundle_fields,
+    build_bc_handoff_bundle_fields,
     build_behavioral_cloning_schedule,
     build_protected_bc_release_gate_bundle_fields,
+    init_bc_handoff_logs,
     init_behavioral_cloning_logs,
     init_protected_bc_release_gate,
+    record_bc_handoff_step,
     record_behavioral_cloning_step,
+    resolve_bc_handoff_authority,
     resolve_behavioral_cloning_context,
     update_protected_bc_release_gate,
 )
@@ -1141,9 +1146,13 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         n_steps=nFE,
     )
     bc_logs = init_behavioral_cloning_logs(nFE)
+    bc_handoff_logs = init_bc_handoff_logs(nFE, z_dim)
     bc_release_gate = init_protected_bc_release_gate(bc_schedule, nFE)
+    bc_handoff_enabled = bool(dict(bc_schedule.get("handoff", {}) or {}).get("enabled", False))
     if bool(bc_release_gate["state"].get("enabled", False)):
         action_warm_start_step = int(ctx["warm_start_step"])
+    if bc_handoff_enabled:
+        action_warm_start_step = -1
     bc_train_start_step = (
         int(bc_schedule.get("start_step", ctx["warm_start_step"]))
         if bool(bc_schedule.get("enabled", False))
@@ -1527,6 +1536,21 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         delta_norm=float(np.linalg.norm(raw_requested - np.asarray(decision.action, float).reshape(-1))),
                         gate_override=gate_override,
                     )
+                    handoff_info = resolve_bc_handoff_authority(bc_schedule, step_idx=step)
+                    handoff_td3_action = raw_requested.copy()
+                    raw_requested = apply_bc_handoff_action(
+                        handoff_td3_action,
+                        baseline_raw,
+                        handoff_info["authority"],
+                    )
+                    record_bc_handoff_step(
+                        bc_handoff_logs,
+                        step_idx=step,
+                        authority_info=handoff_info,
+                        safe_action=baseline_raw,
+                        td3_action=handoff_td3_action,
+                        executed_action=raw_requested,
+                    )
                     last_action_test = decision.last_action_test
                     history["rl_decision_taken_log"][step] = int(decision.decision_taken)
                     history["rl_policy_source_log"][step] = int(decision.source)
@@ -1837,6 +1861,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         history["_markov_state_norm_stats"] = state_conditioner.export_state()
         history["_behavioral_cloning_schedule"] = bc_schedule
         history["_behavioral_cloning_logs"] = bc_logs
+        history["_bc_handoff_logs"] = bc_handoff_logs
         history["_protected_bc_release_gate"] = bc_release_gate
         history["_td3_probation_trigger_count"] = int(probation_trigger_count)
         history["_td3_warm_release_reference_reward"] = warm_release_reference_reward
@@ -2112,6 +2137,12 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         build_behavioral_cloning_bundle_fields(
             history.get("_behavioral_cloning_schedule", {}),
             history.get("_behavioral_cloning_logs", init_behavioral_cloning_logs(int(ctx["nFE"]))),
+        )
+    )
+    result_bundle.update(
+        build_bc_handoff_bundle_fields(
+            history.get("_behavioral_cloning_schedule", {}),
+            history.get("_bc_handoff_logs", init_bc_handoff_logs(int(ctx["nFE"]), int(np.asarray(basis_blocks).shape[0]))),
         )
     )
     result_bundle.update(

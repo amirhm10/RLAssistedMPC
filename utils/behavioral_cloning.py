@@ -37,6 +37,7 @@ def build_behavioral_cloning_schedule(
     action_gap_tolerance = float(cfg.get("action_gap_tolerance", 0.0))
     tail_anchor_cfg = cfg.get("tail_anchor")
     release_gate_cfg = cfg.get("release_gate")
+    handoff_cfg = cfg.get("handoff")
 
     if target_mode not in {"nominal_only", "executed_action", "ls_action"}:
         raise ValueError(
@@ -131,6 +132,30 @@ def build_behavioral_cloning_schedule(
         ):
             raise ValueError("behavioral_cloning release_gate min_window_fraction must be in (0, 1].")
 
+    if handoff_cfg is None:
+        handoff = {
+            "enabled": False,
+            "mode": "raw_action_blend",
+            "start_authority": 1.0,
+            "end_authority": 1.0,
+            "active_subepisodes": 0,
+        }
+    else:
+        if not isinstance(handoff_cfg, dict):
+            raise ValueError("behavioral_cloning handoff must be a dict when provided.")
+        handoff = {
+            "enabled": bool(handoff_cfg.get("enabled", False)),
+            "mode": str(handoff_cfg.get("mode", "raw_action_blend")).strip().lower(),
+            "start_authority": float(handoff_cfg.get("start_authority", 1.0)),
+            "end_authority": float(handoff_cfg.get("end_authority", 1.0)),
+            "active_subepisodes": int(max(0, handoff_cfg.get("active_subepisodes", active_subepisodes))),
+        }
+    if handoff["mode"] != "raw_action_blend":
+        raise ValueError("behavioral_cloning handoff mode must be 'raw_action_blend'.")
+    for key in ("start_authority", "end_authority"):
+        if not math.isfinite(handoff[key]) or handoff[key] < 0.0 or handoff[key] > 1.0:
+            raise ValueError(f"behavioral_cloning handoff {key} must be in [0, 1].")
+
     n_steps = int(max(0, n_steps))
     time_in_sub_episodes = int(max(1, time_in_sub_episodes))
     active_steps = int(active_subepisodes * time_in_sub_episodes)
@@ -167,6 +192,12 @@ def build_behavioral_cloning_schedule(
         "tail_anchor": dict(tail_anchor),
         "release_gate": dict(release_gate),
         "release_gate_window_steps": int(release_gate["window_subepisodes"] * time_in_sub_episodes),
+        "handoff": {
+            **dict(handoff),
+            "start_step": int(start_step),
+            "time_in_sub_episodes": int(time_in_sub_episodes),
+            "active_steps": int(handoff["active_subepisodes"] * time_in_sub_episodes),
+        },
     }
 
 
@@ -367,6 +398,86 @@ def build_behavioral_cloning_bundle_fields(schedule, logs):
     }
 
 
+def resolve_bc_handoff_authority(schedule, *, step_idx: int) -> dict[str, Any]:
+    """Return the BC-handoff authority for the current environment step."""
+    handoff = dict(schedule.get("handoff", {}) or {})
+    enabled = bool(handoff.get("enabled", False))
+    start = float(handoff.get("start_authority", 1.0))
+    end = float(handoff.get("end_authority", 1.0))
+    if not enabled:
+        return {
+            "enabled": False,
+            "active": False,
+            "authority": 1.0,
+            "progress": 1.0,
+            "handoff_episode": 0,
+        }
+
+    step_idx = int(step_idx)
+    start_step = int(handoff.get("start_step", schedule.get("start_step", 0)))
+    time_in_sub = int(max(1, handoff.get("time_in_sub_episodes", 1)))
+    active_subepisodes = int(max(1, handoff.get("active_subepisodes", 1)))
+    rel_step = max(0, step_idx - start_step)
+    episode = int(rel_step // time_in_sub) + 1
+    if step_idx < start_step:
+        episode = 1
+
+    if episode >= active_subepisodes:
+        progress = 1.0
+    else:
+        progress = 0.0 if active_subepisodes <= 1 else float((episode - 1) / float(active_subepisodes - 1))
+    authority = start + progress * (end - start)
+    if step_idx >= start_step + active_subepisodes * time_in_sub:
+        authority = end
+        progress = 1.0
+
+    return {
+        "enabled": True,
+        "active": bool(step_idx < start_step + active_subepisodes * time_in_sub),
+        "authority": float(np.clip(authority, 0.0, 1.0)),
+        "progress": float(np.clip(progress, 0.0, 1.0)),
+        "handoff_episode": int(min(max(episode, 1), active_subepisodes)),
+    }
+
+
+def apply_bc_handoff_action(td3_action, safe_action, authority):
+    """Blend from safe action to TD3 raw action and clip to the actor range."""
+    td3 = np.asarray(td3_action, float).reshape(-1)
+    safe = np.asarray(safe_action, float).reshape(-1)
+    if td3.shape != safe.shape:
+        raise ValueError("td3_action and safe_action must have the same shape for BC handoff.")
+    alpha = float(np.clip(authority, 0.0, 1.0))
+    return np.clip(safe + alpha * (td3 - safe), -1.0, 1.0)
+
+
+def init_bc_handoff_logs(n_steps: int, action_dim: int):
+    n_steps = int(max(0, n_steps))
+    action_dim = int(max(1, action_dim))
+    return {
+        "bc_handoff_authority_log": np.ones(n_steps, dtype=float),
+        "bc_handoff_safe_action_log": np.zeros((n_steps, action_dim), dtype=float),
+        "bc_handoff_td3_action_log": np.zeros((n_steps, action_dim), dtype=float),
+        "bc_handoff_executed_action_log": np.zeros((n_steps, action_dim), dtype=float),
+    }
+
+
+def record_bc_handoff_step(logs, *, step_idx: int, authority_info, safe_action, td3_action, executed_action):
+    step_idx = int(step_idx)
+    logs["bc_handoff_authority_log"][step_idx] = float(authority_info.get("authority", 1.0))
+    logs["bc_handoff_safe_action_log"][step_idx, :] = np.asarray(safe_action, float).reshape(-1)
+    logs["bc_handoff_td3_action_log"][step_idx, :] = np.asarray(td3_action, float).reshape(-1)
+    logs["bc_handoff_executed_action_log"][step_idx, :] = np.asarray(executed_action, float).reshape(-1)
+
+
+def build_bc_handoff_bundle_fields(schedule, logs, *, prefix=""):
+    prefix = str(prefix)
+    return {
+        f"{prefix}bc_handoff": dict(schedule.get("handoff", {}) or {}),
+        f"{prefix}bc_handoff_enabled": bool(dict(schedule.get("handoff", {}) or {}).get("enabled", False)),
+        **{f"{prefix}{key}": value for key, value in logs.items()},
+    }
+
+
 def init_protected_bc_release_gate(schedule, n_steps: int):
     n_steps = int(max(0, n_steps))
     release_gate = dict(schedule.get("release_gate", {}) or {})
@@ -515,12 +626,17 @@ def build_protected_bc_release_gate_bundle_fields(gate_bundle, *, prefix=""):
 
 
 __all__ = [
+    "apply_bc_handoff_action",
+    "build_bc_handoff_bundle_fields",
     "build_protected_bc_release_gate_bundle_fields",
     "build_behavioral_cloning_bundle_fields",
     "build_behavioral_cloning_schedule",
+    "init_bc_handoff_logs",
     "init_behavioral_cloning_logs",
     "init_protected_bc_release_gate",
+    "record_bc_handoff_step",
     "record_behavioral_cloning_step",
+    "resolve_bc_handoff_authority",
     "resolve_behavioral_cloning_context",
     "update_protected_bc_release_gate",
 ]

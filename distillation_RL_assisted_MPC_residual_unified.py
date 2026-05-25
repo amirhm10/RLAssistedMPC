@@ -35,6 +35,7 @@ AGENT_KIND = NB["agent_kind"]
 RUN_MODE = NB["run_mode"]
 DISTURBANCE_PROFILE = NB["disturbance_profile"]
 STATE_MODE = NB["state_mode"]
+RESIDUAL_AUTHORITY_ENABLED = bool(NB.get("residual_authority_enabled", STATE_MODE == "mismatch"))
 USE_RHO_AUTHORITY = NB["authority_use_rho"]
 APPEND_RHO_TO_STATE = bool(NB["append_rho_to_state"])
 AUTHORITY_BETA_RES = NB["authority_beta_res"]
@@ -224,7 +225,7 @@ print_grouped_notebook_summary(
         "Agent": {"supervisor": "residual correction", "buffer_size": (TD3_CFG if AGENT_KIND == "td3" else SAC_CFG)["buffer_size"], "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": TD3_EXPLORATION_MODE if AGENT_KIND == "td3" else "policy_stochastic", "loss_type": TD3_LOSS_TYPE if AGENT_KIND == "td3" else SAC_LOSS_TYPE},
         "Replay": REPLAY_SETTINGS,
         "Mismatch": {"clip": MISMATCH_CLIP, "innovation_scale_mode": INNOVATION_SCALE_MODE, "tracking_scale_mode": TRACKING_SCALE_MODE, "tracking_eta_tol": TRACKING_ETA_TOL, "tracking_scale_floor_mode": TRACKING_SCALE_FLOOR_MODE},
-        "Residual authority": {"use_rho": USE_RHO_AUTHORITY, "append_rho_to_state": APPEND_RHO_TO_STATE, "rho_floor": AUTHORITY_RHO_FLOOR, "rho_power": AUTHORITY_RHO_POWER},
+        "Residual authority": {"enabled": RESIDUAL_AUTHORITY_ENABLED, "use_rho": USE_RHO_AUTHORITY, "append_rho_to_state": APPEND_RHO_TO_STATE, "rho_floor": AUTHORITY_RHO_FLOOR, "rho_power": AUTHORITY_RHO_POWER},
         "Behavioral cloning": dict(BEHAVIORAL_CLONING_CFG),
         "TD3 controlled authority": dict(TD3_AUTHORITY_RAMP_CFG),
         "Plotting / export": {"style_profile": STYLE_PROFILE, "save_pdf": SAVE_PDF, "result_prefix": RESULT_PREFIX, "compare_prefix": COMPARE_PREFIX, "plot_start_episode": PLOT_START_EPISODE, "compare_start_episode": COMPARE_START_EPISODE},
@@ -255,6 +256,7 @@ residual_cfg = {
     "mismatch_transform_post_clip": MISMATCH_TRANSFORM_POST_CLIP,
     "observer_update_alignment": OBSERVER_UPDATE_ALIGNMENT,
     "notebook_source": "distillation_RL_assisted_MPC_residual_unified.ipynb",
+    "residual_authority_enabled": RESIDUAL_AUTHORITY_ENABLED,
     "authority_use_rho": USE_RHO_AUTHORITY,
     "use_rho_authority": USE_RHO_AUTHORITY,
     "append_rho_to_state": APPEND_RHO_TO_STATE,

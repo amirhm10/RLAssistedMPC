@@ -3,12 +3,17 @@ import scipy.optimize as spo
 
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
 from utils.behavioral_cloning import (
+    apply_bc_handoff_action,
     build_behavioral_cloning_bundle_fields,
+    build_bc_handoff_bundle_fields,
     build_behavioral_cloning_schedule,
     build_protected_bc_release_gate_bundle_fields,
+    init_bc_handoff_logs,
     init_behavioral_cloning_logs,
     init_protected_bc_release_gate,
+    record_bc_handoff_step,
     record_behavioral_cloning_step,
+    resolve_bc_handoff_authority,
     resolve_behavioral_cloning_context,
     update_protected_bc_release_gate,
 )
@@ -77,6 +82,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     agent_kind = str(residual_cfg["agent_kind"]).lower()
     run_mode = str(residual_cfg["run_mode"]).lower()
     state_mode = str(residual_cfg.get("state_mode", "standard")).lower()
+    residual_authority_enabled = bool(residual_cfg.get("residual_authority_enabled", state_mode == "mismatch"))
     authority_use_rho = bool(residual_cfg.get("authority_use_rho", residual_cfg.get("use_rho_authority", True)))
     if agent_kind not in {"td3", "sac"}:
         raise ValueError("residual_cfg['agent_kind'] must be 'td3' or 'sac'.")
@@ -148,7 +154,9 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         n_steps=nFE,
     )
     bc_logs = init_behavioral_cloning_logs(nFE)
+    bc_handoff_logs = init_bc_handoff_logs(nFE, action_dim)
     bc_release_gate = init_protected_bc_release_gate(bc_schedule, nFE)
+    bc_handoff_enabled = bool(agent_kind == "td3" and dict(bc_schedule.get("handoff", {}) or {}).get("enabled", False))
     bc_action_gap_tolerance = float(bc_schedule.get("action_gap_tolerance", 0.0))
     bc_target_mode = str(bc_schedule.get("target_mode", "nominal_only")).strip().lower()
     bc_train_start_step = (
@@ -174,10 +182,10 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             n_steps=nFE,
             test_train_dict=test_train_dict,
             action_freeze_subepisodes=0
-            if protected_bc_release_enabled
+            if (protected_bc_release_enabled or bc_handoff_enabled)
             else residual_cfg.get("post_warm_start_action_freeze_subepisodes", 0),
             actor_freeze_subepisodes=0
-            if protected_bc_release_enabled
+            if (protected_bc_release_enabled or bc_handoff_enabled)
             else residual_cfg.get("post_warm_start_actor_freeze_subepisodes", 0),
             batch_size=getattr(agent, "batch_size", 1),
             initial_buffer_size=len(getattr(agent, "buffer", [])),
@@ -332,7 +340,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             agent=agent,
             state=current_rl_state,
             step=i,
-            warm_start_step=warm_start_step,
+            warm_start_step=-1 if bc_handoff_enabled else warm_start_step,
             test=test,
             baseline_action=zero_action,
             phase1=phase1,
@@ -371,6 +379,21 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             delta_norm=ramp_clip_info["delta_norm"],
             gate_override=gate_override,
         )
+        handoff_info = resolve_bc_handoff_authority(bc_schedule, step_idx=i)
+        handoff_td3_action = np.asarray(action, float).reshape(-1)
+        action = apply_bc_handoff_action(
+            handoff_td3_action,
+            zero_action,
+            handoff_info["authority"],
+        )
+        record_bc_handoff_step(
+            bc_handoff_logs,
+            step_idx=i,
+            authority_info=handoff_info,
+            safe_action=zero_action,
+            td3_action=handoff_td3_action,
+            executed_action=action,
+        )
 
         a_res_raw_log[i, :] = np.asarray(action, float).reshape(-1)
         policy_action_raw_log[i, :] = policy_action_for_log
@@ -400,7 +423,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             scaled_current_input=scaled_current_input,
             u_min_scaled_abs=u_min_scaled_abs,
             u_max_scaled_abs=u_max_scaled_abs,
-            apply_authority=(state_mode == "mismatch"),
+            apply_authority=bool(state_mode == "mismatch" and residual_authority_enabled),
             authority_use_rho=authority_use_rho,
             tracking_error_feat=state_debug["tracking_error"],
             tracking_error_raw=state_debug["tracking_error_raw"],
@@ -578,6 +601,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "system_metadata": system_metadata,
         "authority_use_rho": authority_use_rho,
         "use_rho_authority": authority_use_rho,
+        "residual_authority_enabled": residual_authority_enabled,
         "notebook_source": residual_cfg.get("notebook_source"),
         "config_snapshot": dict(residual_cfg),
         "seed": residual_cfg.get("seed"),
@@ -690,6 +714,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)
     result_bundle.update(build_behavioral_cloning_bundle_fields(bc_schedule, bc_logs))
+    result_bundle.update(build_bc_handoff_bundle_fields(bc_schedule, bc_handoff_logs))
     result_bundle.update(build_protected_bc_release_gate_bundle_fields(bc_release_gate))
     result_bundle.update(build_td3_authority_ramp_bundle_fields(td3_authority_ramp_cfg, td3_authority_ramp_logs))
     if phase1 is not None:

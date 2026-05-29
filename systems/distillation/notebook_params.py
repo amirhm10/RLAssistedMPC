@@ -958,11 +958,57 @@ DISTILLATION_RESIDUAL_DEFAULTS = {
     "run_profiles": deepcopy(DISTILLATION_RESIDUAL_RUN_PROFILES),
     "post_warm_start_action_freeze_subepisodes": 0,
     "post_warm_start_actor_freeze_subepisodes": 0,
-    "behavioral_cloning": _copy_protected_bc_defaults(
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(
+        enabled=True,
         target_mode="nominal_only",
+        lambda_bc_start=1.0,
+        lambda_bc_end=0.05,
+        decay_mode="exp",
+        active_subepisodes=10,
+        start_after_warm_start=False,
         action_gap_tolerance=1e-6,
+        release_gate={
+            "enabled": True,
+            "diagnostic_only": True,
+            "window_subepisodes": 1,
+            "mean_action_gap_max": 0.25,
+            "max_coordinate_gap_max": 0.20,
+            "min_window_fraction": 1.0,
+        },
+        handoff={
+            "enabled": True,
+            "mode": "raw_action_blend",
+            "start_authority": 0.1,
+            "end_authority": 1.0,
+            "active_subepisodes": 10,
+            "start_after_warm_start": True,
+        },
     ),
-    "td3_authority_ramp": _copy_td3_authority_ramp_defaults("residual"),
+    "td3_authority_ramp": {
+        **_copy_td3_authority_ramp_defaults("residual"),
+        "enabled": True,
+        "diagnostic_release_gate_only": False,
+    },
+    "residual_safety": {
+        "enabled": True,
+        "reward_probation": {
+            "enabled": True,
+            "reference_warm_episodes": 3,
+            "collapse_threshold": 5.0,
+            "cooldown_subepisodes": 2,
+            "cooldown_residual_cap": 0.005,
+        },
+        "fallback_to_zero_on_nonfinite": True,
+        "shadow_rho_authority": {
+            "enabled": True,
+        },
+        "shadow_residual_deadband": {
+            "enabled": True,
+        },
+        "shadow_direction_risk": {
+            "enabled": True,
+        },
+    },
     "controller": {
         "predict_h": 6,
         "cont_h": 3,

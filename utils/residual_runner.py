@@ -56,6 +56,28 @@ def _float_or_nan(value):
     return float(value)
 
 
+RESIDUAL_ACTION_SOURCE_CODES = {
+    "warm_zero": 0,
+    "td3_accepted": 1,
+    "projected_td3": 2,
+    "zero_fallback": 3,
+}
+
+RESIDUAL_ZERO_FALLBACK_REASON_CODES = {
+    "none": 0,
+    "nonfinite_selected_action": 1,
+    "nonfinite_projected_action": 2,
+}
+
+
+def _projection_is_finite(projection):
+    for key in ("a_exec", "delta_u_res_exec", "u_applied_scaled_abs"):
+        value = np.asarray(projection.get(key), float)
+        if not np.all(np.isfinite(value)):
+            return False
+    return True
+
+
 def run_residual_supervisor(residual_cfg, runtime_ctx):
     """
     Run the TD3/SAC residual-correction supervisor and return a normalized result bundle.
@@ -90,6 +112,30 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     state_mode = str(residual_cfg.get("state_mode", "standard")).lower()
     residual_authority_enabled = bool(residual_cfg.get("residual_authority_enabled", state_mode == "mismatch"))
     authority_use_rho = bool(residual_cfg.get("authority_use_rho", residual_cfg.get("use_rho_authority", True)))
+    residual_safety_cfg = dict(residual_cfg.get("residual_safety", {}) or {})
+    residual_safety_enabled = bool(residual_safety_cfg.get("enabled", False))
+    reward_probation_cfg = dict(residual_safety_cfg.get("reward_probation", {}) or {})
+    reward_probation_enabled = bool(residual_safety_enabled and reward_probation_cfg.get("enabled", False))
+    probation_reference_warm_episodes = int(max(1, reward_probation_cfg.get("reference_warm_episodes", 3)))
+    probation_collapse_threshold = float(reward_probation_cfg.get("collapse_threshold", 5.0))
+    probation_cooldown_subepisodes = int(max(0, reward_probation_cfg.get("cooldown_subepisodes", 0)))
+    probation_cooldown_residual_cap = float(reward_probation_cfg.get("cooldown_residual_cap", 0.005))
+    fallback_to_zero_on_nonfinite = bool(
+        residual_safety_enabled and residual_safety_cfg.get("fallback_to_zero_on_nonfinite", False)
+    )
+    shadow_rho_authority_enabled = bool(
+        residual_safety_enabled
+        and state_mode == "mismatch"
+        and dict(residual_safety_cfg.get("shadow_rho_authority", {}) or {}).get("enabled", False)
+    )
+    shadow_residual_deadband_enabled = bool(
+        residual_safety_enabled
+        and dict(residual_safety_cfg.get("shadow_residual_deadband", {}) or {}).get("enabled", False)
+    )
+    shadow_direction_risk_enabled = bool(
+        residual_safety_enabled
+        and dict(residual_safety_cfg.get("shadow_direction_risk", {}) or {}).get("enabled", False)
+    )
     if agent_kind not in {"td3", "sac"}:
         raise ValueError("residual_cfg['agent_kind'] must be 'td3' or 'sac'.")
     if run_mode not in {"nominal", "disturb"}:
@@ -170,10 +216,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         if bool(bc_schedule.get("enabled", False))
         else int(warm_start_step)
     )
-    protected_bc_release_enabled = bool(
-        bc_schedule.get("enabled", False)
-        and dict(bc_schedule.get("release_gate", {}) or {}).get("enabled", False)
-    )
+    protected_bc_release_enabled = bool(bc_release_gate["state"].get("live_blocking_enabled", False))
     td3_authority_ramp_cfg = dict(residual_cfg.get("td3_authority_ramp", {}) or {}) if agent_kind == "td3" else {}
     td3_authority_ramp_logs = init_td3_authority_ramp_logs(nFE, action_dim)
 
@@ -271,6 +314,38 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     projection_due_to_deadband_log = np.zeros(nFE, dtype=int)
     projection_due_to_authority_log = np.zeros(nFE, dtype=int)
     projection_due_to_headroom_log = np.zeros(nFE, dtype=int)
+    residual_action_source_log = np.zeros(nFE, dtype=int)
+    residual_zero_fallback_reason_log = np.zeros(nFE, dtype=int)
+    residual_active_cap_log = np.full(nFE, np.nan, dtype=float)
+    residual_cap_projection_active_log = np.zeros(nFE, dtype=int)
+    residual_cap_projection_norm_log = np.full(nFE, np.nan, dtype=float)
+    residual_probation_active_log = np.zeros(nFE, dtype=int)
+    residual_probation_trigger_log = np.zeros(nFE, dtype=int)
+    residual_probation_reference_reward_log = np.full(nFE, np.nan, dtype=float)
+    residual_probation_cooldown_until_subepisode_log = np.zeros(nFE, dtype=int)
+    residual_requested_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+    residual_post_handoff_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+    residual_post_cap_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+    delta_u_res_requested_log = np.zeros((nFE, n_inputs), dtype=float)
+    delta_u_res_post_handoff_log = np.zeros((nFE, n_inputs), dtype=float)
+    delta_u_res_post_cap_log = np.zeros((nFE, n_inputs), dtype=float)
+    shadow_rho_log = np.full(nFE, np.nan, dtype=float)
+    shadow_rho_raw_log = np.full(nFE, np.nan, dtype=float)
+    shadow_rho_eff_log = np.full(nFE, np.nan, dtype=float)
+    shadow_rho_projection_active_log = np.zeros(nFE, dtype=int)
+    shadow_rho_projection_due_to_deadband_log = np.zeros(nFE, dtype=int)
+    shadow_rho_projection_due_to_authority_log = np.zeros(nFE, dtype=int)
+    shadow_rho_projection_due_to_headroom_log = np.zeros(nFE, dtype=int)
+    shadow_rho_deadband_active_log = np.zeros(nFE, dtype=int)
+    shadow_rho_exec_diff_norm_log = np.full(nFE, np.nan, dtype=float)
+    shadow_rho_delta_u_res_exec_log = np.full((nFE, n_inputs), np.nan, dtype=float)
+    shadow_rho_a_res_exec_log = np.full((nFE, action_dim), np.nan, dtype=float)
+    residual_predicted_direction_risk_log = np.full(nFE, np.nan, dtype=float)
+    residual_predicted_nominal_error_norm_log = np.full(nFE, np.nan, dtype=float)
+    residual_predicted_candidate_error_norm_log = np.full(nFE, np.nan, dtype=float)
+    warm_reference_rewards = []
+    warm_start_subepisodes = int(np.ceil(float(warm_start_step + 1) / float(max(1, time_in_sub_episodes))))
+    probation_cooldown_until_subepisode = 0
     test = False
 
     for i in range(nFE):
@@ -342,6 +417,18 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             target_action=zero_action,
         )
 
+        current_subepisode = int(i // time_in_sub_episodes) + 1
+        if warm_reference_rewards:
+            reference_window = warm_reference_rewards[-probation_reference_warm_episodes:]
+            residual_probation_reference_reward_log[i] = float(np.mean(reference_window))
+        probation_active = bool(
+            reward_probation_enabled
+            and current_subepisode > warm_start_subepisodes
+            and current_subepisode <= probation_cooldown_until_subepisode
+        )
+        residual_probation_active_log[i] = int(probation_active)
+        residual_probation_cooldown_until_subepisode_log[i] = int(probation_cooldown_until_subepisode)
+
         action_decision = select_continuous_action(
             agent=agent,
             state=current_rl_state,
@@ -351,43 +438,25 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             baseline_action=zero_action,
             phase1=phase1,
             action_dim=action_dim,
+            nonfinite_fallback=fallback_to_zero_on_nonfinite,
         )
-        action = action_decision.action
-        action_preclip = np.asarray(action, float).reshape(-1)
+        action_requested = np.asarray(action_decision.action, float).reshape(-1)
+        residual_requested_action_raw_log[i, :] = action_requested
+        delta_u_res_requested_log[i, :] = map_to_bounds(action_requested, low_coef, high_coef).reshape(-1)
+
         ramp_info = resolve_td3_authority_ramp(
             td3_authority_ramp_cfg,
             step_idx=i,
             warm_start_step=warm_start_step,
             time_in_sub_episodes=time_in_sub_episodes,
         )
-        gate_override = bool(release_info.get("blocked", False) and ramp_info["live_enabled"])
-        if bool(release_info.get("blocked", False)) and not ramp_info["live_enabled"]:
-            action = zero_action.copy()
-            ramp_clip_info = {"projection_active": False, "delta_norm": 0.0}
-        else:
-            residual_preclip = map_to_bounds(action, low_coef, high_coef).reshape(-1)
-            residual_clipped, ramp_clip_info = apply_symmetric_deviation_cap(
-                residual_preclip,
-                center=np.zeros(action_dim, dtype=float),
-                cap=ramp_info["cap"],
-                low=low_coef,
-                high=high_coef,
-                active=ramp_info["live_enabled"],
-            )
-            action = np.clip(map_from_bounds(residual_clipped, low_coef, high_coef), -1.0, 1.0)
-        record_td3_authority_ramp_step(
-            td3_authority_ramp_logs,
-            step_idx=i,
-            ramp_info=ramp_info,
-            preclip_action=action_preclip,
-            postclip_action=action,
-            projection_active=ramp_clip_info["projection_active"],
-            delta_norm=ramp_clip_info["delta_norm"],
-            gate_override=gate_override,
-        )
+        live_gate_blocked = bool(release_info.get("live_blocked", False))
+        gate_override = bool(live_gate_blocked and ramp_info["live_enabled"])
+        action_for_handoff = zero_action.copy() if (live_gate_blocked and not ramp_info["live_enabled"]) else action_requested
+
         handoff_info = resolve_bc_handoff_authority(bc_schedule, step_idx=i)
-        handoff_td3_action = np.asarray(action, float).reshape(-1)
-        action = apply_bc_handoff_action(
+        handoff_td3_action = np.asarray(action_for_handoff, float).reshape(-1)
+        action_post_handoff = apply_bc_handoff_action(
             handoff_td3_action,
             zero_action,
             handoff_info["authority"],
@@ -398,9 +467,48 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             authority_info=handoff_info,
             safe_action=zero_action,
             td3_action=handoff_td3_action,
-            executed_action=action,
+            executed_action=action_post_handoff,
+        )
+        residual_post_handoff_action_raw_log[i, :] = action_post_handoff
+        residual_post_handoff = map_to_bounds(action_post_handoff, low_coef, high_coef).reshape(-1)
+        delta_u_res_post_handoff_log[i, :] = residual_post_handoff
+
+        active_cap = float(ramp_info["cap"]) if bool(ramp_info["live_enabled"]) else float("nan")
+        cap_active = bool(ramp_info["live_enabled"])
+        if probation_active:
+            probation_cap = max(0.0, probation_cooldown_residual_cap)
+            active_cap = float(min(active_cap, probation_cap)) if np.isfinite(active_cap) else float(probation_cap)
+            cap_active = True
+        residual_active_cap_log[i] = active_cap if cap_active else float("nan")
+        residual_post_cap, ramp_clip_info = apply_symmetric_deviation_cap(
+            residual_post_handoff,
+            center=np.zeros(action_dim, dtype=float),
+            cap=active_cap,
+            low=low_coef,
+            high=high_coef,
+            active=cap_active,
+        )
+        action_post_cap = np.clip(map_from_bounds(residual_post_cap, low_coef, high_coef), -1.0, 1.0)
+        residual_cap_projection_active_log[i] = int(ramp_clip_info["projection_active"])
+        residual_cap_projection_norm_log[i] = float(ramp_clip_info["delta_norm"])
+        residual_post_cap_action_raw_log[i, :] = action_post_cap
+        delta_u_res_post_cap_log[i, :] = residual_post_cap
+        record_td3_authority_ramp_step(
+            td3_authority_ramp_logs,
+            step_idx=i,
+            ramp_info={
+                **dict(ramp_info),
+                "cap": active_cap,
+                "live_enabled": bool(cap_active),
+            },
+            preclip_action=action_post_handoff,
+            postclip_action=action_post_cap,
+            projection_active=ramp_clip_info["projection_active"],
+            delta_norm=ramp_clip_info["delta_norm"],
+            gate_override=gate_override,
         )
 
+        action = action_post_cap
         a_res_raw_log[i, :] = np.asarray(action, float).reshape(-1)
         policy_action_raw_log[i, :] = policy_action_for_log
 
@@ -444,6 +552,64 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             residual_zero_tracking_raw_threshold=residual_zero_tracking_raw_threshold,
             residual_zero_innovation_raw_threshold=residual_zero_innovation_raw_threshold,
         )
+        fallback_reason_code = RESIDUAL_ZERO_FALLBACK_REASON_CODES["none"]
+        if bool(action_decision.nonfinite_fallback_used):
+            fallback_reason_code = RESIDUAL_ZERO_FALLBACK_REASON_CODES["nonfinite_selected_action"]
+        if fallback_to_zero_on_nonfinite and not _projection_is_finite(projection):
+            projection = project_residual_action(
+                action_raw=zero_action,
+                low_coef=low_coef,
+                high_coef=high_coef,
+                u_base=u_base,
+                scaled_current_input=scaled_current_input,
+                u_min_scaled_abs=u_min_scaled_abs,
+                u_max_scaled_abs=u_max_scaled_abs,
+                apply_authority=False,
+                authority_use_rho=False,
+            )
+            action = zero_action.copy()
+            fallback_reason_code = RESIDUAL_ZERO_FALLBACK_REASON_CODES["nonfinite_projected_action"]
+        residual_zero_fallback_reason_log[i] = int(fallback_reason_code)
+
+        if shadow_rho_authority_enabled:
+            shadow_projection = project_residual_action(
+                action_raw=action,
+                low_coef=low_coef,
+                high_coef=high_coef,
+                u_base=u_base,
+                scaled_current_input=scaled_current_input,
+                u_min_scaled_abs=u_min_scaled_abs,
+                u_max_scaled_abs=u_max_scaled_abs,
+                apply_authority=True,
+                authority_use_rho=True,
+                tracking_error_feat=state_debug["tracking_error"],
+                tracking_error_raw=state_debug["tracking_error_raw"],
+                innovation_raw=state_debug["innovation_raw"],
+                authority_beta_res=authority_beta_res,
+                authority_du0_res=authority_du0_res,
+                authority_rho_floor=authority_rho_floor,
+                authority_rho_power=authority_rho_power,
+                rho_mapping_mode=rho_mapping_mode,
+                authority_rho_k=authority_rho_k,
+                residual_zero_deadband_enabled=bool(
+                    residual_zero_deadband_enabled and shadow_residual_deadband_enabled
+                ),
+                residual_zero_tracking_raw_threshold=residual_zero_tracking_raw_threshold,
+                residual_zero_innovation_raw_threshold=residual_zero_innovation_raw_threshold,
+            )
+            shadow_rho_log[i] = _float_or_nan(shadow_projection["rho"])
+            shadow_rho_raw_log[i] = _float_or_nan(shadow_projection["rho_raw"])
+            shadow_rho_eff_log[i] = _float_or_nan(shadow_projection["rho_eff"])
+            shadow_rho_projection_active_log[i] = int(shadow_projection["projection_active"])
+            shadow_rho_projection_due_to_deadband_log[i] = int(shadow_projection["projection_due_to_deadband"])
+            shadow_rho_projection_due_to_authority_log[i] = int(shadow_projection["projection_due_to_authority"])
+            shadow_rho_projection_due_to_headroom_log[i] = int(shadow_projection["projection_due_to_headroom"])
+            shadow_rho_deadband_active_log[i] = int(shadow_projection["deadband_active"])
+            shadow_rho_delta_u_res_exec_log[i, :] = shadow_projection["delta_u_res_exec"]
+            shadow_rho_a_res_exec_log[i, :] = shadow_projection["a_exec"]
+            shadow_rho_exec_diff_norm_log[i] = float(
+                np.linalg.norm(shadow_projection["delta_u_res_exec"] - projection["delta_u_res_exec"])
+            )
         if rho_log is not None:
             rho_log[i] = _float_or_nan(projection["rho"])
             rho_raw_log[i] = _float_or_nan(projection["rho_raw"])
@@ -463,8 +629,18 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         raw_norm = float(np.linalg.norm(policy_action_raw_log[i, :]))
         exec_norm = float(np.linalg.norm(a_res_exec_log[i, :]))
         residual_raw_executed_norm_ratio_log[i] = exec_norm / max(raw_norm, 1.0e-12)
+        if fallback_reason_code != RESIDUAL_ZERO_FALLBACK_REASON_CODES["none"] or (
+            live_gate_blocked and not ramp_info["live_enabled"]
+        ):
+            residual_action_source_log[i] = RESIDUAL_ACTION_SOURCE_CODES["zero_fallback"]
+        elif i <= warm_start_step and float(np.linalg.norm(delta_u_res_exec_log[i, :])) <= 1.0e-12:
+            residual_action_source_log[i] = RESIDUAL_ACTION_SOURCE_CODES["warm_zero"]
+        elif bool(ramp_clip_info["projection_active"]) or bool(projection["projection_active"]):
+            residual_action_source_log[i] = RESIDUAL_ACTION_SOURCE_CODES["projected_td3"]
+        else:
+            residual_action_source_log[i] = RESIDUAL_ACTION_SOURCE_CODES["td3_accepted"]
         if phase1 is not None:
-            hard_blocked = bool(release_info.get("blocked", False)) and not ramp_info["live_enabled"]
+            hard_blocked = bool(live_gate_blocked) and not ramp_info["live_enabled"]
             phase1_action_source_log[i] = 1 if hard_blocked else int(action_decision.source)
         u_rl_scaled[i, :] = projection["u_applied_scaled_abs"]
 
@@ -582,6 +758,23 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
 
         if i in sub_episodes_changes_dict:
             avg_rewards.append(float(np.mean(rewards[max(0, i - time_in_sub_episodes + 1) : i + 1])))
+            completed_subepisode = int(i // time_in_sub_episodes) + 1
+            if completed_subepisode <= warm_start_subepisodes:
+                warm_reference_rewards.append(float(avg_rewards[-1]))
+            elif reward_probation_enabled and warm_reference_rewards:
+                reference_window = warm_reference_rewards[-probation_reference_warm_episodes:]
+                reference_reward = float(np.mean(reference_window))
+                collapsed = bool(float(avg_rewards[-1]) < reference_reward - probation_collapse_threshold)
+                if collapsed and probation_cooldown_subepisodes > 0:
+                    probation_cooldown_until_subepisode = max(
+                        probation_cooldown_until_subepisode,
+                        completed_subepisode + probation_cooldown_subepisodes,
+                    )
+                    residual_probation_trigger_log[i] = 1
+                    residual_probation_reference_reward_log[i] = reference_reward
+                    residual_probation_cooldown_until_subepisode_log[i] = int(
+                        probation_cooldown_until_subepisode
+                    )
             print(
                 "Sub_Episode:",
                 sub_episodes_changes_dict[i],
@@ -633,6 +826,31 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "delta_u_res_exec_log": delta_u_res_exec_log,
         "residual_raw_log": delta_u_res_raw_log,
         "residual_exec_log": delta_u_res_exec_log,
+        "residual_safety": dict(residual_safety_cfg),
+        "residual_safety_enabled": bool(residual_safety_enabled),
+        "residual_reward_probation_enabled": bool(reward_probation_enabled),
+        "residual_fallback_to_zero_on_nonfinite": bool(fallback_to_zero_on_nonfinite),
+        "residual_probation_reference_warm_episodes": int(probation_reference_warm_episodes),
+        "residual_probation_collapse_threshold": float(probation_collapse_threshold),
+        "residual_probation_cooldown_subepisodes": int(probation_cooldown_subepisodes),
+        "residual_probation_cooldown_residual_cap": float(probation_cooldown_residual_cap),
+        "residual_action_source_codes": dict(RESIDUAL_ACTION_SOURCE_CODES),
+        "residual_action_source_log": residual_action_source_log,
+        "residual_zero_fallback_reason_codes": dict(RESIDUAL_ZERO_FALLBACK_REASON_CODES),
+        "residual_zero_fallback_reason_log": residual_zero_fallback_reason_log,
+        "residual_active_cap_log": residual_active_cap_log,
+        "residual_cap_projection_active_log": residual_cap_projection_active_log,
+        "residual_cap_projection_norm_log": residual_cap_projection_norm_log,
+        "residual_probation_active_log": residual_probation_active_log,
+        "residual_probation_trigger_log": residual_probation_trigger_log,
+        "residual_probation_reference_reward_log": residual_probation_reference_reward_log,
+        "residual_probation_cooldown_until_subepisode_log": residual_probation_cooldown_until_subepisode_log,
+        "residual_requested_action_raw_log": residual_requested_action_raw_log,
+        "residual_post_handoff_action_raw_log": residual_post_handoff_action_raw_log,
+        "residual_post_cap_action_raw_log": residual_post_cap_action_raw_log,
+        "delta_u_res_requested_log": delta_u_res_requested_log,
+        "delta_u_res_post_handoff_log": delta_u_res_post_handoff_log,
+        "delta_u_res_post_cap_log": delta_u_res_post_cap_log,
         "policy_action_raw_log": policy_action_raw_log,
         "executed_action_raw_log": executed_action_raw_log,
         "policy_executed_gap_norm_log": policy_executed_gap_norm_log,
@@ -646,6 +864,23 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "projection_due_to_deadband_log": projection_due_to_deadband_log,
         "projection_due_to_authority_log": projection_due_to_authority_log,
         "projection_due_to_headroom_log": projection_due_to_headroom_log,
+        "shadow_rho_authority_enabled": bool(shadow_rho_authority_enabled),
+        "shadow_residual_deadband_enabled": bool(shadow_residual_deadband_enabled),
+        "shadow_rho_log": shadow_rho_log,
+        "shadow_rho_raw_log": shadow_rho_raw_log,
+        "shadow_rho_eff_log": shadow_rho_eff_log,
+        "shadow_rho_projection_active_log": shadow_rho_projection_active_log,
+        "shadow_rho_projection_due_to_deadband_log": shadow_rho_projection_due_to_deadband_log,
+        "shadow_rho_projection_due_to_authority_log": shadow_rho_projection_due_to_authority_log,
+        "shadow_rho_projection_due_to_headroom_log": shadow_rho_projection_due_to_headroom_log,
+        "shadow_rho_deadband_active_log": shadow_rho_deadband_active_log,
+        "shadow_rho_exec_diff_norm_log": shadow_rho_exec_diff_norm_log,
+        "shadow_rho_delta_u_res_exec_log": shadow_rho_delta_u_res_exec_log,
+        "shadow_rho_a_res_exec_log": shadow_rho_a_res_exec_log,
+        "shadow_direction_risk_enabled": bool(shadow_direction_risk_enabled),
+        "residual_predicted_direction_risk_log": residual_predicted_direction_risk_log,
+        "residual_predicted_nominal_error_norm_log": residual_predicted_nominal_error_norm_log,
+        "residual_predicted_candidate_error_norm_log": residual_predicted_candidate_error_norm_log,
         "low_coef": low_coef,
         "high_coef": high_coef,
         "innovation_log": innovation_log,

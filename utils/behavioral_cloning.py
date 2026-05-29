@@ -100,6 +100,7 @@ def build_behavioral_cloning_schedule(
     if release_gate_cfg is None:
         release_gate = {
             "enabled": False,
+            "diagnostic_only": False,
             "window_subepisodes": 1,
             "mean_action_gap_max": 0.25,
             "max_coordinate_gap_max": 0.20,
@@ -110,6 +111,7 @@ def build_behavioral_cloning_schedule(
             raise ValueError("behavioral_cloning release_gate must be a dict when provided.")
         release_gate = {
             "enabled": bool(release_gate_cfg.get("enabled", False)),
+            "diagnostic_only": bool(release_gate_cfg.get("diagnostic_only", False)),
             "window_subepisodes": int(max(1, release_gate_cfg.get("window_subepisodes", 1))),
             "mean_action_gap_max": float(release_gate_cfg.get("mean_action_gap_max", 0.25)),
             "max_coordinate_gap_max": float(release_gate_cfg.get("max_coordinate_gap_max", 0.20)),
@@ -174,6 +176,7 @@ def build_behavioral_cloning_schedule(
             active_log[lo : hi + 1] = 1
 
     return {
+        "configured_enabled": bool(enabled),
         "enabled": bool(active_enabled),
         "target_mode": target_mode,
         "lambda_bc_start": float(lambda_bc_start),
@@ -417,10 +420,16 @@ def resolve_bc_handoff_authority(schedule, *, step_idx: int) -> dict[str, Any]:
     start_step = int(handoff.get("start_step", schedule.get("start_step", 0)))
     time_in_sub = int(max(1, handoff.get("time_in_sub_episodes", 1)))
     active_subepisodes = int(max(1, handoff.get("active_subepisodes", 1)))
+    if step_idx < start_step:
+        return {
+            "enabled": True,
+            "active": False,
+            "authority": 0.0,
+            "progress": 0.0,
+            "handoff_episode": 0,
+        }
     rel_step = max(0, step_idx - start_step)
     episode = int(rel_step // time_in_sub) + 1
-    if step_idx < start_step:
-        episode = 1
 
     if episode >= active_subepisodes:
         progress = 1.0
@@ -482,10 +491,14 @@ def init_protected_bc_release_gate(schedule, n_steps: int):
     n_steps = int(max(0, n_steps))
     release_gate = dict(schedule.get("release_gate", {}) or {})
     window_steps = int(max(1, schedule.get("release_gate_window_steps", 1)))
-    enabled = bool(schedule.get("enabled", False) and release_gate.get("enabled", False))
+    bc_configured = bool(schedule.get("configured_enabled", schedule.get("enabled", False)))
+    enabled = bool(bc_configured and release_gate.get("enabled", False))
+    diagnostic_only = bool(release_gate.get("diagnostic_only", False))
     return {
         "state": {
             "enabled": enabled,
+            "diagnostic_only": diagnostic_only,
+            "live_blocking_enabled": bool(enabled and not diagnostic_only),
             "released": not enabled,
             "release_step": -1,
             "window_steps": window_steps,
@@ -536,9 +549,13 @@ def update_protected_bc_release_gate(
         gate_logs["release_gate_release_step_log"][step_idx] = int(max(0, warm_start_step + 1))
         return {
             "enabled": False,
+            "diagnostic_only": False,
+            "live_blocking_enabled": False,
             "released": bool(step_idx > warm_start_step),
             "blocked": False,
             "passed": bool(step_idx > warm_start_step),
+            "live_released": bool(step_idx > warm_start_step),
+            "live_blocked": False,
             "gap_norm": gap_norm,
             "max_coordinate_gap": max_coord_gap,
             "rolling_mean_gap": gap_norm,
@@ -548,6 +565,7 @@ def update_protected_bc_release_gate(
         }
 
     window_steps = int(max(1, gate_state.get("window_steps", 1)))
+    diagnostic_only = bool(gate_state.get("diagnostic_only", False))
     start = max(0, step_idx - window_steps + 1)
     norm_window = np.asarray(gate_logs["release_gate_action_gap_norm_log"][start : step_idx + 1], float)
     coord_window = np.asarray(gate_logs["release_gate_max_coordinate_gap_log"][start : step_idx + 1], float)
@@ -577,11 +595,17 @@ def update_protected_bc_release_gate(
     gate_logs["release_gate_released_log"][step_idx] = int(released)
     gate_logs["release_gate_blocked_log"][step_idx] = int(blocked)
     gate_logs["release_gate_release_step_log"][step_idx] = int(gate_state.get("release_step", -1))
+    live_released = bool(step_idx > warm_start_step) if diagnostic_only else released
+    live_blocked = False if diagnostic_only else blocked
     return {
         "enabled": True,
+        "diagnostic_only": diagnostic_only,
+        "live_blocking_enabled": bool(not diagnostic_only),
         "released": released,
         "blocked": blocked,
         "passed": passed,
+        "live_released": live_released,
+        "live_blocked": live_blocked,
         "gap_norm": gap_norm,
         "max_coordinate_gap": max_coord_gap,
         "rolling_mean_gap": rolling_mean,
@@ -600,6 +624,10 @@ def build_protected_bc_release_gate_bundle_fields(gate_bundle, *, prefix=""):
     return {
         f"{prefix}protected_bc_release_gate": dict(state),
         f"{prefix}protected_bc_release_gate_enabled": bool(state.get("enabled", False)),
+        f"{prefix}protected_bc_release_gate_diagnostic_only": bool(state.get("diagnostic_only", False)),
+        f"{prefix}protected_bc_release_gate_live_blocking_enabled": bool(
+            state.get("live_blocking_enabled", state.get("enabled", False))
+        ),
         f"{prefix}protected_bc_release_gate_release_step": int(state.get("release_step", -1)),
         f"{prefix}release_gate_action_gap_norm_log": np.asarray(
             logs.get("release_gate_action_gap_norm_log", []), float

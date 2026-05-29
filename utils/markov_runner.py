@@ -768,6 +768,7 @@ def initialize_history(nFE, nx, ny, nu, z_dim, control_horizon, rl_state_dim=0):
         "requested_candidate_nominal_cost_log": np.full(nFE, np.nan, dtype=float),
         "requested_cost_margin_log": np.full(nFE, np.nan, dtype=float),
         "requested_cost_guard_pass_log": np.full(nFE, -1, dtype=int),
+        "requested_legacy_hard_gate_pass_log": np.full(nFE, -1, dtype=int),
         "requested_gain_drift_log": np.full(nFE, np.nan, dtype=float),
         "requested_prediction_score_log": np.full(nFE, np.nan, dtype=float),
         "ls_candidate_native_cost_log": np.full(nFE, np.nan, dtype=float),
@@ -1493,8 +1494,11 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         warm_start_step=ctx["warm_start_step"],
                         time_in_sub_episodes=ctx["time_in_sub_episodes"],
                     )
-                    td3_live_released = bool(release_info.get("released", False))
-                    gate_override = bool(release_info.get("blocked", False) and ramp_info["live_enabled"])
+                    td3_live_released = bool(release_info.get("live_released", release_info.get("released", False)))
+                    gate_override = bool(
+                        release_info.get("live_blocked", release_info.get("blocked", False))
+                        and ramp_info["live_enabled"]
+                    )
                     if gate_override:
                         td3_live_released = True
                     if force_td3_execute and not bool(release_info.get("enabled", False)):
@@ -1595,6 +1599,14 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         )
                         rl_eval = evaluate_markov_candidate(z_requested, u_prev_dev, x_model, U0, J0)
                         _record_candidate_stage(history, step, "requested", rl_eval["U"], rl_eval, rl_score, U0, J0, nu)
+                        legacy_rl_hard_gate_pass = bool(
+                            sol0.success
+                            and rl_eval["sol"].success
+                            and rl_score["score"] > float(config["s_pred_min"])
+                            and rl_eval["drift"] <= float(config["gain_drift_max"])
+                            and rl_eval["cost_guard_pass"]
+                        )
+                        history["requested_legacy_hard_gate_pass_log"][step] = int(legacy_rl_hard_gate_pass)
                         U_exec = rl_eval["U"]
                         z_exec = z_requested
                         raw_executed = raw_requested
@@ -1624,6 +1636,14 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         )
                         rl_eval = evaluate_markov_candidate(z_requested, u_prev_dev, x_model, U0, J0)
                         _record_candidate_stage(history, step, "requested", rl_eval["U"], rl_eval, rl_score, U0, J0, nu)
+                        legacy_rl_hard_gate_pass = bool(
+                            sol0.success
+                            and rl_eval["sol"].success
+                            and rl_score["score"] > float(config["s_pred_min"])
+                            and rl_eval["drift"] <= float(config["gain_drift_max"])
+                            and rl_eval["cost_guard_pass"]
+                        )
+                        history["requested_legacy_hard_gate_pass_log"][step] = int(legacy_rl_hard_gate_pass)
                         if _td3_priority_enabled(config):
                             rl_accepted = _td3_priority_candidate_allowed(
                                 config, ctx, step, rl_eval, rl_score, sol0.success
@@ -1634,13 +1654,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                                 and _td3_priority_candidate_allowed(config, ctx, step, ls_eval, ls_score, sol0.success)
                             )
                         else:
-                            rl_accepted = bool(
-                                sol0.success
-                                and rl_eval["sol"].success
-                                and rl_score["score"] > float(config["s_pred_min"])
-                                and rl_eval["drift"] <= float(config["gain_drift_max"])
-                                and rl_eval["cost_guard_pass"]
-                            )
+                            rl_accepted = legacy_rl_hard_gate_pass
                             ls_priority_accepted = bool(config.get("rl_fallback_to_ls", True)) and ls_accepted
                         if rl_accepted:
                             U_exec = rl_eval["U"]
@@ -2106,6 +2120,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "requested_candidate_nominal_cost_log": history["requested_candidate_nominal_cost_log"],
         "requested_cost_margin_log": history["requested_cost_margin_log"],
         "requested_cost_guard_pass_log": history["requested_cost_guard_pass_log"],
+        "requested_legacy_hard_gate_pass_log": history["requested_legacy_hard_gate_pass_log"],
         "requested_gain_drift_log": history["requested_gain_drift_log"],
         "requested_prediction_score_log": history["requested_prediction_score_log"],
         "ls_candidate_native_cost_log": history["ls_candidate_native_cost_log"],

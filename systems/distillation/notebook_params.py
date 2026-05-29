@@ -827,10 +827,11 @@ DISTILLATION_MARKOV_DEFAULTS = {
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
         enabled=True,
         target_mode="ls_action",
-        lambda_bc_start=0.0,
-        lambda_bc_end=0.0,
-        active_subepisodes=0,
-        start_after_warm_start=True,
+        lambda_bc_start=1.0,
+        lambda_bc_end=0.05,
+        decay_mode="exp",
+        active_subepisodes=10,
+        start_after_warm_start=False,
         release_gate={
             "enabled": True,
             "diagnostic_only": True,
@@ -845,6 +846,7 @@ DISTILLATION_MARKOV_DEFAULTS = {
             "start_authority": 0.1,
             "end_authority": 1.0,
             "active_subepisodes": 10,
+            "start_after_warm_start": True,
         },
     ),
     "run_profiles": deepcopy(DISTILLATION_MARKOV_RUN_PROFILES),

@@ -16,7 +16,7 @@ Date: 2026-05-29
 - `td3_priority_fallback.enabled = True`
 - `z_bound = 0.04`
 - z-safety caps: protected `0.025`, ramp `0.03 -> 0.04`, full `0.04`, probation `0.025`, vector norm cap `0.06`
-- Markov BC loss is inactive, while the raw-action handoff remains active for post-warm release.
+- Markov BC loss is limited to warm start, while the raw-action handoff remains active for post-warm release.
 
 ## Validation
 

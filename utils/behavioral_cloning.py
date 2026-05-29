@@ -141,6 +141,7 @@ def build_behavioral_cloning_schedule(
             "start_authority": 1.0,
             "end_authority": 1.0,
             "active_subepisodes": 0,
+            "start_after_warm_start": start_after_warm_start,
         }
     else:
         if not isinstance(handoff_cfg, dict):
@@ -151,6 +152,7 @@ def build_behavioral_cloning_schedule(
             "start_authority": float(handoff_cfg.get("start_authority", 1.0)),
             "end_authority": float(handoff_cfg.get("end_authority", 1.0)),
             "active_subepisodes": int(max(0, handoff_cfg.get("active_subepisodes", active_subepisodes))),
+            "start_after_warm_start": bool(handoff_cfg.get("start_after_warm_start", start_after_warm_start)),
         }
     if handoff["mode"] != "raw_action_blend":
         raise ValueError("behavioral_cloning handoff mode must be 'raw_action_blend'.")
@@ -165,6 +167,7 @@ def build_behavioral_cloning_schedule(
         start_step = int(warm_start_step) + 1 if start_after_warm_start else 0
     else:
         start_step = int(start_step_override)
+    handoff_start_step = int(warm_start_step) + 1 if handoff["start_after_warm_start"] else 0
     end_step = start_step + active_steps - 1
     active_enabled = bool(enabled and active_steps > 0 and lambda_bc_start > 0.0)
 
@@ -197,7 +200,7 @@ def build_behavioral_cloning_schedule(
         "release_gate_window_steps": int(release_gate["window_subepisodes"] * time_in_sub_episodes),
         "handoff": {
             **dict(handoff),
-            "start_step": int(start_step),
+            "start_step": int(handoff_start_step),
             "time_in_sub_episodes": int(time_in_sub_episodes),
             "active_steps": int(handoff["active_subepisodes"] * time_in_sub_episodes),
         },

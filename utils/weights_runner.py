@@ -84,6 +84,25 @@ def _set_penalties(mpc_obj, q_base, r_base, multipliers):
     )
 
 
+WEIGHT_ACTION_SOURCE_CODES = {
+    "identity_warm": 0,
+    "td3_accepted": 1,
+    "projected_td3": 2,
+    "identity_fallback": 3,
+}
+
+WEIGHT_FALLBACK_REASON_CODES = {
+    "none": 0,
+    "nonfinite_selected_action": 1,
+    "invalid_multiplier": 2,
+    "mpc_solve_failure": 3,
+}
+
+
+def _solve_successful(sol):
+    return bool(getattr(sol, "success", False)) and np.all(np.isfinite(np.asarray(sol.x, float)))
+
+
 def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     """
     Run the TD3/SAC weight-multiplier supervisor and return a normalized result bundle.
@@ -117,6 +136,23 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     agent_kind = str(weight_cfg["agent_kind"]).lower()
     run_mode = str(weight_cfg["run_mode"]).lower()
     state_mode = str(weight_cfg.get("state_mode", "standard")).lower()
+    weight_safety_cfg = dict(weight_cfg.get("weight_safety", {}) or {})
+    weight_safety_enabled = bool(weight_safety_cfg.get("enabled", False))
+    reward_probation_cfg = dict(weight_safety_cfg.get("reward_probation", {}) or {})
+    reward_probation_enabled = bool(weight_safety_enabled and reward_probation_cfg.get("enabled", False))
+    probation_reference_warm_episodes = int(max(1, reward_probation_cfg.get("reference_warm_episodes", 3)))
+    probation_collapse_threshold = float(reward_probation_cfg.get("collapse_threshold", 5.0))
+    probation_cooldown_subepisodes = int(max(0, reward_probation_cfg.get("cooldown_subepisodes", 0)))
+    probation_cooldown_multiplier_cap = float(reward_probation_cfg.get("cooldown_multiplier_cap", 0.10))
+    fallback_to_identity_on_nonfinite = bool(
+        weight_safety_enabled and weight_safety_cfg.get("fallback_to_identity_on_nonfinite", False)
+    )
+    fallback_to_identity_on_solve_failure = bool(
+        weight_safety_enabled and weight_safety_cfg.get("fallback_to_identity_on_solve_failure", False)
+    )
+    shadow_identity_cfg = dict(weight_safety_cfg.get("shadow_identity_mpc", {}) or {})
+    shadow_identity_enabled = bool(weight_safety_enabled and shadow_identity_cfg.get("enabled", False))
+    shadow_identity_stride = int(max(1, shadow_identity_cfg.get("diagnostic_stride", 5)))
     if agent_kind not in {"td3", "sac"}:
         raise ValueError("weight_cfg['agent_kind'] must be 'td3' or 'sac'.")
     if run_mode not in {"nominal", "disturb"}:
@@ -194,10 +230,7 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         if bool(bc_schedule.get("enabled", False))
         else int(warm_start_step)
     )
-    protected_bc_release_enabled = bool(
-        bc_schedule.get("enabled", False)
-        and dict(bc_schedule.get("release_gate", {}) or {}).get("enabled", False)
-    )
+    protected_bc_release_enabled = bool(bc_release_gate["state"].get("live_blocking_enabled", False))
     td3_authority_ramp_cfg = dict(weight_cfg.get("td3_authority_ramp", {}) or {}) if agent_kind == "td3" else {}
     td3_authority_ramp_logs = init_td3_authority_ramp_logs(nFE, action_dim)
 
@@ -257,6 +290,32 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     delta_y_storage = np.zeros((nFE, n_outputs))
     delta_u_storage = np.zeros((nFE, n_inputs))
     weight_log = np.zeros((nFE, 4))
+    weight_requested_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+    weight_post_handoff_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+    weight_post_cap_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+    weight_executed_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+    weight_requested_multiplier_log = np.zeros((nFE, action_dim), dtype=float)
+    weight_post_handoff_multiplier_log = np.zeros((nFE, action_dim), dtype=float)
+    weight_post_cap_multiplier_log = np.zeros((nFE, action_dim), dtype=float)
+    weight_active_cap_log = np.full(nFE, np.nan, dtype=float)
+    weight_cap_projection_active_log = np.zeros(nFE, dtype=int)
+    weight_cap_projection_norm_log = np.full(nFE, np.nan, dtype=float)
+    weight_probation_active_log = np.zeros(nFE, dtype=int)
+    weight_probation_trigger_log = np.zeros(nFE, dtype=int)
+    weight_probation_reference_reward_log = np.full(nFE, np.nan, dtype=float)
+    weight_probation_cooldown_until_subepisode_log = np.zeros(nFE, dtype=int)
+    weight_action_source_log = np.zeros(nFE, dtype=int)
+    weight_fallback_reason_log = np.zeros(nFE, dtype=int)
+    weight_multiplier_saturation_log = np.zeros(nFE, dtype=int)
+    weight_multiplier_saturation_count_log = np.zeros(nFE, dtype=int)
+    weight_shadow_selected_objective_log = np.full(nFE, np.nan, dtype=float)
+    weight_shadow_identity_objective_log = np.full(nFE, np.nan, dtype=float)
+    weight_shadow_first_move_delta_norm_log = np.full(nFE, np.nan, dtype=float)
+    weight_shadow_selected_first_move_log = np.full((nFE, n_inputs), np.nan, dtype=float)
+    weight_shadow_identity_first_move_log = np.full((nFE, n_inputs), np.nan, dtype=float)
+    warm_reference_rewards = []
+    warm_start_subepisodes = int(np.ceil(float(warm_start_step + 1) / float(max(1, time_in_sub_episodes))))
+    probation_cooldown_until_subepisode = 0
     innovation_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     innovation_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_error_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
@@ -323,6 +382,18 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             target_action=identity_action,
         )
 
+        current_subepisode = int(i // time_in_sub_episodes) + 1
+        if warm_reference_rewards:
+            reference_window = warm_reference_rewards[-probation_reference_warm_episodes:]
+            weight_probation_reference_reward_log[i] = float(np.mean(reference_window))
+        probation_active = bool(
+            reward_probation_enabled
+            and current_subepisode > warm_start_subepisodes
+            and current_subepisode <= probation_cooldown_until_subepisode
+        )
+        weight_probation_active_log[i] = int(probation_active)
+        weight_probation_cooldown_until_subepisode_log[i] = int(probation_cooldown_until_subepisode)
+
         action_decision = select_continuous_action(
             agent=agent,
             state=current_rl_state,
@@ -332,44 +403,25 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             baseline_action=identity_action,
             phase1=phase1,
             action_dim=action_dim,
+            nonfinite_fallback=fallback_to_identity_on_nonfinite,
         )
-        action = action_decision.action
+        action_requested = np.asarray(action_decision.action, float).reshape(-1)
         policy_action = action_decision.policy_action
-        action_preclip = np.asarray(action, float).reshape(-1)
+        weight_requested_action_raw_log[i, :] = action_requested
+        weight_requested_multiplier_log[i, :] = _map_to_bounds(action_requested, low_coef, high_coef).reshape(-1)
+
         ramp_info = resolve_td3_authority_ramp(
             td3_authority_ramp_cfg,
             step_idx=i,
             warm_start_step=warm_start_step,
             time_in_sub_episodes=time_in_sub_episodes,
         )
-        gate_override = bool(release_info.get("blocked", False) and ramp_info["live_enabled"])
-        if bool(release_info.get("blocked", False)) and not ramp_info["live_enabled"]:
-            action = identity_action.copy()
-            ramp_clip_info = {"projection_active": False, "delta_norm": 0.0}
-        else:
-            multipliers_preclip = _map_to_bounds(action, low_coef, high_coef).reshape(-1)
-            multipliers_clipped, ramp_clip_info = apply_symmetric_deviation_cap(
-                multipliers_preclip,
-                center=np.ones(4, dtype=float),
-                cap=ramp_info["cap"],
-                low=low_coef,
-                high=high_coef,
-                active=ramp_info["live_enabled"],
-            )
-            action = np.clip(_map_from_bounds(multipliers_clipped, low_coef, high_coef), -1.0, 1.0)
-        record_td3_authority_ramp_step(
-            td3_authority_ramp_logs,
-            step_idx=i,
-            ramp_info=ramp_info,
-            preclip_action=action_preclip,
-            postclip_action=action,
-            projection_active=ramp_clip_info["projection_active"],
-            delta_norm=ramp_clip_info["delta_norm"],
-            gate_override=gate_override,
-        )
+        live_gate_blocked = bool(release_info.get("live_blocked", False))
+        gate_override = bool(live_gate_blocked and ramp_info["live_enabled"])
+        action_for_handoff = identity_action.copy() if (live_gate_blocked and not ramp_info["live_enabled"]) else action_requested
         handoff_info = resolve_bc_handoff_authority(bc_schedule, step_idx=i)
-        handoff_td3_action = np.asarray(action, float).reshape(-1)
-        action = apply_bc_handoff_action(
+        handoff_td3_action = np.asarray(action_for_handoff, float).reshape(-1)
+        action_post_handoff = apply_bc_handoff_action(
             handoff_td3_action,
             identity_action,
             handoff_info["authority"],
@@ -380,8 +432,60 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             authority_info=handoff_info,
             safe_action=identity_action,
             td3_action=handoff_td3_action,
-            executed_action=action,
+            executed_action=action_post_handoff,
         )
+        weight_post_handoff_action_raw_log[i, :] = action_post_handoff
+        multipliers_post_handoff = _map_to_bounds(action_post_handoff, low_coef, high_coef).reshape(-1)
+        weight_post_handoff_multiplier_log[i, :] = multipliers_post_handoff
+
+        active_cap = float(ramp_info["cap"]) if bool(ramp_info["live_enabled"]) else float("nan")
+        cap_active = bool(ramp_info["live_enabled"])
+        if probation_active:
+            cooldown_cap = max(0.0, probation_cooldown_multiplier_cap)
+            active_cap = float(min(active_cap, cooldown_cap)) if np.isfinite(active_cap) else float(cooldown_cap)
+            cap_active = True
+        weight_active_cap_log[i] = active_cap if cap_active else float("nan")
+        multipliers_post_cap, ramp_clip_info = apply_symmetric_deviation_cap(
+            multipliers_post_handoff,
+            center=np.ones(4, dtype=float),
+            cap=active_cap,
+            low=low_coef,
+            high=high_coef,
+            active=cap_active,
+        )
+        action_post_cap = np.clip(_map_from_bounds(multipliers_post_cap, low_coef, high_coef), -1.0, 1.0)
+        weight_post_cap_action_raw_log[i, :] = action_post_cap
+        weight_post_cap_multiplier_log[i, :] = multipliers_post_cap
+        weight_cap_projection_active_log[i] = int(ramp_clip_info["projection_active"])
+        weight_cap_projection_norm_log[i] = float(ramp_clip_info["delta_norm"])
+        record_td3_authority_ramp_step(
+            td3_authority_ramp_logs,
+            step_idx=i,
+            ramp_info={
+                **dict(ramp_info),
+                "cap": active_cap,
+                "live_enabled": bool(cap_active),
+            },
+            preclip_action=action_post_handoff,
+            postclip_action=action_post_cap,
+            projection_active=ramp_clip_info["projection_active"],
+            delta_norm=ramp_clip_info["delta_norm"],
+            gate_override=gate_override,
+        )
+
+        action = action_post_cap
+        multipliers = np.asarray(multipliers_post_cap, float).reshape(-1)
+        fallback_reason_code = WEIGHT_FALLBACK_REASON_CODES["none"]
+        if bool(action_decision.nonfinite_fallback_used):
+            fallback_reason_code = WEIGHT_FALLBACK_REASON_CODES["nonfinite_selected_action"]
+        if (
+            not np.all(np.isfinite(multipliers))
+            or np.any(multipliers < low_coef - 1.0e-9)
+            or np.any(multipliers > high_coef + 1.0e-9)
+        ):
+            action = identity_action.copy()
+            multipliers = np.ones(4, dtype=float)
+            fallback_reason_code = WEIGHT_FALLBACK_REASON_CODES["invalid_multiplier"]
 
         if phase1 is not None:
             policy_action_raw_log[i, :] = np.asarray(
@@ -389,11 +493,25 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
                 float,
             ).reshape(-1)
             executed_action_raw_log[i, :] = np.asarray(action, float).reshape(-1)
-            hard_blocked = bool(release_info.get("blocked", False)) and not ramp_info["live_enabled"]
+            hard_blocked = bool(live_gate_blocked) and not ramp_info["live_enabled"]
             phase1_action_source_log[i] = 1 if hard_blocked else int(action_decision.source)
 
-        multipliers = _map_to_bounds(action, low_coef, high_coef).reshape(-1)
+        if fallback_reason_code != WEIGHT_FALLBACK_REASON_CODES["none"] or (
+            live_gate_blocked and not ramp_info["live_enabled"]
+        ):
+            weight_action_source_log[i] = WEIGHT_ACTION_SOURCE_CODES["identity_fallback"]
+        elif i <= warm_start_step and float(np.linalg.norm(multipliers - np.ones(4, dtype=float))) <= 1.0e-12:
+            weight_action_source_log[i] = WEIGHT_ACTION_SOURCE_CODES["identity_warm"]
+        elif bool(ramp_clip_info["projection_active"]):
+            weight_action_source_log[i] = WEIGHT_ACTION_SOURCE_CODES["projected_td3"]
+        else:
+            weight_action_source_log[i] = WEIGHT_ACTION_SOURCE_CODES["td3_accepted"]
+        weight_fallback_reason_log[i] = int(fallback_reason_code)
+        weight_executed_action_raw_log[i, :] = action
         weight_log[i, :] = multipliers
+        sat = np.isclose(multipliers, low_coef, atol=1.0e-9) | np.isclose(multipliers, high_coef, atol=1.0e-9)
+        weight_multiplier_saturation_count_log[i] = int(np.sum(sat))
+        weight_multiplier_saturation_log[i] = int(np.any(sat))
         _set_penalties(mpc_obj, q_base, r_base, multipliers)
 
         ic_opt_step = ic_opt if use_shifted_mpc_warm_start else np.zeros(n_inputs * cont_h)
@@ -404,12 +522,62 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             bounds=bnds,
             constraints=[],
         )
+        selected_candidate_sol = sol
+        if fallback_to_identity_on_solve_failure and not _solve_successful(sol):
+            action = identity_action.copy()
+            multipliers = np.ones(4, dtype=float)
+            weight_executed_action_raw_log[i, :] = action
+            weight_log[i, :] = multipliers
+            weight_multiplier_saturation_count_log[i] = 0
+            weight_multiplier_saturation_log[i] = 0
+            weight_action_source_log[i] = WEIGHT_ACTION_SOURCE_CODES["identity_fallback"]
+            weight_fallback_reason_log[i] = WEIGHT_FALLBACK_REASON_CODES["mpc_solve_failure"]
+            if phase1 is not None:
+                executed_action_raw_log[i, :] = action
+            _set_penalties(mpc_obj, q_base, r_base, multipliers)
+            sol = spo.minimize(
+                lambda x: mpc_obj.mpc_opt_fun(x, y_sp[i, :], scaled_current_input_dev, xhatdhat[:, i]),
+                np.zeros(n_inputs * cont_h),
+                bounds=bnds,
+                constraints=[],
+            )
+
         if use_shifted_mpc_warm_start:
             ic_opt = shift_control_sequence(sol.x[: n_inputs * cont_h], n_inputs, cont_h)
         else:
             ic_opt = np.zeros(n_inputs * cont_h)
 
-        u_mpc[i, :] = sol.x[:n_inputs] + ss_scaled_inputs
+        selected_first_move_scaled_abs = np.asarray(sol.x[:n_inputs], float) + ss_scaled_inputs
+        if shadow_identity_enabled and i % shadow_identity_stride == 0:
+            weight_shadow_selected_objective_log[i] = (
+                float(selected_candidate_sol.fun) if np.isfinite(selected_candidate_sol.fun) else float("nan")
+            )
+            if np.all(np.isfinite(np.asarray(selected_candidate_sol.x[:n_inputs], float))):
+                weight_shadow_selected_first_move_log[i, :] = (
+                    np.asarray(selected_candidate_sol.x[:n_inputs], float) + ss_scaled_inputs
+                )
+            if np.allclose(multipliers, np.ones(4, dtype=float), atol=1.0e-12):
+                identity_sol = sol
+            else:
+                _set_penalties(mpc_obj, q_base, r_base, np.ones(4, dtype=float))
+                identity_sol = spo.minimize(
+                    lambda x: mpc_obj.mpc_opt_fun(x, y_sp[i, :], scaled_current_input_dev, xhatdhat[:, i]),
+                    np.zeros(n_inputs * cont_h),
+                    bounds=bnds,
+                    constraints=[],
+                )
+                _set_penalties(mpc_obj, q_base, r_base, multipliers)
+            weight_shadow_identity_objective_log[i] = (
+                float(identity_sol.fun) if np.isfinite(identity_sol.fun) else float("nan")
+            )
+            identity_first_move_scaled_abs = np.asarray(identity_sol.x[:n_inputs], float) + ss_scaled_inputs
+            weight_shadow_identity_first_move_log[i, :] = identity_first_move_scaled_abs
+            if np.all(np.isfinite(weight_shadow_selected_first_move_log[i, :])):
+                weight_shadow_first_move_delta_norm_log[i] = float(
+                    np.linalg.norm(weight_shadow_selected_first_move_log[i, :] - identity_first_move_scaled_abs)
+                )
+
+        u_mpc[i, :] = selected_first_move_scaled_abs
         u_plant = reverse_min_max(u_mpc[i, :], data_min[:n_inputs], data_max[:n_inputs])
         delta_u = u_mpc[i, :] - scaled_current_input
         delta_u_storage[i, :] = delta_u
@@ -510,6 +678,23 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
 
         if i in sub_episodes_changes_dict:
             avg_rewards.append(float(np.mean(rewards[max(0, i - time_in_sub_episodes + 1) : i + 1])))
+            completed_subepisode = int(i // time_in_sub_episodes) + 1
+            if completed_subepisode <= warm_start_subepisodes:
+                warm_reference_rewards.append(float(avg_rewards[-1]))
+            elif reward_probation_enabled and warm_reference_rewards:
+                reference_window = warm_reference_rewards[-probation_reference_warm_episodes:]
+                reference_reward = float(np.mean(reference_window))
+                collapsed = bool(float(avg_rewards[-1]) < reference_reward - probation_collapse_threshold)
+                if collapsed and probation_cooldown_subepisodes > 0:
+                    probation_cooldown_until_subepisode = max(
+                        probation_cooldown_until_subepisode,
+                        completed_subepisode + probation_cooldown_subepisodes,
+                    )
+                    weight_probation_trigger_log[i] = 1
+                    weight_probation_reference_reward_log[i] = reference_reward
+                    weight_probation_cooldown_until_subepisode_log[i] = int(
+                        probation_cooldown_until_subepisode
+                    )
             print(
                 "Sub_Episode:",
                 sub_episodes_changes_dict[i],
@@ -555,6 +740,35 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         "yhat": yhat,
         "xhatdhat": xhatdhat,
         "weight_log": weight_log,
+        "weight_safety": dict(weight_safety_cfg),
+        "weight_safety_enabled": bool(weight_safety_enabled),
+        "weight_action_source_codes": dict(WEIGHT_ACTION_SOURCE_CODES),
+        "weight_action_source_log": weight_action_source_log,
+        "weight_fallback_reason_codes": dict(WEIGHT_FALLBACK_REASON_CODES),
+        "weight_fallback_reason_log": weight_fallback_reason_log,
+        "weight_requested_action_raw_log": weight_requested_action_raw_log,
+        "weight_post_handoff_action_raw_log": weight_post_handoff_action_raw_log,
+        "weight_post_cap_action_raw_log": weight_post_cap_action_raw_log,
+        "weight_executed_action_raw_log": weight_executed_action_raw_log,
+        "weight_requested_multiplier_log": weight_requested_multiplier_log,
+        "weight_post_handoff_multiplier_log": weight_post_handoff_multiplier_log,
+        "weight_post_cap_multiplier_log": weight_post_cap_multiplier_log,
+        "weight_active_cap_log": weight_active_cap_log,
+        "weight_cap_projection_active_log": weight_cap_projection_active_log,
+        "weight_cap_projection_norm_log": weight_cap_projection_norm_log,
+        "weight_probation_active_log": weight_probation_active_log,
+        "weight_probation_trigger_log": weight_probation_trigger_log,
+        "weight_probation_reference_reward_log": weight_probation_reference_reward_log,
+        "weight_probation_cooldown_until_subepisode_log": weight_probation_cooldown_until_subepisode_log,
+        "weight_multiplier_saturation_log": weight_multiplier_saturation_log,
+        "weight_multiplier_saturation_count_log": weight_multiplier_saturation_count_log,
+        "weight_shadow_identity_mpc_enabled": bool(shadow_identity_enabled),
+        "weight_shadow_diagnostic_stride": int(shadow_identity_stride),
+        "weight_shadow_selected_objective_log": weight_shadow_selected_objective_log,
+        "weight_shadow_identity_objective_log": weight_shadow_identity_objective_log,
+        "weight_shadow_first_move_delta_norm_log": weight_shadow_first_move_delta_norm_log,
+        "weight_shadow_selected_first_move_log": weight_shadow_selected_first_move_log,
+        "weight_shadow_identity_first_move_log": weight_shadow_identity_first_move_log,
         "low_coef": low_coef,
         "high_coef": high_coef,
         "test_train_dict": test_train_dict,

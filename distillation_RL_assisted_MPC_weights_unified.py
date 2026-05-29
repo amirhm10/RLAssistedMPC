@@ -55,6 +55,7 @@ PLOT_START_EPISODE_OVERRIDE = NB["plot_start_episode_override"]
 COMPARE_START_EPISODE_OVERRIDE = NB["compare_start_episode_override"]
 BEHAVIORAL_CLONING_CFG = dict(NB["behavioral_cloning"])
 TD3_AUTHORITY_RAMP_CFG = dict(NB.get("td3_authority_ramp", {}))
+WEIGHT_SAFETY_CFG = dict(NB.get("weight_safety", {}))
 REPO_ROOT, DATA_DIR, RESULT_DIR, DISTURBANCE_PROFILE, DYN_PATH, SNAPS_PATH, ASPEN_SOURCE = prepare_distillation_notebook_env(run_mode=RUN_MODE, disturbance_profile=DISTURBANCE_PROFILE, family="weights", aspen_preset=ASPEN_PRESET, dyn_path_override=ASPEN_PATH_OVERRIDE, snaps_path_override=SNAPS_PATH_OVERRIDE, aspen_root_override=ASPEN_ROOT_OVERRIDE, data_dir_override=DISTILLATION_DATA_DIR_OVERRIDE, results_dir_override=DISTILLATION_RESULTS_DIR_OVERRIDE)
 os.chdir(REPO_ROOT)
 
@@ -252,6 +253,7 @@ weight_cfg = {
     "post_warm_start_actor_freeze_subepisodes": int(NB["post_warm_start_actor_freeze_subepisodes"]),
     "behavioral_cloning": dict(BEHAVIORAL_CLONING_CFG),
     "td3_authority_ramp": dict(TD3_AUTHORITY_RAMP_CFG),
+    "weight_safety": dict(WEIGHT_SAFETY_CFG),
     "test_cycle": TEST_CYCLE,
     "predict_h": predict_h,
     "cont_h": cont_h,

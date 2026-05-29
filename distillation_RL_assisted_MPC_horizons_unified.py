@@ -217,6 +217,7 @@ horizon_cfg = {
     "mismatch_transform_tanh_scale": MISMATCH_TRANSFORM_TANH_SCALE,
     "mismatch_transform_post_clip": MISMATCH_TRANSFORM_POST_CLIP,
     "observer_update_alignment": OBSERVER_UPDATE_ALIGNMENT,
+    "horizon_safety": dict(NB.get("horizon_safety", {})),
     "notebook_source": "distillation_RL_assisted_MPC_horizons_unified.ipynb",
     "predict_h": predict_h,
     "cont_h": cont_h,

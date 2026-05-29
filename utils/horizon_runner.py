@@ -13,6 +13,12 @@ from utils.helpers import (
     shift_control_sequence,
     step_system_with_disturbance,
 )
+from utils.horizon_safety import (
+    build_horizon_safety_bundle_fields,
+    init_horizon_safety_logs,
+    record_horizon_safety_step,
+    resolve_horizon_safety,
+)
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
@@ -167,6 +173,31 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         raise ValueError("Default (predict_h, cont_h) is not present in horizon_recipes.")
     default_action = int(default_action[0])
     current_ic_opt = np.zeros(n_inputs * int(current_Hc))
+    horizon_safety_cfg = dict(horizon_cfg.get("horizon_safety", {}) or {})
+    horizon_safety_logs = init_horizon_safety_logs(nFE)
+    reward_probation_cfg = dict(horizon_safety_cfg.get("reward_probation", {}) or {})
+    reward_probation_enabled = bool(horizon_safety_cfg.get("enabled", False) and reward_probation_cfg.get("enabled", False))
+    probation_reference_warm_episodes = int(max(1, reward_probation_cfg.get("reference_warm_episodes", 3)))
+    probation_collapse_threshold = float(reward_probation_cfg.get("collapse_threshold", 5.0))
+    probation_cooldown_subepisodes = int(max(0, reward_probation_cfg.get("cooldown_subepisodes", 0)))
+    warm_reference_rewards = []
+    warm_start_subepisodes = int(np.ceil(float(warm_start_step + 1) / float(max(1, time_in_sub_episodes))))
+    probation_cooldown_until_subepisode = 0
+    horizon_reward_probation_trigger_log = np.zeros(nFE, dtype=int)
+    horizon_reward_probation_reference_reward_log = np.full(nFE, np.nan, dtype=float)
+    horizon_reward_probation_cooldown_until_subepisode_log = np.zeros(nFE, dtype=int)
+    horizon_change_log = np.zeros(nFE, dtype=int)
+    horizon_subepisode_switch_count_log = np.zeros(nFE, dtype=int)
+    horizon_shadow_cfg = dict(horizon_safety_cfg.get("shadow_default_mpc", {}) or {})
+    horizon_shadow_enabled = bool(horizon_safety_cfg.get("enabled", False) and horizon_shadow_cfg.get("enabled", False))
+    horizon_shadow_stride = int(max(1, horizon_shadow_cfg.get("diagnostic_stride", 4)))
+    horizon_shadow_selected_objective_log = np.full(nFE, np.nan, dtype=float)
+    horizon_shadow_default_objective_log = np.full(nFE, np.nan, dtype=float)
+    horizon_shadow_first_move_delta_norm_log = np.full(nFE, np.nan, dtype=float)
+    horizon_shadow_selected_first_move_log = np.full((nFE, n_inputs), np.nan, dtype=float)
+    horizon_shadow_default_first_move_log = np.full((nFE, n_inputs), np.nan, dtype=float)
+    previous_executed_pair = None
+    subepisode_switch_count = 0
 
     for i in range(nFE):
         if i in test_train_dict:
@@ -224,9 +255,28 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
             last_action=last_action,
             test=test,
         )
-        a_idx = int(horizon_decision.action)
-        last_action = horizon_decision.last_action
+        requested_a_idx = int(horizon_decision.action)
+        safety_info = resolve_horizon_safety(
+            horizon_safety_cfg,
+            step_idx=i,
+            warm_start_step=warm_start_step,
+            time_in_sub_episodes=time_in_sub_episodes,
+            requested_action=requested_a_idx,
+            horizon_recipes=h_recipes,
+            default_action=default_action,
+            cooldown_until_subepisode=probation_cooldown_until_subepisode,
+        )
+        record_horizon_safety_step(horizon_safety_logs, step_idx=i, safety_info=safety_info)
+        horizon_reward_probation_cooldown_until_subepisode_log[i] = int(probation_cooldown_until_subepisode)
+        a_idx = int(safety_info["executed_action"])
+        last_action = a_idx
         Hp, Hc = action_to_horizons(h_recipes, a_idx)
+        executed_pair = (int(Hp), int(Hc))
+        if previous_executed_pair is not None and executed_pair != previous_executed_pair:
+            horizon_change_log[i] = 1
+            subepisode_switch_count += 1
+        horizon_subepisode_switch_count_log[i] = int(subepisode_switch_count)
+        previous_executed_pair = executed_pair
         if (Hp, Hc) != (current_Hp, current_Hc):
             mpc_obj = rebuild_mpc(Hp, Hc)
             current_Hp, current_Hc = Hp, Hc
@@ -250,7 +300,33 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         else:
             current_ic_opt = np.zeros(n_inputs * int(current_Hc))
 
-        u_mpc[i, :] = sol.x[:n_inputs] + ss_scaled_inputs
+        selected_first_move_scaled_abs = np.asarray(sol.x[:n_inputs], float) + ss_scaled_inputs
+        if horizon_shadow_enabled and i % horizon_shadow_stride == 0:
+            horizon_shadow_selected_objective_log[i] = float(sol.fun) if np.isfinite(sol.fun) else float("nan")
+            horizon_shadow_selected_first_move_log[i, :] = selected_first_move_scaled_abs
+            if (int(Hp), int(Hc)) == (int(predict_h), int(cont_h)):
+                default_first_move_scaled_abs = selected_first_move_scaled_abs.copy()
+                horizon_shadow_default_objective_log[i] = horizon_shadow_selected_objective_log[i]
+            else:
+                default_mpc_obj = rebuild_mpc(predict_h, cont_h)
+                default_bnds = (b1, b2) * int(cont_h)
+                default_ic = np.zeros(n_inputs * int(cont_h))
+                default_sol = spo.minimize(
+                    lambda x: default_mpc_obj.mpc_opt_fun(x, y_sp[i, :], scaled_current_input_dev, xhatdhat[:, i]),
+                    default_ic,
+                    bounds=default_bnds,
+                    constraints=cons,
+                )
+                default_first_move_scaled_abs = np.asarray(default_sol.x[:n_inputs], float) + ss_scaled_inputs
+                horizon_shadow_default_objective_log[i] = (
+                    float(default_sol.fun) if np.isfinite(default_sol.fun) else float("nan")
+                )
+            horizon_shadow_default_first_move_log[i, :] = default_first_move_scaled_abs
+            horizon_shadow_first_move_delta_norm_log[i] = float(
+                np.linalg.norm(selected_first_move_scaled_abs - default_first_move_scaled_abs)
+            )
+
+        u_mpc[i, :] = selected_first_move_scaled_abs
         u_plant = reverse_min_max(u_mpc[i, :], data_min[:n_inputs], data_max[:n_inputs])
         delta_u = u_mpc[i, :] - scaled_current_input
         delta_u_storage[i, :] = delta_u
@@ -333,6 +409,23 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         if i in sub_episodes_changes_dict:
             avg_reward = float(np.mean(rewards[max(0, i - time_in_sub_episodes + 1): i + 1]))
             avg_rewards.append(avg_reward)
+            completed_subepisode = int(i // time_in_sub_episodes) + 1
+            if completed_subepisode <= warm_start_subepisodes:
+                warm_reference_rewards.append(float(avg_reward))
+            elif reward_probation_enabled and warm_reference_rewards:
+                reference_window = warm_reference_rewards[-probation_reference_warm_episodes:]
+                reference_reward = float(np.mean(reference_window))
+                collapsed = bool(float(avg_reward) < reference_reward - probation_collapse_threshold)
+                if collapsed and probation_cooldown_subepisodes > 0:
+                    probation_cooldown_until_subepisode = max(
+                        probation_cooldown_until_subepisode,
+                        completed_subepisode + probation_cooldown_subepisodes,
+                    )
+                    horizon_reward_probation_trigger_log[i] = 1
+                    horizon_reward_probation_reference_reward_log[i] = reference_reward
+                    horizon_reward_probation_cooldown_until_subepisode_log[i] = int(
+                        probation_cooldown_until_subepisode
+                    )
             print(
                 "Sub_Episode:",
                 sub_episodes_changes_dict[i],
@@ -341,6 +434,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
                 "| Hp,Hc:",
                 (int(Hp), int(Hc)),
             )
+            subepisode_switch_count = 0
 
     u_rl = reverse_min_max(u_mpc, data_min[:n_inputs], data_max[:n_inputs])
     disturbance_profile = disturbance_profile_from_schedule(
@@ -376,6 +470,19 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         "horizon_trace": horizon_trace,
         "action_trace": action_trace,
         "horizon_recipes": h_recipes,
+        "horizon_reward_probation_enabled": bool(reward_probation_enabled),
+        "horizon_reward_probation_trigger_log": horizon_reward_probation_trigger_log,
+        "horizon_reward_probation_reference_reward_log": horizon_reward_probation_reference_reward_log,
+        "horizon_reward_probation_cooldown_until_subepisode_log": horizon_reward_probation_cooldown_until_subepisode_log,
+        "horizon_change_log": horizon_change_log,
+        "horizon_subepisode_switch_count_log": horizon_subepisode_switch_count_log,
+        "horizon_shadow_default_mpc_enabled": bool(horizon_shadow_enabled),
+        "horizon_shadow_diagnostic_stride": int(horizon_shadow_stride),
+        "horizon_shadow_selected_objective_log": horizon_shadow_selected_objective_log,
+        "horizon_shadow_default_objective_log": horizon_shadow_default_objective_log,
+        "horizon_shadow_first_move_delta_norm_log": horizon_shadow_first_move_delta_norm_log,
+        "horizon_shadow_selected_first_move_log": horizon_shadow_selected_first_move_log,
+        "horizon_shadow_default_first_move_log": horizon_shadow_default_first_move_log,
         "test_train_dict": test_train_dict,
         "sub_episodes_changes_dict": sub_episodes_changes_dict,
         "disturbance_profile": disturbance_profile,
@@ -425,6 +532,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     for key, value in diagnostics.items():
         if value is not None:
             result_bundle[key] = np.asarray(value, float).reshape(-1)
+    result_bundle.update(build_horizon_safety_bundle_fields(horizon_safety_cfg, horizon_safety_logs))
 
     attach_single_agent_replay_snapshot(result_bundle, agent)
     return result_bundle

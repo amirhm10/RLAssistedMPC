@@ -359,7 +359,7 @@ def _copy_td3_priority_fallback_defaults(enabled=True):
             "full_scale": 1.0,
         },
         "reward_probation": {
-            "enabled": bool(enabled),
+            "enabled": False,
             "reference_warm_episodes": 3,
             "collapse_threshold": 5.0,
             "cooldown_subepisodes": 2,
@@ -590,7 +590,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
             },
         },
         "reward_probation": {
-            "enabled": True,
+            "enabled": False,
             "reference_warm_episodes": 3,
             "collapse_threshold": 5.0,
             "cooldown_subepisodes": 2,
@@ -983,7 +983,7 @@ DISTILLATION_WEIGHT_DEFAULTS = {
     "weight_safety": {
         "enabled": True,
         "reward_probation": {
-            "enabled": True,
+            "enabled": False,
             "reference_warm_episodes": 3,
             "collapse_threshold": 5.0,
             "cooldown_subepisodes": 2,
@@ -1070,7 +1070,7 @@ DISTILLATION_RESIDUAL_DEFAULTS = {
     "residual_safety": {
         "enabled": True,
         "reward_probation": {
-            "enabled": True,
+            "enabled": False,
             "reference_warm_episodes": 3,
             "collapse_threshold": 5.0,
             "cooldown_subepisodes": 2,

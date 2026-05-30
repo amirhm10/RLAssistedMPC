@@ -50,6 +50,7 @@ RESIDUAL_ZERO_TRACKING_RAW_THRESHOLD = NB["residual_zero_tracking_raw_threshold"
 RESIDUAL_ZERO_INNOVATION_RAW_THRESHOLD = NB["residual_zero_innovation_raw_threshold"]
 BEHAVIORAL_CLONING_CFG = dict(NB["behavioral_cloning"])
 TD3_AUTHORITY_RAMP_CFG = dict(NB.get("td3_authority_ramp", {}))
+RESIDUAL_SAFETY_CFG = dict(NB.get("residual_safety", {}))
 STYLE_PROFILE = NB["style_profile"]
 SAVE_PDF = NB["save_pdf"]
 ASPEN_PRESET = NB["aspen_preset"]
@@ -280,6 +281,7 @@ residual_cfg = {
     "post_warm_start_actor_freeze_subepisodes": int(NB["post_warm_start_actor_freeze_subepisodes"]),
     "behavioral_cloning": dict(BEHAVIORAL_CLONING_CFG),
     "td3_authority_ramp": dict(TD3_AUTHORITY_RAMP_CFG),
+    "residual_safety": dict(RESIDUAL_SAFETY_CFG),
     "test_cycle": TEST_CYCLE,
     "predict_h": predict_h,
     "cont_h": cont_h,

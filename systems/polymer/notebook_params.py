@@ -174,7 +174,7 @@ def _copy_td3_priority_fallback_defaults(enabled=True):
             "full_scale": 1.0,
         },
         "reward_probation": {
-            "enabled": True,
+            "enabled": False,
             "reference_warm_episodes": 3,
             "collapse_threshold": 0.75,
             "cooldown_subepisodes": 2,

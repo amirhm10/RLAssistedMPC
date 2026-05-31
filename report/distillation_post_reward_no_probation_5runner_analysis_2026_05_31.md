@@ -47,6 +47,65 @@ Generated analysis artifacts:
 - `report/figures/distillation_post_reward_no_probation_20260531/current_vs_baseline_metrics.csv`
 - `report/figures/distillation_post_reward_no_probation_20260531/current_vs_previous_metrics.csv`
 - `report/figures/distillation_post_reward_no_probation_20260531/current_horizon_pair_counts.csv`
+- `report/figures/distillation_post_reward_no_probation_20260531/markov_reference_z_metrics.csv`
+
+## Figure Evidence Map
+
+The analysis is supported by the figure set generated from saved bundles by `report/scripts/analyze_distillation_post_reward_no_probation_20260531.py`. These figures are deliberately diagnostic rather than polished presentation figures. Their job is to make the mechanism visible.
+
+### Figure 1: Reward Trajectories
+
+This figure supports the main ranking and shows the transient/tail split. Residual is unstable early but becomes dominant late. Markov peaks early and then collapses. Weights improves late without matching residual.
+
+![Reward trajectories](figures/distillation_post_reward_no_probation_20260531/fig_reward_trajectories.png)
+
+### Figure 2: Tail Reward Ranking
+
+The tail ranking makes the final ordering explicit: residual, weights, OF-MPC, standard horizon, dueling horizon, and Markov.
+
+![Tail reward ranking](figures/distillation_post_reward_no_probation_20260531/fig_tail_reward_ranking.png)
+
+### Figure 3: Tail Physical Tracking Errors
+
+This is the key evidence that residual is not only winning the scalar reward. It also has the best temperature tracking and improves composition relative to OF-MPC. Weights improves temperature but worsens composition.
+
+![Tail physical tracking errors](figures/distillation_post_reward_no_probation_20260531/fig_tail_tracking_errors.png)
+
+### Figure 4: Safety Intervention Rates
+
+This figure supports the claim that reward probation and most tail interventions are not responsible for the late results. The only persistent tail intervention is Markov z projection. The other runners are mostly running with live learned authority in the tail.
+
+![Safety intervention rates](figures/distillation_post_reward_no_probation_20260531/fig_safety_intervention_rates.png)
+
+### Figure 5: Continuous Action Diagnostics
+
+This figure connects each continuous runner to its action mechanism. Weights uses the widened multiplier space, residual corrections remain small in norm after release, and Markov z norm is pinned at the active vector cap.
+
+![Continuous action diagnostics](figures/distillation_post_reward_no_probation_20260531/fig_continuous_action_norms.png)
+
+### Figure 6: Horizon Pair Usage
+
+This figure supports the horizon diagnosis. Standard DDQN spreads tail decisions across many horizon pairs, while dueling is more concentrated but still chooses pairs that do not improve the temperature-sensitive objective.
+
+![Horizon tail pair usage](figures/distillation_post_reward_no_probation_20260531/fig_horizon_tail_pair_usage.png)
+
+### Figure 7: Current Versus Previous Tail Reward
+
+This figure separates the effect of the latest settings from the previous batch. Residual improves further, while horizons and Markov worsen substantially under the no-probation, higher-temperature-reward setup.
+
+![Current versus previous tail reward](figures/distillation_post_reward_no_probation_20260531/fig_current_vs_previous_tail20.png)
+
+### Figure 8: Residual Early Release Zoom
+
+This figure supports the residual next-step recommendation. The residual policy has the best late result, but the early release window still needs protection. The lower panel shows that the safe-start mechanisms are active around release, but the reward crash still occurs.
+
+![Residual early release zoom](figures/distillation_post_reward_no_probation_20260531/fig_residual_release_zoom.png)
+
+### Figure 9: Markov z Mechanism
+
+This is the strongest visual evidence for the Markov diagnosis. Earlier successful Markov runs used varied z directions. The latest run drives a nearly fixed corner action and z-safety projects it to the vector norm cap. This explains the observed `abs(z_i) = 0.03` behavior and shows why widening z is not the right next move.
+
+![Markov z mechanism](figures/distillation_post_reward_no_probation_20260531/fig_markov_z_mechanism.png)
 
 ## Method Snapshot
 

@@ -11,6 +11,7 @@ import json
 import pickle
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -140,6 +141,29 @@ def baseline_compare_path():
     )
 
 
+def markov_reference_runs():
+    return {
+        "20260518 TD3-only success": ROOT
+        / "Distillation"
+        / "Results"
+        / "distillation_markov_td3_disturb_fluctuation_td3_only_no_safeguard_unified"
+        / "20260518_091937"
+        / "input_data.pkl",
+        "20260518 priority success": ROOT
+        / "Distillation"
+        / "Results"
+        / "distillation_markov_td3_disturb_fluctuation_unified"
+        / "20260518_184548"
+        / "input_data.pkl",
+        "20260529 restored safety": ROOT
+        / "Distillation"
+        / "Results"
+        / "distillation_markov_td3_disturb_fluctuation_unified"
+        / "20260529_220507"
+        / "input_data.pkl",
+    }
+
+
 def _baseline_delta_rows(current_summary: pd.DataFrame) -> pd.DataFrame:
     current_idx = current_summary.set_index("key")
     baseline = current_idx.loc["baseline"]
@@ -199,6 +223,155 @@ def _previous_delta_rows(current_summary: pd.DataFrame, previous_summary: pd.Dat
     return pd.DataFrame(rows)
 
 
+def _plot_current_vs_previous(compare: pd.DataFrame) -> None:
+    methods = ["weights", "horizon", "dueling", "residual", "markov"]
+    labels = ["Weights", "Horizon", "Dueling", "Residual", "Markov"]
+    df = compare.set_index("key").loc[methods]
+    x = np.arange(len(methods))
+    fig, ax = plt.subplots(figsize=(10.0, 4.8))
+    width = 0.34
+    ax.bar(x - width / 2, df["previous_tail20"], width, label="May 29 previous settings", color="#bab0ac")
+    ax.bar(x + width / 2, df["current_tail20"], width, label="May 30 no-probation high-temp reward", color="#4c78a8")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_ylabel("Tail-20 average reward")
+    ax.set_title("Effect of removing reward probation and increasing temperature weight")
+    ax.grid(axis="y", alpha=0.25)
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(OUT_DIR / "fig_current_vs_previous_tail20.png", dpi=180)
+    plt.close(fig)
+
+
+def _subepisode_rates(values: np.ndarray, episode_len: int) -> np.ndarray:
+    values = np.asarray(values, float)
+    n = values.size // episode_len
+    if n <= 0:
+        return np.asarray([], float)
+    return values[: n * episode_len].reshape(n, episode_len).mean(axis=1)
+
+
+def _plot_residual_release_zoom(current: dict[str, dict]) -> None:
+    residual = current["residual"]
+    baseline = current["baseline"]
+    ep_len = int(residual.get("time_in_sub_episodes", 400))
+    warm_steps = int(residual.get("warm_start_step", 4000))
+    warm_episodes = max(1, warm_steps // ep_len)
+    n_show = 60
+
+    res_rewards = np.asarray(residual["avg_rewards"], float)
+    base_rewards = np.asarray(baseline["avg_rewards"], float)
+    cap = _subepisode_rates(np.asarray(residual.get("residual_cap_projection_active_log", []), float), ep_len)
+    source = np.asarray(residual.get("residual_action_source_log", []), int)
+    codes = residual.get("residual_action_source_codes", {})
+    zero_code = int(codes.get("warm_zero", -999))
+    fallback_code = int(codes.get("zero_fallback", -998))
+    warm_zero = _subepisode_rates(source == zero_code, ep_len)
+    zero_fallback = _subepisode_rates(source == fallback_code, ep_len)
+
+    x = np.arange(1, min(n_show, len(res_rewards), len(base_rewards)) + 1)
+    fig, axes = plt.subplots(2, 1, figsize=(10.0, 7.0), sharex=True)
+    axes[0].plot(x, base_rewards[: len(x)], label="OF-MPC", color="black", linewidth=1.6)
+    axes[0].plot(x, res_rewards[: len(x)], label="TD3 residual", color="#e45756", linewidth=1.8)
+    axes[0].axvline(warm_episodes, color="#777777", linestyle="--", linewidth=1.0, label="warm-start end")
+    axes[0].set_ylabel("Average reward")
+    axes[0].set_title("Residual early release: reward zoom")
+    axes[0].grid(True, alpha=0.25)
+    axes[0].legend(fontsize=8)
+
+    x_safety = np.arange(1, min(n_show, len(cap)) + 1)
+    axes[1].plot(x_safety, cap[: len(x_safety)], label="Residual cap projection", color="#4c78a8")
+    axes[1].plot(x_safety, warm_zero[: len(x_safety)], label="Warm zero source", color="#f58518")
+    axes[1].plot(x_safety, zero_fallback[: len(x_safety)], label="Zero fallback source", color="#54a24b")
+    axes[1].axvline(warm_episodes, color="#777777", linestyle="--", linewidth=1.0)
+    axes[1].set_ylim(-0.02, 1.02)
+    axes[1].set_xlabel("Subepisode")
+    axes[1].set_ylabel("Fraction of steps")
+    axes[1].set_title("Residual safety activity during release")
+    axes[1].grid(True, alpha=0.25)
+    axes[1].legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(OUT_DIR / "fig_residual_release_zoom.png", dpi=180)
+    plt.close(fig)
+
+
+def _tail_steps(bundle: dict, episodes: int = 20) -> slice:
+    ep_len = int(bundle.get("time_in_sub_episodes", 400))
+    nfe = int(bundle.get("nFE", len(bundle.get("y_sp", []))))
+    return slice(max(0, nfe - episodes * ep_len), nfe)
+
+
+def _plot_markov_z_mechanism(current: dict[str, dict]) -> None:
+    current_markov = current["markov"]
+    reference = {name: load_pickle(path) for name, path in markov_reference_runs().items()}
+    runs = {
+        "20260518 TD3-only success": reference["20260518 TD3-only success"],
+        "20260518 priority success": reference["20260518 priority success"],
+        "20260529 restored safety": reference["20260529 restored safety"],
+        "20260530 current": current_markov,
+    }
+
+    rows = []
+    for name, bundle in runs.items():
+        z = np.asarray(bundle.get("z_executed_log", []), float)
+        sl = _tail_steps(bundle, 20)
+        if z.ndim != 2 or z.size == 0:
+            continue
+        z_tail = z[sl, :]
+        rows.append(
+            {
+                "run": name,
+                "tail20_reward": float(np.mean(np.asarray(bundle["avg_rewards"], float)[-20:])),
+                "z_norm_mean": float(np.mean(np.linalg.norm(z_tail, axis=1))),
+                "abs_z_q95": float(np.quantile(np.abs(z_tail).reshape(-1), 0.95)),
+                "z_direction_std": float(np.mean(np.std(z_tail, axis=0))),
+            }
+        )
+    pd.DataFrame(rows).to_csv(OUT_DIR / "markov_reference_z_metrics.csv", index=False)
+
+    fig, axes = plt.subplots(2, 2, figsize=(11.5, 7.5))
+    axes = axes.reshape(-1)
+    colors = ["#4c78a8", "#54a24b", "#f58518", "#b279a2"]
+    labels = ["z1", "z2", "z3", "z4"]
+    for ax, (name, bundle), color in zip(axes[:3], list(runs.items())[:3], colors[:3]):
+        z = np.asarray(bundle["z_executed_log"], float)
+        sl = _tail_steps(bundle, 20)
+        z_tail = z[sl, :]
+        n = min(600, z_tail.shape[0])
+        for j in range(z_tail.shape[1]):
+            ax.plot(z_tail[:n, j], linewidth=1.0, label=labels[j])
+        ax.axhline(0.04, color="#999999", linestyle=":", linewidth=0.8)
+        ax.axhline(-0.04, color="#999999", linestyle=":", linewidth=0.8)
+        ax.set_title(f"{name}\nTail reward {np.mean(np.asarray(bundle['avg_rewards'], float)[-20:]):.2f}")
+        ax.set_ylabel("Executed z")
+        ax.grid(True, alpha=0.25)
+    z_current = np.asarray(current_markov["z_executed_log"], float)
+    sl = _tail_steps(current_markov, 20)
+    z_tail = z_current[sl, :]
+    n = min(600, z_tail.shape[0])
+    for j in range(z_tail.shape[1]):
+        axes[3].plot(z_tail[:n, j], linewidth=1.0, label=labels[j])
+    before = np.asarray(current_markov.get("z_safety_requested_norm_before_log", []), float)[sl]
+    after = np.asarray(current_markov.get("z_safety_requested_norm_after_log", []), float)[sl]
+    axes[3].plot(before[:n], color="black", linewidth=1.3, linestyle="--", label="requested norm")
+    axes[3].plot(after[:n], color="#e45756", linewidth=1.3, linestyle="--", label="executed norm")
+    axes[3].axhline(0.06, color="#e45756", linestyle=":", linewidth=0.8)
+    axes[3].axhline(0.04, color="#999999", linestyle=":", linewidth=0.8)
+    axes[3].axhline(-0.04, color="#999999", linestyle=":", linewidth=0.8)
+    axes[3].set_title(
+        f"20260530 current\nTail reward {np.mean(np.asarray(current_markov['avg_rewards'], float)[-20:]):.2f}"
+    )
+    axes[3].set_ylabel("Executed z / norm")
+    axes[3].grid(True, alpha=0.25)
+    for ax in axes:
+        ax.set_xlabel("Tail step index")
+        ax.legend(ncol=2, fontsize=7)
+    fig.suptitle("Markov z mechanism: successful runs used varied directions, current run saturates one corner")
+    fig.tight_layout()
+    fig.savefig(OUT_DIR / "fig_markov_z_mechanism.png", dpi=180)
+    plt.close(fig)
+
+
 def main() -> None:
     base = load_base_module()
     base.OUT_DIR = OUT_DIR
@@ -235,11 +408,13 @@ def main() -> None:
     current_vs_previous.to_csv(OUT_DIR / "current_vs_previous_metrics.csv", index=False)
 
     base.plot_reward(current, current_summary)
-    base.plot_current_vs_previous(current_vs_previous)
+    _plot_current_vs_previous(current_vs_previous)
     base.plot_tracking(current_summary)
     base.plot_safety(current_summary)
     horizon_counts = base.plot_horizon_usage(current)
     base.plot_weight_residual_markov(current_summary, current)
+    _plot_residual_release_zoom(current)
+    _plot_markov_z_mechanism(current)
 
     summary = {
         "current_rank_tail20": current_summary.sort_values("reward_tail20", ascending=False)[

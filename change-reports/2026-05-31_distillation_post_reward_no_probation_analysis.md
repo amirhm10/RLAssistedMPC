@@ -20,6 +20,12 @@ Added a detailed five-runner analysis for the latest distillation batch after re
 - Markov is no longer being forced into nominal copy-paste. It is live TD3, but the actor saturates to a fixed Markov action corner. z-safety projects that corner to about `abs(z_i) = 0.03` because the vector norm cap is `0.06`.
 - Reward probation is inactive in all five latest bundles.
 
+## Figure Support Added
+
+- Added direct figure references in the report for reward trajectories, tail ranking, physical tracking errors, safety interventions, continuous-action diagnostics, horizon pair usage, current-vs-previous comparison, residual early-release zoom, and Markov z-mechanism comparison.
+- Added `markov_reference_z_metrics.csv` and `fig_markov_z_mechanism.png` generation to compare the current Markov run against older successful Markov runs.
+- Added `fig_residual_release_zoom.png` generation to show residual release-window crash and safety activity.
+
 ## Validation
 
 - The analysis script was run against saved bundles only.

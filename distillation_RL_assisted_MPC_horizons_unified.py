@@ -97,6 +97,7 @@ EPISODE_CFG = NB["episode_defaults"]
 n_tests = int(RUN_PROFILE.get("n_tests", EPISODE_CFG["n_tests"]) if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
 set_points_len = int(RUN_PROFILE.get("set_points_len", EPISODE_CFG["set_points_len"]) if SET_POINTS_LEN_OVERRIDE is None else SET_POINTS_LEN_OVERRIDE)
 warm_start = int(RUN_PROFILE.get("warm_start", EPISODE_CFG["warm_start"]) if WARM_START_OVERRIDE is None else WARM_START_OVERRIDE)
+POST_WARM_START_ACTION_FREEZE_SUBEPISODES = int(max(0, NB.get("post_warm_start_action_freeze_subepisodes", 0)))
 TEST_CYCLE = list(RUN_PROFILE.get("test_cycle", EPISODE_CFG["test_cycle"]) if TEST_CYCLE_OVERRIDE is None else TEST_CYCLE_OVERRIDE)
 PLOT_START_EPISODE = int(RUN_PROFILE.get("plot_start_episode", 1) if PLOT_START_EPISODE_OVERRIDE is None else PLOT_START_EPISODE_OVERRIDE)
 COMPARE_START_EPISODE = int(RUN_PROFILE.get("compare_start_episode", PLOT_START_EPISODE) if COMPARE_START_EPISODE_OVERRIDE is None else COMPARE_START_EPISODE_OVERRIDE)
@@ -148,6 +149,7 @@ DECISION_INTERVAL = int(CTRL["decision_interval"])
 EXPLORATION_MODE = AGENT_CFG["exploration_mode"]
 LOSS_TYPE = AGENT_CFG["loss_type"]
 USE_SHIFTED_MPC_WARM_START = CTRL["use_shifted_mpc_warm_start"]
+HORIZON_SAFETY_CFG = dict(NB.get("horizon_safety", {}))
 REPLAY_SETTINGS = {
     "buffer_size": BUFFER_SIZE,
     "replay_frac_per": REPLAY_FRAC_PER,
@@ -184,11 +186,12 @@ print_grouped_notebook_summary(
     "Distillation Horizon Supervisor run summary",
     {
         "Paths": {"Repo root": REPO_ROOT, "Data dir": DATA_DIR, "Results dir": RESULT_DIR, "Aspen source": ASPEN_SOURCE, "Dyn path": DYN_PATH, "Snaps path": SNAPS_PATH, "Baseline MPC": BASELINE_MPC_PATH},
-        "Run setup": {"Run mode": RUN_MODE, "Disturbance profile": DISTURBANCE_PROFILE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "test_cycle": TEST_CYCLE, "decision_interval": DECISION_INTERVAL, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START},
+        "Run setup": {"Run mode": RUN_MODE, "Disturbance profile": DISTURBANCE_PROFILE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "q_warm_release_subepisodes": POST_WARM_START_ACTION_FREEZE_SUBEPISODES, "test_cycle": TEST_CYCLE, "decision_interval": DECISION_INTERVAL, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START},
         "System / controller": {"delta_t_hours": SYS["delta_t_hours"], "predict_h": predict_h, "cont_h": cont_h, "predict_grid": PREDICT_GRID, "control_grid": CONTROL_GRID, "observer_poles": poles.tolist(), "setpoints_phys": y_sp_scenario_phys.tolist()},
         "Reward": reward_params,
         "Agent": {"algorithm": "ddqn", "hidden_layers": AGENT_CFG["hidden_layers"], "buffer_size": BUFFER_SIZE, "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": EXPLORATION_MODE, "noisy_sigma_init": AGENT_CFG["noisy_sigma_init"], "loss_type": LOSS_TYPE},
         "Replay": REPLAY_SETTINGS,
+        "Safety": {"horizon_safety_enabled": bool(HORIZON_SAFETY_CFG.get("enabled", False)), "release_filter_enabled": bool(HORIZON_SAFETY_CFG.get("release_filter", {}).get("enabled", False)), "reward_probation_enabled": bool(HORIZON_SAFETY_CFG.get("reward_probation", {}).get("enabled", False)), "shadow_default_mpc_enabled": bool(HORIZON_SAFETY_CFG.get("shadow_default_mpc", {}).get("enabled", False))},
         "Mismatch": {"clip": MISMATCH_CLIP, "innovation_scale_mode": INNOVATION_SCALE_MODE, "tracking_scale_mode": TRACKING_SCALE_MODE, "tracking_eta_tol": TRACKING_ETA_TOL, "tracking_scale_floor_mode": TRACKING_SCALE_FLOOR_MODE},
         "Plotting / export": {"style_profile": STYLE_PROFILE, "save_pdf": SAVE_PDF, "result_prefix": RESULT_PREFIX, "compare_prefix": COMPARE_PREFIX, "plot_start_episode": PLOT_START_EPISODE, "compare_start_episode": COMPARE_START_EPISODE},
     },
@@ -217,7 +220,8 @@ horizon_cfg = {
     "mismatch_transform_tanh_scale": MISMATCH_TRANSFORM_TANH_SCALE,
     "mismatch_transform_post_clip": MISMATCH_TRANSFORM_POST_CLIP,
     "observer_update_alignment": OBSERVER_UPDATE_ALIGNMENT,
-    "horizon_safety": dict(NB.get("horizon_safety", {})),
+    "horizon_safety": HORIZON_SAFETY_CFG,
+    "post_warm_start_action_freeze_subepisodes": POST_WARM_START_ACTION_FREEZE_SUBEPISODES,
     "notebook_source": "distillation_RL_assisted_MPC_horizons_unified.ipynb",
     "predict_h": predict_h,
     "cont_h": cont_h,

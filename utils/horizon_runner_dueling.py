@@ -21,6 +21,10 @@ from utils.horizon_safety import (
 )
 from utils.observer import compute_observer_gain
 from utils.observation_conditioning import update_observer_state
+from utils.phase1_hidden_release import (
+    ACTION_SOURCE_PHASE1_HIDDEN_BASELINE,
+    ACTION_SOURCE_WARM_START_BASELINE,
+)
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.state_features import (
     build_rl_state,
@@ -174,6 +178,14 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
     current_ic_opt = np.zeros(n_inputs * int(current_Hc))
     horizon_safety_cfg = dict(dueling_cfg.get("horizon_safety", {}) or {})
     horizon_safety_logs = init_horizon_safety_logs(nFE)
+    post_warm_action_freeze_subepisodes = int(
+        max(0, dueling_cfg.get("post_warm_start_action_freeze_subepisodes", 0))
+    )
+    post_warm_action_freeze_steps = int(post_warm_action_freeze_subepisodes * time_in_sub_episodes)
+    post_warm_action_freeze_end_step = int(warm_start_step + post_warm_action_freeze_steps)
+    horizon_action_source_log = np.zeros(nFE, dtype=int)
+    horizon_decision_log = np.zeros(nFE, dtype=int)
+    horizon_q_warm_release_active_log = np.zeros(nFE, dtype=int)
     reward_probation_cfg = dict(horizon_safety_cfg.get("reward_probation", {}) or {})
     reward_probation_enabled = bool(horizon_safety_cfg.get("enabled", False) and reward_probation_cfg.get("enabled", False))
     probation_reference_warm_episodes = int(max(1, reward_probation_cfg.get("reference_warm_episodes", 3)))
@@ -252,7 +264,12 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
             default_action=default_action,
             last_action=last_action,
             test=test,
+            post_warm_action_freeze_steps=post_warm_action_freeze_steps,
         )
+        horizon_action_source_log[i] = int(horizon_decision.source)
+        horizon_decision_log[i] = int(horizon_decision.decision_taken)
+        if warm_start_step < i <= post_warm_action_freeze_end_step:
+            horizon_q_warm_release_active_log[i] = 1
         requested_a_idx = int(horizon_decision.action)
         safety_info = resolve_horizon_safety(
             horizon_safety_cfg,
@@ -267,7 +284,13 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
         record_horizon_safety_step(horizon_safety_logs, step_idx=i, safety_info=safety_info)
         horizon_reward_probation_cooldown_until_subepisode_log[i] = int(probation_cooldown_until_subepisode)
         a_idx = int(safety_info["executed_action"])
-        last_action = a_idx
+        if int(horizon_decision.source) in {
+            ACTION_SOURCE_WARM_START_BASELINE,
+            ACTION_SOURCE_PHASE1_HIDDEN_BASELINE,
+        }:
+            last_action = None
+        else:
+            last_action = a_idx
         Hp, Hc = action_to_horizons(h_recipes, a_idx)
         executed_pair = (int(Hp), int(Hc))
         if previous_executed_pair is not None and executed_pair != previous_executed_pair:
@@ -463,6 +486,20 @@ def run_dueling_dqn_mpc_horizon_supervisor(dueling_cfg, runtime_ctx):
         "horizon_trace": horizon_trace,
         "action_trace": action_trace,
         "horizon_recipes": h_recipes,
+        "horizon_action_source_log": horizon_action_source_log,
+        "horizon_action_source_codes": {
+            "warm_default": 0,
+            "q_warm_release_default": 1,
+            "policy_train_live": 2,
+            "policy_eval_live": 3,
+            "held_interval": 4,
+        },
+        "horizon_decision_log": horizon_decision_log,
+        "horizon_q_warm_release_enabled": bool(post_warm_action_freeze_subepisodes > 0),
+        "horizon_q_warm_release_subepisodes": int(post_warm_action_freeze_subepisodes),
+        "horizon_q_warm_release_steps": int(post_warm_action_freeze_steps),
+        "horizon_q_warm_release_end_step": int(post_warm_action_freeze_end_step),
+        "horizon_q_warm_release_active_log": horizon_q_warm_release_active_log,
         "horizon_reward_probation_enabled": bool(reward_probation_enabled),
         "horizon_reward_probation_trigger_log": horizon_reward_probation_trigger_log,
         "horizon_reward_probation_reference_reward_log": horizon_reward_probation_reference_reward_log,

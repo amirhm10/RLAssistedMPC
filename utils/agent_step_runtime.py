@@ -4,6 +4,10 @@ import numpy as np
 
 from utils.phase1_hidden_release import (
     ACTION_SOURCE_HELD_INTERVAL,
+    ACTION_SOURCE_PHASE1_HIDDEN_BASELINE,
+    ACTION_SOURCE_POLICY_EVAL_LIVE,
+    ACTION_SOURCE_POLICY_TRAIN_LIVE,
+    ACTION_SOURCE_WARM_START_BASELINE,
     record_phase1_train_step,
     resolve_phase1_action_source,
 )
@@ -39,24 +43,37 @@ def select_horizon_action(
     default_action: int,
     last_action: int | None,
     test: bool,
+    post_warm_action_freeze_steps: int = 0,
 ) -> HorizonStepDecision:
     """Select a discrete horizon action using the single-agent DQN semantics."""
+    warm_start_step = int(warm_start_step)
+    step = int(step)
+    decision_interval = int(max(1, decision_interval))
+    post_warm_action_freeze_steps = int(max(0, post_warm_action_freeze_steps))
+    action_freeze_end_step = warm_start_step + post_warm_action_freeze_steps
     if step <= warm_start_step:
         return HorizonStepDecision(
             action=int(default_action),
             last_action=last_action,
             decision_taken=0,
-            source=0,
+            source=ACTION_SOURCE_WARM_START_BASELINE,
+        )
+    if post_warm_action_freeze_steps > 0 and step <= action_freeze_end_step:
+        return HorizonStepDecision(
+            action=int(default_action),
+            last_action=None,
+            decision_taken=0,
+            source=ACTION_SOURCE_PHASE1_HIDDEN_BASELINE,
         )
 
-    if (step % int(decision_interval) == 0) or (last_action is None):
+    if (step % decision_interval == 0) or (last_action is None):
         state_f32 = np.asarray(state, np.float32)
         if test:
             action = int(agent.act_eval(state_f32))
-            source = 3
+            source = ACTION_SOURCE_POLICY_EVAL_LIVE
         else:
             action = int(agent.take_action(state_f32, eval_mode=False))
-            source = 2
+            source = ACTION_SOURCE_POLICY_TRAIN_LIVE
         return HorizonStepDecision(
             action=action,
             last_action=action,
@@ -68,7 +85,7 @@ def select_horizon_action(
         action=int(last_action),
         last_action=last_action,
         decision_taken=0,
-        source=4,
+        source=ACTION_SOURCE_HELD_INTERVAL,
     )
 
 

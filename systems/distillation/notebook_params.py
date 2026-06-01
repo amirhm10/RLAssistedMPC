@@ -592,6 +592,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
     **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     "episode_defaults": {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
+    "post_warm_start_action_freeze_subepisodes": 3,
     "controller": {
         "predict_grid": list(HORIZON_PREDICT_GRID),
         "control_grid": list(HORIZON_CONTROL_GRID),
@@ -612,9 +613,9 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
         "ha_change": 1.0,
     },
     "horizon_safety": {
-        "enabled": True,
+        "enabled": False,
         "release_filter": {
-            "enabled": True,
+            "enabled": False,
             "protected": {
                 "subepisodes": 3,
                 "predict_min": 4,
@@ -637,7 +638,7 @@ DISTILLATION_HORIZON_STANDARD_DEFAULTS = {
             "cooldown_subepisodes": 2,
         },
         "shadow_default_mpc": {
-            "enabled": True,
+            "enabled": False,
             "diagnostic_stride": 4,
         },
     },
@@ -682,6 +683,9 @@ DISTILLATION_HORIZON_DUELING_DEFAULTS = {
     **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["run_profiles"]),
     "episode_defaults": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["episode_defaults"]),
+    "post_warm_start_action_freeze_subepisodes": DISTILLATION_HORIZON_STANDARD_DEFAULTS[
+        "post_warm_start_action_freeze_subepisodes"
+    ],
     "controller": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["controller"]),
     "horizon_safety": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["horizon_safety"]),
     "agent": {

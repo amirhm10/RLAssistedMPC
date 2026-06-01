@@ -72,7 +72,7 @@ def _copy_active_replay_defaults():
     defaults = _copy_replay_defaults()
     defaults.update(
         {
-            "buffer_size": 50_000,
+            "buffer_size": 150_000,
             "replay_frac_per": 0.4,
             "replay_frac_recent": 0.3,
             "replay_recent_window_mult": 10,
@@ -1057,6 +1057,20 @@ DISTILLATION_WEIGHT_DEFAULTS = {
     },
     "td3_agent": _copy_active_td3_agent_defaults(),
     "sac_agent": _copy_active_sac_agent_defaults(),
+    "supervisor_gate": {
+        "score_uncertainty_weight": 0.5,
+        "score_previous_action_weight": 0.01,
+        "score_supervisor_action_weight": 0.05,
+        "advantage_margin": 0.5,
+        "default_to_supervisor": True,
+        "actor_q_mode": "mean",
+        "supervisor_bc_weight": 0.0,
+        "supervisor_bc_temperature": 1.0,
+        "smooth_action_weight": 0.0,
+        "detach_supervisor_weight": True,
+        "enable_supervisor_actor_loss": False,
+        "min_train_steps_before_policy_gate": 0,
+    },
     "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
 }

@@ -1164,6 +1164,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     control_horizon = int(config["cont_h"])
     nominal_solver_mode = str(config.get("nominal_solver_mode", "state_space_shared")).strip().lower()
     force_td3_execute = bool(config.get("force_td3_execute", False))
+    force_td3_respects_warm_start = bool(config.get("force_td3_respects_warm_start", False))
     A = np.asarray(ctx["A_aug"], float)
     B = np.asarray(ctx["B_aug"], float)
     C = np.asarray(ctx["C_aug"], float)
@@ -1177,7 +1178,11 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     test_flags = build_test_flags(nFE, ctx["test_train_dict"])
     state_conditioner = make_state_conditioner_from_settings(ctx["mismatch_cfg"])
     use_rl = bool(use_markov and config.get("run_rl_proposal", False))
-    action_warm_start_step = -1 if force_td3_execute else int(ctx["warm_start_step"])
+    action_warm_start_step = (
+        int(ctx["warm_start_step"])
+        if (not force_td3_execute or force_td3_respects_warm_start)
+        else -1
+    )
     shadow_safety_cfg = _markov_shadow_safety_cfg(config)
     shadow_safety_enabled = bool(shadow_safety_cfg.get("enabled", False))
     shadow_config = _shadow_runtime_config(config, shadow_safety_cfg) if shadow_safety_enabled else config
@@ -1619,7 +1624,14 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     )
                     if gate_override:
                         td3_live_released = True
-                    if force_td3_execute and (
+                    force_td3_this_step = bool(
+                        force_td3_execute
+                        and (
+                            not force_td3_respects_warm_start
+                            or step > ctx["warm_start_step"]
+                        )
+                    )
+                    if force_td3_this_step and (
                         not bool(release_info.get("enabled", False))
                         or bool(release_info.get("diagnostic_only", False))
                     ):
@@ -1725,7 +1737,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     history["rl_requested_z_log"][step, :] = z_requested
                     history["z_proposed_log"][step, :] = z_requested
 
-                    if force_td3_execute and td3_live_released:
+                    if force_td3_this_step and td3_live_released:
                         rl_score = prediction_improvement_score(
                             z=z_requested,
                             history=history,
@@ -2088,6 +2100,7 @@ def summarize_history(config, ctx, history):
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
         "td3_priority_fallback_enabled": _td3_priority_enabled(config),
         "force_td3_execute": bool(config.get("force_td3_execute", False)),
+        "force_td3_respects_warm_start": bool(config.get("force_td3_respects_warm_start", False)),
         "rl_store_executed_action_in_replay": bool(config.get("rl_store_executed_action_in_replay", True)),
         "td3_seed": config.get("td3_agent", {}).get("seed"),
         "accepted_fraction": accepted_fraction,

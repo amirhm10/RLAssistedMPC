@@ -27,7 +27,10 @@ from utils.rewards import make_reward_fn_relative_QR
 NB = get_distillation_notebook_defaults("markov")
 ACTIVE_MARKOV_SAFETY_DEFAULTS = get_distillation_notebook_defaults("markov")
 
-# Variant-specific overrides for the archived TD3-only no-safeguard behavior.
+# Variant-specific overrides for the TD3-only no-safeguard current-reward benchmark.
+# The May 18 archived TD3-only run forced TD3 from the first step; this current
+# benchmark intentionally keeps the first configured warm-start window on the
+# nominal zero-Markov-correction action because adaptive LS execution is off.
 NB["aspen_preset"] = 15
 NB["result_prefix_override"] = (
     "distillation_markov_td3_disturb_fluctuation_td3_only_no_safeguard_current_reward_unified"
@@ -39,6 +42,7 @@ NB["controller"]["run_adaptive_ls"] = False
 NB["controller"]["run_rl_proposal"] = True
 NB["controller"]["rl_fallback_to_ls"] = False
 NB["controller"]["force_td3_execute"] = True
+NB["controller"]["force_td3_respects_warm_start"] = True
 NB["controller"]["z_bound"] = 0.05
 NB["controller"]["z_safety"] = {"enabled": False}
 NB["controller"]["td3_priority_fallback"] = {"enabled": False}
@@ -217,6 +221,7 @@ run_live_corrected_mpc = bool(CTRL["run_live_corrected_mpc"])
 run_rl_proposal = bool(CTRL["run_rl_proposal"])
 rl_fallback_to_ls = bool(CTRL["rl_fallback_to_ls"])
 force_td3_execute = bool(CTRL["force_td3_execute"])
+force_td3_respects_warm_start = bool(CTRL.get("force_td3_respects_warm_start", False))
 rl_store_executed_action_in_replay = bool(CTRL["rl_store_executed_action_in_replay"])
 rl_save_agent_checkpoint = bool(CTRL["rl_save_agent_checkpoint"])
 debug_validate_lifted = bool(CTRL["debug_validate_lifted"] if DEBUG_VALIDATE_LIFTED_OVERRIDE is None else DEBUG_VALIDATE_LIFTED_OVERRIDE)
@@ -270,6 +275,7 @@ print_grouped_notebook_summary(
             "gain_drift_max": gain_drift_max,
             "nominal_solver_mode": nominal_solver_mode,
             "force_td3_execute": force_td3_execute,
+            "force_td3_respects_warm_start": force_td3_respects_warm_start,
             "td3_controlled_authority": TD3_AUTHORITY_RAMP_CFG,
             "td3_controlled_authority_enabled": bool(TD3_AUTHORITY_RAMP_CFG.get("enabled", False)),
             "td3_priority_fallback_enabled": bool(CTRL.get("td3_priority_fallback", {}).get("enabled", False)),
@@ -317,6 +323,7 @@ markov_cfg = {
     "run_rl_proposal": run_rl_proposal,
     "rl_fallback_to_ls": rl_fallback_to_ls,
     "force_td3_execute": force_td3_execute,
+    "force_td3_respects_warm_start": force_td3_respects_warm_start,
     "td3_authority_ramp": dict(TD3_AUTHORITY_RAMP_CFG),
     "td3_priority_fallback": CTRL.get("td3_priority_fallback", {}),
     "markov_shadow_safety": MARKOV_SHADOW_SAFETY_CFG,

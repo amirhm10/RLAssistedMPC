@@ -1,4 +1,4 @@
-"""Polymer SG-TD3 residual runner with OF-MPC warm-start and critic-only release.
+"""Polymer SG-TD3 residual runner with conservative critic-warm release.
 
 This entrypoint is a clean ablation of the standard SG-TD3 residual runner. It
 keeps the zero-residual supervisor gate, but disables behavioral cloning,
@@ -7,10 +7,11 @@ handoff blending, TD3 authority caps, rho authority, and early-release guards.
 Training process:
 - During the 10 warm-start episodes, the executed residual is zero, so the plant
   follows OF-MPC.
-- During the next 5 episodes, the runner still executes the supervisor action
+- During the next 3 episodes, the runner still executes the supervisor action
   while replay is collected and critic updates occur.
 - After that critic-only window, the actor may train and the gate chooses the
-  policy action only when its critic score beats the zero-residual supervisor.
+  policy action only when its conservative critic score beats the zero-residual
+  supervisor by a positive margin.
 """
 
 from __future__ import annotations
@@ -31,10 +32,10 @@ def configure_critic_warm_start(nb: dict) -> dict:
     nb["agent_kind"] = "sg_td3"
     nb["run_mode"] = "disturb"
     nb["warm_start_override"] = 10
-    nb["post_warm_start_action_freeze_subepisodes"] = 5
-    nb["post_warm_start_actor_freeze_subepisodes"] = 5
-    nb["result_prefix_override"] = "sg_td3_residual_critic_warm_disturb"
-    nb["compare_prefix_override"] = "disturb_compare_sg_td3_residual_critic_warm"
+    nb["post_warm_start_action_freeze_subepisodes"] = 3
+    nb["post_warm_start_actor_freeze_subepisodes"] = 3
+    nb["result_prefix_override"] = "sg_td3_residual_critic_warm3_conservative_disturb"
+    nb["compare_prefix_override"] = "disturb_compare_sg_td3_residual_critic_warm3_conservative"
 
     nb["residual_authority_enabled"] = False
     nb["authority_use_rho"] = False
@@ -80,6 +81,10 @@ def configure_critic_warm_start(nb: dict) -> dict:
     gate_cfg["supervisor_bc_weight"] = 0.0
     gate_cfg["enable_supervisor_actor_loss"] = False
     gate_cfg["min_train_steps_before_policy_gate"] = 0
+    gate_cfg["advantage_margin"] = 0.5
+    gate_cfg["score_uncertainty_weight"] = 0.5
+    gate_cfg["score_supervisor_action_weight"] = 0.05
+    gate_cfg["score_previous_action_weight"] = 0.01
     nb["supervisor_gate"] = gate_cfg
 
     return nb
@@ -92,7 +97,7 @@ def main() -> dict:
         init_globals={
             "NB_CONFIGURE": configure_critic_warm_start,
             "NOTEBOOK_SOURCE_OVERRIDE": THIS_RUNNER,
-            "RUN_SUMMARY_TITLE_OVERRIDE": "Polymer Residual SG-TD3 OF-MPC Warm-Start Critic-Only run summary",
+            "RUN_SUMMARY_TITLE_OVERRIDE": "Polymer Residual SG-TD3 Conservative Critic-Warm-3 run summary",
         },
     )
     globals().update(

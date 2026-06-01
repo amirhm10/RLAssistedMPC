@@ -6,6 +6,8 @@ This implementation enables testing a supervisor-gated TD3 variant for RL-assist
 
 Performance improvement is not claimed here. The implementation only adds the machinery needed for controlled experiments.
 
+Latest polymer residual results are analyzed in [`polymer_residual_algorithm_comparison_2026_06_01.md`](polymer_residual_algorithm_comparison_2026_06_01.md). That report compares TD3 residual, supervisor-gated TD3 residual, and TD7 residual after the polymer residual authority ramp was corrected to release from `0.005` to the full `0.25` authority.
+
 ## Difference From Standard TD3
 
 Standard TD3 executes the actor action during live policy control. Supervisor-gated TD3 forms two candidate actions:

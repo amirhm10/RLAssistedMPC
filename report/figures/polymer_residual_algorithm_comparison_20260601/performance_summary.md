@@ -1,0 +1,6 @@
+| Method | Mean reward | Post-warm reward | Tail-20 reward | Tail eta RMSE | Tail T RMSE | Tail eta MAE | Tail T MAE | Tail mean abs du scaled |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| OF-MPC | -4.412 | -4.417 | -4.417 | 0.1917 | 0.5678 | 0.0646 | 0.2654 | 0.0179 |
+| TD3 Residual | -3.455 | -3.411 | -2.927 | 0.1585 | 0.3851 | 0.0353 | 0.1167 | 0.0902 |
+| SG-TD3 Residual | -3.374 | -3.325 | -2.870 | 0.1583 | 0.3962 | 0.0342 | 0.0989 | 0.0472 |
+| TD7 Residual | -3.720 | -3.690 | -2.915 | 0.1585 | 0.3866 | 0.0359 | 0.1203 | 0.0419 |

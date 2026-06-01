@@ -1,0 +1,159 @@
+{
+  "performance": [
+    {
+      "Method": "OF-MPC",
+      "Bundle": "Polymer/Data/mpc_results_dist.pickle",
+      "Mean reward": -4.412124004641613,
+      "Post-warm reward": -4.417376954528195,
+      "Tail-20 reward": -4.417343288580123,
+      "Tail step reward": -4.417343288580123,
+      "Post-warm step reward": -4.416468736541394,
+      "Tail eta RMSE": 0.19169726811354976,
+      "Tail T RMSE": 0.5677855243252133,
+      "Tail eta MAE": 0.06463124237668585,
+      "Tail T MAE": 0.26537650045842465,
+      "Tail eta q95 abs": 0.2810626747429655,
+      "Tail T q95 abs": 1.2747451930615419,
+      "Post-warm eta RMSE": 0.1916776436209553,
+      "Post-warm T RMSE": 0.5677396030016525,
+      "Tail mean abs du scaled": 0.017866796734105243
+    },
+    {
+      "Method": "TD3 Residual",
+      "Bundle": "Polymer/Results/td3_residual_disturb/20260601_021504/input_data.pkl",
+      "Mean reward": -3.455195629548373,
+      "Post-warm reward": -3.410823681797032,
+      "Tail-20 reward": -2.927274576361019,
+      "Tail step reward": -2.927274576361018,
+      "Post-warm step reward": -3.4099089569580867,
+      "Tail eta RMSE": 0.15854793137786347,
+      "Tail T RMSE": 0.3850766538627509,
+      "Tail eta MAE": 0.035271532760224225,
+      "Tail T MAE": 0.11665257644259065,
+      "Tail eta q95 abs": 0.09988598653501332,
+      "Tail T q95 abs": 0.3232684350196109,
+      "Post-warm eta RMSE": 0.1689553645973911,
+      "Post-warm T RMSE": 0.4457746624776791,
+      "Tail mean abs du scaled": 0.0901725316271186
+    },
+    {
+      "Method": "SG-TD3 Residual",
+      "Bundle": "Polymer/Results/sg_td3_residual_disturb/20260601_022723/input_data.pkl",
+      "Mean reward": -3.3736384302249793,
+      "Post-warm reward": -3.3249739982987228,
+      "Tail-20 reward": -2.8696787708334215,
+      "Tail step reward": -2.869678770833422,
+      "Post-warm step reward": -3.3240587086555125,
+      "Tail eta RMSE": 0.1582949999213686,
+      "Tail T RMSE": 0.3961920226656796,
+      "Tail eta MAE": 0.03418632323938206,
+      "Tail T MAE": 0.09887062465431982,
+      "Tail eta q95 abs": 0.10500920562613292,
+      "Tail T q95 abs": 0.47871259303846014,
+      "Post-warm eta RMSE": 0.1681121388145625,
+      "Post-warm T RMSE": 0.4428252648625161,
+      "Tail mean abs du scaled": 0.04720155249163509
+    },
+    {
+      "Method": "TD7 Residual",
+      "Bundle": "Polymer/Results/td7_residual_disturb/20260601_022931/input_data.pkl",
+      "Mean reward": -3.7199782637618375,
+      "Post-warm reward": -3.689542244126995,
+      "Tail-20 reward": -2.9151712870814546,
+      "Tail step reward": -2.9151712870814546,
+      "Post-warm step reward": -3.6886293529748664,
+      "Tail eta RMSE": 0.15853376327318772,
+      "Tail T RMSE": 0.38664009633392266,
+      "Tail eta MAE": 0.03585150946324934,
+      "Tail T MAE": 0.12033867104514454,
+      "Tail eta q95 abs": 0.10215818637192652,
+      "Tail T q95 abs": 0.3284171231230913,
+      "Post-warm eta RMSE": 0.17491238866701245,
+      "Post-warm T RMSE": 0.495270983879795,
+      "Tail mean abs du scaled": 0.04186951683089137
+    }
+  ],
+  "safety": [
+    {
+      "Method": "OF-MPC",
+      "Ramp": "NA",
+      "Post-warm cap clip": null,
+      "Guard trigger active": null,
+      "Guard accepted": null,
+      "Guard objective worse": null,
+      "Guard zero selected": null,
+      "Headroom projection": null,
+      "Zero fallback": null,
+      "Shadow rho authority": null,
+      "Shadow rho deadband": null,
+      "Shadow rho eff mean": null,
+      "SG policy selected": null,
+      "SG supervisor selected": null
+    },
+    {
+      "Method": "TD3 Residual",
+      "Ramp": "0.005 -> 0.25",
+      "Post-warm cap clip": 0.1504878321567905,
+      "Guard trigger active": 0.3998125,
+      "Guard accepted": 9603,
+      "Guard objective worse": 4410,
+      "Guard zero selected": 1987,
+      "Headroom projection": 0.005157928670583359,
+      "Zero fallback": 0.0,
+      "Shadow rho authority": 0.9841314745491747,
+      "Shadow rho deadband": 0.0023552786531490337,
+      "Shadow rho eff mean": 0.7678263937010662,
+      "SG policy selected": null,
+      "SG supervisor selected": null
+    },
+    {
+      "Method": "SG-TD3 Residual",
+      "Ramp": "0.005 -> 0.25",
+      "Post-warm cap clip": 0.019250126645570038,
+      "Guard trigger active": 0.004375,
+      "Guard accepted": 15930,
+      "Guard objective worse": 31,
+      "Guard zero selected": 39,
+      "Headroom projection": 0.007111888894005882,
+      "Zero fallback": 0.0,
+      "Shadow rho authority": 0.4058053013506668,
+      "Shadow rho deadband": 0.031085730827176493,
+      "Shadow rho eff mean": 0.6148408158794569,
+      "SG policy selected": 0.41850275330758757,
+      "SG supervisor selected": 0.5814972466924124
+    },
+    {
+      "Method": "TD7 Residual",
+      "Ramp": "0.005 -> 0.25",
+      "Post-warm cap clip": 0.15202073697853274,
+      "Guard trigger active": 0.31575,
+      "Guard accepted": 10948,
+      "Guard objective worse": 2808,
+      "Guard zero selected": 2244,
+      "Headroom projection": 0.001085533457456957,
+      "Zero fallback": 0.0,
+      "Shadow rho authority": 0.9786774912992848,
+      "Shadow rho deadband": 0.0025131744287791367,
+      "Shadow rho eff mean": 0.8173781372450252,
+      "SG policy selected": null,
+      "SG supervisor selected": null
+    }
+  ],
+  "guard_reason_counts": {
+    "TD3 Residual": {
+      "requested_accepted": 9603,
+      "objective_worse": 4410,
+      "zero_selected": 1987
+    },
+    "SG-TD3 Residual": {
+      "requested_accepted": 15930,
+      "objective_worse": 31,
+      "zero_selected": 39
+    },
+    "TD7 Residual": {
+      "requested_accepted": 10948,
+      "objective_worse": 2808,
+      "zero_selected": 2244
+    }
+  }
+}

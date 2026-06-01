@@ -52,7 +52,9 @@ TD3_AUTHORITY_RAMP_CFG = dict(NB.get("td3_authority_ramp", {}))
 RESIDUAL_SAFETY_CFG = dict(NB.get("residual_safety", {}))
 STYLE_PROFILE = NB["style_profile"]
 SAVE_PDF = NB["save_pdf"]
-ASPEN_PRESET = NB["aspen_preset"]
+# TD7 residual uses its own Aspen simulation file; keep the shared residual
+# family mapping at simulation8 for the existing TD3/SAC residual runners.
+ASPEN_PRESET = 16 if NB["aspen_preset"] in (None, "", "default", "auto") else NB["aspen_preset"]
 ASPEN_PATH_OVERRIDE = NB["aspen_path_override"]
 SNAPS_PATH_OVERRIDE = NB["snaps_path_override"]
 ASPEN_ROOT_OVERRIDE = NB["aspen_root_override"]

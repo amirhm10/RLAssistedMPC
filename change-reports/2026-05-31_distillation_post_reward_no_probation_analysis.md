@@ -25,6 +25,7 @@ Added a detailed five-runner analysis for the latest distillation batch after re
 - Added direct figure references in the report for reward trajectories, tail ranking, physical tracking errors, safety interventions, continuous-action diagnostics, horizon pair usage, current-vs-previous comparison, residual early-release zoom, and Markov z-mechanism comparison.
 - Added `markov_reference_z_metrics.csv` and `fig_markov_z_mechanism.png` generation to compare the current Markov run against older successful Markov runs.
 - Added `fig_residual_release_zoom.png` generation to show residual release-window crash and safety activity.
+- Documented the OF-MPC reward audit. The report uses the latest recalculated `avg_rewards_mpc` from the May 30 compare bundle, and an independent recomputation from raw OF-MPC `y`, `u`, and `y_sp` arrays matched that bundle exactly.
 
 ## Validation
 

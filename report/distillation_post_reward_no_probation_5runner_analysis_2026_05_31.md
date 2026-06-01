@@ -129,6 +129,20 @@ The key current parameters are:
 
 This means the latest scalar reward is much more temperature-sensitive than the previous batch. Comparisons against the current OF-MPC baseline are fair because the baseline reward was read from the latest compare bundle. Comparisons against May 29 reward values are useful for direction, but the scalar reward itself is not a clean apples-to-apples quantity because the reward weight changed.
 
+### OF-MPC Reward Recalculation Audit
+
+The OF-MPC physical trajectory comes from `Distillation/Data/mpc_results_disturb_fluctuation.pickle`, but the old reward arrays stored inside that raw baseline pickle were not used for the report reward ranking. The analysis script loads the physical OF-MPC trajectory for tracking metrics, then replaces `baseline["avg_rewards"]` with the latest recalculated `avg_rewards_mpc` from `Distillation/Results/distillation_compare_residual_td3_disturb_fluctuation/20260530_231118/input_data.pkl`.
+
+I also independently recomputed the OF-MPC reward from the raw OF-MPC `y`, `u`, and `y_sp` arrays using the current `RL_REWARD_DEFAULTS` in `systems/distillation/config.py`. The recomputed subepisode rewards match the latest compare bundle exactly:
+
+- Recomputed OF-MPC tail-20 reward: `6.390950484125978`
+- Latest compare-bundle OF-MPC tail-20 reward: `6.390950484125978`
+- Recomputed OF-MPC final reward: `6.926159462874596`
+- Latest compare-bundle OF-MPC final reward: `6.926159462874596`
+- Maximum absolute subepisode-level difference: `0.0`
+
+So the OF-MPC reward values and reward figures in this report are under the new temperature-weighted reward, not the stale reward arrays from the raw baseline pickle.
+
 ## Safety State In The Latest Batch
 
 Reward probation is inactive in every latest bundle. All trigger counts are zero, and all tail probation-active fractions are zero.

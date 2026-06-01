@@ -1,0 +1,120 @@
+from __future__ import annotations
+
+import pathlib
+import sys
+
+import numpy as np
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from RL_assisted_MPC_markov_supervisor_gated_td3_critic_warm_unified import (
+    configure_sg_td3_markov_critic_warm,
+)
+from TD3Agent.supervisor_gated_agent import SupervisorGatedTD3Agent
+from TD3Agent.supervisor_replay_buffer import SOURCE_POLICY
+from systems.polymer import get_polymer_notebook_defaults
+from utils.markov_runner import make_td3_markov_agent, resolve_markov_supervisor_action
+
+
+def test_polymer_markov_sg_td3_profile_available():
+    nb = get_polymer_notebook_defaults("markov")
+    assert ("sg_td3", "disturb") in nb["run_profiles"]
+    assert ("sg_td3", "nominal") in nb["run_profiles"]
+    assert nb["markov_supervisor_mode"] == "ls_else_mpc"
+    assert "supervisor_gate" in nb
+
+
+def test_polymer_sg_td3_markov_critic_warm_config_shadow_only():
+    configured = configure_sg_td3_markov_critic_warm(get_polymer_notebook_defaults("markov"))
+    ctrl = configured["controller"]
+    bc = configured["behavioral_cloning"]
+
+    assert configured["agent_kind"] == "sg_td3"
+    assert configured["run_mode"] == "disturb"
+    assert configured["warm_start_override"] == 10
+    assert configured["post_warm_start_action_freeze_subepisodes"] == 3
+    assert configured["post_warm_start_actor_freeze_subepisodes"] == 3
+    assert configured["markov_supervisor_mode"] == "ls_else_mpc"
+    assert configured["markov_live_safety_mode"] == "shadow_only"
+    assert bc["enabled"] is False
+    assert bc["handoff"]["enabled"] is False
+    assert ctrl["z_safety"]["enabled"] is False
+    assert ctrl["td3_priority_fallback"]["enabled"] is False
+    assert ctrl["td3_authority_ramp"]["enabled"] is False
+    assert ctrl["rl_fallback_to_ls"] is False
+    assert ctrl["markov_shadow_safety"]["enabled"] is True
+
+
+def test_make_td3_markov_agent_returns_supervisor_gated_agent():
+    configured = configure_sg_td3_markov_critic_warm(get_polymer_notebook_defaults("markov"))
+    agent = make_td3_markov_agent(configured, state_dim=12, action_dim=4, set_points_len=20)
+    assert isinstance(agent, SupervisorGatedTD3Agent)
+
+
+def test_resolve_markov_supervisor_action_ls_else_mpc():
+    z_ls = np.asarray([0.01, -0.02, 0.03, -0.04], dtype=float)
+    ls_payload = resolve_markov_supervisor_action(
+        mode="ls_else_mpc",
+        z_ls=z_ls,
+        ls_accepted=True,
+        z_bound=0.05,
+        z_dim=4,
+    )
+    assert ls_payload["kind_name"] == "ls"
+    assert np.allclose(ls_payload["z"], z_ls)
+    assert np.allclose(ls_payload["raw_action"], z_ls / 0.05)
+
+    mpc_payload = resolve_markov_supervisor_action(
+        mode="ls_else_mpc",
+        z_ls=z_ls,
+        ls_accepted=False,
+        z_bound=0.05,
+        z_dim=4,
+    )
+    assert mpc_payload["kind_name"] == "mpc"
+    assert np.allclose(mpc_payload["z"], np.zeros(4))
+    assert np.allclose(mpc_payload["raw_action"], np.zeros(4))
+
+
+def test_supervisor_gated_markov_replay_metadata_roundtrip():
+    configured = configure_sg_td3_markov_critic_warm(get_polymer_notebook_defaults("markov"))
+    agent = make_td3_markov_agent(configured, state_dim=6, action_dim=4, set_points_len=20)
+    state = np.zeros(6, dtype=np.float32)
+    next_state = np.ones(6, dtype=np.float32) * 0.1
+    action = np.asarray([0.1, -0.1, 0.2, -0.2], dtype=np.float32)
+    supervisor = np.zeros(4, dtype=np.float32)
+    previous = np.ones(4, dtype=np.float32) * 0.05
+
+    agent.push_supervised(
+        state,
+        action,
+        -1.0,
+        next_state,
+        False,
+        policy_action=action,
+        supervisor_action=supervisor,
+        previous_action=previous,
+        selected_source=SOURCE_POLICY,
+        score_policy=1.25,
+        score_supervisor=1.0,
+        advantage_policy_supervisor=0.25,
+    )
+    batch = agent.buffer.sample_supervised(1, device=agent.device)
+    assert batch["policy_actions"].shape == (1, 4)
+    assert batch["supervisor_actions"].shape == (1, 4)
+    assert int(batch["selected_sources"][0].item()) == SOURCE_POLICY
+
+
+def run_direct():
+    test_polymer_markov_sg_td3_profile_available()
+    test_polymer_sg_td3_markov_critic_warm_config_shadow_only()
+    test_make_td3_markov_agent_returns_supervisor_gated_agent()
+    test_resolve_markov_supervisor_action_ls_else_mpc()
+    test_supervisor_gated_markov_replay_metadata_roundtrip()
+    print("supervisor_gated_markov_integration tests passed")
+
+
+if __name__ == "__main__":
+    run_direct()

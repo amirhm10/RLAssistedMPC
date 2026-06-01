@@ -13,7 +13,17 @@ from systems.polymer import get_polymer_notebook_defaults
 from systems.polymer.data_io import canonical_baseline_path
 from utils.notebook_setup import prepare_polymer_notebook_env, print_grouped_notebook_summary
 
+NOTEBOOK_SOURCE = globals().get("NOTEBOOK_SOURCE_OVERRIDE", "RL_assisted_MPC_markov_unified.py")
+RUN_SUMMARY_TITLE = globals().get(
+    "RUN_SUMMARY_TITLE_OVERRIDE",
+    "Resolved Markov parameters",
+)
+NB_CONFIGURE = globals().get("NB_CONFIGURE")
 NB = get_polymer_notebook_defaults("markov")
+if NB_CONFIGURE is not None:
+    configured_nb = NB_CONFIGURE(NB)
+    if configured_nb is not None:
+        NB = configured_nb
 
 AGENT_KIND = NB["agent_kind"]
 RUN_MODE = NB["run_mode"]
@@ -101,6 +111,9 @@ CTRL = NB["controller"]
 TD3_CFG = NB["td3_agent"]
 REWARD_CFG = NB["reward"]
 BEHAVIORAL_CLONING = dict(NB.get("behavioral_cloning", {}))
+SUPERVISOR_GATE_CFG = dict(NB.get("supervisor_gate", {}))
+MARKOV_SUPERVISOR_MODE = str(NB.get("markov_supervisor_mode", CTRL.get("markov_supervisor_mode", "ls_else_mpc")))
+MARKOV_LIVE_SAFETY_MODE = str(NB.get("markov_live_safety_mode", CTRL.get("markov_live_safety_mode", "default")))
 
 n_tests = int(EPISODE_CFG["n_tests"] if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
 set_points_len = int(EPISODE_CFG["set_points_len"] if SET_POINTS_LEN_OVERRIDE is None else SET_POINTS_LEN_OVERRIDE)
@@ -187,7 +200,7 @@ MPC_obj = MpcSolverGeneral(
 reward_params, reward_fn = make_reward_fn_relative_QR(data_min, data_max, n_inputs=n_inputs, **REWARD_CFG)
 
 print_grouped_notebook_summary(
-    "Resolved Markov parameters",
+    RUN_SUMMARY_TITLE,
     {
         "Paths": {
             "Repo root": REPO_ROOT,
@@ -229,6 +242,7 @@ print_grouped_notebook_summary(
             "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START,
         },
         "Behavioral cloning": BEHAVIORAL_CLONING,
+        "Supervisor gate": SUPERVISOR_GATE_CFG if AGENT_KIND == "sg_td3" else None,
         "Reward": reward_params,
         "Debug": {
             "debug_validate_lifted": debug_validate_lifted,
@@ -240,6 +254,7 @@ print_grouped_notebook_summary(
 # --- Cell 5 (code) ---
 markov_cfg = {
     "agent_kind": AGENT_KIND,
+    "notebook_source": NOTEBOOK_SOURCE,
     "run_mode": RUN_MODE,
     "n_tests": n_tests,
     "set_points_len": set_points_len,
@@ -278,7 +293,14 @@ markov_cfg = {
     "run_rl_proposal": run_rl_proposal,
     "rl_fallback_to_ls": rl_fallback_to_ls,
     "force_td3_execute": force_td3_execute,
+    "force_td3_respects_warm_start": bool(CTRL.get("force_td3_respects_warm_start", False)),
+    "markov_supervisor_mode": MARKOV_SUPERVISOR_MODE,
+    "markov_live_safety_mode": MARKOV_LIVE_SAFETY_MODE,
+    "post_warm_start_action_freeze_subepisodes": int(NB.get("post_warm_start_action_freeze_subepisodes", 0)),
+    "post_warm_start_actor_freeze_subepisodes": int(NB.get("post_warm_start_actor_freeze_subepisodes", 0)),
     "td3_priority_fallback": CTRL.get("td3_priority_fallback", {}),
+    "td3_authority_ramp": CTRL.get("td3_authority_ramp", {}),
+    "markov_shadow_safety": CTRL.get("markov_shadow_safety", {}),
     "rl_store_executed_action_in_replay": rl_store_executed_action_in_replay,
     "rl_save_agent_checkpoint": rl_save_agent_checkpoint,
     "debug_validate_lifted": debug_validate_lifted,
@@ -296,6 +318,7 @@ markov_cfg = {
     "b_min": b_min,
     "b_max": b_max,
     "behavioral_cloning": BEHAVIORAL_CLONING,
+    "supervisor_gate": SUPERVISOR_GATE_CFG,
     "td3_agent": TD3_CFG,
     "max_steps": MAX_STEPS_OVERRIDE,
 }

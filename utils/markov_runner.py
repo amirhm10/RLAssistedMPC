@@ -6,6 +6,13 @@ import numpy as np
 import scipy.optimize as spo
 
 from TD3Agent.agent import TD3Agent
+from TD3Agent.supervisor_gated_agent import SupervisorGatedTD3Agent, SupervisorGateConfig
+from TD3Agent.supervisor_replay_buffer import (
+    SOURCE_FALLBACK,
+    SOURCE_POLICY,
+    SOURCE_SUPERVISOR,
+    SOURCE_WARM_START,
+)
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
 from utils.behavioral_cloning import (
     apply_bc_handoff_action,
@@ -55,6 +62,9 @@ MARKOV_ACTION_SOURCE = {
     3: "ls_fallback",
     4: "nominal_fallback",
     5: "ls_no_rl",
+    6: "sg_supervisor_ls",
+    7: "sg_supervisor_mpc",
+    8: "sg_solver_fallback_supervisor",
 }
 
 TD3_PRIORITY_PHASE_CODE = {
@@ -65,6 +75,18 @@ TD3_PRIORITY_PHASE_CODE = {
 }
 
 DEFAULT_TD3_GAMMA = 0.99
+
+MARKOV_SUPERVISOR_KIND = {
+    0: "none",
+    1: "ls",
+    2: "mpc",
+}
+
+MARKOV_SG_SOLVER_FALLBACK_REASON = {
+    0: "none",
+    1: "policy_solve_failure",
+    2: "nonfinite_policy",
+}
 
 
 def _td3_priority_cfg(config):
@@ -79,6 +101,68 @@ def _td3_priority_enabled(config):
 def _markov_shadow_safety_cfg(config):
     cfg = config.get("markov_shadow_safety", {})
     return cfg if isinstance(cfg, dict) else {}
+
+
+def _is_supervisor_gated_markov(config) -> bool:
+    return str(config.get("agent_kind", "td3")).strip().lower() == "sg_td3"
+
+
+def resolve_markov_supervisor_action(
+    *,
+    mode,
+    z_ls,
+    ls_accepted,
+    z_bound,
+    z_dim,
+):
+    """Return the normalized SG supervisor action and source kind."""
+    mode = str(mode or "ls_else_mpc").strip().lower()
+    if mode not in {"ls_else_mpc", "mpc_only"}:
+        raise ValueError("markov_supervisor_mode must be 'ls_else_mpc' or 'mpc_only'.")
+    use_ls = bool(mode == "ls_else_mpc" and ls_accepted)
+    if use_ls:
+        z_supervisor = np.asarray(z_ls, float).reshape(-1)
+        if z_supervisor.size != int(z_dim):
+            raise ValueError(f"z_ls has size {z_supervisor.size}, expected {int(z_dim)}.")
+        return {
+            "z": z_supervisor.copy(),
+            "raw_action": z_to_raw_action(z_supervisor, z_bound),
+            "kind_code": 1,
+            "kind_name": MARKOV_SUPERVISOR_KIND[1],
+            "action_source": 6,
+        }
+    z_zero = np.zeros(int(z_dim), dtype=float)
+    return {
+        "z": z_zero,
+        "raw_action": z_zero.copy(),
+        "kind_code": 2,
+        "kind_name": MARKOV_SUPERVISOR_KIND[2],
+        "action_source": 7,
+    }
+
+
+def _count_actor_freeze_train_steps(
+    *,
+    n_steps,
+    test_flags,
+    train_start_step,
+    actor_freeze_end_step,
+    batch_size,
+    initial_buffer_size=0,
+):
+    buffer_size = int(max(0, initial_buffer_size))
+    count = 0
+    for step in range(int(max(0, n_steps))):
+        if bool(test_flags[step]):
+            continue
+        buffer_size += 1
+        if (
+            step >= int(train_start_step)
+            and step <= int(actor_freeze_end_step)
+            and buffer_size >= int(max(1, batch_size))
+        ):
+            count += 1
+    return int(count)
 
 
 def _shadow_runtime_config(config, shadow_cfg):
@@ -574,7 +658,16 @@ def make_td3_markov_agent(config, state_dim, action_dim, *, set_points_len):
             int(td3_cfg.get("replay_recent_window_mult", 5)) * int(set_points_len),
         )
 
-    return TD3Agent(
+    agent_kind = str(config.get("agent_kind", "td3")).strip().lower()
+    if agent_kind not in {"td3", "sg_td3"}:
+        raise ValueError("Markov TD3 agent construction supports only 'td3' and 'sg_td3'.")
+
+    agent_cls = SupervisorGatedTD3Agent if agent_kind == "sg_td3" else TD3Agent
+    extra_kwargs = {}
+    if agent_kind == "sg_td3":
+        extra_kwargs["supervisor_gate_config"] = SupervisorGateConfig(**dict(config.get("supervisor_gate", {}) or {}))
+
+    return agent_cls(
         state_dim=int(state_dim),
         action_dim=int(action_dim),
         seed=td3_cfg.get("seed"),
@@ -617,6 +710,7 @@ def make_td3_markov_agent(config, state_dim, action_dim, *, set_points_len):
         replay_beta_end=float(td3_cfg.get("replay_beta_end", 1.0)),
         replay_beta_steps=int(td3_cfg.get("replay_beta_steps", 50_000)),
         actor_freeze=int(td3_cfg.get("actor_freeze", 0)),
+        **extra_kwargs,
     )
 
 
@@ -735,6 +829,22 @@ def initialize_history(nFE, nx, ny, nu, z_dim, control_horizon, rl_state_dim=0):
         "rl_action_source_log": np.zeros(nFE, dtype=int),
         "rl_decision_taken_log": np.zeros(nFE, dtype=int),
         "rl_policy_source_log": np.zeros(nFE, dtype=int),
+        "sg_policy_action_raw_log": np.full((nFE, z_dim), np.nan, dtype=float),
+        "sg_supervisor_action_raw_log": np.full((nFE, z_dim), np.nan, dtype=float),
+        "sg_executed_action_raw_log": np.full((nFE, z_dim), np.nan, dtype=float),
+        "sg_previous_action_raw_log": np.full((nFE, z_dim), np.nan, dtype=float),
+        "sg_selected_source_log": np.zeros(nFE, dtype=int),
+        "sg_score_policy_log": np.full(nFE, np.nan, dtype=float),
+        "sg_score_supervisor_log": np.full(nFE, np.nan, dtype=float),
+        "sg_advantage_log": np.full(nFE, np.nan, dtype=float),
+        "sg_q1_policy_log": np.full(nFE, np.nan, dtype=float),
+        "sg_q2_policy_log": np.full(nFE, np.nan, dtype=float),
+        "sg_q1_supervisor_log": np.full(nFE, np.nan, dtype=float),
+        "sg_q2_supervisor_log": np.full(nFE, np.nan, dtype=float),
+        "sg_q_gap_policy_log": np.full(nFE, np.nan, dtype=float),
+        "sg_q_gap_supervisor_log": np.full(nFE, np.nan, dtype=float),
+        "sg_supervisor_kind_log": np.zeros(nFE, dtype=int),
+        "sg_solver_fallback_reason_log": np.zeros(nFE, dtype=int),
         "rl_replay_pushed_log": np.zeros(nFE, dtype=int),
         "rl_train_called_log": np.zeros(nFE, dtype=int),
         "rl_train_updated_log": np.zeros(nFE, dtype=int),
@@ -1165,6 +1275,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     nominal_solver_mode = str(config.get("nominal_solver_mode", "state_space_shared")).strip().lower()
     force_td3_execute = bool(config.get("force_td3_execute", False))
     force_td3_respects_warm_start = bool(config.get("force_td3_respects_warm_start", False))
+    supervisor_gated_markov = _is_supervisor_gated_markov(config)
+    markov_supervisor_mode = str(config.get("markov_supervisor_mode", "ls_else_mpc")).strip().lower()
     A = np.asarray(ctx["A_aug"], float)
     B = np.asarray(ctx["B_aug"], float)
     C = np.asarray(ctx["C_aug"], float)
@@ -1215,19 +1327,37 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         else int(ctx["warm_start_step"])
     )
     td3_authority_ramp_cfg = dict(config.get("td3_authority_ramp", {}) or {})
+    sg_action_freeze_subepisodes = int(max(0, config.get("post_warm_start_action_freeze_subepisodes", 0)))
+    sg_actor_freeze_subepisodes = int(max(0, config.get("post_warm_start_actor_freeze_subepisodes", 0)))
+    sg_action_freeze_end_step = int(
+        ctx["warm_start_step"] + sg_action_freeze_subepisodes * max(1, ctx["time_in_sub_episodes"])
+    )
+    sg_actor_freeze_end_step = int(
+        ctx["warm_start_step"] + sg_actor_freeze_subepisodes * max(1, ctx["time_in_sub_episodes"])
+    )
 
     rl_agent = None
     if use_rl:
         rl_agent = ctx.get("agent")
         if rl_agent is None:
-            if str(config.get("agent_kind", "td3")).lower() != "td3":
-                raise ValueError("The shared Markov runner currently supports TD3 live proposals only.")
+            if str(config.get("agent_kind", "td3")).lower() not in {"td3", "sg_td3"}:
+                raise ValueError("The shared Markov runner currently supports TD3/SG-TD3 live proposals only.")
             rl_agent = make_td3_markov_agent(
                 config,
                 rl_state_dim,
                 z_dim,
                 set_points_len=int(config["set_points_len"]),
             )
+        if supervisor_gated_markov:
+            freeze_train_steps = _count_actor_freeze_train_steps(
+                n_steps=nFE,
+                test_flags=test_flags,
+                train_start_step=bc_train_start_step,
+                actor_freeze_end_step=sg_actor_freeze_end_step,
+                batch_size=getattr(rl_agent, "batch_size", 1),
+                initial_buffer_size=len(getattr(rl_agent, "buffer", [])),
+            )
+            rl_agent.actor_freeze = int(max(getattr(rl_agent, "actor_freeze", 0), freeze_train_steps))
 
     system = ctx.get("system")
     if system is None:
@@ -1268,18 +1398,43 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 policy_action=pending_transition["policy_action"],
                 tail_meta=pending_transition.get("bc_tail_meta"),
             )
-            train_info = replay_train_continuous_agent(
-                agent=rl_agent,
-                state=pending_transition["state"],
-                action=pending_transition["action"],
-                reward=pending_transition["reward"],
-                next_state=next_state,
-                done=done,
-                step=pending_step,
-                test=pending_transition["test"],
-                train_start_step=bc_train_start_step,
-                bc_context=bc_context,
-            )
+            if supervisor_gated_markov:
+                pushed = False
+                trained = False
+                train_meta = None
+                if not bool(pending_transition["test"]):
+                    rl_agent.push_supervised(
+                        pending_transition["state"],
+                        pending_transition["action"],
+                        pending_transition["reward"],
+                        next_state,
+                        done,
+                        policy_action=pending_transition.get("policy_action"),
+                        supervisor_action=pending_transition.get("supervisor_action"),
+                        previous_action=pending_transition.get("previous_action"),
+                        selected_source=pending_transition.get("selected_source", SOURCE_SUPERVISOR),
+                        score_policy=pending_transition.get("score_policy", np.nan),
+                        score_supervisor=pending_transition.get("score_supervisor", np.nan),
+                        advantage_policy_supervisor=pending_transition.get("advantage_policy_supervisor", np.nan),
+                    )
+                    pushed = True
+                    if pending_step >= bc_train_start_step:
+                        train_meta = rl_agent.train_step(bc_context=bc_context)
+                        trained = True
+                train_info = {"pushed": pushed, "trained": trained, "train_meta": train_meta}
+            else:
+                train_info = replay_train_continuous_agent(
+                    agent=rl_agent,
+                    state=pending_transition["state"],
+                    action=pending_transition["action"],
+                    reward=pending_transition["reward"],
+                    next_state=next_state,
+                    done=done,
+                    step=pending_step,
+                    test=pending_transition["test"],
+                    train_start_step=bc_train_start_step,
+                    bc_context=bc_context,
+                )
             history["rl_replay_pushed_log"][pending_step] = int(train_info["pushed"])
             history["rl_train_called_log"][pending_step] = int(train_info["trained"])
             train_meta = train_info.get("train_meta")
@@ -1407,6 +1562,7 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 "cost_margin": 0.0,
                 "cost_guard_pass": True,
                 "drift": 0.0,
+                "sol": sol0,
             }
             executed_score = score
             current_subepisode = int(step // max(1, ctx["time_in_sub_episodes"])) + 1
@@ -1600,9 +1756,20 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     bc_target_raw = baseline_raw.copy()
                     bc_target_is_ls = bool(baseline_is_ls)
                     test_step = bool(test_flags[step])
+                    supervisor_payload = resolve_markov_supervisor_action(
+                        mode=markov_supervisor_mode,
+                        z_ls=z_ls,
+                        ls_accepted=bool(ls_accepted and U_ls is not None),
+                        z_bound=config["z_bound"],
+                        z_dim=z_dim,
+                    )
+                    supervisor_raw = np.asarray(supervisor_payload["raw_action"], float).reshape(-1)
                     policy_raw_for_gate = np.asarray(rl_agent.act_eval(rl_state), float).reshape(-1)
-                    if policy_raw_for_gate.size != z_dim or not np.all(np.isfinite(policy_raw_for_gate)):
-                        policy_raw_for_gate = baseline_raw.copy()
+                    policy_action_nonfinite = bool(
+                        policy_raw_for_gate.size != z_dim or not np.all(np.isfinite(policy_raw_for_gate))
+                    )
+                    if policy_action_nonfinite:
+                        policy_raw_for_gate = supervisor_raw.copy() if supervisor_gated_markov else baseline_raw.copy()
                     release_info = update_protected_bc_release_gate(
                         bc_release_gate["state"],
                         bc_release_gate["logs"],
@@ -1636,72 +1803,168 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         or bool(release_info.get("diagnostic_only", False))
                     ):
                         td3_live_released = True
-                    decision = select_continuous_action(
-                        agent=rl_agent,
-                        state=rl_state,
-                        step=step,
-                        warm_start_step=action_warm_start_step,
-                        decision_interval=int(config.get("decision_interval", 1)),
-                        last_action=last_raw_action,
-                        last_action_test=last_action_test,
-                        test=test_step,
-                        baseline_action=baseline_raw,
-                        action_dim=z_dim,
-                        nonfinite_fallback=True,
-                    )
-                    raw_actor_requested = policy_raw_for_gate.copy()
-                    raw_requested = np.asarray(decision.action, float).reshape(-1)
-                    authority_scale = (
-                        _td3_priority_authority_scale(config, ctx, step, probation_active=probation_active)
-                        if (
-                            td3_live_released
-                            and _td3_priority_enabled(config)
-                            and not force_td3_execute
-                            and step > ctx["warm_start_step"]
+                    if supervisor_gated_markov:
+                        previous_action_for_gate = (
+                            np.asarray(history["rl_executed_raw_action_log"][step - 1, :], float).reshape(-1)
+                            if step > 0
+                            else supervisor_raw.copy()
                         )
-                        else 1.0
-                    )
-                    if authority_scale < 1.0:
-                        raw_requested = np.clip(raw_requested * authority_scale, -1.0, 1.0)
-                    record_td3_authority_ramp_step(
-                        history["td3_authority_ramp_logs"],
-                        step_idx=step,
-                        ramp_info=ramp_info,
-                        preclip_action=np.asarray(decision.action, float).reshape(-1),
-                        postclip_action=raw_requested,
-                        projection_active=bool(authority_scale < 1.0),
-                        delta_norm=float(np.linalg.norm(raw_requested - np.asarray(decision.action, float).reshape(-1))),
-                        gate_override=gate_override,
-                    )
-                    handoff_info = resolve_bc_handoff_authority(bc_schedule, step_idx=step)
-                    handoff_td3_action = raw_requested.copy()
-                    raw_requested = apply_bc_handoff_action(
-                        handoff_td3_action,
-                        baseline_raw,
-                        handoff_info["authority"],
-                    )
-                    record_bc_handoff_step(
-                        bc_handoff_logs,
-                        step_idx=step,
-                        authority_info=handoff_info,
-                        safe_action=baseline_raw,
-                        td3_action=handoff_td3_action,
-                        executed_action=raw_requested,
-                    )
-                    if shadow_safety_enabled and bool(shadow_bc_handoff_cfg.get("enabled", False)):
-                        shadow_handoff_info = resolve_bc_handoff_authority(shadow_bc_schedule, step_idx=step)
-                        shadow_handoff_action = apply_bc_handoff_action(
+                        forced_supervisor = bool(step <= sg_action_freeze_end_step)
+                        if forced_supervisor:
+                            raw_requested = supervisor_raw.copy()
+                            raw_actor_requested = policy_raw_for_gate.copy()
+                            sg_selected_source = SOURCE_WARM_START if step <= ctx["warm_start_step"] else SOURCE_SUPERVISOR
+                            sg_score_policy = np.nan
+                            sg_score_supervisor = np.nan
+                            sg_advantage = np.nan
+                            sg_q1_policy = np.nan
+                            sg_q2_policy = np.nan
+                            sg_q1_supervisor = np.nan
+                            sg_q2_supervisor = np.nan
+                            sg_q_gap_policy = np.nan
+                            sg_q_gap_supervisor = np.nan
+                            decision_taken = 0
+                            policy_source = 0 if step <= ctx["warm_start_step"] else 1
+                        else:
+                            sg_decision = rl_agent.select_action_with_supervisor(
+                                rl_state,
+                                supervisor_action=supervisor_raw,
+                                previous_action=previous_action_for_gate,
+                                explore=not test_step,
+                                test=test_step,
+                            )
+                            raw_requested = np.asarray(sg_decision.action, float).reshape(-1)
+                            raw_actor_requested = np.asarray(sg_decision.policy_action, float).reshape(-1)
+                            sg_selected_source = int(sg_decision.selected_source)
+                            sg_score_policy = float(sg_decision.score_policy)
+                            sg_score_supervisor = float(sg_decision.score_supervisor)
+                            sg_advantage = float(sg_decision.advantage_policy_supervisor)
+                            sg_q1_policy = float(sg_decision.q1_policy)
+                            sg_q2_policy = float(sg_decision.q2_policy)
+                            sg_q1_supervisor = float(sg_decision.q1_supervisor)
+                            sg_q2_supervisor = float(sg_decision.q2_supervisor)
+                            sg_q_gap_policy = float(sg_decision.q_gap_policy)
+                            sg_q_gap_supervisor = float(sg_decision.q_gap_supervisor)
+                            decision_taken = 1
+                            policy_source = 3 if test_step else 2
+                        if policy_action_nonfinite and not forced_supervisor:
+                            sg_selected_source = SOURCE_FALLBACK
+                            raw_requested = supervisor_raw.copy()
+                        authority_scale = 1.0
+                        record_td3_authority_ramp_step(
+                            history["td3_authority_ramp_logs"],
+                            step_idx=step,
+                            ramp_info=ramp_info,
+                            preclip_action=raw_requested,
+                            postclip_action=raw_requested,
+                            projection_active=False,
+                            delta_norm=0.0,
+                            gate_override=False,
+                        )
+                        handoff_info = resolve_bc_handoff_authority(bc_schedule, step_idx=step)
+                        record_bc_handoff_step(
+                            bc_handoff_logs,
+                            step_idx=step,
+                            authority_info=handoff_info,
+                            safe_action=supervisor_raw,
+                            td3_action=raw_requested,
+                            executed_action=raw_requested,
+                        )
+                        if shadow_safety_enabled and bool(shadow_bc_handoff_cfg.get("enabled", False)):
+                            shadow_handoff_info = resolve_bc_handoff_authority(shadow_bc_schedule, step_idx=step)
+                            shadow_handoff_action = apply_bc_handoff_action(
+                                raw_requested,
+                                supervisor_raw,
+                                shadow_handoff_info["authority"],
+                            )
+                            history["shadow_bc_handoff_authority_log"][step] = float(shadow_handoff_info["authority"])
+                            history["shadow_bc_handoff_delta_norm_log"][step] = float(
+                                np.linalg.norm(shadow_handoff_action - raw_requested)
+                            )
+                        last_action_test = test_step
+                        history["rl_decision_taken_log"][step] = int(decision_taken)
+                        history["rl_policy_source_log"][step] = int(policy_source)
+                        history["sg_policy_action_raw_log"][step, :] = raw_actor_requested
+                        history["sg_supervisor_action_raw_log"][step, :] = supervisor_raw
+                        history["sg_previous_action_raw_log"][step, :] = previous_action_for_gate
+                        history["sg_selected_source_log"][step] = int(sg_selected_source)
+                        history["sg_score_policy_log"][step] = float(sg_score_policy)
+                        history["sg_score_supervisor_log"][step] = float(sg_score_supervisor)
+                        history["sg_advantage_log"][step] = float(sg_advantage)
+                        history["sg_q1_policy_log"][step] = float(sg_q1_policy)
+                        history["sg_q2_policy_log"][step] = float(sg_q2_policy)
+                        history["sg_q1_supervisor_log"][step] = float(sg_q1_supervisor)
+                        history["sg_q2_supervisor_log"][step] = float(sg_q2_supervisor)
+                        history["sg_q_gap_policy_log"][step] = float(sg_q_gap_policy)
+                        history["sg_q_gap_supervisor_log"][step] = float(sg_q_gap_supervisor)
+                        history["sg_supervisor_kind_log"][step] = int(supervisor_payload["kind_code"])
+                    else:
+                        decision = select_continuous_action(
+                            agent=rl_agent,
+                            state=rl_state,
+                            step=step,
+                            warm_start_step=action_warm_start_step,
+                            decision_interval=int(config.get("decision_interval", 1)),
+                            last_action=last_raw_action,
+                            last_action_test=last_action_test,
+                            test=test_step,
+                            baseline_action=baseline_raw,
+                            action_dim=z_dim,
+                            nonfinite_fallback=True,
+                        )
+                        raw_actor_requested = policy_raw_for_gate.copy()
+                        raw_requested = np.asarray(decision.action, float).reshape(-1)
+                        authority_scale = (
+                            _td3_priority_authority_scale(config, ctx, step, probation_active=probation_active)
+                            if (
+                                td3_live_released
+                                and _td3_priority_enabled(config)
+                                and not force_td3_execute
+                                and step > ctx["warm_start_step"]
+                            )
+                            else 1.0
+                        )
+                        if authority_scale < 1.0:
+                            raw_requested = np.clip(raw_requested * authority_scale, -1.0, 1.0)
+                        record_td3_authority_ramp_step(
+                            history["td3_authority_ramp_logs"],
+                            step_idx=step,
+                            ramp_info=ramp_info,
+                            preclip_action=np.asarray(decision.action, float).reshape(-1),
+                            postclip_action=raw_requested,
+                            projection_active=bool(authority_scale < 1.0),
+                            delta_norm=float(np.linalg.norm(raw_requested - np.asarray(decision.action, float).reshape(-1))),
+                            gate_override=gate_override,
+                        )
+                        handoff_info = resolve_bc_handoff_authority(bc_schedule, step_idx=step)
+                        handoff_td3_action = raw_requested.copy()
+                        raw_requested = apply_bc_handoff_action(
                             handoff_td3_action,
                             baseline_raw,
-                            shadow_handoff_info["authority"],
+                            handoff_info["authority"],
                         )
-                        history["shadow_bc_handoff_authority_log"][step] = float(shadow_handoff_info["authority"])
-                        history["shadow_bc_handoff_delta_norm_log"][step] = float(
-                            np.linalg.norm(shadow_handoff_action - handoff_td3_action)
+                        record_bc_handoff_step(
+                            bc_handoff_logs,
+                            step_idx=step,
+                            authority_info=handoff_info,
+                            safe_action=baseline_raw,
+                            td3_action=handoff_td3_action,
+                            executed_action=raw_requested,
                         )
-                    last_action_test = decision.last_action_test
-                    history["rl_decision_taken_log"][step] = int(decision.decision_taken)
-                    history["rl_policy_source_log"][step] = int(decision.source)
+                        if shadow_safety_enabled and bool(shadow_bc_handoff_cfg.get("enabled", False)):
+                            shadow_handoff_info = resolve_bc_handoff_authority(shadow_bc_schedule, step_idx=step)
+                            shadow_handoff_action = apply_bc_handoff_action(
+                                handoff_td3_action,
+                                baseline_raw,
+                                shadow_handoff_info["authority"],
+                            )
+                            history["shadow_bc_handoff_authority_log"][step] = float(shadow_handoff_info["authority"])
+                            history["shadow_bc_handoff_delta_norm_log"][step] = float(
+                                np.linalg.norm(shadow_handoff_action - handoff_td3_action)
+                            )
+                        last_action_test = decision.last_action_test
+                        history["rl_decision_taken_log"][step] = int(decision.decision_taken)
+                        history["rl_policy_source_log"][step] = int(decision.source)
                     history["rl_test_step_log"][step] = int(test_step)
                     history["rl_actor_raw_action_log"][step, :] = raw_actor_requested
                     history["td3_priority_phase_log"][step] = TD3_PRIORITY_PHASE_CODE.get(
@@ -1737,7 +2000,114 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     history["rl_requested_z_log"][step, :] = z_requested
                     history["z_proposed_log"][step, :] = z_requested
 
-                    if force_td3_this_step and td3_live_released:
+                    if supervisor_gated_markov:
+                        rl_score = prediction_improvement_score(
+                            z=z_requested,
+                            history=history,
+                            m_blocks=m_blocks,
+                            basis_blocks=basis_blocks,
+                            G0=G0,
+                            A=A,
+                            C=C,
+                            predict_h=predict_h,
+                            control_horizon=control_horizon,
+                            Wy=Wy,
+                            lambda_z=float(config["lambda_z"]),
+                            current_step=step,
+                            prediction_window=int(config["prediction_window"]),
+                        )
+                        if int(history["sg_supervisor_kind_log"][step]) == 1 and np.allclose(
+                            z_requested,
+                            z_ls,
+                            atol=1.0e-12,
+                        ):
+                            rl_eval = ls_eval
+                            rl_score = ls_score
+                        elif np.allclose(z_requested, np.zeros(z_dim, dtype=float), atol=1.0e-12):
+                            rl_eval = executed_eval
+                        else:
+                            rl_eval = evaluate_markov_candidate(z_requested, u_prev_dev, x_model, U0, J0)
+                        _record_candidate_stage(history, step, "requested", rl_eval["U"], rl_eval, rl_score, U0, J0, nu)
+                        legacy_rl_hard_gate_pass = bool(
+                            sol0.success
+                            and rl_eval["sol"].success
+                            and rl_score["score"] > float(config["s_pred_min"])
+                            and rl_eval["drift"] <= float(config["gain_drift_max"])
+                            and rl_eval["cost_guard_pass"]
+                        )
+                        history["requested_legacy_hard_gate_pass_log"][step] = int(legacy_rl_hard_gate_pass)
+                        selected_source = int(history["sg_selected_source_log"][step])
+                        supervisor_kind = int(history["sg_supervisor_kind_log"][step])
+                        supervisor_eval = ls_eval if supervisor_kind == 1 and ls_eval is not None else {
+                            "U": U0.copy(),
+                            "J": float(J0),
+                            "nominal_cost": float(J0),
+                            "reference_nominal_cost": float(J0),
+                            "cost_margin": 0.0,
+                            "cost_guard_pass": True,
+                            "drift": 0.0,
+                            "sol": sol0,
+                        }
+                        supervisor_score = ls_score if supervisor_kind == 1 and ls_eval is not None else score
+                        supervisor_z = z_ls if supervisor_kind == 1 and ls_eval is not None else np.zeros(z_dim, dtype=float)
+                        supervisor_raw_exec = (
+                            z_to_raw_action(supervisor_z, config["z_bound"])
+                            if supervisor_kind == 1 and ls_eval is not None
+                            else np.zeros(z_dim, dtype=float)
+                        )
+                        policy_solve_success = bool(
+                            rl_eval is not None
+                            and rl_eval.get("sol") is not None
+                            and bool(getattr(rl_eval["sol"], "success", False))
+                        )
+                        if selected_source == SOURCE_POLICY and policy_solve_success:
+                            U_exec = rl_eval["U"]
+                            z_exec = z_requested
+                            raw_executed = raw_requested
+                            score = rl_score
+                            drift = float(rl_eval["drift"])
+                            accepted = True
+                            fallback = False
+                            action_source = 2
+                            executed_eval = rl_eval
+                            executed_score = rl_score
+                        elif selected_source == SOURCE_POLICY:
+                            U_exec = supervisor_eval["U"]
+                            z_exec = supervisor_z
+                            raw_executed = supervisor_raw_exec
+                            score = supervisor_score
+                            drift = float(supervisor_eval["drift"])
+                            accepted = bool(supervisor_kind == 1)
+                            fallback = True
+                            action_source = 8
+                            executed_eval = supervisor_eval
+                            executed_score = supervisor_score
+                            history["sg_solver_fallback_reason_log"][step] = 1
+                        elif selected_source == SOURCE_FALLBACK:
+                            U_exec = supervisor_eval["U"]
+                            z_exec = supervisor_z
+                            raw_executed = supervisor_raw_exec
+                            score = supervisor_score
+                            drift = float(supervisor_eval["drift"])
+                            accepted = bool(supervisor_kind == 1)
+                            fallback = True
+                            action_source = 8
+                            executed_eval = supervisor_eval
+                            executed_score = supervisor_score
+                            history["sg_solver_fallback_reason_log"][step] = 2
+                        else:
+                            U_exec = supervisor_eval["U"]
+                            z_exec = supervisor_z
+                            raw_executed = supervisor_raw_exec
+                            score = supervisor_score
+                            drift = float(supervisor_eval["drift"])
+                            accepted = bool(supervisor_kind == 1)
+                            fallback = False
+                            action_source = 6 if supervisor_kind == 1 else 7
+                            executed_eval = supervisor_eval
+                            executed_score = supervisor_score
+                        z_prev = z_exec
+                    elif force_td3_this_step and td3_live_released:
                         rl_score = prediction_improvement_score(
                             z=z_requested,
                             history=history,
@@ -1934,6 +2304,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             history["z_log"][step, :] = z_exec
             history["z_executed_log"][step, :] = z_exec
             history["rl_executed_raw_action_log"][step, :] = raw_executed
+            if supervisor_gated_markov:
+                history["sg_executed_action_raw_log"][step, :] = raw_executed
             history["rl_action_source_log"][step] = int(action_source)
             history["s_pred_log"][step] = float(score["score"])
             history["gain_drift_log"][step] = float(drift)
@@ -1956,7 +2328,36 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     "step": step,
                     "state": rl_state.copy(),
                     "action": np.asarray(transition_action, float).copy(),
-                    "policy_action": np.asarray(raw_requested, float).copy(),
+                    "policy_action": np.asarray(
+                        history["sg_policy_action_raw_log"][step, :]
+                        if supervisor_gated_markov
+                        else raw_requested,
+                        float,
+                    ).copy(),
+                    "supervisor_action": np.asarray(
+                        history["sg_supervisor_action_raw_log"][step, :]
+                        if supervisor_gated_markov
+                        else bc_target_raw,
+                        float,
+                    ).copy(),
+                    "previous_action": np.asarray(
+                        history["sg_previous_action_raw_log"][step, :]
+                        if supervisor_gated_markov
+                        else raw_executed,
+                        float,
+                    ).copy(),
+                    "selected_source": int(history["sg_selected_source_log"][step])
+                    if supervisor_gated_markov
+                    else SOURCE_POLICY,
+                    "score_policy": float(history["sg_score_policy_log"][step])
+                    if supervisor_gated_markov
+                    else np.nan,
+                    "score_supervisor": float(history["sg_score_supervisor_log"][step])
+                    if supervisor_gated_markov
+                    else np.nan,
+                    "advantage_policy_supervisor": float(history["sg_advantage_log"][step])
+                    if supervisor_gated_markov
+                    else np.nan,
                     "bc_target_action": np.asarray(bc_target_raw, float).copy(),
                     "bc_tail_meta": {
                         "target_is_ls": bool(bc_target_is_ls),
@@ -2094,6 +2495,19 @@ def summarize_history(config, ctx, history):
     nominal_fallback_fraction_post_warm = float(np.mean(post_sources == 4)) if has_post_warm else 0.0
     replay_push_count = int(np.sum(history["rl_replay_pushed_log"]))
     train_update_count = int(np.sum(history["rl_train_updated_log"]))
+    sg_selected = np.asarray(history.get("sg_selected_source_log", []), int)
+    sg_kind = np.asarray(history.get("sg_supervisor_kind_log", []), int)
+    sg_fallback_reason = np.asarray(history.get("sg_solver_fallback_reason_log", []), int)
+    sg_has_logs = bool(_is_supervisor_gated_markov(config) and sg_selected.size)
+    shadow_td3 = np.asarray(history.get("shadow_td3_priority_allowed_log", []), int)
+    shadow_ls = np.asarray(history.get("shadow_ls_priority_allowed_log", []), int)
+    shadow_nominal = np.asarray(history.get("shadow_nominal_fallback_eligible_log", []), int)
+
+    def _valid_mean(values, target=1):
+        arr = np.asarray(values, int)
+        valid = arr >= 0
+        return float(np.mean(arr[valid] == int(target))) if bool(valid.any()) else 0.0
+
     return {
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
         "run_mode": str(config["run_mode"]).lower(),
@@ -2126,6 +2540,18 @@ def summarize_history(config, ctx, history):
         "td3_warm_release_reference_reward": history.get("_td3_warm_release_reference_reward"),
         "rl_replay_push_count": replay_push_count,
         "rl_train_update_count": train_update_count,
+        "sg_policy_fraction": float(np.mean(sg_selected == SOURCE_POLICY)) if sg_has_logs else 0.0,
+        "sg_supervisor_fraction": float(
+            np.mean((sg_selected == SOURCE_SUPERVISOR) | (sg_selected == SOURCE_WARM_START))
+        )
+        if sg_has_logs
+        else 0.0,
+        "sg_ls_supervisor_fraction": float(np.mean(sg_kind == 1)) if sg_has_logs else 0.0,
+        "sg_mpc_supervisor_fraction": float(np.mean(sg_kind == 2)) if sg_has_logs else 0.0,
+        "sg_solver_fallback_fraction": float(np.mean(sg_fallback_reason != 0)) if sg_has_logs else 0.0,
+        "shadow_td3_priority_allowed_fraction": _valid_mean(shadow_td3),
+        "shadow_ls_priority_allowed_fraction": _valid_mean(shadow_ls),
+        "shadow_nominal_fallback_eligible_fraction": _valid_mean(shadow_nominal),
     }
 
 
@@ -2173,6 +2599,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
 
     result_bundle = {
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
+        "notebook_source": config.get("notebook_source"),
         "run_mode": ctx["run_mode"],
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
         "td3_priority_fallback": deepcopy(config.get("td3_priority_fallback", {})),
@@ -2223,6 +2650,9 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "basis_family": str(config["basis_family"]),
         "basis_labels": list(basis_labels),
         "markov_z_bound": float(config["z_bound"]),
+        "markov_supervisor_mode": str(config.get("markov_supervisor_mode", "ls_else_mpc")),
+        "markov_live_safety_mode": str(config.get("markov_live_safety_mode", "default")),
+        "supervisor_gate": deepcopy(config.get("supervisor_gate", {})),
         "z_safety": deepcopy(config.get("z_safety", {})),
         "markov_shadow_safety": deepcopy(config.get("markov_shadow_safety", {})),
         "markov_shadow_safety_enabled": bool(_markov_shadow_safety_cfg(config).get("enabled", False)),
@@ -2251,6 +2681,24 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "rl_action_source_names": history["rl_action_source_names"],
         "rl_decision_taken_log": history["rl_decision_taken_log"],
         "rl_policy_source_log": history["rl_policy_source_log"],
+        "sg_policy_action_raw_log": history["sg_policy_action_raw_log"],
+        "sg_supervisor_action_raw_log": history["sg_supervisor_action_raw_log"],
+        "sg_executed_action_raw_log": history["sg_executed_action_raw_log"],
+        "sg_previous_action_raw_log": history["sg_previous_action_raw_log"],
+        "sg_selected_source_log": history["sg_selected_source_log"],
+        "sg_score_policy_log": history["sg_score_policy_log"],
+        "sg_score_supervisor_log": history["sg_score_supervisor_log"],
+        "sg_advantage_log": history["sg_advantage_log"],
+        "sg_q1_policy_log": history["sg_q1_policy_log"],
+        "sg_q2_policy_log": history["sg_q2_policy_log"],
+        "sg_q1_supervisor_log": history["sg_q1_supervisor_log"],
+        "sg_q2_supervisor_log": history["sg_q2_supervisor_log"],
+        "sg_q_gap_policy_log": history["sg_q_gap_policy_log"],
+        "sg_q_gap_supervisor_log": history["sg_q_gap_supervisor_log"],
+        "sg_supervisor_kind_log": history["sg_supervisor_kind_log"],
+        "sg_supervisor_kind_names": dict(MARKOV_SUPERVISOR_KIND),
+        "sg_solver_fallback_reason_log": history["sg_solver_fallback_reason_log"],
+        "sg_solver_fallback_reason_names": dict(MARKOV_SG_SOLVER_FALLBACK_REASON),
         "rl_replay_pushed_log": history["rl_replay_pushed_log"],
         "rl_train_called_log": history["rl_train_called_log"],
         "rl_train_updated_log": history["rl_train_updated_log"],

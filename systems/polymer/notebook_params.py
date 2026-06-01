@@ -752,8 +752,26 @@ POLYMER_MARKOV_DEFAULTS = {
             "plot_start_episode": 2,
             "compare_start_episode": 2,
         },
+        ("sg_td3", "nominal"): {
+            "result_prefix": "sg_td3_markov_critic_warm3_nominal",
+            "compare_prefix": "nominal_compare_sg_td3_markov_critic_warm3",
+            "compare_mode": "nominal",
+            "plot_start_episode": 2,
+            "compare_start_episode": 2,
+        },
+        ("sg_td3", "disturb"): {
+            "result_prefix": "sg_td3_markov_critic_warm3_disturb",
+            "compare_prefix": "disturb_compare_sg_td3_markov_critic_warm3",
+            "compare_mode": "disturb",
+            "plot_start_episode": 2,
+            "compare_start_episode": 2,
+        },
     },
     "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
+    "post_warm_start_action_freeze_subepisodes": 3,
+    "post_warm_start_actor_freeze_subepisodes": 3,
+    "markov_supervisor_mode": "ls_else_mpc",
+    "markov_live_safety_mode": "default",
     # TD3-priority Markov releases through runner-level fallback caps rather
     # than post-warm-start LS imitation.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
@@ -816,6 +834,20 @@ POLYMER_MARKOV_DEFAULTS = {
     "td3_agent": {
         **deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
         "seed": 7,
+    },
+    "supervisor_gate": {
+        "score_uncertainty_weight": 0.5,
+        "score_previous_action_weight": 0.01,
+        "score_supervisor_action_weight": 0.02,
+        "advantage_margin": 0.0,
+        "default_to_supervisor": True,
+        "actor_q_mode": "mean",
+        "supervisor_bc_weight": 0.0,
+        "supervisor_bc_temperature": 1.0,
+        "smooth_action_weight": 0.0,
+        "detach_supervisor_weight": True,
+        "enable_supervisor_actor_loss": False,
+        "min_train_steps_before_policy_gate": 0,
     },
     "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),

@@ -17,7 +17,20 @@ from systems.polymer import get_polymer_notebook_defaults
 from systems.polymer.data_io import canonical_baseline_path
 from utils.notebook_setup import prepare_polymer_notebook_env, print_grouped_notebook_summary
 
+NOTEBOOK_SOURCE = globals().get(
+    "NOTEBOOK_SOURCE_OVERRIDE",
+    "RL_assisted_MPC_residual_supervisor_gated_td3_unified.py",
+)
+RUN_SUMMARY_TITLE = globals().get(
+    "RUN_SUMMARY_TITLE_OVERRIDE",
+    "Polymer Residual Supervisor-Gated TD3 run summary",
+)
+NB_CONFIGURE = globals().get("NB_CONFIGURE")
 NB = get_polymer_notebook_defaults("residual")
+if NB_CONFIGURE is not None:
+    configured_nb = NB_CONFIGURE(NB)
+    if configured_nb is not None:
+        NB = configured_nb
 NB["agent_kind"] = "sg_td3"
 AGENT_KIND = "sg_td3"
 RUN_MODE = NB["run_mode"]
@@ -271,7 +284,7 @@ REPLAY_SETTINGS = ACTIVE_REPLAY_SETTINGS
 
 # --- Cell 10 (code) ---
 print_grouped_notebook_summary(
-    "Polymer Residual Supervisor-Gated TD3 run summary",
+    RUN_SUMMARY_TITLE,
     {
         "Paths": {
             "Repo root": REPO_ROOT,
@@ -359,7 +372,7 @@ residual_cfg = {
     "mismatch_transform_tanh_scale": MISMATCH_TRANSFORM_TANH_SCALE,
     "mismatch_transform_post_clip": MISMATCH_TRANSFORM_POST_CLIP,
     "observer_update_alignment": OBSERVER_UPDATE_ALIGNMENT,
-    "notebook_source": "RL_assisted_MPC_residual_supervisor_gated_td3_unified.py",
+    "notebook_source": NOTEBOOK_SOURCE,
     "supervisor_gate": dict(GATE_CFG),
     "residual_authority_enabled": RESIDUAL_AUTHORITY_ENABLED,
     "authority_use_rho": USE_RHO_AUTHORITY,

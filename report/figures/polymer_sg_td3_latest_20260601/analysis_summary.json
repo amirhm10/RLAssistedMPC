@@ -394,6 +394,44 @@
       "Tail score supervisor mean": -12.584083046911674
     }
   ],
+  "steady_gate_diagnostics": [
+    {
+      "Method": "SG-TD3 Weights CW3",
+      "Windows": "300-399; 700-799",
+      "Steady policy selected": 0.0,
+      "Steady supervisor selected": 1.0,
+      "Steady advantage mean": -0.26628113224493744,
+      "Steady advantage q95": 0.22797620587014836,
+      "Steady action summary": "m mean [1.000000, 1.000000, 1.000000, 1.000000]"
+    },
+    {
+      "Method": "SG-TD3 Residual",
+      "Windows": "300-399; 700-799",
+      "Steady policy selected": 0.41,
+      "Steady supervisor selected": 0.59,
+      "Steady advantage mean": -0.0018199658393859863,
+      "Steady advantage q95": 0.010519695281982417,
+      "Steady action summary": "mean abs du_res [0.00423967, 0.00232571]"
+    },
+    {
+      "Method": "SG-TD3 Residual CW-old",
+      "Windows": "300-399; 700-799",
+      "Steady policy selected": 0.22,
+      "Steady supervisor selected": 0.78,
+      "Steady advantage mean": -0.0007942008972167968,
+      "Steady advantage q95": 0.004174089431762695,
+      "Steady action summary": "mean abs du_res [0.00092050, 0.00151251]"
+    },
+    {
+      "Method": "SG-TD3 Residual CW3",
+      "Windows": "300-399; 700-799",
+      "Steady policy selected": 0.0,
+      "Steady supervisor selected": 1.0,
+      "Steady advantage mean": -0.06690614799466041,
+      "Steady advantage q95": 0.02096425094809147,
+      "Steady action summary": "mean abs du_res [0.00000012, 0.00000006]"
+    }
+  ],
   "recovery_summary": [
     {
       "Method": "TD3 Weights",

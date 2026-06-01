@@ -15,7 +15,9 @@ This report analyzes the two latest polymer SG-TD3 runs:
 The question is whether the new implementation and runner-local configs were successful. The answer is split:
 
 - Implementation and config success: yes. Both runs used the intended SG-TD3 wrappers, disabled BC/handoff/ramp/probation-style handrails, and used the 3-subepisode critic-only/action-freeze release window.
-- Control-performance success: partially. Both latest SG-TD3 runs beat OF-MPC in tail reward and tail tracking, but both are conservative and do not beat the strongest existing polymer runs in their families.
+- Control-performance success versus OF-MPC: yes. Both latest SG-TD3 runs beat OF-MPC in tail reward and tail tracking.
+- Ranking versus the strongest previous polymer RL runs: not yet. Both latest runs are conservative and do not beat the best existing runs in their families.
+- Steady-state protection: yes in the saved runs. In the final steady windows, the latest SG-TD3 weight and residual CW3 runs select the supervisor on `100%` of steps, giving identity weights and essentially zero residual action.
 
 ## Files Inspected
 
@@ -54,6 +56,7 @@ Generated analysis artifacts:
 | `report/figures/polymer_sg_td3_latest_20260601/weight_diagnostics.csv` | Weight multiplier and SG source diagnostics |
 | `report/figures/polymer_sg_td3_latest_20260601/residual_diagnostics.csv` | Residual authority and safety diagnostics |
 | `report/figures/polymer_sg_td3_latest_20260601/gate_diagnostics.csv` | SG critic-score diagnostics |
+| `report/figures/polymer_sg_td3_latest_20260601/steady_gate_diagnostics.csv` | Final steady-window SG source diagnostics |
 | `report/figures/polymer_sg_td3_latest_20260601/recovery_summary.csv` | Post-warm recovery metrics |
 | `report/figures/polymer_sg_td3_latest_20260601/analysis_summary.json` | Machine-readable combined summary |
 
@@ -147,9 +150,9 @@ Tail metrics use the final 20 subepisodes.
 
 ![Tail performance bars](figures/polymer_sg_td3_latest_20260601/tail_performance_bars.png)
 
-The SG-TD3 weight run is a clear improvement over OF-MPC: tail reward improves from `-4.417` to `-2.703`, eta RMSE improves from `0.1917` to `0.1519`, and temperature RMSE improves from `0.5678` to `0.3559`. It is not better than the latest standard TD3 weight run, which reaches tail reward `-2.536`.
+The SG-TD3 weight run is a clear improvement over OF-MPC: tail reward improves from `-4.417` to `-2.703`, eta RMSE improves from `0.1917` to `0.1519`, and temperature RMSE improves from `0.5678` to `0.3559`. This is a successful OF-MPC improvement. The qualification is only relative to the latest standard TD3 weight run, which reaches tail reward `-2.536`.
 
-The SG-TD3 residual CW3 run is also better than OF-MPC: tail reward improves from `-4.417` to `-2.956`, eta RMSE improves from `0.1917` to `0.1597`, and temperature RMSE improves from `0.5678` to `0.3919`. It is not better than the earlier residual SG-TD3 variants, whose tail rewards are `-2.870` and `-2.852`.
+The SG-TD3 residual CW3 run is also better than OF-MPC: tail reward improves from `-4.417` to `-2.956`, eta RMSE improves from `0.1917` to `0.1597`, and temperature RMSE improves from `0.5678` to `0.3919`. This is also a successful OF-MPC improvement. The qualification is only relative to the earlier residual SG-TD3 variants, whose tail rewards are `-2.870` and `-2.852`.
 
 ## Post-Warm Recovery
 
@@ -213,6 +216,17 @@ The steady-window audit uses the final 100 steps before each setpoint switch or 
 
 Near setpoint, OF-MPC still has the smallest eta MAE. The earlier SG-TD3 residual runs are closest to OF-MPC in steady temperature error. The latest residual CW3 run remains much better than raw TD3 residual and TD7 residual near steady state, but it is not as close to OF-MPC as the earlier SG residual variants.
 
+The important steady-state mechanism is visible in the SG source logs, not only in the tracking-error table. The latest CW3 runs fall back completely to the supervisor in the final steady windows:
+
+| Method | Windows | Steady policy | Steady supervisor | Steady adv mean | Steady adv q95 | Steady action summary |
+| --- | --- | --- | --- | --- | --- | --- |
+| SG-TD3 Weights CW3 | 300-399; 700-799 | 0.0% | 100.0% | -0.266 | 0.228 | m mean [1.000000, 1.000000, 1.000000, 1.000000] |
+| SG-TD3 Residual | 300-399; 700-799 | 41.0% | 59.0% | -0.002 | 0.011 | mean abs du_res [0.00423967, 0.00232571] |
+| SG-TD3 Residual CW-old | 300-399; 700-799 | 22.0% | 78.0% | -0.001 | 0.004 | mean abs du_res [0.00092050, 0.00151251] |
+| SG-TD3 Residual CW3 | 300-399; 700-799 | 0.0% | 100.0% | -0.067 | 0.021 | mean abs du_res [0.00000012, 0.00000006] |
+
+This supports the intended steady-state argument. The latest weight CW3 controller uses identity multipliers at steady state, and the latest residual CW3 controller uses essentially zero residual action. Therefore the RL layer is not injecting a persistent learned bias at steady state in these runs. The formal guarantee is conditional: it holds when the gate selects the supervisor and the offset-free MPC target remains feasible. Empirically, that condition is met on `100%` of the audited final steady-window steps for both latest CW3 runs.
+
 ## Gate Score Diagnostics
 
 | Method | Post policy | Post supervisor | Tail policy | Tail supervisor | Tail adv mean | Tail adv q95 | Policy q-gap | Supervisor q-gap |
@@ -222,7 +236,7 @@ Near setpoint, OF-MPC still has the smallest eta MAE. The earlier SG-TD3 residua
 | SG-TD3 Residual CW-old | 39.7% | 60.3% | 57.2% | 42.8% | 0.620 | 0.551 | 0.344 | 0.362 |
 | SG-TD3 Residual CW3 | 7.1% | 92.9% | 7.1% | 92.9% | 0.577 | 1.750 | 0.399 | 0.338 |
 
-The latest two CW3 runs have similar behavior: the gate heavily prefers the supervisor. This is not a software failure. It is the intended consequence of a positive margin, critic-disagreement penalty, supervisor-distance penalty, and no supervisor actor loss. The practical issue is that the settings are too conservative if the goal is to match or beat the best previous polymer runs.
+The latest two CW3 runs have similar behavior: the gate heavily prefers the supervisor. This is not a software failure. It is the intended consequence of a positive margin, critic-disagreement penalty, supervisor-distance penalty, and no supervisor actor loss. This is beneficial near steady state because it prevents a persistent learned residual or non-identity weight bias. The practical issue is only that the same conservatism limits performance if the goal is to match or beat the best previous polymer RL runs.
 
 ## Bugs, Inconsistencies, And Risks Found
 
@@ -232,11 +246,11 @@ The latest two CW3 runs have similar behavior: the gate heavily prefers the supe
 2. The latest SG-TD3 weight run does not collapse to the lower multiplier corner.
    This is a useful improvement over the distillation weight failure mode. The tail multiplier mean is near identity, not the lower bound.
 
-3. The latest SG-TD3 weight run is likely under-releasing.
-   Policy selection is only `9.1%` in the tail, and the multipliers are close to common identity scaling. This limits the weight supervisor's authority.
+3. The latest SG-TD3 weight run is likely under-releasing relative to the best TD3 weight run.
+   Policy selection is only `9.1%` in the tail, and the multipliers are close to common identity scaling. This limits the weight supervisor's authority, but it still beats OF-MPC clearly.
 
-4. The latest SG-TD3 residual run reduced post-warm collapse, but at the cost of weaker tail performance.
-   Worst post-warm reward improved to `-5.822`, but tail reward fell to `-2.956`, worse than the earlier SG residual critic-warm result `-2.852`.
+4. The latest SG-TD3 residual run reduced post-warm collapse and preserved steady-state fallback.
+   Worst post-warm reward improved to `-5.822`, and final steady-window supervisor selection is `100%`. Tail reward is still lower than the earlier SG residual critic-warm result, `-2.956` versus `-2.852`.
 
 5. `weight_action_source_log` labels SG supervisor identity execution as `identity_fallback`.
    This is not a closed-loop bug, but it is a diagnostic naming issue. For SG-TD3 weights, source analysis should use `sg_selected_source_log`; otherwise intended supervisor choices can be confused with error fallbacks.
@@ -246,13 +260,13 @@ The latest two CW3 runs have similar behavior: the gate heavily prefers the supe
 
 ## Interpretation
 
-The new implementation succeeded as a conservative release mechanism. It stopped obvious unsafe release behavior, avoided safety-layer intervention in the tail, and reduced the residual post-warm collapse depth.
+The new implementation succeeded as a conservative release mechanism. It stopped obvious unsafe release behavior, avoided safety-layer intervention in the tail, improved both latest runs over OF-MPC, and reduced the residual post-warm collapse depth.
 
-The new implementation did not yet succeed as the best polymer controller configuration. The conservative gate is too reluctant to execute the policy. For weights, this produces near-identity multipliers and gives up some of the TD3 weight benefit. For residuals, this gives a very quiet zero-supervisor-dominated policy that improves OF-MPC but trails the earlier SG residual settings.
+The new implementation did not yet succeed as the best polymer controller configuration. The conservative gate is too reluctant to execute the policy if the benchmark is the strongest prior RL run rather than OF-MPC. For weights, this produces near-identity multipliers and gives up some of the TD3 weight benefit. For residuals, this gives a very quiet zero-supervisor-dominated policy that improves OF-MPC and protects steady state, but trails the earlier SG residual settings in tail reward.
 
 The best one-sentence summary is:
 
-The latest polymer SG-TD3 configs are safe and scientifically useful, but they are tuned as conservative ablations rather than final performance settings.
+The latest polymer SG-TD3 configs are successful conservative OF-MPC-improving ablations with strong steady-state fallback, but they are not yet tuned as the highest-performance polymer RL settings.
 
 ## Literature Connections
 

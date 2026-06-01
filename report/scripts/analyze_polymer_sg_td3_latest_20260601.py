@@ -497,6 +497,37 @@ def gate_diagnostics(run: MethodRun) -> dict[str, Any]:
     }
 
 
+def steady_gate_diagnostics(run: MethodRun) -> dict[str, Any]:
+    source = run.bundle.get("sg_selected_source_log")
+    if source is None:
+        return {}
+    nfe = run.nfe
+    steady, windows = final_episode_steady_mask(run)
+    source_arr = np.asarray(source, dtype=int)[:nfe]
+    adv = np.asarray(run.bundle.get("sg_advantage_log", np.full(nfe, np.nan)), dtype=float)[:nfe]
+
+    row = {
+        "Method": run.label,
+        "Windows": windows,
+        "Steady policy selected": float(np.mean(source_arr[steady] == 2)) if np.any(steady) else float("nan"),
+        "Steady supervisor selected": float(np.mean(source_arr[steady] == 1)) if np.any(steady) else float("nan"),
+        "Steady advantage mean": nanmean(adv[steady]),
+        "Steady advantage q95": nanq(adv[steady], 0.95),
+        "Steady action summary": "NA",
+    }
+    if run.spec["kind"] == "weights":
+        weights = np.asarray(run.bundle["weight_log"], dtype=float)[:nfe][steady]
+        row["Steady action summary"] = "m mean [" + ", ".join(fmt(v, 6) for v in np.nanmean(weights, axis=0)) + "]"
+    elif run.spec["kind"] == "residual":
+        residual = residual_array(run)[steady]
+        row["Steady action summary"] = (
+            "mean abs du_res ["
+            + ", ".join(fmt(v, 8) for v in np.nanmean(np.abs(residual), axis=0))
+            + "]"
+        )
+    return row
+
+
 def recovery_metrics(run: MethodRun, baseline: MethodRun) -> dict[str, Any]:
     n_ep = min(run.avg_rewards.size, baseline.avg_rewards.size)
     avg = run.avg_rewards[:n_ep]
@@ -655,6 +686,7 @@ def main() -> None:
     weight_rows = [weight_diagnostics(run) for run in runs if run.spec["kind"] == "weights"]
     residual_rows = [residual_diagnostics(run) for run in runs if run.spec["kind"] == "residual"]
     gate_rows = [row for row in (gate_diagnostics(run) for run in runs) if row]
+    steady_gate_rows = [row for row in (steady_gate_diagnostics(run) for run in runs) if row]
     recovery_rows = [recovery_metrics(run, baseline) for run in runs if run.label != "OF-MPC"]
 
     write_csv(FIG_DIR / "performance_summary.csv", perf_rows)
@@ -662,6 +694,7 @@ def main() -> None:
     write_csv(FIG_DIR / "weight_diagnostics.csv", weight_rows)
     write_csv(FIG_DIR / "residual_diagnostics.csv", residual_rows)
     write_csv(FIG_DIR / "gate_diagnostics.csv", gate_rows)
+    write_csv(FIG_DIR / "steady_gate_diagnostics.csv", steady_gate_rows)
     write_csv(FIG_DIR / "recovery_summary.csv", recovery_rows)
 
     perf_md = [
@@ -735,6 +768,18 @@ def main() -> None:
             "Supervisor q-gap": fmt(row["Tail supervisor q-gap mean"], 3),
         }
         for row in gate_rows
+    ]
+    steady_gate_md = [
+        {
+            "Method": row["Method"],
+            "Windows": row["Windows"],
+            "Steady policy": fmt_pct(row["Steady policy selected"]),
+            "Steady supervisor": fmt_pct(row["Steady supervisor selected"]),
+            "Steady adv mean": fmt(row["Steady advantage mean"], 3),
+            "Steady adv q95": fmt(row["Steady advantage q95"], 3),
+            "Steady action summary": row["Steady action summary"],
+        }
+        for row in steady_gate_rows
     ]
     recovery_md = [
         {
@@ -818,6 +863,19 @@ def main() -> None:
         ],
     )
     write_markdown_table(
+        FIG_DIR / "steady_gate_diagnostics.md",
+        steady_gate_md,
+        [
+            "Method",
+            "Windows",
+            "Steady policy",
+            "Steady supervisor",
+            "Steady adv mean",
+            "Steady adv q95",
+            "Steady action summary",
+        ],
+    )
+    write_markdown_table(
         FIG_DIR / "recovery_summary.md",
         recovery_md,
         [
@@ -839,6 +897,7 @@ def main() -> None:
         "weight_diagnostics": weight_rows,
         "residual_diagnostics": residual_rows,
         "gate_diagnostics": gate_rows,
+        "steady_gate_diagnostics": steady_gate_rows,
         "recovery_summary": recovery_rows,
     }
     with (FIG_DIR / "analysis_summary.json").open("w", encoding="utf-8") as handle:

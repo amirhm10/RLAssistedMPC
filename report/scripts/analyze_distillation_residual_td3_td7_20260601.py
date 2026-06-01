@@ -315,6 +315,107 @@ def episode_rows(base, bundles: dict[str, dict]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def residual_range_rows(bundles: dict[str, dict]) -> pd.DataFrame:
+    rows = []
+    windows = {
+        "final_episode": 1,
+        "tail20": 20,
+    }
+    for key in ["td3", "td7"]:
+        bundle = bundles[key]
+        ep_len = episode_len(bundle)
+        nfe = int(bundle.get("nFE", len(bundle.get("y_sp", []))))
+        data_min = np.asarray(bundle["data_min"], float)[:2]
+        data_max = np.asarray(bundle["data_max"], float)[:2]
+        input_span = data_max - data_min
+        residual = np.asarray(bundle["delta_u_res_exec_log"], float)
+        reward = np.asarray(bundle["avg_rewards"], float)
+        for window_name, n_episodes in windows.items():
+            step_sl = slice(max(0, nfe - n_episodes * ep_len), nfe)
+            ep_sl = slice(max(0, len(reward) - n_episodes), len(reward))
+            res = residual[step_sl, :]
+            res_phys = res * input_span
+            norm = np.linalg.norm(res, axis=1)
+            row = {
+                "key": key,
+                "label": RUNS[key]["label"],
+                "window": window_name,
+                "n_steps": int(res.shape[0]),
+                "reward_mean": float(np.nanmean(reward[ep_sl])),
+                "du1_scaled_min": float(np.nanmin(res[:, 0])),
+                "du1_scaled_max": float(np.nanmax(res[:, 0])),
+                "du1_scaled_mean_abs": float(np.nanmean(np.abs(res[:, 0]))),
+                "du1_scaled_q90_abs": float(np.nanquantile(np.abs(res[:, 0]), 0.90)),
+                "du1_scaled_q95_abs": float(np.nanquantile(np.abs(res[:, 0]), 0.95)),
+                "du1_scaled_q99_abs": float(np.nanquantile(np.abs(res[:, 0]), 0.99)),
+                "du1_scaled_max_abs": float(np.nanmax(np.abs(res[:, 0]))),
+                "du2_scaled_min": float(np.nanmin(res[:, 1])),
+                "du2_scaled_max": float(np.nanmax(res[:, 1])),
+                "du2_scaled_mean_abs": float(np.nanmean(np.abs(res[:, 1]))),
+                "du2_scaled_q90_abs": float(np.nanquantile(np.abs(res[:, 1]), 0.90)),
+                "du2_scaled_q95_abs": float(np.nanquantile(np.abs(res[:, 1]), 0.95)),
+                "du2_scaled_q99_abs": float(np.nanquantile(np.abs(res[:, 1]), 0.99)),
+                "du2_scaled_max_abs": float(np.nanmax(np.abs(res[:, 1]))),
+                "norm_mean": float(np.nanmean(norm)),
+                "norm_q95": float(np.nanquantile(norm, 0.95)),
+                "norm_max": float(np.nanmax(norm)),
+                "du1_physical_min": float(np.nanmin(res_phys[:, 0])),
+                "du1_physical_max": float(np.nanmax(res_phys[:, 0])),
+                "du1_physical_mean_abs": float(np.nanmean(np.abs(res_phys[:, 0]))),
+                "du1_physical_q95_abs": float(np.nanquantile(np.abs(res_phys[:, 0]), 0.95)),
+                "du1_physical_max_abs": float(np.nanmax(np.abs(res_phys[:, 0]))),
+                "du2_physical_min": float(np.nanmin(res_phys[:, 1])),
+                "du2_physical_max": float(np.nanmax(res_phys[:, 1])),
+                "du2_physical_mean_abs": float(np.nanmean(np.abs(res_phys[:, 1]))),
+                "du2_physical_q95_abs": float(np.nanquantile(np.abs(res_phys[:, 1]), 0.95)),
+                "du2_physical_max_abs": float(np.nanmax(np.abs(res_phys[:, 1]))),
+            }
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def residual_cap_sensitivity_rows(bundles: dict[str, dict]) -> pd.DataFrame:
+    caps = [0.02, 0.015, 0.0125, 0.01, 0.0075, 0.005]
+    windows = {
+        "final_episode": ("tail", 1),
+        "tail20": ("tail", 20),
+        "collapse31_40": ("episodes", (31, 40)),
+        "recovery41_60": ("episodes", (41, 60)),
+    }
+    rows = []
+    for key in ["td3", "td7"]:
+        bundle = bundles[key]
+        ep_len = episode_len(bundle)
+        nfe = int(bundle.get("nFE", len(bundle.get("y_sp", []))))
+        residual = np.asarray(bundle["delta_u_res_exec_log"], float)
+        for window_name, (mode, payload) in windows.items():
+            if mode == "tail":
+                n_episodes = int(payload)
+                step_sl = slice(max(0, nfe - n_episodes * ep_len), nfe)
+            else:
+                ep_start, ep_end = payload
+                step_sl = episode_slice(ep_start, ep_end, ep_len)
+            res = residual[step_sl, :]
+            abs_res = np.abs(res)
+            for cap in caps:
+                clipped = np.clip(res, -cap, cap)
+                removed = np.abs(clipped - res)
+                rows.append(
+                    {
+                        "key": key,
+                        "label": RUNS[key]["label"],
+                        "window": window_name,
+                        "candidate_cap": float(cap),
+                        "clip_any_fraction": float(np.nanmean(np.any(abs_res > cap + 1.0e-9, axis=1))),
+                        "clip_du1_fraction": float(np.nanmean(abs_res[:, 0] > cap + 1.0e-9)),
+                        "clip_du2_fraction": float(np.nanmean(abs_res[:, 1] > cap + 1.0e-9)),
+                        "du1_mean_removed_scaled": float(np.nanmean(removed[:, 0])),
+                        "du2_mean_removed_scaled": float(np.nanmean(removed[:, 1])),
+                    }
+                )
+    return pd.DataFrame(rows)
+
+
 def add_phase_lines(ax) -> None:
     phases = [
         (10, "warm end"),
@@ -488,10 +589,14 @@ def main() -> None:
     summary = summary_rows(base, bundles)
     windows = window_rows(base, bundles)
     episodes = episode_rows(base, bundles)
+    residual_ranges = residual_range_rows(bundles)
+    cap_sensitivity = residual_cap_sensitivity_rows(bundles)
 
     summary.to_csv(OUT_DIR / "summary_metrics.csv", index=False)
     windows.to_csv(OUT_DIR / "window_metrics.csv", index=False)
     episodes.to_csv(OUT_DIR / "episode_metrics.csv", index=False)
+    residual_ranges.to_csv(OUT_DIR / "residual_final_range_metrics.csv", index=False)
+    cap_sensitivity.to_csv(OUT_DIR / "residual_cap_sensitivity.csv", index=False)
 
     plot_reward_collapse(episodes)
     plot_window_tracking(windows)
@@ -521,6 +626,12 @@ def main() -> None:
         "compare_path": str(COMPARE_PATH.relative_to(ROOT)),
         "key_metrics": summary[key_cols].to_dict(orient="records"),
         "collapse_window": windows[windows["window"] == "unguarded_cap_31_40"].to_dict(orient="records"),
+        "residual_final_ranges": residual_ranges[
+            residual_ranges["window"] == "final_episode"
+        ].to_dict(orient="records"),
+        "cap_sensitivity_final_episode": cap_sensitivity[
+            cap_sensitivity["window"] == "final_episode"
+        ].to_dict(orient="records"),
         "artifacts": {
             "figure_dir": str(OUT_DIR.relative_to(ROOT)),
             "csv": sorted(path.name for path in OUT_DIR.glob("*.csv")),

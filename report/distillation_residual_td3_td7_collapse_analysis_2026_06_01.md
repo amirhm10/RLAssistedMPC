@@ -33,6 +33,9 @@ Implementation and configuration:
 - `utils/residual_authority.py`
 - `systems/distillation/notebook_params.py`
 - `systems/distillation/config.py`
+- `RL_assisted_MPC_residual_supervisor_gated_td3_unified.py`
+- `RL_assisted_MPC_residual_supervisor_gated_td3_critic_warm_unified.py`
+- `report/polymer_residual_algorithm_comparison_2026_06_01.md`
 
 Current result bundles:
 
@@ -41,6 +44,7 @@ Current result bundles:
 - `Distillation/Results/distillation_compare_residual_td3_disturb_fluctuation/20260601_170255/input_data.pkl`
 - `Distillation/Results/distillation_compare_residual_td7_disturb_fluctuation/20260601_172624/input_data.pkl`
 - `Distillation/Data/mpc_results_disturb_fluctuation.pickle`
+- `Polymer/Results/sg_td3_residual_critic_warm_disturb/20260601_140709/input_data.pkl`
 
 Prior local reports:
 
@@ -55,6 +59,8 @@ Generated analysis artifacts:
 - `report/figures/distillation_residual_td3_td7_20260601/summary_metrics.csv`
 - `report/figures/distillation_residual_td3_td7_20260601/window_metrics.csv`
 - `report/figures/distillation_residual_td3_td7_20260601/episode_metrics.csv`
+- `report/figures/distillation_residual_td3_td7_20260601/residual_final_range_metrics.csv`
+- `report/figures/distillation_residual_td3_td7_20260601/residual_cap_sensitivity.csv`
 - `report/figures/distillation_residual_td3_td7_20260601/analysis_summary.json`
 
 ## Current Method
@@ -185,6 +191,42 @@ The guard is effectively off during the collapse window. The cap is still active
 
 The release gate would have blocked every step in the collapse window, but it was diagnostic only. That does not mean the current gate should simply be turned on. Because the gate never passes at all, hard live blocking would likely make the residual branch behave like zero residual for the whole run.
 
+## Final-Episode Executed Residual Range
+
+The final episode is successful for both residual agents, so it is the right place to ask whether the residual authority could be shrunk. The executed residual is `delta_u_res_exec_log`, in scaled delta-input coordinates. The physical translation uses the saved input span `[40000, 15]`, so a scaled residual of `0.02` corresponds to about `800` reflux-flow units and `0.30` reboiler-duty units in the saved physical input coordinates.
+
+| Run | Final reward | du1 q95 abs scaled | du1 max abs scaled | du2 q95 abs scaled | du2 max abs scaled | Norm q95 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| TD3 residual | `30.394` | `0.01845` | `0.02000` | `0.02000` | `0.02000` | `0.02710` |
+| TD7 residual | `34.480` | `0.01074` | `0.02000` | `0.02000` | `0.02000` | `0.02199` |
+
+In physical units:
+
+| Run | du1 q95 abs physical | du1 max abs physical | du2 q95 abs physical | du2 max abs physical |
+| --- | ---: | ---: | ---: | ---: |
+| TD3 residual | `737.9` | `800.0` | `0.300` | `0.300` |
+| TD7 residual | `429.7` | `800.0` | `0.300` | `0.300` |
+
+The important point is that the mean residual is small, but the successful final episode still uses near-cap residuals, especially on the second manipulated input. This argues against jumping directly to a very small global cap such as `0.005`.
+
+Candidate cap sensitivity in the final episode:
+
+| Run | Candidate cap | Steps clipped | du1 clipped | du2 clipped | Mean removed du1 | Mean removed du2 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| TD3 residual | `0.015` | `21.75%` | `7.50%` | `21.75%` | `0.000274` | `0.001065` |
+| TD3 residual | `0.010` | `22.50%` | `11.75%` | `22.50%` | `0.000775` | `0.002170` |
+| TD3 residual | `0.005` | `24.75%` | `18.25%` | `24.50%` | `0.001550` | `0.003327` |
+| TD7 residual | `0.015` | `19.00%` | `2.50%` | `18.25%` | `0.000092` | `0.000788` |
+| TD7 residual | `0.010` | `20.75%` | `6.50%` | `20.00%` | `0.000276` | `0.001746` |
+| TD7 residual | `0.005` | `23.50%` | `17.50%` | `22.50%` | `0.000854` | `0.002791` |
+
+Interpretation:
+
+- A global cap of `0.005` is probably too aggressive as a first shrink test.
+- A global cap of `0.015` is plausible, especially for TD7, but it still clips about one fifth of the successful final episode.
+- A per-input cap is more defensible than a global cap. For TD7, `du1` could likely be reduced toward `0.0125` while leaving `du2` at `0.02`. For TD3, both inputs still use high residuals in the successful tail, so shrinking both inputs risks trading away some final reward.
+- The collapse window still has much larger residual usage than the final episode. In episodes 31 to 40, TD3 has mean executed norm `0.02460`, while TD7 has `0.01376`. So shrinking can reduce collapse severity, but it is not as targeted as a candidate-quality gate.
+
 ## What TD7 Improved
 
 TD7 changed the action behavior in the right direction:
@@ -210,6 +252,55 @@ The strongest evidence is the sequence:
 5. Tail eventually recovers once the actor has adapted.
 
 The collapse therefore looks like an early-release quality problem, not a pure magnitude problem.
+
+## SG-TD3 Transfer With Manual Layers Off
+
+Yes, the same idea as the latest polymer SG-TD3 critic-warm runner can be implemented for distillation, and it is scientifically reasonable. It may be a better next experiment than adding more manual residual layers.
+
+The shared residual runner already supports `agent_kind = "sg_td3"`. The missing piece is a distillation entrypoint that instantiates `SupervisorGatedTD3Agent` instead of `TD3Agent` or `TD7Agent`.
+
+The method compares two actions in the same normalized residual-action space:
+
+$$ a_{\mathrm{policy},k} = \mu_\theta(s_k),\qquad a_{\mathrm{sup},k}=a_0. $$
+
+where `a_0` is the normalized zero-residual action. The gate executes the policy only when its conservative critic score beats the zero-residual supervisor:
+
+$$ a_k = a_{\mathrm{policy},k}\ \mathrm{if}\ S(s_k,a_{\mathrm{policy},k}) > S(s_k,a_0)+\epsilon_A,\quad \mathrm{otherwise}\ a_k=a_0. $$
+
+The score is:
+
+$$ S(s,a)=\min(Q_1(s,a),Q_2(s,a))-\lambda_Q\lVert Q_1(s,a)-Q_2(s,a)\rVert-\lambda_{\mathrm{sup}}\lVert a-a_0\rVert_2^2-\lambda_{\mathrm{prev}}\lVert a-a_{\mathrm{prev}}\rVert_2^2. $$
+
+For the first distillation test, mirror the saved polymer critic-warm run:
+
+- keep `run_mode = "disturb"` and `disturbance_profile = "fluctuation"`
+- keep residual bounds `[-0.02, 0.02]`
+- use zero residual as the supervisor action
+- keep `residual_authority_enabled = False`
+- keep `authority_use_rho = False`
+- disable behavioral cloning
+- disable BC handoff
+- disable diagnostic release gate
+- disable TD3 authority cap and ramp
+- disable reward probation
+- disable early-release guard
+- disable live and shadow rho, deadband, and direction layers for a clean ablation
+- keep only nonfinite fallback to zero
+- use 10 warm-start episodes where OF-MPC is executed
+- use 5 post-warm critic-only episodes where zero residual is still executed while the critic trains
+- after critic warm-up, let SG-TD3 choose between the policy residual and zero residual
+
+The currently open polymer critic-warm entrypoint has been adjusted toward a 3-episode critic-warm and more conservative gate settings. I would not start distillation with that stricter version unless the 5-episode transfer is too conservative or too slow. The saved polymer result that motivated this idea used a 5-episode critic-only phase and showed that the gate did not simply copy OF-MPC.
+
+Success criteria for the first distillation SG-TD3 run:
+
+- no reward collapse below `-10`
+- tail-20 reward above OF-MPC
+- policy-selected fraction not near zero after critic warm-up
+- final episode retains nonzero useful residuals
+- tail temperature MAE remains below OF-MPC
+
+The main failure mode to watch is a gate that keeps selecting zero residual forever. That would be safe, but it would not answer the research question.
 
 ## Bugs, Inconsistencies, And Risks
 
@@ -238,7 +329,72 @@ The practical lesson for this repo is that scalar caps and handoff ramps are not
 
 ## Recommended Next Experiments
 
-### 1. Extend The Early Guard Through The Cap-Ramp Transition
+### 1. Run Distillation SG-TD3 Critic-Warm With Manual Layers Off
+
+Purpose: test whether critic-based candidate selection solves the collapse more cleanly than hand-coded residual safety layers.
+
+Change:
+
+- add a distillation SG-TD3 residual entrypoint
+- instantiate `SupervisorGatedTD3Agent`
+- set `NB["agent_kind"] = "sg_td3"`
+- use zero residual as the supervisor action
+- use 10 warm-start episodes and 5 post-warm critic-only episodes
+- turn off BC, BC handoff, release gate blocking, cap ramp, early guard, rho authority, residual deadband, and shadow direction layers
+- keep residual bounds at `[-0.02, 0.02]` for the first ablation
+
+Metrics:
+
+- minimum reward over episodes 16 to 60
+- SG policy-selected fraction after critic warm-up
+- tail-20 reward
+- tail temperature MAE
+- final-episode executed residual range
+
+Success criterion:
+
+- no collapse below `-10`
+- tail-20 reward remains above OF-MPC
+- policy-selected fraction is not near zero
+
+Failure mode to watch:
+
+- the gate selects zero residual forever and becomes a nominal OF-MPC clone
+
+### 2. Mild Residual-Cap Shrink On TD7
+
+Purpose: test whether residual authority can be reduced without losing the useful final behavior.
+
+Change:
+
+- keep TD7 and the same disturbance profile
+- first test a global cap of `0.015`
+- if that is too conservative, test a per-input cap such as `[0.0125, 0.02]`
+
+Rationale:
+
+- TD7 final episode uses `du1` q95 abs scaled `0.01074`, but `du2` q95 abs scaled remains at `0.02000`
+- a global cap of `0.005` clips too much of the successful final episode
+- per-input shrink is better aligned with the observed final action distribution
+
+Metrics:
+
+- minimum reward over episodes 31 to 60
+- final-episode reward
+- final-episode residual clipping fraction
+- tail-20 reward
+- tail temperature MAE
+
+Success criterion:
+
+- collapse severity is reduced
+- tail-20 reward stays above OF-MPC
+
+Failure mode to watch:
+
+- the final useful reboiler residual is clipped away
+
+### 3. Extend The Early Guard Through The Cap-Ramp Transition
 
 Purpose: test whether the episode 31 collapse is mainly caused by guard expiry.
 
@@ -267,7 +423,7 @@ Failure mode to watch:
 
 - the collapse simply moves from episode 31 to episode 41
 
-### 2. Use The Release Gate As A Guard Extender, Not A Permanent Hard Block
+### 4. Use The Release Gate As A Guard Extender, Not A Permanent Hard Block
 
 Purpose: use the diagnostic signal that already detected non-readiness without erasing residual authority.
 
@@ -293,7 +449,7 @@ Failure mode to watch:
 
 - the policy becomes nominal copy-paste because the gate never releases
 
-### 3. Redesign The Release-Gate Thresholds Before Enabling Live Blocking
+### 5. Redesign The Release-Gate Thresholds Before Enabling Live Blocking
 
 Purpose: avoid a live gate that blocks forever.
 
@@ -321,7 +477,7 @@ Success criterion:
 - collapse does not occur
 - the residual branch remains visibly different from zero residual
 
-### 4. Keep TD7 As The Preferred Residual Agent For The Next Safety Test
+### 6. Keep TD7 As The Preferred Non-SG Residual Agent
 
 Purpose: test the safety layer on the stronger actor.
 
@@ -341,6 +497,8 @@ The shadow rho logs show that active rho would have changed many actions, but du
 - `report/distillation_residual_td3_td7_collapse_analysis_2026_06_01.md`
 - `report/figures/distillation_residual_td3_td7_20260601/analysis_summary.json`
 - `report/figures/distillation_residual_td3_td7_20260601/episode_metrics.csv`
+- `report/figures/distillation_residual_td3_td7_20260601/residual_final_range_metrics.csv`
+- `report/figures/distillation_residual_td3_td7_20260601/residual_cap_sensitivity.csv`
 - `report/figures/distillation_residual_td3_td7_20260601/summary_metrics.csv`
 - `report/figures/distillation_residual_td3_td7_20260601/window_metrics.csv`
 - `report/figures/distillation_residual_td3_td7_20260601/fig_reward_collapse_recovery.png`
@@ -361,4 +519,6 @@ Then inspect:
 
 - `report/figures/distillation_residual_td3_td7_20260601/summary_metrics.csv`
 - `report/figures/distillation_residual_td3_td7_20260601/window_metrics.csv`
+- `report/figures/distillation_residual_td3_td7_20260601/residual_final_range_metrics.csv`
+- `report/figures/distillation_residual_td3_td7_20260601/residual_cap_sensitivity.csv`
 - `report/figures/distillation_residual_td3_td7_20260601/fig_reward_collapse_recovery.png`

@@ -168,7 +168,7 @@ def _copy_td3_authority_ramp_defaults(kind):
             "mode": "residual_delta_u_cap",
             "units": "scaled_input_delta",
             "start_cap": 0.005,
-            "end_cap": 0.02,
+            "end_cap": 0.25,
             "protected_subepisodes": 0,
             "ramp_subepisodes": 30,
             "diagnostic_release_gate_only": True,

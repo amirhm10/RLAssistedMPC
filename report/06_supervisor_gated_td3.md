@@ -8,6 +8,8 @@ Performance improvement is not claimed here. The implementation only adds the ma
 
 Latest polymer residual results are analyzed in [`polymer_residual_algorithm_comparison_2026_06_01.md`](polymer_residual_algorithm_comparison_2026_06_01.md). That report compares TD3 residual, supervisor-gated TD3 residual, and TD7 residual after the polymer residual authority ramp was corrected to release from `0.005` to the full `0.25` authority.
 
+The latest conservative critic-warm-3 polymer SG-TD3 weight and residual runs are analyzed in [`polymer_sg_td3_weight_residual_latest_2026_06_01.md`](polymer_sg_td3_weight_residual_latest_2026_06_01.md). That report finds that the new wrapper configs were applied correctly and reduced residual post-warm collapse, but the current gate settings are conservative and under-release the learned policy relative to the strongest previous polymer runs.
+
 ## Difference From Standard TD3
 
 Standard TD3 executes the actor action during live policy control. Supervisor-gated TD3 forms two candidate actions:

@@ -76,6 +76,20 @@ def _td3_priority_enabled(config):
     return bool(_td3_priority_cfg(config).get("enabled", False))
 
 
+def _markov_shadow_safety_cfg(config):
+    cfg = config.get("markov_shadow_safety", {})
+    return cfg if isinstance(cfg, dict) else {}
+
+
+def _shadow_runtime_config(config, shadow_cfg):
+    shadow_config = deepcopy(config)
+    if isinstance(shadow_cfg.get("z_safety"), dict):
+        shadow_config["z_safety"] = deepcopy(shadow_cfg["z_safety"])
+    if isinstance(shadow_cfg.get("td3_priority_fallback"), dict):
+        shadow_config["td3_priority_fallback"] = deepcopy(shadow_cfg["td3_priority_fallback"])
+    return shadow_config
+
+
 def _td3_priority_phase(config, ctx, step):
     cfg = _td3_priority_cfg(config)
     protected = int(max(0, cfg.get("protected_subepisodes", 0)))
@@ -746,6 +760,20 @@ def initialize_history(nFE, nx, ny, nu, z_dim, control_horizon, rl_state_dim=0):
         "z_safety_ls_projection_active_log": np.zeros(nFE, dtype=int),
         "z_safety_ls_coord_clip_active_log": np.zeros(nFE, dtype=int),
         "z_safety_ls_vector_projection_active_log": np.zeros(nFE, dtype=int),
+        "shadow_z_safety_effective_cap_log": np.full(nFE, np.nan, dtype=float),
+        "shadow_z_safety_requested_norm_before_log": np.full(nFE, np.nan, dtype=float),
+        "shadow_z_safety_requested_norm_after_log": np.full(nFE, np.nan, dtype=float),
+        "shadow_z_safety_requested_projection_scale_log": np.full(nFE, np.nan, dtype=float),
+        "shadow_z_safety_requested_projection_active_log": np.zeros(nFE, dtype=int),
+        "shadow_z_safety_requested_coord_clip_active_log": np.zeros(nFE, dtype=int),
+        "shadow_z_safety_requested_vector_projection_active_log": np.zeros(nFE, dtype=int),
+        "shadow_td3_priority_phase_log": np.zeros(nFE, dtype=int),
+        "shadow_td3_priority_authority_scale_log": np.ones(nFE, dtype=float),
+        "shadow_td3_priority_allowed_log": np.full(nFE, -1, dtype=int),
+        "shadow_ls_priority_allowed_log": np.full(nFE, -1, dtype=int),
+        "shadow_nominal_fallback_eligible_log": np.full(nFE, -1, dtype=int),
+        "shadow_bc_handoff_authority_log": np.full(nFE, np.nan, dtype=float),
+        "shadow_bc_handoff_delta_norm_log": np.full(nFE, np.nan, dtype=float),
         "u_sequence_nominal_log": np.empty((nFE, control_horizon * nu), dtype=float),
         "u_sequence_requested_log": np.full((nFE, control_horizon * nu), np.nan, dtype=float),
         "u_sequence_ls_log": np.full((nFE, control_horizon * nu), np.nan, dtype=float),
@@ -831,6 +859,16 @@ def _record_z_safety_stage(history, step, prefix, safety_info):
     history[f"z_safety_{prefix}_vector_projection_active_log"][step] = int(
         bool(safety_info["vector_projection_active"])
     )
+
+
+def _record_shadow_z_safety_stage(history, step, prefix, safety_info):
+    base = f"shadow_z_safety_{prefix}"
+    history[f"{base}_norm_before_log"][step] = float(safety_info["norm_before"])
+    history[f"{base}_norm_after_log"][step] = float(safety_info["norm_after"])
+    history[f"{base}_projection_scale_log"][step] = float(safety_info["projection_scale"])
+    history[f"{base}_projection_active_log"][step] = int(bool(safety_info["projection_active"]))
+    history[f"{base}_coord_clip_active_log"][step] = int(bool(safety_info["coord_clip_active"]))
+    history[f"{base}_vector_projection_active_log"][step] = int(bool(safety_info["vector_projection_active"]))
 
 
 def phase1_equivalence_metrics(config, ctx, G0):
@@ -1140,6 +1178,9 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     state_conditioner = make_state_conditioner_from_settings(ctx["mismatch_cfg"])
     use_rl = bool(use_markov and config.get("run_rl_proposal", False))
     action_warm_start_step = -1 if force_td3_execute else int(ctx["warm_start_step"])
+    shadow_safety_cfg = _markov_shadow_safety_cfg(config)
+    shadow_safety_enabled = bool(shadow_safety_cfg.get("enabled", False))
+    shadow_config = _shadow_runtime_config(config, shadow_safety_cfg) if shadow_safety_enabled else config
     bc_schedule = build_behavioral_cloning_schedule(
         config=config.get("behavioral_cloning", {}),
         warm_start_step=ctx["warm_start_step"],
@@ -1150,7 +1191,16 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     bc_handoff_logs = init_bc_handoff_logs(nFE, z_dim)
     bc_release_gate = init_protected_bc_release_gate(bc_schedule, nFE)
     bc_handoff_enabled = bool(dict(bc_schedule.get("handoff", {}) or {}).get("enabled", False))
-    if bool(bc_release_gate["state"].get("enabled", False)):
+    shadow_bc_handoff_cfg = dict(shadow_safety_cfg.get("bc_handoff", {}) or {})
+    shadow_bc_schedule = build_behavioral_cloning_schedule(
+        config={"enabled": False, "handoff": shadow_bc_handoff_cfg},
+        warm_start_step=ctx["warm_start_step"],
+        time_in_sub_episodes=ctx["time_in_sub_episodes"],
+        n_steps=nFE,
+    )
+    if bool(bc_release_gate["state"].get("enabled", False)) and not bool(
+        bc_release_gate["state"].get("diagnostic_only", False)
+    ):
         action_warm_start_step = int(ctx["warm_start_step"])
     if bc_handoff_enabled:
         action_warm_start_step = -1
@@ -1340,6 +1390,10 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             ls_eval = None
             rl_eval = None
             rl_score = None
+            z_shadow_ls = np.zeros(z_dim, dtype=float)
+            shadow_ls_eval = None
+            shadow_ls_score = None
+            shadow_ls_target_available = False
             executed_eval = {
                 "U": U0.copy(),
                 "J": float(J0),
@@ -1364,6 +1418,15 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 probation_active=probation_active,
             )
             history["z_safety_effective_cap_log"][step] = float(z_safety_effective_cap)
+            shadow_z_safety_effective_cap = np.nan
+            if shadow_safety_enabled:
+                shadow_z_safety_effective_cap = resolve_z_safety_effective_cap(
+                    shadow_config,
+                    ctx,
+                    step,
+                    probation_active=False,
+                )
+                history["shadow_z_safety_effective_cap_log"][step] = float(shadow_z_safety_effective_cap)
 
             if use_markov and bool(config.get("run_adaptive_ls", True)) and step >= predict_h:
                 z_ls_uncapped, _ls_result, ls_score = fit_markov_ls_correction(
@@ -1416,6 +1479,56 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 if ls_accepted:
                     U_ls = ls_eval["U"]
                 _record_candidate_stage(history, step, "ls", ls_eval["U"], ls_eval, ls_score, U0, J0, nu)
+
+            if (
+                use_markov
+                and shadow_safety_enabled
+                and bool(shadow_safety_cfg.get("compute_ls_candidate", False))
+                and not bool(config.get("run_adaptive_ls", True))
+                and step >= predict_h
+            ):
+                z_shadow_ls_uncapped, _shadow_ls_result, shadow_ls_score = fit_markov_ls_correction(
+                    z_prev,
+                    z_bounds,
+                    history,
+                    m_blocks,
+                    basis_blocks,
+                    G0,
+                    A,
+                    C,
+                    predict_h,
+                    control_horizon,
+                    Wy,
+                    float(config["lambda_z"]),
+                    step,
+                    int(config["prediction_window"]),
+                )
+                z_shadow_ls, _shadow_ls_safety_info = apply_z_safety_projection(
+                    z_shadow_ls_uncapped,
+                    shadow_config,
+                    effective_cap=shadow_z_safety_effective_cap,
+                )
+                shadow_ls_score = prediction_improvement_score(
+                    z=z_shadow_ls,
+                    history=history,
+                    m_blocks=m_blocks,
+                    basis_blocks=basis_blocks,
+                    G0=G0,
+                    A=A,
+                    C=C,
+                    predict_h=predict_h,
+                    control_horizon=control_horizon,
+                    Wy=Wy,
+                    lambda_z=float(config["lambda_z"]),
+                    current_step=step,
+                    prediction_window=int(config["prediction_window"]),
+                )
+                shadow_ls_eval = evaluate_markov_candidate(z_shadow_ls, u_prev_dev, x_model, U0, J0)
+                shadow_ls_target_available = bool(
+                    shadow_ls_eval is not None
+                    and shadow_ls_eval.get("sol") is not None
+                    and bool(getattr(shadow_ls_eval["sol"], "success", False))
+                )
 
             z_ls_safe = z_ls if ls_accepted else np.zeros(z_dim, dtype=float)
             innovation = history["y_scaled_dev"][step, :] - yhat
@@ -1473,9 +1586,14 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 rl_agent is not None or force_td3_execute or step >= predict_h
             ):
                 if rl_agent is not None:
-                    baseline_raw = z_to_raw_action(z_ls_safe, config["z_bound"])
+                    baseline_z_for_bc = z_ls_safe
+                    baseline_is_ls = bool(ls_accepted and U_ls is not None)
+                    if not baseline_is_ls and shadow_ls_target_available:
+                        baseline_z_for_bc = z_shadow_ls
+                        baseline_is_ls = True
+                    baseline_raw = z_to_raw_action(baseline_z_for_bc, config["z_bound"])
                     bc_target_raw = baseline_raw.copy()
-                    bc_target_is_ls = bool(ls_accepted and U_ls is not None)
+                    bc_target_is_ls = bool(baseline_is_ls)
                     test_step = bool(test_flags[step])
                     policy_raw_for_gate = np.asarray(rl_agent.act_eval(rl_state), float).reshape(-1)
                     if policy_raw_for_gate.size != z_dim or not np.all(np.isfinite(policy_raw_for_gate)):
@@ -1501,7 +1619,10 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     )
                     if gate_override:
                         td3_live_released = True
-                    if force_td3_execute and not bool(release_info.get("enabled", False)):
+                    if force_td3_execute and (
+                        not bool(release_info.get("enabled", False))
+                        or bool(release_info.get("diagnostic_only", False))
+                    ):
                         td3_live_released = True
                     decision = select_continuous_action(
                         agent=rl_agent,
@@ -1555,6 +1676,17 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         td3_action=handoff_td3_action,
                         executed_action=raw_requested,
                     )
+                    if shadow_safety_enabled and bool(shadow_bc_handoff_cfg.get("enabled", False)):
+                        shadow_handoff_info = resolve_bc_handoff_authority(shadow_bc_schedule, step_idx=step)
+                        shadow_handoff_action = apply_bc_handoff_action(
+                            handoff_td3_action,
+                            baseline_raw,
+                            shadow_handoff_info["authority"],
+                        )
+                        history["shadow_bc_handoff_authority_log"][step] = float(shadow_handoff_info["authority"])
+                        history["shadow_bc_handoff_delta_norm_log"][step] = float(
+                            np.linalg.norm(shadow_handoff_action - handoff_td3_action)
+                        )
                     last_action_test = decision.last_action_test
                     history["rl_decision_taken_log"][step] = int(decision.decision_taken)
                     history["rl_policy_source_log"][step] = int(decision.source)
@@ -1569,6 +1701,18 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
 
                     z_requested_uncapped = raw_action_to_z(raw_requested, config["z_bound"])
                     history["rl_requested_z_uncapped_log"][step, :] = z_requested_uncapped
+                    if shadow_safety_enabled:
+                        _shadow_z_requested, shadow_requested_safety_info = apply_z_safety_projection(
+                            z_requested_uncapped,
+                            shadow_config,
+                            effective_cap=shadow_z_safety_effective_cap,
+                        )
+                        _record_shadow_z_safety_stage(
+                            history,
+                            step,
+                            "requested",
+                            shadow_requested_safety_info,
+                        )
                     z_requested, requested_safety_info = apply_z_safety_projection(
                         z_requested_uncapped,
                         config,
@@ -1713,6 +1857,32 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                     executed_score = ls_score
                     bc_target_raw = raw_executed.copy()
                     bc_target_is_ls = True
+
+            if shadow_safety_enabled:
+                shadow_phase = _td3_priority_phase(shadow_config, ctx, step) if step > ctx["warm_start_step"] else "none"
+                history["shadow_td3_priority_phase_log"][step] = TD3_PRIORITY_PHASE_CODE.get(shadow_phase, 0)
+                history["shadow_td3_priority_authority_scale_log"][step] = float(
+                    _td3_priority_authority_scale(shadow_config, ctx, step, probation_active=False)
+                )
+                if rl_eval is not None and rl_score is not None:
+                    shadow_rl_allowed = _td3_priority_candidate_allowed(
+                        shadow_config, ctx, step, rl_eval, rl_score, sol0.success
+                    )
+                    history["shadow_td3_priority_allowed_log"][step] = int(bool(shadow_rl_allowed))
+                else:
+                    shadow_rl_allowed = False
+                ls_eval_for_shadow = ls_eval if ls_eval is not None else shadow_ls_eval
+                ls_score_for_shadow = ls_score if ls_eval is not None else shadow_ls_score
+                if ls_eval_for_shadow is not None and ls_score_for_shadow is not None:
+                    shadow_ls_allowed = _td3_priority_candidate_allowed(
+                        shadow_config, ctx, step, ls_eval_for_shadow, ls_score_for_shadow, sol0.success
+                    )
+                    history["shadow_ls_priority_allowed_log"][step] = int(bool(shadow_ls_allowed))
+                else:
+                    shadow_ls_allowed = False
+                history["shadow_nominal_fallback_eligible_log"][step] = int(
+                    bool(sol0.success and not shadow_rl_allowed and not shadow_ls_allowed)
+                )
 
             _record_candidate_stage(history, step, "executed", U_exec, executed_eval, executed_score, U0, J0, nu)
             u_dev = U_exec[:nu]
@@ -2041,6 +2211,8 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "basis_labels": list(basis_labels),
         "markov_z_bound": float(config["z_bound"]),
         "z_safety": deepcopy(config.get("z_safety", {})),
+        "markov_shadow_safety": deepcopy(config.get("markov_shadow_safety", {})),
+        "markov_shadow_safety_enabled": bool(_markov_shadow_safety_cfg(config).get("enabled", False)),
         "markov_s_pred_min": float(config["s_pred_min"]),
         "markov_gain_drift_max": float(config["gain_drift_max"]),
         "z_log": history["z_log"],
@@ -2098,6 +2270,20 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "z_safety_ls_projection_active_log": history["z_safety_ls_projection_active_log"],
         "z_safety_ls_coord_clip_active_log": history["z_safety_ls_coord_clip_active_log"],
         "z_safety_ls_vector_projection_active_log": history["z_safety_ls_vector_projection_active_log"],
+        "shadow_z_safety_effective_cap_log": history["shadow_z_safety_effective_cap_log"],
+        "shadow_z_safety_requested_norm_before_log": history["shadow_z_safety_requested_norm_before_log"],
+        "shadow_z_safety_requested_norm_after_log": history["shadow_z_safety_requested_norm_after_log"],
+        "shadow_z_safety_requested_projection_scale_log": history["shadow_z_safety_requested_projection_scale_log"],
+        "shadow_z_safety_requested_projection_active_log": history["shadow_z_safety_requested_projection_active_log"],
+        "shadow_z_safety_requested_coord_clip_active_log": history["shadow_z_safety_requested_coord_clip_active_log"],
+        "shadow_z_safety_requested_vector_projection_active_log": history["shadow_z_safety_requested_vector_projection_active_log"],
+        "shadow_td3_priority_phase_log": history["shadow_td3_priority_phase_log"],
+        "shadow_td3_priority_authority_scale_log": history["shadow_td3_priority_authority_scale_log"],
+        "shadow_td3_priority_allowed_log": history["shadow_td3_priority_allowed_log"],
+        "shadow_ls_priority_allowed_log": history["shadow_ls_priority_allowed_log"],
+        "shadow_nominal_fallback_eligible_log": history["shadow_nominal_fallback_eligible_log"],
+        "shadow_bc_handoff_authority_log": history["shadow_bc_handoff_authority_log"],
+        "shadow_bc_handoff_delta_norm_log": history["shadow_bc_handoff_delta_norm_log"],
         "u_sequence_nominal_log": history["u_sequence_nominal_log"],
         "u_sequence_requested_log": history["u_sequence_requested_log"],
         "u_sequence_ls_log": history["u_sequence_ls_log"],

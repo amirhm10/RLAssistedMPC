@@ -69,6 +69,17 @@ RESIDUAL_ZERO_FALLBACK_REASON_CODES = {
     "nonfinite_projected_action": 2,
 }
 
+RESIDUAL_EARLY_RELEASE_GUARD_REASON_CODES = {
+    "none": 0,
+    "outside_window": 1,
+    "requested_accepted": 2,
+    "objective_worse": 3,
+    "error_worse": 4,
+    "objective_and_error_worse": 5,
+    "nonfinite_candidate": 6,
+    "zero_selected": 7,
+}
+
 
 def _projection_is_finite(projection):
     for key in ("a_exec", "delta_u_res_exec", "u_applied_scaled_abs"):
@@ -76,6 +87,138 @@ def _projection_is_finite(projection):
         if not np.all(np.isfinite(value)):
             return False
     return True
+
+
+def _weighted_square(value, weights):
+    value = np.asarray(value, float).reshape(-1)
+    weights = np.asarray(weights, float)
+    if weights.ndim == 2:
+        return float(value.T @ weights @ value)
+    weights = weights.reshape(-1)
+    if weights.size == 1:
+        weights = np.full(value.size, float(weights[0]), dtype=float)
+    if weights.size != value.size:
+        weights = np.ones(value.size, dtype=float)
+    return float(np.sum(weights * value * value))
+
+
+def _residual_one_step_metrics(mpc_obj, x_state, u_base, residual_delta, u_prev_scaled, ss_scaled_inputs, y_sp, tracking_scale):
+    u_dev = np.asarray(u_base, float).reshape(-1) - np.asarray(ss_scaled_inputs, float).reshape(-1)
+    u_dev = u_dev + np.asarray(residual_delta, float).reshape(-1)
+    prev_dev = np.asarray(u_prev_scaled, float).reshape(-1) - np.asarray(ss_scaled_inputs, float).reshape(-1)
+    y_pred = np.asarray(mpc_obj.C @ (mpc_obj.A @ np.asarray(x_state, float).reshape(-1) + mpc_obj.B @ u_dev), float).reshape(-1)
+    err = y_pred - np.asarray(y_sp, float).reshape(-1)
+    move = u_dev - prev_dev
+    q_out = getattr(mpc_obj, "Q_out", np.ones_like(err, dtype=float))
+    r_in = getattr(mpc_obj, "R_in", np.ones_like(move, dtype=float))
+    objective = _weighted_square(err, q_out) + _weighted_square(move, r_in)
+    scale = np.asarray(tracking_scale, float).reshape(-1) if tracking_scale is not None else np.ones_like(err)
+    if scale.size != err.size:
+        scale = np.ones_like(err)
+    error_norm = float(np.linalg.norm(err / np.maximum(scale, 1.0e-12)))
+    return {
+        "objective": float(objective),
+        "error_norm": error_norm,
+        "y_pred": y_pred,
+    }
+
+
+def _early_release_failure_reason(candidate, nominal, rel_tol, abs_tol, error_tol):
+    cand_obj = float(candidate["objective"])
+    cand_err = float(candidate["error_norm"])
+    nom_obj = float(nominal["objective"])
+    nom_err = float(nominal["error_norm"])
+    if not np.all(np.isfinite([cand_obj, cand_err, nom_obj, nom_err])):
+        return "nonfinite_candidate"
+    obj_limit = nom_obj + max(float(abs_tol), float(rel_tol) * max(abs(nom_obj), 1.0e-12))
+    err_limit = nom_err + float(error_tol)
+    obj_bad = cand_obj > obj_limit
+    err_bad = cand_err > err_limit
+    if obj_bad and err_bad:
+        return "objective_and_error_worse"
+    if obj_bad:
+        return "objective_worse"
+    if err_bad:
+        return "error_worse"
+    return "none"
+
+
+def _apply_residual_early_release_guard(
+    *,
+    cfg,
+    post_warm_subepisode,
+    residual_delta,
+    action_raw,
+    low_coef,
+    high_coef,
+    mpc_obj,
+    x_state,
+    u_base,
+    u_prev_scaled,
+    ss_scaled_inputs,
+    y_sp,
+    tracking_scale,
+):
+    guard_cfg = dict(cfg or {})
+    enabled = bool(guard_cfg.get("enabled", False))
+    horizon = int(max(0, guard_cfg.get("post_warm_subepisodes", 0)))
+    active = bool(enabled and 1 <= int(post_warm_subepisode) <= horizon)
+    rel_tol = float(guard_cfg.get("objective_relative_tolerance", 0.0))
+    abs_tol = float(guard_cfg.get("objective_absolute_tolerance", 0.0))
+    error_tol = float(guard_cfg.get("error_norm_tolerance", 0.0))
+    shrink_scales = [float(scale) for scale in guard_cfg.get("shrink_scales", [0.5, 0.25, 0.1, 0.0])]
+    residual_delta = np.asarray(residual_delta, float).reshape(-1)
+
+    nominal = _residual_one_step_metrics(
+        mpc_obj, x_state, u_base, np.zeros_like(residual_delta), u_prev_scaled, ss_scaled_inputs, y_sp, tracking_scale
+    )
+    requested = _residual_one_step_metrics(
+        mpc_obj, x_state, u_base, residual_delta, u_prev_scaled, ss_scaled_inputs, y_sp, tracking_scale
+    )
+    reason = "outside_window" if not active else _early_release_failure_reason(requested, nominal, rel_tol, abs_tol, error_tol)
+    selected_scale = 1.0
+    selected_delta = residual_delta.copy()
+    executed_metrics = requested
+
+    if active and reason != "none":
+        for scale in shrink_scales:
+            candidate_delta = residual_delta * float(scale)
+            candidate = _residual_one_step_metrics(
+                mpc_obj,
+                x_state,
+                u_base,
+                candidate_delta,
+                u_prev_scaled,
+                ss_scaled_inputs,
+                y_sp,
+                tracking_scale,
+            )
+            if _early_release_failure_reason(candidate, nominal, rel_tol, abs_tol, error_tol) == "none":
+                selected_scale = float(scale)
+                selected_delta = candidate_delta
+                executed_metrics = candidate
+                break
+        else:
+            selected_scale = 0.0
+            selected_delta = np.zeros_like(residual_delta)
+            executed_metrics = nominal
+        if selected_scale == 0.0:
+            reason = "zero_selected" if reason != "nonfinite_candidate" else reason
+    elif active:
+        reason = "requested_accepted"
+
+    action_selected = np.clip(map_from_bounds(selected_delta, low_coef, high_coef), -1.0, 1.0)
+    return {
+        "active": active,
+        "triggered": bool(active and selected_scale < 1.0),
+        "selected_scale": float(selected_scale),
+        "reason": reason,
+        "residual_delta": selected_delta,
+        "action_raw": action_selected,
+        "nominal": nominal,
+        "requested": requested,
+        "executed": executed_metrics,
+    }
 
 
 def run_residual_supervisor(residual_cfg, runtime_ctx):
@@ -135,6 +278,10 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     shadow_direction_risk_enabled = bool(
         residual_safety_enabled
         and dict(residual_safety_cfg.get("shadow_direction_risk", {}) or {}).get("enabled", False)
+    )
+    early_release_guard_cfg = dict(residual_safety_cfg.get("early_release_guard", {}) or {})
+    early_release_guard_enabled = bool(
+        residual_safety_enabled and early_release_guard_cfg.get("enabled", False)
     )
     if agent_kind not in {"td3", "sac"}:
         raise ValueError("residual_cfg['agent_kind'] must be 'td3' or 'sac'.")
@@ -326,9 +473,21 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     residual_requested_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
     residual_post_handoff_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
     residual_post_cap_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
+    residual_post_guard_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
     delta_u_res_requested_log = np.zeros((nFE, n_inputs), dtype=float)
     delta_u_res_post_handoff_log = np.zeros((nFE, n_inputs), dtype=float)
     delta_u_res_post_cap_log = np.zeros((nFE, n_inputs), dtype=float)
+    delta_u_res_post_guard_log = np.zeros((nFE, n_inputs), dtype=float)
+    residual_guard_active_log = np.zeros(nFE, dtype=int)
+    residual_guard_triggered_log = np.zeros(nFE, dtype=int)
+    residual_guard_selected_scale_log = np.ones(nFE, dtype=float)
+    residual_guard_reason_code_log = np.zeros(nFE, dtype=int)
+    residual_guard_nominal_objective_log = np.full(nFE, np.nan, dtype=float)
+    residual_guard_requested_objective_log = np.full(nFE, np.nan, dtype=float)
+    residual_guard_executed_objective_log = np.full(nFE, np.nan, dtype=float)
+    residual_guard_nominal_error_norm_log = np.full(nFE, np.nan, dtype=float)
+    residual_guard_requested_error_norm_log = np.full(nFE, np.nan, dtype=float)
+    residual_guard_executed_error_norm_log = np.full(nFE, np.nan, dtype=float)
     shadow_rho_log = np.full(nFE, np.nan, dtype=float)
     shadow_rho_raw_log = np.full(nFE, np.nan, dtype=float)
     shadow_rho_eff_log = np.full(nFE, np.nan, dtype=float)
@@ -529,6 +688,56 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         u_base = np.clip(u_base, u_min_scaled_abs, u_max_scaled_abs)
         u_base_scaled[i, :] = u_base
 
+        post_warm_subepisode = 0
+        if i > warm_start_step:
+            post_warm_subepisode = int((i - warm_start_step - 1) // max(1, time_in_sub_episodes)) + 1
+        guard_info = _apply_residual_early_release_guard(
+            cfg=early_release_guard_cfg,
+            post_warm_subepisode=post_warm_subepisode,
+            residual_delta=residual_post_cap,
+            action_raw=action_post_cap,
+            low_coef=low_coef,
+            high_coef=high_coef,
+            mpc_obj=mpc_obj,
+            x_state=xhatdhat[:, i],
+            u_base=u_base,
+            u_prev_scaled=scaled_current_input,
+            ss_scaled_inputs=ss_scaled_inputs,
+            y_sp=y_sp[i, :],
+            tracking_scale=state_debug.get("tracking_scale_now", tracking_scale_now),
+        )
+        if early_release_guard_enabled:
+            action = np.asarray(guard_info["action_raw"], float).reshape(-1)
+            residual_post_guard = np.asarray(guard_info["residual_delta"], float).reshape(-1)
+        else:
+            action = action_post_cap
+            residual_post_guard = residual_post_cap
+        residual_post_guard_action_raw_log[i, :] = action
+        delta_u_res_post_guard_log[i, :] = residual_post_guard
+        residual_guard_active_log[i] = int(bool(early_release_guard_enabled and guard_info["active"]))
+        residual_guard_triggered_log[i] = int(bool(early_release_guard_enabled and guard_info["triggered"]))
+        residual_guard_selected_scale_log[i] = (
+            float(guard_info["selected_scale"]) if early_release_guard_enabled else 1.0
+        )
+        residual_guard_reason_code_log[i] = (
+            RESIDUAL_EARLY_RELEASE_GUARD_REASON_CODES.get(str(guard_info["reason"]), 0)
+            if early_release_guard_enabled
+            else RESIDUAL_EARLY_RELEASE_GUARD_REASON_CODES["none"]
+        )
+        residual_guard_nominal_objective_log[i] = float(guard_info["nominal"]["objective"])
+        residual_guard_requested_objective_log[i] = float(guard_info["requested"]["objective"])
+        residual_guard_executed_objective_log[i] = float(guard_info["executed"]["objective"])
+        residual_guard_nominal_error_norm_log[i] = float(guard_info["nominal"]["error_norm"])
+        residual_guard_requested_error_norm_log[i] = float(guard_info["requested"]["error_norm"])
+        residual_guard_executed_error_norm_log[i] = float(guard_info["executed"]["error_norm"])
+        if shadow_direction_risk_enabled:
+            residual_predicted_nominal_error_norm_log[i] = float(guard_info["nominal"]["error_norm"])
+            residual_predicted_candidate_error_norm_log[i] = float(guard_info["requested"]["error_norm"])
+            residual_predicted_direction_risk_log[i] = float(
+                guard_info["requested"]["error_norm"] - guard_info["nominal"]["error_norm"]
+            )
+        a_res_raw_log[i, :] = np.asarray(action, float).reshape(-1)
+
         projection = project_residual_action(
             action_raw=action,
             low_coef=low_coef,
@@ -635,7 +844,11 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             residual_action_source_log[i] = RESIDUAL_ACTION_SOURCE_CODES["zero_fallback"]
         elif i <= warm_start_step and float(np.linalg.norm(delta_u_res_exec_log[i, :])) <= 1.0e-12:
             residual_action_source_log[i] = RESIDUAL_ACTION_SOURCE_CODES["warm_zero"]
-        elif bool(ramp_clip_info["projection_active"]) or bool(projection["projection_active"]):
+        elif (
+            bool(ramp_clip_info["projection_active"])
+            or bool(residual_guard_triggered_log[i])
+            or bool(projection["projection_active"])
+        ):
             residual_action_source_log[i] = RESIDUAL_ACTION_SOURCE_CODES["projected_td3"]
         else:
             residual_action_source_log[i] = RESIDUAL_ACTION_SOURCE_CODES["td3_accepted"]
@@ -829,6 +1042,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "residual_safety": dict(residual_safety_cfg),
         "residual_safety_enabled": bool(residual_safety_enabled),
         "residual_reward_probation_enabled": bool(reward_probation_enabled),
+        "residual_early_release_guard": dict(early_release_guard_cfg),
+        "residual_early_release_guard_enabled": bool(early_release_guard_enabled),
         "residual_fallback_to_zero_on_nonfinite": bool(fallback_to_zero_on_nonfinite),
         "residual_probation_reference_warm_episodes": int(probation_reference_warm_episodes),
         "residual_probation_collapse_threshold": float(probation_collapse_threshold),
@@ -848,9 +1063,22 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "residual_requested_action_raw_log": residual_requested_action_raw_log,
         "residual_post_handoff_action_raw_log": residual_post_handoff_action_raw_log,
         "residual_post_cap_action_raw_log": residual_post_cap_action_raw_log,
+        "residual_post_guard_action_raw_log": residual_post_guard_action_raw_log,
         "delta_u_res_requested_log": delta_u_res_requested_log,
         "delta_u_res_post_handoff_log": delta_u_res_post_handoff_log,
         "delta_u_res_post_cap_log": delta_u_res_post_cap_log,
+        "delta_u_res_post_guard_log": delta_u_res_post_guard_log,
+        "residual_guard_reason_codes": dict(RESIDUAL_EARLY_RELEASE_GUARD_REASON_CODES),
+        "residual_guard_active_log": residual_guard_active_log,
+        "residual_guard_triggered_log": residual_guard_triggered_log,
+        "residual_guard_selected_scale_log": residual_guard_selected_scale_log,
+        "residual_guard_reason_code_log": residual_guard_reason_code_log,
+        "residual_guard_nominal_objective_log": residual_guard_nominal_objective_log,
+        "residual_guard_requested_objective_log": residual_guard_requested_objective_log,
+        "residual_guard_executed_objective_log": residual_guard_executed_objective_log,
+        "residual_guard_nominal_error_norm_log": residual_guard_nominal_error_norm_log,
+        "residual_guard_requested_error_norm_log": residual_guard_requested_error_norm_log,
+        "residual_guard_executed_error_norm_log": residual_guard_executed_error_norm_log,
         "policy_action_raw_log": policy_action_raw_log,
         "executed_action_raw_log": executed_action_raw_log,
         "policy_executed_gap_norm_log": policy_executed_gap_norm_log,

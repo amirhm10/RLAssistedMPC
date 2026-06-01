@@ -55,6 +55,8 @@ class HybridLAPReplayBuffer:
         return ordered_ring_indices(self.size, self.ptr, self.capacity)
 
     def _priority_from_td(self, td_errors) -> np.ndarray:
+        if torch.is_tensor(td_errors):
+            td_errors = td_errors.detach().cpu().numpy()
         td = np.asarray(td_errors, dtype=np.float32).reshape(-1)
         priority = np.maximum(np.abs(td), self.min_priority)
         if self.alpha != 1.0:

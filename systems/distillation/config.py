@@ -112,6 +112,9 @@ DISTILLATION_RESIDUAL_RUN_PROFILES = {
     ("td3", "disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10
     , "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("td3", "disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+    ("sg_td3", "nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+    ("sg_td3", "disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+    ("sg_td3", "disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("td7", "nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("td7", "disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("td7", "disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},

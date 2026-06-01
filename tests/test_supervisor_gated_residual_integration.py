@@ -17,6 +17,64 @@ def test_polymer_residual_sg_td3_profile_available():
     assert "supervisor_gate" in nb
 
 
+def test_distillation_residual_sg_td3_profile_available():
+    from systems.distillation import get_distillation_notebook_defaults
+
+    nb = get_distillation_notebook_defaults("residual")
+    assert ("sg_td3", "nominal", "none") in nb["run_profiles"]
+    assert ("sg_td3", "disturb", "ramp") in nb["run_profiles"]
+    assert ("sg_td3", "disturb", "fluctuation") in nb["run_profiles"]
+    assert "supervisor_gate" in nb
+
+
+def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
+    from distillation_RL_assisted_MPC_residual_supervisor_gated_td3_critic_warm_unified import (
+        configure_sg_td3_residual_critic_warm,
+    )
+    from systems.distillation import get_distillation_notebook_defaults
+
+    configured = configure_sg_td3_residual_critic_warm(get_distillation_notebook_defaults("residual"))
+    assert configured["agent_kind"] == "sg_td3"
+    assert configured["run_mode"] == "disturb"
+    assert configured["disturbance_profile"] == "fluctuation"
+    assert configured["state_mode"] == "mismatch"
+    assert configured["warm_start_override"] == 10
+    assert configured["post_warm_start_action_freeze_subepisodes"] == 3
+    assert configured["post_warm_start_actor_freeze_subepisodes"] == 3
+    assert configured["residual_authority_enabled"] is False
+    assert configured["authority_use_rho"] is False
+    assert configured["use_rho_authority"] is False
+    assert configured["append_rho_to_state"] is False
+    assert configured["residual_zero_deadband_enabled"] is False
+
+    bc_cfg = configured["behavioral_cloning"]
+    assert bc_cfg["enabled"] is False
+    assert bc_cfg["handoff"]["enabled"] is False
+    assert bc_cfg["release_gate"]["enabled"] is False
+
+    ramp_cfg = configured["td3_authority_ramp"]
+    assert ramp_cfg["enabled"] is False
+    assert ramp_cfg["diagnostic_release_gate_only"] is False
+
+    safety_cfg = configured["residual_safety"]
+    assert safety_cfg["enabled"] is True
+    assert safety_cfg["fallback_to_zero_on_nonfinite"] is True
+    assert safety_cfg["reward_probation"]["enabled"] is False
+    assert safety_cfg["early_release_guard"]["enabled"] is False
+    assert safety_cfg["shadow_rho_authority"]["enabled"] is False
+    assert safety_cfg["shadow_residual_deadband"]["enabled"] is False
+    assert safety_cfg["shadow_direction_risk"]["enabled"] is False
+
+    gate_cfg = configured["supervisor_gate"]
+    assert gate_cfg["advantage_margin"] == 0.5
+    assert gate_cfg["score_uncertainty_weight"] == 0.5
+    assert gate_cfg["score_supervisor_action_weight"] == 0.05
+    assert gate_cfg["score_previous_action_weight"] == 0.01
+    assert gate_cfg["supervisor_bc_weight"] == 0.0
+    assert gate_cfg["enable_supervisor_actor_loss"] is False
+    assert gate_cfg["min_train_steps_before_policy_gate"] == 0
+
+
 def test_residual_runner_imports_with_supervisor_gated_branch():
     from utils.residual_runner import run_residual_supervisor
 
@@ -25,6 +83,8 @@ def test_residual_runner_imports_with_supervisor_gated_branch():
 
 def run_direct():
     test_polymer_residual_sg_td3_profile_available()
+    test_distillation_residual_sg_td3_profile_available()
+    test_distillation_sg_td3_critic_warm_config_manual_layers_off()
     test_residual_runner_imports_with_supervisor_gated_branch()
     print("supervisor_gated_residual_integration tests passed")
 

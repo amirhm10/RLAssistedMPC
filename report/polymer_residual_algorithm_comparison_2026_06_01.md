@@ -4,7 +4,7 @@ Date: 2026-06-01
 
 ## Objective
 
-This report analyzes the three latest disturbed polymer residual runs after the polymer authority-ramp correction. The compared methods are standard TD3 residual control, supervisor-gated TD3 residual control, and TD7 residual control. The OF-MPC disturbed baseline is included as the reference controller.
+This report analyzes the latest disturbed polymer residual runs after the polymer authority-ramp correction and the SG-TD3 critic-warm ablation. The compared methods are standard TD3 residual control, supervisor-gated TD3 residual control, SG-TD3 with OF-MPC warm-start plus critic-only release, and TD7 residual control. The OF-MPC disturbed baseline is included as the reference controller.
 
 The analysis uses saved result bundles only. No plant simulations were rerun.
 
@@ -15,9 +15,10 @@ The analysis uses saved result bundles only. No plant simulations were rerun.
 | OF-MPC | `Polymer/Data/mpc_results_dist.pickle` |
 | TD3 Residual | `Polymer/Results/td3_residual_disturb/20260601_021504/input_data.pkl` |
 | SG-TD3 Residual | `Polymer/Results/sg_td3_residual_disturb/20260601_022723/input_data.pkl` |
+| SG-TD3 Critic-Warm | `Polymer/Results/sg_td3_residual_critic_warm_disturb/20260601_140709/input_data.pkl` |
 | TD7 Residual | `Polymer/Results/td7_residual_disturb/20260601_022931/input_data.pkl` |
 
-All three residual bundles record `run_mode = disturb`, `state_mode = mismatch`, `low_coef = [-0.25, -0.25]`, `high_coef = [0.25, 0.25]`, and the corrected TD3-style authority ramp `0.005 -> 0.25`. The actual rho authority is disabled in these three runs: `residual_authority_enabled = False`, `authority_use_rho = False`, and `append_rho_to_state = False`. The `shadow_rho_*` logs are diagnostic only.
+All learned residual bundles record `run_mode = disturb`, `state_mode = mismatch`, `low_coef = [-0.25, -0.25]`, and `high_coef = [0.25, 0.25]`. TD3, original SG-TD3, and TD7 use the corrected TD3-style authority ramp `0.005 -> 0.25`. The SG-TD3 critic-warm ablation disables that ramp. The actual rho authority is disabled in all live runs: `residual_authority_enabled = False`, `authority_use_rho = False`, and `append_rho_to_state = False`. Shadow rho diagnostics are enabled for the original residual runs and disabled for the critic-warm ablation.
 
 ## Method Formulation
 
@@ -77,6 +78,8 @@ The policy action is executed only when it beats the supervisor by the configure
 
 $$ a_k = a_{\mathrm{rl},k}\ \mathrm{if}\ S(s_k,a_{\mathrm{rl},k}) > S(s_k,a_{\mathrm{sup},k})+\epsilon_A,\quad \mathrm{otherwise}\ a_k=a_{\mathrm{sup},k}. $$
 
+The SG-TD3 critic-warm ablation keeps the same gate but removes behavioral cloning, BC handoff, TD3 authority cap/ramp, rho authority, residual deadband, and early-release guard. It uses 10 OF-MPC warm-start episodes followed by 5 post-warm episodes where the zero-residual supervisor is executed while replay is collected and the critics train. Actor updates begin after this critic-only window. The purpose is to test whether the supervisor gate plus critic pretraining is enough to reduce post-warm collapse without extra handrails.
+
 TD7 Residual uses the same residual action surface and safety pipeline, but its learning update uses learned state and state-action encoders. With encoder maps `z_s(s)` and `z_{sa}(z_s,a)`, the encoder prediction loss is
 
 $$ \mathcal{L}_{z} = \|z_{sa}(z_s(s_k),a_k)-z_s(s_{k+1})\|_2^2. $$
@@ -96,6 +99,7 @@ $$ p_k = \max(|y_k^{Q}-Q_1(s_k,a_k)|,\ |y_k^{Q}-Q_2(s_k,a_k)|). $$
 | OF-MPC | -4.412 | -4.417 | -4.417 | 0.1917 | 0.5678 | 0.0646 | 0.2654 | 0.0179 |
 | TD3 Residual | -3.455 | -3.411 | -2.927 | 0.1585 | 0.3851 | 0.0353 | 0.1167 | 0.0902 |
 | SG-TD3 Residual | -3.374 | -3.325 | -2.870 | 0.1583 | 0.3962 | 0.0342 | 0.0989 | 0.0472 |
+| SG-TD3 Critic-Warm | -3.368 | -3.319 | -2.852 | 0.1580 | 0.3873 | 0.0328 | 0.0924 | 0.0496 |
 | TD7 Residual | -3.720 | -3.690 | -2.915 | 0.1585 | 0.3866 | 0.0359 | 0.1203 | 0.0419 |
 
 ![Reward curves](figures/polymer_residual_algorithm_comparison_20260601/reward_curves.png)
@@ -111,11 +115,12 @@ $$ p_k = \max(|y_k^{Q}-Q_1(s_k,a_k)|,\ |y_k^{Q}-Q_2(s_k,a_k)|). $$
 | OF-MPC | -4.417 | 0.1917 | 0.5678 | 0.0646 | 0.2654 | 1.0986 | 2.9777 |
 | TD3 Residual | -2.858 | 0.1580 | 0.3792 | 0.0330 | 0.1037 | 1.0978 | 2.9571 |
 | SG-TD3 Residual | -2.827 | 0.1578 | 0.3969 | 0.0336 | 0.0962 | 1.0976 | 2.9673 |
+| SG-TD3 Critic-Warm | -2.832 | 0.1583 | 0.3878 | 0.0320 | 0.0907 | 1.0977 | 2.9708 |
 | TD7 Residual | -2.908 | 0.1587 | 0.3852 | 0.0355 | 0.1270 | 1.0995 | 2.9529 |
 
 ![Last episode tracking overlay](figures/polymer_residual_algorithm_comparison_20260601/last_episode_tracking_overlay.png)
 
-The last subepisode confirms the tail-window conclusion. All three residual controllers remove most of the large OF-MPC temperature excursion after the setpoint switch. SG-TD3 has the best last-episode reward and the best last-episode eta RMSE. TD3 still has the best last-episode temperature RMSE, while SG-TD3 has the best last-episode temperature MAE.
+The last subepisode confirms the tail-window conclusion. All learned residual controllers remove most of the large OF-MPC temperature excursion after the setpoint switch. Original SG-TD3 has the best last-episode reward and eta RMSE by a small margin. SG-TD3 critic-warm has the best last-episode eta MAE and temperature MAE, and it reduces the original SG-TD3 temperature RMSE from `0.3969` to `0.3878`.
 
 ## Final Steady-State Error And Late Residual Range
 
@@ -126,11 +131,12 @@ The final subepisode contains two setpoint plateaus. To separate transition beha
 | OF-MPC | 300-399; 700-799 | 200 | 0.000191 | 0.001320 | 0.000231 | 0.001622 | 0.000019 | -0.000247 |
 | TD3 Residual | 300-399; 700-799 | 200 | 0.001299 | 0.035343 | 0.002006 | 0.048084 | 0.001286 | -0.032593 |
 | SG-TD3 Residual | 300-399; 700-799 | 200 | 0.000299 | 0.001163 | 0.000328 | 0.001413 | 0.000299 | -0.000699 |
+| SG-TD3 Critic-Warm | 300-399; 700-799 | 200 | 0.000363 | 0.001101 | 0.000382 | 0.001192 | 0.000363 | -0.001052 |
 | TD7 Residual | 300-399; 700-799 | 200 | 0.001966 | 0.056497 | 0.002067 | 0.080083 | -0.000963 | -0.056497 |
 
 ![Final steady-state error bars](figures/polymer_residual_algorithm_comparison_20260601/last_episode_steady_error_bars.png)
 
-This supports the visual impression that SG-TD3 has the smallest steady-state error among the residual RL algorithms. It is much closer to OF-MPC than TD3 or TD7 in the near-steady windows. The precise statement should be slightly qualified: OF-MPC has the smallest eta MAE, `0.000191` versus `0.000299` for SG-TD3, while SG-TD3 has the smallest temperature MAE, `0.001163` versus `0.001320` for OF-MPC. Among learned residual controllers, SG-TD3 is clearly best near steady state.
+This supports the visual impression that the SG-TD3 variants have the smallest steady-state error among the residual RL algorithms. Both are much closer to OF-MPC than TD3 or TD7 in the near-steady windows. The precise statement should be slightly qualified: OF-MPC has the smallest eta MAE, `0.000191`, while original SG-TD3 has `0.000299` and critic-warm SG-TD3 has `0.000363`. Critic-warm SG-TD3 has the smallest temperature MAE and RMSE, `0.001101` and `0.001192`, even slightly below OF-MPC on those two temperature metrics.
 
 | Method | Window | Steps | Qc range | Qc mean abs | Qc q95 abs | Qm range | Qm mean abs | Qm q95 abs | SG policy selected | SG supervisor selected |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -138,14 +144,16 @@ This supports the visual impression that SG-TD3 has the smallest steady-state er
 | TD3 Residual | Final steady windows | 200 | [-0.0637, 0.0748] | 0.0231 | 0.0653 | [-0.0141, 0.0151] | 0.0064 | 0.0136 | NA | NA |
 | SG-TD3 Residual | Final episode | 800 | [-0.2500, 0.2500] | 0.0281 | 0.2500 | [-0.2500, 0.2500] | 0.0263 | 0.2500 | 55.8% | 44.2% |
 | SG-TD3 Residual | Final steady windows | 200 | [-0.0242, 0.0338] | 0.0042 | 0.0244 | [-0.0193, 0.0239] | 0.0023 | 0.0157 | 41.0% | 59.0% |
+| SG-TD3 Critic-Warm | Final episode | 800 | [-0.2500, 0.2500] | 0.0274 | 0.2419 | [-0.2500, 0.2500] | 0.0243 | 0.2500 | 49.5% | 50.5% |
+| SG-TD3 Critic-Warm | Final steady windows | 200 | [-0.0078, 0.0213] | 0.0009 | 0.0064 | [-0.0129, 0.0209] | 0.0015 | 0.0118 | 22.0% | 78.0% |
 | TD7 Residual | Final episode | 800 | [-0.2500, 0.2500] | 0.0475 | 0.2500 | [-0.2500, 0.2500] | 0.0356 | 0.2500 | NA | NA |
 | TD7 Residual | Final steady windows | 200 | [-0.0818, 0.1258] | 0.0356 | 0.1172 | [-0.0589, 0.0758] | 0.0213 | 0.0675 | NA | NA |
 
 ![Final steady residual ranges](figures/polymer_residual_algorithm_comparison_20260601/last_episode_steady_residual_ranges.png)
 
-The late residual range argues against globally shrinking the polymer residual bound below `[-0.25, 0.25]`. All three learned methods still touch full authority during the final subepisode, because the setpoint transitions need larger corrective action. However, the near-steady residuals are much smaller. SG-TD3 stays within about `[-0.0242, 0.0338]` on `Qc` and `[-0.0193, 0.0239]` on `Qm` in the steady windows. Its 95th percentile absolute steady residuals are only `0.0244` for `Qc` and `0.0157` for `Qm`.
+The late residual range argues against globally shrinking the polymer residual bound below `[-0.25, 0.25]`. All learned methods still touch or nearly touch full authority during the final subepisode, because the setpoint transitions need larger corrective action. However, the near-steady residuals are much smaller. Original SG-TD3 stays within about `[-0.0242, 0.0338]` on `Qc` and `[-0.0193, 0.0239]` on `Qm` in the steady windows. Critic-warm SG-TD3 is even quieter near steady state, staying within `[-0.0078, 0.0213]` on `Qc` and `[-0.0129, 0.0209]` on `Qm`.
 
-The SG-TD3 source split is also important. In the final steady windows, the policy is selected on `41.0%` of steps and the zero-residual supervisor is selected on `59.0%`. When the policy is selected, its steady residual range is `[-0.0242, 0.0338]` for `Qc` and `[-0.0193, 0.0239]` for `Qm`. When the supervisor is selected, the residual is numerically zero. This means SG-TD3 is already behaving like a near-setpoint residual suppressor.
+The SG-TD3 source split is also important. In the final steady windows, original SG-TD3 selects the policy on `41.0%` of steps and the zero-residual supervisor on `59.0%`. Critic-warm SG-TD3 selects the policy on only `22.0%` of those steady-window steps and the supervisor on `78.0%`. This means the critic-warm ablation is more conservative near setpoint while still using full residual authority during transitions.
 
 If residual shrinking is tested, the safer hypothesis is a state-dependent steady-state envelope rather than a smaller global authority. One candidate is to keep the global transient limit at `c_{\max}=0.25` and introduce a near-setpoint cap `c_{\mathrm{ss}}`:
 
@@ -157,15 +165,15 @@ $$ \Delta u_{\mathrm{res},k}^{\mathrm{exec}}=\Pi_{[-c_{\mathrm{eff},k},c_{\mathr
 
 For SG-TD3, a first steady-state cap around `0.04` is plausible because it contains most observed policy-selected steady residuals. For raw TD3 and TD7, `0.04` would heavily clip the first channel for TD3 and both channels for TD7 in the steady windows, so that test should be interpreted as a regularization experiment, not as a neutral bound change.
 
-All three residual algorithms improve the final 20-subepisode reward and physical tracking metrics relative to OF-MPC. SG-TD3 has the best mean reward, post-warm reward, and tail-20 reward. It also has the best tail eta RMSE and the best tail mean absolute errors for both outputs.
+All learned residual algorithms improve the final 20-subepisode reward and physical tracking metrics relative to OF-MPC. SG-TD3 critic-warm has the best mean reward, post-warm reward, and tail-20 reward in this batch. It also has the best tail eta RMSE and the best tail mean absolute errors for both outputs.
 
-TD3 has the best tail temperature RMSE by a small margin, `0.3851` versus `0.3866` for TD7 and `0.3962` for SG-TD3. SG-TD3 still has the lowest temperature MAE, `0.0989`, so it is better for typical temperature error but has a few larger temperature deviations that raise RMSE.
+TD3 has the best tail temperature RMSE by a small margin, `0.3851` versus `0.3866` for TD7 and `0.3873` for SG-TD3 critic-warm. Critic-warm SG-TD3 still has the lowest temperature MAE, `0.0924`, so it is better for typical temperature error but has a few larger temperature deviations that keep RMSE slightly above raw TD3.
 
-TD3 uses the most residual movement in the tail window. Its tail mean absolute scaled input move is `0.0902`, compared with `0.0472` for SG-TD3 and `0.0419` for TD7. This matters because the scalar reward includes input movement. SG-TD3 reaches the best reward while using roughly half the TD3 tail input movement.
+TD3 uses the most residual movement in the tail window. Its tail mean absolute scaled input move is `0.0902`, compared with `0.0472` for original SG-TD3, `0.0496` for critic-warm SG-TD3, and `0.0419` for TD7. This matters because the scalar reward includes input movement. Critic-warm SG-TD3 reaches the best reward while using roughly half the TD3 tail input movement.
 
 ## Logged Safety Mathematics
 
-The corrected residual ramp is a per-coordinate scaled-input cap. For post-warm subepisode `q`, the live cap is
+For runners that enable the TD3 residual authority ramp, the corrected ramp is a per-coordinate scaled-input cap. For post-warm subepisode `q`, the live cap is
 
 $$ c_q = c_0 + \alpha_q(c_f-c_0), \qquad c_0=0.005,\quad c_f=0.25,\quad \alpha_q=\mathrm{clip}\left(\frac{q-1}{29},0,1\right). $$
 
@@ -181,7 +189,7 @@ The normalized one-step tracking norm is
 
 $$ E_k(\Delta u)=\left\|\frac{\hat y_{k+1}(\Delta u)-r_k}{s_k}\right\|_2. $$
 
-During the first 20 post-warm subepisodes, a candidate residual is accepted only if
+For runners that enable the early-release guard, during the first 20 post-warm subepisodes a candidate residual is accepted only if
 
 $$ J_k(\Delta u) \le J_k(0)+\max(\epsilon_{\mathrm{abs}},\epsilon_{\mathrm{rel}}|J_k(0)|), \qquad E_k(\Delta u) \le E_k(0)+\epsilon_E. $$
 
@@ -193,7 +201,7 @@ The final physical headroom projection is
 
 $$ \Delta u_{\mathrm{exec},k}=\Pi_{[\ell,h]\cap[u_{\min}-u_k^{\mathrm{MPC}},u_{\max}-u_k^{\mathrm{MPC}}]}(\Delta u_{\mathrm{guard},k}). $$
 
-The rho authority was not active in these runs, but the shadow rho diagnostic computes
+The rho authority was not active in these runs. For the original residual runs with shadow rho diagnostics enabled, the diagnostic computes
 
 $$ \rho_k = 1-\exp(-\kappa\max_i |z_{k,i}|), $$
 
@@ -212,35 +220,41 @@ $$ |\Delta u_{\mathrm{res},k,i}| \le \rho_{\mathrm{eff},k}\beta_i(|\Delta u_{\ma
 | OF-MPC | NA | NA | NA | NA | NA | NA | NA | NA | NA | NA | NA |
 | TD3 Residual | 0.005 -> 0.25 | 15.0% | 40.0% | 9603 | 4410 | 1987 | 0.5% | 98.4% | 0.2% | NA | NA |
 | SG-TD3 Residual | 0.005 -> 0.25 | 1.9% | 0.4% | 15930 | 31 | 39 | 0.7% | 40.6% | 3.1% | 41.9% | 58.1% |
+| SG-TD3 Critic-Warm | disabled | 0.0% | NA | 0 | 0 | 0 | 0.1% | 0.0% | 0.0% | 39.7% | 60.3% |
 | TD7 Residual | 0.005 -> 0.25 | 15.2% | 31.6% | 10948 | 2808 | 2244 | 0.1% | 97.9% | 0.3% | NA | NA |
 
 ![Residual safety dashboard](figures/polymer_residual_algorithm_comparison_20260601/residual_safety_dashboard.png)
 
 ![Supervisor gate diagnostics](figures/polymer_residual_algorithm_comparison_20260601/supervisor_gate_diagnostics.png)
 
-The safety logs explain why SG-TD3 is better behaved. TD3 and TD7 request large residuals early after live release. Their post-warm cap-clipping fractions are about `15%`, and the early-release guard triggers on `40.0%` of active-guard steps for TD3 and `31.6%` for TD7. SG-TD3 has only `1.9%` cap clipping and only `0.4%` active-guard triggering.
+![Critic-warm supervisor gate diagnostics](figures/polymer_residual_algorithm_comparison_20260601/supervisor_gate_diagnostics_sg_td3_critic_warm.png)
 
-The supervisor gate selected the zero-residual supervisor on `58.1%` of post-warm steps and the learned policy on `41.9%`. This means SG-TD3 is not simply weaker TD3. It is selectively accepting the learned residual when the critics predict enough advantage over the zero residual.
+The safety logs explain why the gated variants are better behaved. TD3 and TD7 request large residuals early after live release. Their post-warm cap-clipping fractions are about `15%`, and the early-release guard triggers on `40.0%` of active-guard steps for TD3 and `31.6%` for TD7. Original SG-TD3 has only `1.9%` cap clipping and only `0.4%` active-guard triggering. Critic-warm SG-TD3 has no cap or guard enabled, so those intervention rates are `0.0%` by design.
 
-The shadow rho logs are also informative. If rho authority had been active with the current rho settings, TD3 and TD7 would have been authority-projected on about `98%` of post-warm steps. SG-TD3 would have been projected on about `41%` of post-warm steps. This suggests that the current rho authority envelope is much more compatible with the gated policy than with raw TD3 or TD7, but the envelope may still be restrictive for full-authority polymer residual learning.
+The supervisor gate selected the zero-residual supervisor on `58.1%` of post-warm steps for original SG-TD3 and `60.3%` for critic-warm SG-TD3. The learned policy was still selected on `41.9%` and `39.7%` of post-warm steps, respectively. This means the critic-warm ablation did not simply collapse to OF-MPC. It remained a gated residual controller, but the gate carried more of the stabilization burden because the extra BC, ramp, and guard layers were removed.
 
-One log caveat: `projection_active_log` is almost always true in these runs. The cause-specific projection logs show that headroom projection is below `1%`, and rho authority was disabled. Therefore the generic `projection_active_log` should not be interpreted alone as a physical safety intervention count. The meaningful logged safety signals here are `residual_cap_projection_active_log`, `residual_guard_triggered_log`, `projection_due_to_headroom_log`, and the `shadow_rho_*` diagnostics.
+The shadow rho logs are also informative for the original residual runs. If rho authority had been active with the current rho settings, TD3 and TD7 would have been authority-projected on about `98%` of post-warm steps. Original SG-TD3 would have been projected on about `41%` of post-warm steps. The critic-warm run disabled shadow rho diagnostics, so it should not be used for rho tuning evidence.
+
+One log caveat: `projection_active_log` is almost always true in these runs. The cause-specific projection logs show that headroom projection is below `1%`, and rho authority was disabled. Therefore the generic `projection_active_log` should not be interpreted alone as a physical safety intervention count. The meaningful logged safety signals here are `residual_cap_projection_active_log`, `residual_guard_triggered_log`, `projection_due_to_headroom_log`, and, where enabled, the `shadow_rho_*` diagnostics.
 
 ## SG-TD3 Post-Warm Recovery
 
 | Method | Post-warm minimum | Minimum episode | First better than OF-MPC | First 5-episode better | 80pct recovery start | 80pct recovery end | Cap clip ep11-40 | Cap clip ep41-200 | Guard trigger ep11-40 | Guard trigger ep41-200 | Policy selected tail20 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | SG-TD3 Residual | -9.812 | 34 | 11 | 21 | 65 | 69 | 12.2% | 0.0% | 0.3% | 0.0% | 56.9% |
+| SG-TD3 Critic-Warm | -6.212 | 36 | 11 | 11 | 65 | 69 | 0.0% | 0.0% | 0.0% | 0.0% | 57.2% |
 
-SG-TD3 did recover after warm start, but the recovery was not instantaneous. The run is already better than OF-MPC on episode 11, and it has its first five-episode run above OF-MPC starting at episode 21. It then has a deeper exploration and release dip, reaching a post-warm minimum reward of `-9.812` at episode 34. A five-episode window reaches `80%` of the final tail improvement over OF-MPC from episodes 65 to 69.
+Original SG-TD3 did recover after warm start, but the recovery was not instantaneous. The run is already better than OF-MPC on episode 11, and it has its first five-episode run above OF-MPC starting at episode 21. It then has a deeper exploration and release dip, reaching a post-warm minimum reward of `-9.812` at episode 34. A five-episode window reaches `80%` of the final tail improvement over OF-MPC from episodes 65 to 69.
 
-The safety logs show why the recovery is credible. During episodes 11 to 40, the cap-clipping rate is `12.2%`, but after episode 40 it drops to `0.0%`. The early-release guard is almost never needed for SG-TD3, and after episode 40 its trigger fraction is also `0.0%`. At the end of training, the gate is no longer just falling back to the supervisor. The learned policy is selected on `56.9%` of tail-20 steps.
+The critic-warm ablation improved the release behavior. Its post-warm minimum reward is `-6.212`, much less severe than `-9.812`, and its first five-episode run above OF-MPC starts immediately at episode 11. The 80% recovery window still lands at episodes 65 to 69, so the critic-only release reduced collapse depth more than it shortened final convergence time. At the end of training, critic-warm SG-TD3 is not just falling back to the supervisor: the learned policy is selected on `57.2%` of tail-20 steps, almost identical to the original SG-TD3 tail selection fraction.
 
 ## Interpretation By Algorithm
 
 TD3 Residual learns a strong residual correction and improves tracking substantially. Its main weakness is authority usage. It uses the largest tail input movement and causes the early-release guard to intervene often. This is consistent with an actor that learns useful corrections but pushes hard into the newly corrected full polymer residual authority.
 
-SG-TD3 Residual is the strongest run in this batch. The gate prevents many high-risk residuals from reaching the safety layers. This gives a smoother release period, lower intervention rates, and the best scalar reward. The zero-residual supervisor acts as a local conservative action, not as a permanent fallback, because the policy is still selected on `41.9%` of post-warm steps.
+SG-TD3 Residual is the strongest of the original three residual methods. The gate prevents many high-risk residuals from reaching the safety layers. This gives a smoother release period and lower intervention rates than raw TD3 or TD7. The zero-residual supervisor acts as a local conservative action, not as a permanent fallback, because the policy is still selected on `41.9%` of post-warm steps.
+
+SG-TD3 Critic-Warm is the strongest single run in the expanded batch. Removing BC, handoff, cap ramp, rho/deadband authority, and the early-release guard did not hurt this run. With five episodes of critic-only release, the post-warm collapse became much shallower and the final tail reward improved from `-2.870` to `-2.852`. The mechanism appears to be better critic calibration before actor release plus continued supervisor gating, not weaker residual authority: the run still uses full residual authority during transitions, but it selects zero residual more often near steady state.
 
 TD7 Residual recovers to nearly the same tail reward as TD3, but it has a worse average reward because of a deeper early post-warm degradation. The TD7 encoder and priority machinery do not remove the residual-authority release problem in this run. The guard and cap logs show that TD7 also asks for high-authority residuals during the release phase.
 
@@ -262,11 +276,12 @@ The practical implementation path is:
 
 ## Bugs, Inconsistencies, And Risks
 
-- The old polymer ramp bug is fixed in these bundles. All three residual runs show `end_cap = 0.25`, not the old distillation-scale `0.02`.
+- The old polymer ramp bug is fixed in the ramp-enabled bundles. TD3, original SG-TD3, and TD7 show `end_cap = 0.25`, not the old distillation-scale `0.02`. The critic-warm ablation disables the ramp entirely by design.
 - These are single-seed training rollouts, not frozen-policy evaluation runs. The ranking is useful, but it should not be treated as statistical evidence yet.
-- The actual rho authority is disabled. The rho analysis is based on shadow logs only.
+- The actual rho authority is disabled. The rho analysis is based on shadow logs only, and critic-warm disables those shadow diagnostics.
 - TD3 and TD7 both make heavy use of the full residual authority. This improves final tracking but increases reliance on the ramp and guard.
-- The SG-TD3 temperature RMSE is slightly worse than TD3 and TD7 in the tail even though its mean absolute temperature error is better. This points to fewer typical errors but some larger temperature excursions.
+- The SG-TD3 variants have slightly worse tail temperature RMSE than raw TD3 even though their mean absolute temperature errors are better. This points to fewer typical errors but some larger temperature excursions.
+- The critic-warm result is an ablation, not proof that BC, ramp, and guard are always harmful. It combines multiple removals with a five-episode critic-only phase, so the next test should separate those factors.
 - Distillation transfer requires a new entrypoint or agent-construction branch. The runner supports `sg_td3`, but the current distillation residual script does not instantiate `SupervisorGatedTD3Agent`.
 
 ## Literature Connections
@@ -275,9 +290,9 @@ No new citations were added. The local implementation connects to standard TD3-s
 
 ## Recommended Next Experiments
 
-1. Run frozen-policy evaluation for TD3 residual, SG-TD3 residual, and TD7 residual with exploration disabled and the same disturbance schedule. The deciding metrics should be tail reward, tail eta and T RMSE, tail MAE, cap-clipping fraction, and guard-trigger fraction.
+1. Run frozen-policy evaluation for TD3 residual, original SG-TD3 residual, SG-TD3 critic-warm, and TD7 residual with exploration disabled and the same disturbance schedule. The deciding metrics should be tail reward, tail eta and T RMSE, tail MAE, policy-versus-supervisor selection, cap-clipping fraction, and guard-trigger fraction.
 
-2. Run three seeds for the three residual methods. SG-TD3 currently looks best, but the TD7 release dip and TD3 authority usage need seed-spread confirmation.
+2. Run three seeds for the four learned residual methods. Critic-warm SG-TD3 currently looks best, but the result is still a single-seed training rollout.
 
 3. Add and run a distillation SG-TD3 residual entrypoint with no rho authority first. The confirmation metric is whether SG-TD3 reduces release shock and guard activity without collapsing to zero residual.
 
@@ -285,13 +300,15 @@ No new citations were added. The local implementation connects to standard TD3-s
 
 5. Tune rho authority for polymer separately from distillation. A useful grid is `authority_beta_res` in `{0.25, 0.5, 0.75}` and `authority_du0_res` in `{0.001, 0.005, 0.01}` while keeping the full residual bounds at `[-0.25, 0.25]`.
 
-6. Test a near-setpoint residual envelope for SG-TD3 while keeping the global polymer residual authority at `[-0.25, 0.25]`. Start with a steady cap near `0.04` when the scaled tracking norm is small. The metric should be final steady-window MAE and RMSE, not only tail reward, because the goal is to reduce residual dithering without weakening transition recovery.
+6. Test a near-setpoint residual envelope for SG-TD3 while keeping the global polymer residual authority at `[-0.25, 0.25]`. Start with a steady cap near `0.04` when the scaled tracking norm is small. The metric should be final steady-window MAE and RMSE, not only tail reward, because the goal is to reduce residual dithering without weakening transition recovery. Critic-warm SG-TD3 is the best starting point because its steady-window residuals are already compact.
 
-7. For TD3 and TD7, try a longer release or a critic-aware release gate. The current full-authority ramp is correct, but the cap and guard logs show that the actor often reaches full authority before the critic is reliable.
+7. Isolate the critic-warm ablation factors. Run one SG-TD3 variant with BC/ramp/guard disabled but no five-episode actor freeze, and another with five-episode actor freeze but the original BC/ramp/guard enabled. This will show whether the improvement came mainly from removing the extra handrails, from critic-only pretraining, or from their combination.
+
+8. For TD3 and TD7, try a longer release or a critic-aware release gate. The current full-authority ramp is correct, but the cap and guard logs show that the actor often reaches full authority before the critic is reliable.
 
 ## Remaining Uncertainty
 
-The current evidence supports SG-TD3 as the best algorithm in this single batch, but it does not prove generalization. The most important missing evidence is a frozen evaluation rollout and multi-seed spread. The shadow rho logs show that rho authority may help safety, but they do not prove that rho-enabled execution will improve reward.
+The current evidence supports SG-TD3 critic-warm as the best algorithm in this single batch, but it does not prove generalization. The most important missing evidence is a frozen evaluation rollout and multi-seed spread. The ablation also changes several mechanisms at once, so causal attribution remains uncertain. The shadow rho logs show that rho authority may help safety in the original residual runs, but they do not prove that rho-enabled execution will improve reward.
 
 ## Generated Artifacts
 
@@ -317,3 +334,5 @@ The current evidence supports SG-TD3 as the best algorithm in this single batch,
 | `report/figures/polymer_residual_algorithm_comparison_20260601/last_episode_steady_residual_ranges.png` | Final-subepisode near-steady residual ranges |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/residual_safety_dashboard.png` | Residual safety logs |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/supervisor_gate_diagnostics.png` | SG-TD3 gate diagnostics |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/supervisor_gate_diagnostics_sg_td3_residual.png` | Original SG-TD3 gate diagnostics |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/supervisor_gate_diagnostics_sg_td3_critic_warm.png` | Critic-warm SG-TD3 gate diagnostics |

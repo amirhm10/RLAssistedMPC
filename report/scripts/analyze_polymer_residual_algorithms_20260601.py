@@ -43,6 +43,16 @@ RUN_SPECS = {
         "kind": "residual",
         "color": "#54A24B",
     },
+    "SG-TD3 Critic-Warm": {
+        "path": REPO_ROOT
+        / "Polymer"
+        / "Results"
+        / "sg_td3_residual_critic_warm_disturb"
+        / "20260601_140709"
+        / "input_data.pkl",
+        "kind": "residual",
+        "color": "#F58518",
+    },
     "TD7 Residual": {
         "path": REPO_ROOT
         / "Polymer"
@@ -426,10 +436,11 @@ def safety_metrics(run: MethodRun) -> dict:
     else:
         sg_policy = None
         sg_supervisor = None
+    ramp_text = "disabled" if not bool(ramp.get("enabled", False)) else f"{ramp.get('start_cap', 'NA')} -> {ramp.get('end_cap', 'NA')}"
 
     return {
         "Method": run.label,
-        "Ramp": f"{ramp.get('start_cap', 'NA')} -> {ramp.get('end_cap', 'NA')}",
+        "Ramp": ramp_text,
         "Post-warm cap clip": _fraction(np.asarray(run.bundle["residual_cap_projection_active_log"], int)[post]),
         "Guard trigger active": _fraction(guard_triggered[guard_active]) if np.any(guard_active) else None,
         "Guard accepted": guard_counts.get("requested_accepted", 0),
@@ -445,9 +456,7 @@ def safety_metrics(run: MethodRun) -> dict:
     }
 
 
-def recovery_metrics(runs: list[MethodRun]) -> dict:
-    baseline = next(run for run in runs if run.label == "OF-MPC")
-    sg = next(run for run in runs if run.label == "SG-TD3 Residual")
+def recovery_metrics_for_run(sg: MethodRun, baseline: MethodRun) -> dict:
     warm_ep = int(sg.warm_episode)
     sg_rewards = np.asarray(sg.avg_rewards, float)
     base_rewards = np.asarray(baseline.avg_rewards, float)
@@ -480,8 +489,15 @@ def recovery_metrics(runs: list[MethodRun]) -> dict:
             break
 
     def _episode_fraction(key: str) -> np.ndarray:
-        arr = np.asarray(sg.bundle[key], float)[: sg.episode_count * sg.time_in_sub]
+        default = np.zeros(sg.nfe, dtype=float)
+        arr = np.asarray(sg.bundle.get(key, default), float)[: sg.episode_count * sg.time_in_sub]
         return np.nanmean(arr.reshape(sg.episode_count, sg.time_in_sub), axis=1)
+
+    def _window_mean(values: np.ndarray, start: int, stop=None) -> float:
+        selected = values[int(start) : stop]
+        if selected.size == 0:
+            return float("nan")
+        return float(np.nanmean(selected))
 
     sg_source = np.asarray(sg.bundle["sg_selected_source_log"], int)[: sg.episode_count * sg.time_in_sub]
     sg_source = sg_source.reshape(sg.episode_count, sg.time_in_sub)
@@ -502,19 +518,25 @@ def recovery_metrics(runs: list[MethodRun]) -> dict:
         "First 5-episode 80pct tail recovery start": first_80_start,
         "First 5-episode 80pct tail recovery end": first_80_end,
         "OF-MPC tail-20 reward": tail20_base,
-        "SG-TD3 tail-20 reward": tail20_sg,
+        "Method tail-20 reward": tail20_sg,
         "80pct recovery reward threshold": float(threshold_80),
-        "Cap clip ep11-40": float(np.mean(cap_clip[10:40])),
-        "Cap clip ep41-200": float(np.mean(cap_clip[40:])),
-        "Guard trigger ep11-40": float(np.mean(guard_trigger[10:40])),
-        "Guard trigger ep41-200": float(np.mean(guard_trigger[40:])),
-        "Shadow rho authority ep11-40": float(np.mean(shadow_rho[10:40])),
-        "Shadow rho authority ep41-200": float(np.mean(shadow_rho[40:])),
-        "Policy selected ep11-40": float(np.mean(policy_fraction[10:40])),
-        "Policy selected ep41-200": float(np.mean(policy_fraction[40:])),
-        "Policy selected tail20": float(np.mean(policy_fraction[-20:])),
-        "Supervisor selected tail20": float(np.mean(supervisor_fraction[-20:])),
+        "Cap clip ep11-40": _window_mean(cap_clip, 10, 40),
+        "Cap clip ep41-200": _window_mean(cap_clip, 40, None),
+        "Guard trigger ep11-40": _window_mean(guard_trigger, 10, 40),
+        "Guard trigger ep41-200": _window_mean(guard_trigger, 40, None),
+        "Shadow rho authority ep11-40": _window_mean(shadow_rho, 10, 40),
+        "Shadow rho authority ep41-200": _window_mean(shadow_rho, 40, None),
+        "Policy selected ep11-40": _window_mean(policy_fraction, 10, 40),
+        "Policy selected ep41-200": _window_mean(policy_fraction, 40, None),
+        "Policy selected tail20": _window_mean(policy_fraction, max(0, policy_fraction.size - 20), None),
+        "Supervisor selected tail20": _window_mean(supervisor_fraction, max(0, supervisor_fraction.size - 20), None),
     }
+
+
+def recovery_metrics(runs: list[MethodRun]) -> list[dict]:
+    baseline = next(run for run in runs if run.label == "OF-MPC")
+    sg_runs = [run for run in runs if run.bundle.get("supervisor_gated_td3_enabled")]
+    return [recovery_metrics_for_run(run, baseline) for run in sg_runs]
 
 
 def episode_mean(values: np.ndarray, time_in_sub: int, nfe: int, reducer=np.nanmean) -> np.ndarray:
@@ -759,7 +781,11 @@ def plot_sg_gate(run: MethodRun) -> None:
     axes[1].set_xlabel("Subepisode")
     axes[1].set_ylabel("Score or gap")
     axes[1].legend(frameon=False, ncol=2)
-    fig.savefig(FIG_DIR / "supervisor_gate_diagnostics.png", dpi=180)
+    slug = run.label.lower().replace("-", "_").replace(" ", "_")
+    filename = f"supervisor_gate_diagnostics_{slug}.png"
+    fig.savefig(FIG_DIR / filename, dpi=180)
+    if run.label == "SG-TD3 Residual":
+        fig.savefig(FIG_DIR / "supervisor_gate_diagnostics.png", dpi=180)
     plt.close(fig)
 
 
@@ -786,14 +812,14 @@ def main() -> None:
         row for run in runs for row in sg_steady_policy_residual_metrics(run) if run.bundle.get("supervisor_gated_td3_enabled")
     ]
     safety_rows = [safety_metrics(run) for run in runs]
-    recovery_row = recovery_metrics(runs)
+    recovery_rows = recovery_metrics(runs)
 
     _write_csv(TABLE_DIR / "performance_summary.csv", make_serializable(perf_rows))
     _write_csv(TABLE_DIR / "steady_state_summary.csv", make_serializable(steady_rows))
     _write_csv(TABLE_DIR / "late_residual_summary.csv", make_serializable(late_residual_rows))
     _write_csv(TABLE_DIR / "sg_steady_residual_source_summary.csv", make_serializable(sg_steady_source_rows))
     _write_csv(TABLE_DIR / "safety_summary.csv", make_serializable(safety_rows))
-    _write_csv(TABLE_DIR / "recovery_summary.csv", [recovery_row])
+    _write_csv(TABLE_DIR / "recovery_summary.csv", make_serializable(recovery_rows))
     with (TABLE_DIR / "analysis_summary.json").open("w", encoding="utf-8") as handle:
         json.dump(
             {
@@ -802,7 +828,7 @@ def main() -> None:
                 "late_residual": make_serializable(late_residual_rows),
                 "sg_steady_residual_source": make_serializable(sg_steady_source_rows),
                 "safety": make_serializable(safety_rows),
-                "recovery": recovery_row,
+                "recovery": make_serializable(recovery_rows),
                 "guard_reason_counts": {
                     run.label: guard_reason_counts(run) for run in runs if run.spec["kind"] == "residual"
                 },
@@ -941,6 +967,7 @@ def main() -> None:
     for row in sg_steady_source_rows:
         sg_source_md_rows.append(
             {
+                "Method": row["Method"],
                 "Source": row["Window"],
                 "Steps": row["Steps"],
                 "Qc range": _fmt_range(row["Qc min"], row["Qc max"], 4),
@@ -955,6 +982,7 @@ def main() -> None:
         TABLE_DIR / "sg_steady_residual_source_summary.md",
         sg_source_md_rows,
         [
+            "Method",
             "Source",
             "Steps",
             "Qc range",
@@ -1003,23 +1031,27 @@ def main() -> None:
         ],
     )
 
-    recovery_md_row = {
-        "Method": recovery_row["Method"],
-        "Post-warm minimum": _fmt(recovery_row["Post-warm minimum reward"], 3),
-        "Minimum episode": recovery_row["Post-warm minimum episode"],
-        "First better than OF-MPC": recovery_row["First episode better than OF-MPC"],
-        "First 5-episode better": recovery_row["First 5-episode run better than OF-MPC"],
-        "80pct recovery start": recovery_row["First 5-episode 80pct tail recovery start"],
-        "80pct recovery end": recovery_row["First 5-episode 80pct tail recovery end"],
-        "Cap clip ep11-40": _fmt_pct(recovery_row["Cap clip ep11-40"]),
-        "Cap clip ep41-200": _fmt_pct(recovery_row["Cap clip ep41-200"]),
-        "Guard trigger ep11-40": _fmt_pct(recovery_row["Guard trigger ep11-40"]),
-        "Guard trigger ep41-200": _fmt_pct(recovery_row["Guard trigger ep41-200"]),
-        "Policy selected tail20": _fmt_pct(recovery_row["Policy selected tail20"]),
-    }
+    recovery_md_rows = []
+    for recovery_row in recovery_rows:
+        recovery_md_rows.append(
+            {
+                "Method": recovery_row["Method"],
+                "Post-warm minimum": _fmt(recovery_row["Post-warm minimum reward"], 3),
+                "Minimum episode": recovery_row["Post-warm minimum episode"],
+                "First better than OF-MPC": recovery_row["First episode better than OF-MPC"],
+                "First 5-episode better": recovery_row["First 5-episode run better than OF-MPC"],
+                "80pct recovery start": recovery_row["First 5-episode 80pct tail recovery start"],
+                "80pct recovery end": recovery_row["First 5-episode 80pct tail recovery end"],
+                "Cap clip ep11-40": _fmt_pct(recovery_row["Cap clip ep11-40"]),
+                "Cap clip ep41-200": _fmt_pct(recovery_row["Cap clip ep41-200"]),
+                "Guard trigger ep11-40": _fmt_pct(recovery_row["Guard trigger ep11-40"]),
+                "Guard trigger ep41-200": _fmt_pct(recovery_row["Guard trigger ep41-200"]),
+                "Policy selected tail20": _fmt_pct(recovery_row["Policy selected tail20"]),
+            }
+        )
     _write_markdown_table(
         TABLE_DIR / "recovery_summary.md",
-        [recovery_md_row],
+        recovery_md_rows,
         [
             "Method",
             "Post-warm minimum",

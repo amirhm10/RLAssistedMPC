@@ -117,6 +117,46 @@ $$ p_k = \max(|y_k^{Q}-Q_1(s_k,a_k)|,\ |y_k^{Q}-Q_2(s_k,a_k)|). $$
 
 The last subepisode confirms the tail-window conclusion. All three residual controllers remove most of the large OF-MPC temperature excursion after the setpoint switch. SG-TD3 has the best last-episode reward and the best last-episode eta RMSE. TD3 still has the best last-episode temperature RMSE, while SG-TD3 has the best last-episode temperature MAE.
 
+## Final Steady-State Error And Late Residual Range
+
+The final subepisode contains two setpoint plateaus. To separate transition behavior from near-steady behavior, the steady-state audit uses the last 100 steps before each setpoint switch or episode end. In the final subepisode this corresponds to steps `300-399` and `700-799`, for 200 total steps.
+
+| Method | Windows | Steps | Eta MAE | T MAE | Eta RMSE | T RMSE | Eta mean signed | T mean signed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| OF-MPC | 300-399; 700-799 | 200 | 0.000191 | 0.001320 | 0.000231 | 0.001622 | 0.000019 | -0.000247 |
+| TD3 Residual | 300-399; 700-799 | 200 | 0.001299 | 0.035343 | 0.002006 | 0.048084 | 0.001286 | -0.032593 |
+| SG-TD3 Residual | 300-399; 700-799 | 200 | 0.000299 | 0.001163 | 0.000328 | 0.001413 | 0.000299 | -0.000699 |
+| TD7 Residual | 300-399; 700-799 | 200 | 0.001966 | 0.056497 | 0.002067 | 0.080083 | -0.000963 | -0.056497 |
+
+![Final steady-state error bars](figures/polymer_residual_algorithm_comparison_20260601/last_episode_steady_error_bars.png)
+
+This supports the visual impression that SG-TD3 has the smallest steady-state error among the residual RL algorithms. It is much closer to OF-MPC than TD3 or TD7 in the near-steady windows. The precise statement should be slightly qualified: OF-MPC has the smallest eta MAE, `0.000191` versus `0.000299` for SG-TD3, while SG-TD3 has the smallest temperature MAE, `0.001163` versus `0.001320` for OF-MPC. Among learned residual controllers, SG-TD3 is clearly best near steady state.
+
+| Method | Window | Steps | Qc range | Qc mean abs | Qc q95 abs | Qm range | Qm mean abs | Qm q95 abs | SG policy selected | SG supervisor selected |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| TD3 Residual | Final episode | 800 | [-0.2500, 0.2500] | 0.0496 | 0.2500 | [-0.2500, 0.2500] | 0.0261 | 0.2500 | NA | NA |
+| TD3 Residual | Final steady windows | 200 | [-0.0637, 0.0748] | 0.0231 | 0.0653 | [-0.0141, 0.0151] | 0.0064 | 0.0136 | NA | NA |
+| SG-TD3 Residual | Final episode | 800 | [-0.2500, 0.2500] | 0.0281 | 0.2500 | [-0.2500, 0.2500] | 0.0263 | 0.2500 | 55.8% | 44.2% |
+| SG-TD3 Residual | Final steady windows | 200 | [-0.0242, 0.0338] | 0.0042 | 0.0244 | [-0.0193, 0.0239] | 0.0023 | 0.0157 | 41.0% | 59.0% |
+| TD7 Residual | Final episode | 800 | [-0.2500, 0.2500] | 0.0475 | 0.2500 | [-0.2500, 0.2500] | 0.0356 | 0.2500 | NA | NA |
+| TD7 Residual | Final steady windows | 200 | [-0.0818, 0.1258] | 0.0356 | 0.1172 | [-0.0589, 0.0758] | 0.0213 | 0.0675 | NA | NA |
+
+![Final steady residual ranges](figures/polymer_residual_algorithm_comparison_20260601/last_episode_steady_residual_ranges.png)
+
+The late residual range argues against globally shrinking the polymer residual bound below `[-0.25, 0.25]`. All three learned methods still touch full authority during the final subepisode, because the setpoint transitions need larger corrective action. However, the near-steady residuals are much smaller. SG-TD3 stays within about `[-0.0242, 0.0338]` on `Qc` and `[-0.0193, 0.0239]` on `Qm` in the steady windows. Its 95th percentile absolute steady residuals are only `0.0244` for `Qc` and `0.0157` for `Qm`.
+
+The SG-TD3 source split is also important. In the final steady windows, the policy is selected on `41.0%` of steps and the zero-residual supervisor is selected on `59.0%`. When the policy is selected, its steady residual range is `[-0.0242, 0.0338]` for `Qc` and `[-0.0193, 0.0239]` for `Qm`. When the supervisor is selected, the residual is numerically zero. This means SG-TD3 is already behaving like a near-setpoint residual suppressor.
+
+If residual shrinking is tested, the safer hypothesis is a state-dependent steady-state envelope rather than a smaller global authority. One candidate is to keep the global transient limit at `c_{\max}=0.25` and introduce a near-setpoint cap `c_{\mathrm{ss}}`:
+
+$$ c_{\mathrm{eff},k}=c_{\mathrm{ss}}+(c_{\max}-c_{\mathrm{ss}})\,\mathrm{clip}\left(\frac{\|e_k^{\mathrm{scaled}}\|_2-e_{\mathrm{low}}}{e_{\mathrm{high}}-e_{\mathrm{low}}},0,1\right). $$
+
+The executed residual would then satisfy
+
+$$ \Delta u_{\mathrm{res},k}^{\mathrm{exec}}=\Pi_{[-c_{\mathrm{eff},k},c_{\mathrm{eff},k}]^2}(\Delta u_{\mathrm{guard},k}). $$
+
+For SG-TD3, a first steady-state cap around `0.04` is plausible because it contains most observed policy-selected steady residuals. For raw TD3 and TD7, `0.04` would heavily clip the first channel for TD3 and both channels for TD7 in the steady windows, so that test should be interpreted as a regularization experiment, not as a neutral bound change.
+
 All three residual algorithms improve the final 20-subepisode reward and physical tracking metrics relative to OF-MPC. SG-TD3 has the best mean reward, post-warm reward, and tail-20 reward. It also has the best tail eta RMSE and the best tail mean absolute errors for both outputs.
 
 TD3 has the best tail temperature RMSE by a small margin, `0.3851` versus `0.3866` for TD7 and `0.3962` for SG-TD3. SG-TD3 still has the lowest temperature MAE, `0.0989`, so it is better for typical temperature error but has a few larger temperature deviations that raise RMSE.
@@ -245,7 +285,9 @@ No new citations were added. The local implementation connects to standard TD3-s
 
 5. Tune rho authority for polymer separately from distillation. A useful grid is `authority_beta_res` in `{0.25, 0.5, 0.75}` and `authority_du0_res` in `{0.001, 0.005, 0.01}` while keeping the full residual bounds at `[-0.25, 0.25]`.
 
-6. For TD3 and TD7, try a longer release or a critic-aware release gate. The current full-authority ramp is correct, but the cap and guard logs show that the actor often reaches full authority before the critic is reliable.
+6. Test a near-setpoint residual envelope for SG-TD3 while keeping the global polymer residual authority at `[-0.25, 0.25]`. Start with a steady cap near `0.04` when the scaled tracking norm is small. The metric should be final steady-window MAE and RMSE, not only tail reward, because the goal is to reduce residual dithering without weakening transition recovery.
+
+7. For TD3 and TD7, try a longer release or a critic-aware release gate. The current full-authority ramp is correct, but the cap and guard logs show that the actor often reaches full authority before the critic is reliable.
 
 ## Remaining Uncertainty
 
@@ -257,13 +299,21 @@ The current evidence supports SG-TD3 as the best algorithm in this single batch,
 | --- | --- |
 | `report/scripts/analyze_polymer_residual_algorithms_20260601.py` | Reproducible analysis script |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/performance_summary.csv` | Raw performance metrics |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/steady_state_summary.csv` | Final-subepisode steady-window tracking metrics |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/late_residual_summary.csv` | Final and near-steady residual range metrics |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/sg_steady_residual_source_summary.csv` | SG-TD3 steady residual ranges by selected source |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/safety_summary.csv` | Raw safety metrics |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/last_episode_summary.md` | Last-subepisode metrics |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/steady_state_summary.md` | Markdown final-subepisode steady-window tracking table |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/late_residual_summary.md` | Markdown final and near-steady residual range table |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/sg_steady_residual_source_summary.md` | Markdown SG-TD3 source-specific residual range table |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/recovery_summary.md` | SG-TD3 post-warm recovery metrics |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/analysis_summary.json` | Combined machine-readable summary |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/reward_curves.png` | Reward traces |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/tail_metric_bars.png` | Tail metric comparison |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/tail_tracking_overlay.png` | Tail output tracking |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/last_episode_tracking_overlay.png` | Last-subepisode output tracking |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/last_episode_steady_error_bars.png` | Final-subepisode steady-window tracking comparison |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/last_episode_steady_residual_ranges.png` | Final-subepisode near-steady residual ranges |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/residual_safety_dashboard.png` | Residual safety logs |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/supervisor_gate_diagnostics.png` | SG-TD3 gate diagnostics |

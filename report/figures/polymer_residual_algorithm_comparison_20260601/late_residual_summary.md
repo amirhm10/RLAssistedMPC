@@ -1,0 +1,11 @@
+| Method | Window | Steps | Qc range | Qc mean abs | Qc q95 abs | Qm range | Qm mean abs | Qm q95 abs | SG policy selected | SG supervisor selected |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| TD3 Residual | Final episode | 800 | [-0.2500, 0.2500] | 0.0496 | 0.2500 | [-0.2500, 0.2500] | 0.0261 | 0.2500 | NA | NA |
+| TD3 Residual | Final steady windows | 200 | [-0.0637, 0.0748] | 0.0231 | 0.0653 | [-0.0141, 0.0151] | 0.0064 | 0.0136 | NA | NA |
+| TD3 Residual | Tail 20 episodes | 16000 | [-0.2500, 0.2500] | 0.1020 | 0.2500 | [-0.2500, 0.2500] | 0.0674 | 0.2500 | NA | NA |
+| SG-TD3 Residual | Final episode | 800 | [-0.2500, 0.2500] | 0.0281 | 0.2500 | [-0.2500, 0.2500] | 0.0263 | 0.2500 | 55.8% | 44.2% |
+| SG-TD3 Residual | Final steady windows | 200 | [-0.0242, 0.0338] | 0.0042 | 0.0244 | [-0.0193, 0.0239] | 0.0023 | 0.0157 | 41.0% | 59.0% |
+| SG-TD3 Residual | Tail 20 episodes | 16000 | [-0.2500, 0.2500] | 0.0437 | 0.2500 | [-0.2500, 0.2500] | 0.0395 | 0.2500 | 56.9% | 43.1% |
+| TD7 Residual | Final episode | 800 | [-0.2500, 0.2500] | 0.0475 | 0.2500 | [-0.2500, 0.2500] | 0.0356 | 0.2500 | NA | NA |
+| TD7 Residual | Final steady windows | 200 | [-0.0818, 0.1258] | 0.0356 | 0.1172 | [-0.0589, 0.0758] | 0.0213 | 0.0675 | NA | NA |
+| TD7 Residual | Tail 20 episodes | 16000 | [-0.2500, 0.2500] | 0.0442 | 0.2472 | [-0.2500, 0.2500] | 0.0309 | 0.2457 | NA | NA |

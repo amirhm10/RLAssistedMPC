@@ -131,6 +131,17 @@ def _fmt_pct(value, digits=1) -> str:
     return f"{100.0 * val:.{digits}f}%"
 
 
+def _fmt_range(lo, hi, digits=4) -> str:
+    try:
+        lo_val = float(lo)
+        hi_val = float(hi)
+    except (TypeError, ValueError):
+        return "NA"
+    if not (np.isfinite(lo_val) and np.isfinite(hi_val)):
+        return "NA"
+    return f"[{lo_val:.{digits}f}, {hi_val:.{digits}f}]"
+
+
 def _write_csv(path: Path, rows: list[dict]) -> None:
     if not rows:
         return
@@ -252,6 +263,124 @@ def performance_metrics(run: MethodRun) -> dict:
         "Last eta max abs": float(np.max(np.abs(e_last[:, 0]))),
         "Last T max abs": float(np.max(np.abs(e_last[:, 1]))),
     }
+
+
+def final_episode_steady_mask(run: MethodRun, window_len: int = 100) -> np.ndarray:
+    start = max(0, run.nfe - run.time_in_sub)
+    stop = run.nfe
+    sp = run.y_sp_phys[start:stop]
+    if sp.size == 0:
+        return np.zeros(run.nfe, dtype=bool)
+
+    changes = np.where(np.linalg.norm(np.diff(sp, axis=0), axis=1) > 1.0e-9)[0] + 1
+    boundaries = np.r_[0, changes, stop - start]
+    mask = np.zeros(run.nfe, dtype=bool)
+    for left, right in zip(boundaries[:-1], boundaries[1:]):
+        if right <= left:
+            continue
+        width = min(window_len, int(right - left))
+        mask[start + right - width : start + right] = True
+    return mask
+
+
+def final_episode_steady_window_text(run: MethodRun, window_len: int = 100) -> str:
+    start = max(0, run.nfe - run.time_in_sub)
+    stop = run.nfe
+    sp = run.y_sp_phys[start:stop]
+    if sp.size == 0:
+        return "NA"
+    changes = np.where(np.linalg.norm(np.diff(sp, axis=0), axis=1) > 1.0e-9)[0] + 1
+    boundaries = np.r_[0, changes, stop - start]
+    windows = []
+    for left, right in zip(boundaries[:-1], boundaries[1:]):
+        if right <= left:
+            continue
+        width = min(window_len, int(right - left))
+        windows.append(f"{right - width}-{right - 1}")
+    return "; ".join(windows)
+
+
+def steady_state_metrics(run: MethodRun) -> dict:
+    mask = final_episode_steady_mask(run)
+    e_steady = run.err_phys[mask]
+    if e_steady.size == 0:
+        e_steady = np.full((1, 2), np.nan)
+    return {
+        "Method": run.label,
+        "Final episode steady windows": final_episode_steady_window_text(run),
+        "Steady steps": int(np.sum(mask)),
+        "Steady eta mean signed": float(np.mean(e_steady[:, 0])),
+        "Steady T mean signed": float(np.mean(e_steady[:, 1])),
+        "Steady eta MAE": float(np.mean(np.abs(e_steady[:, 0]))),
+        "Steady T MAE": float(np.mean(np.abs(e_steady[:, 1]))),
+        "Steady eta RMSE": float(np.sqrt(np.mean(e_steady[:, 0] ** 2))),
+        "Steady T RMSE": float(np.sqrt(np.mean(e_steady[:, 1] ** 2))),
+        "Steady eta max abs": float(np.max(np.abs(e_steady[:, 0]))),
+        "Steady T max abs": float(np.max(np.abs(e_steady[:, 1]))),
+    }
+
+
+def residual_exec_array(run: MethodRun) -> np.ndarray:
+    if run.spec["kind"] == "baseline":
+        return np.zeros((run.nfe, len(INPUT_LABELS)), dtype=float)
+    return np.asarray(run.bundle.get("delta_u_res_exec_log", run.delta_u_scaled), float)[: run.nfe]
+
+
+def residual_window_summary(run: MethodRun, mask: np.ndarray, window_label: str) -> dict:
+    du_res = residual_exec_array(run)
+    selected = du_res[mask]
+    if selected.size == 0:
+        selected = np.full((1, len(INPUT_LABELS)), np.nan)
+
+    sg_policy = None
+    sg_supervisor = None
+    sg_source = run.bundle.get("sg_selected_source_log")
+    if sg_source is not None:
+        source = np.asarray(sg_source, int)[: run.nfe]
+        sg_policy = float(np.mean(source[mask] == 2)) if np.any(mask) else float("nan")
+        sg_supervisor = float(np.mean(source[mask] == 1)) if np.any(mask) else float("nan")
+
+    row = {
+        "Method": run.label,
+        "Window": window_label,
+        "Steps": int(np.sum(mask)),
+        "SG policy selected": sg_policy,
+        "SG supervisor selected": sg_supervisor,
+    }
+    for idx, label in enumerate(INPUT_LABELS):
+        vals = selected[:, idx]
+        row[f"{label} min"] = float(np.nanmin(vals))
+        row[f"{label} max"] = float(np.nanmax(vals))
+        row[f"{label} mean"] = float(np.nanmean(vals))
+        row[f"{label} mean abs"] = float(np.nanmean(np.abs(vals)))
+        row[f"{label} q95 abs"] = _nanq(np.abs(vals), 0.95)
+        row[f"{label} q99 abs"] = _nanq(np.abs(vals), 0.99)
+    return row
+
+
+def late_residual_metrics(run: MethodRun) -> list[dict]:
+    if run.spec["kind"] == "baseline":
+        return []
+    idx = np.arange(run.nfe)
+    last_start = max(0, run.nfe - run.time_in_sub)
+    masks = {
+        "Final episode": idx >= last_start,
+        "Final steady windows": final_episode_steady_mask(run),
+        "Tail 20 episodes": idx >= max(0, run.nfe - 20 * run.time_in_sub),
+    }
+    return [residual_window_summary(run, mask, label) for label, mask in masks.items()]
+
+
+def sg_steady_policy_residual_metrics(run: MethodRun) -> list[dict]:
+    sg_source = run.bundle.get("sg_selected_source_log")
+    if sg_source is None:
+        return []
+    steady = final_episode_steady_mask(run)
+    source = np.asarray(sg_source, int)[: run.nfe]
+    rows = []
+    for source_code, label in [(2, "Policy selected"), (1, "Supervisor selected")]:
+        rows.append(residual_window_summary(run, steady & (source == source_code), label))
+    return rows
 
 
 def guard_reason_counts(run: MethodRun) -> dict[str, int]:
@@ -501,6 +630,60 @@ def plot_tail_bars(perf_rows: list[dict]) -> None:
     plt.close(fig)
 
 
+def plot_steady_error_bars(steady_rows: list[dict]) -> None:
+    methods = [row["Method"] for row in steady_rows]
+    colors = [RUN_SPECS[m]["color"] for m in methods]
+    x = np.arange(len(methods))
+    width = 0.36
+    fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.4), constrained_layout=True)
+    axes[0].bar(x - width / 2, [row["Steady eta MAE"] for row in steady_rows], width, color=colors, alpha=0.88)
+    axes[0].bar(x + width / 2, [row["Steady T MAE"] for row in steady_rows], width, color=colors, alpha=0.48)
+    axes[0].set_xticks(x)
+    axes[0].set_xticklabels(methods, rotation=20, ha="right")
+    axes[0].set_ylabel("MAE in physical units")
+    axes[0].set_title("Final-subepisode steady-window MAE")
+    axes[0].legend(["eta", "T"], frameon=False)
+
+    axes[1].bar(x - width / 2, [row["Steady eta RMSE"] for row in steady_rows], width, color=colors, alpha=0.88)
+    axes[1].bar(x + width / 2, [row["Steady T RMSE"] for row in steady_rows], width, color=colors, alpha=0.48)
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(methods, rotation=20, ha="right")
+    axes[1].set_ylabel("RMSE in physical units")
+    axes[1].set_title("Final-subepisode steady-window RMSE")
+    axes[1].legend(["eta", "T"], frameon=False)
+    fig.savefig(FIG_DIR / "last_episode_steady_error_bars.png", dpi=180)
+    plt.close(fig)
+
+
+def plot_late_residual_ranges(late_rows: list[dict]) -> None:
+    steady_rows = [row for row in late_rows if row["Window"] == "Final steady windows"]
+    methods = [row["Method"] for row in steady_rows]
+    y = np.arange(len(methods))
+    fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.2), sharey=True, constrained_layout=True)
+    for input_idx, input_label in enumerate(INPUT_LABELS):
+        ax = axes[input_idx]
+        for pos, row in enumerate(steady_rows):
+            color = RUN_SPECS[row["Method"]]["color"]
+            lo = row[f"{input_label} min"]
+            hi = row[f"{input_label} max"]
+            mean = row[f"{input_label} mean"]
+            q95 = row[f"{input_label} q95 abs"]
+            ax.hlines(pos, lo, hi, color=color, linewidth=5.0, alpha=0.68)
+            ax.plot(mean, pos, marker="o", color="black", markersize=4.0)
+            ax.plot([-q95, q95], [pos, pos], marker="|", color=color, linestyle="None", markersize=11.0)
+        ax.axvline(0.0, color="0.25", linewidth=0.9)
+        ax.axvline(-0.04, color="0.45", linestyle="--", linewidth=0.9)
+        ax.axvline(0.04, color="0.45", linestyle="--", linewidth=0.9)
+        ax.set_xlabel(f"{input_label} residual delta-u, scaled")
+        ax.set_title(f"{input_label} steady residual range")
+        ax.grid(axis="x", alpha=0.22)
+    axes[0].set_yticks(y)
+    axes[0].set_yticklabels(methods)
+    fig.suptitle("Final-subepisode near-steady residual ranges. Dashed lines mark +/-0.04")
+    fig.savefig(FIG_DIR / "last_episode_steady_residual_ranges.png", dpi=180)
+    plt.close(fig)
+
+
 def plot_residual_safety(runs: list[MethodRun]) -> None:
     residual_runs = [run for run in runs if run.spec["kind"] == "residual"]
     fig, axes = plt.subplots(2, 2, figsize=(12.0, 7.5), sharex=True, constrained_layout=True)
@@ -597,16 +780,27 @@ def main() -> None:
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     runs = [load_method(label, spec) for label, spec in RUN_SPECS.items()]
     perf_rows = [performance_metrics(run) for run in runs]
+    steady_rows = [steady_state_metrics(run) for run in runs]
+    late_residual_rows = [row for run in runs for row in late_residual_metrics(run)]
+    sg_steady_source_rows = [
+        row for run in runs for row in sg_steady_policy_residual_metrics(run) if run.bundle.get("supervisor_gated_td3_enabled")
+    ]
     safety_rows = [safety_metrics(run) for run in runs]
     recovery_row = recovery_metrics(runs)
 
     _write_csv(TABLE_DIR / "performance_summary.csv", make_serializable(perf_rows))
+    _write_csv(TABLE_DIR / "steady_state_summary.csv", make_serializable(steady_rows))
+    _write_csv(TABLE_DIR / "late_residual_summary.csv", make_serializable(late_residual_rows))
+    _write_csv(TABLE_DIR / "sg_steady_residual_source_summary.csv", make_serializable(sg_steady_source_rows))
     _write_csv(TABLE_DIR / "safety_summary.csv", make_serializable(safety_rows))
     _write_csv(TABLE_DIR / "recovery_summary.csv", [recovery_row])
     with (TABLE_DIR / "analysis_summary.json").open("w", encoding="utf-8") as handle:
         json.dump(
             {
                 "performance": make_serializable(perf_rows),
+                "steady_state": make_serializable(steady_rows),
+                "late_residual": make_serializable(late_residual_rows),
+                "sg_steady_residual_source": make_serializable(sg_steady_source_rows),
                 "safety": make_serializable(safety_rows),
                 "recovery": recovery_row,
                 "guard_reason_counts": {
@@ -674,6 +868,101 @@ def main() -> None:
             "Last T MAE",
             "Last eta max abs",
             "Last T max abs",
+        ],
+    )
+
+    steady_md_rows = []
+    for row in steady_rows:
+        steady_md_rows.append(
+            {
+                "Method": row["Method"],
+                "Windows": row["Final episode steady windows"],
+                "Steps": row["Steady steps"],
+                "Eta MAE": _fmt(row["Steady eta MAE"], 6),
+                "T MAE": _fmt(row["Steady T MAE"], 6),
+                "Eta RMSE": _fmt(row["Steady eta RMSE"], 6),
+                "T RMSE": _fmt(row["Steady T RMSE"], 6),
+                "Eta mean signed": _fmt(row["Steady eta mean signed"], 6),
+                "T mean signed": _fmt(row["Steady T mean signed"], 6),
+            }
+        )
+    _write_markdown_table(
+        TABLE_DIR / "steady_state_summary.md",
+        steady_md_rows,
+        [
+            "Method",
+            "Windows",
+            "Steps",
+            "Eta MAE",
+            "T MAE",
+            "Eta RMSE",
+            "T RMSE",
+            "Eta mean signed",
+            "T mean signed",
+        ],
+    )
+
+    late_residual_md_rows = []
+    for row in late_residual_rows:
+        late_residual_md_rows.append(
+            {
+                "Method": row["Method"],
+                "Window": row["Window"],
+                "Steps": row["Steps"],
+                "Qc range": _fmt_range(row["Qc min"], row["Qc max"], 4),
+                "Qc mean abs": _fmt(row["Qc mean abs"], 4),
+                "Qc q95 abs": _fmt(row["Qc q95 abs"], 4),
+                "Qm range": _fmt_range(row["Qm min"], row["Qm max"], 4),
+                "Qm mean abs": _fmt(row["Qm mean abs"], 4),
+                "Qm q95 abs": _fmt(row["Qm q95 abs"], 4),
+                "SG policy selected": _fmt_pct(row["SG policy selected"]),
+                "SG supervisor selected": _fmt_pct(row["SG supervisor selected"]),
+            }
+        )
+    _write_markdown_table(
+        TABLE_DIR / "late_residual_summary.md",
+        late_residual_md_rows,
+        [
+            "Method",
+            "Window",
+            "Steps",
+            "Qc range",
+            "Qc mean abs",
+            "Qc q95 abs",
+            "Qm range",
+            "Qm mean abs",
+            "Qm q95 abs",
+            "SG policy selected",
+            "SG supervisor selected",
+        ],
+    )
+
+    sg_source_md_rows = []
+    for row in sg_steady_source_rows:
+        sg_source_md_rows.append(
+            {
+                "Source": row["Window"],
+                "Steps": row["Steps"],
+                "Qc range": _fmt_range(row["Qc min"], row["Qc max"], 4),
+                "Qc mean abs": _fmt(row["Qc mean abs"], 4),
+                "Qc q95 abs": _fmt(row["Qc q95 abs"], 4),
+                "Qm range": _fmt_range(row["Qm min"], row["Qm max"], 4),
+                "Qm mean abs": _fmt(row["Qm mean abs"], 4),
+                "Qm q95 abs": _fmt(row["Qm q95 abs"], 4),
+            }
+        )
+    _write_markdown_table(
+        TABLE_DIR / "sg_steady_residual_source_summary.md",
+        sg_source_md_rows,
+        [
+            "Source",
+            "Steps",
+            "Qc range",
+            "Qc mean abs",
+            "Qc q95 abs",
+            "Qm range",
+            "Qm mean abs",
+            "Qm q95 abs",
         ],
     )
 
@@ -751,6 +1040,8 @@ def main() -> None:
     plot_tail_tracking(runs)
     plot_last_episode_tracking(runs)
     plot_tail_bars(perf_rows)
+    plot_steady_error_bars(steady_rows)
+    plot_late_residual_ranges(late_residual_rows)
     plot_residual_safety(runs)
     for run in runs:
         if run.bundle.get("supervisor_gated_td3_enabled"):

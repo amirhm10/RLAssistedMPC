@@ -132,26 +132,48 @@ def _copy_behavioral_cloning_defaults(
     target_mode="nominal_only",
     lambda_bc_start=0.1,
     lambda_bc_end=0.0,
+    decay_mode="exp",
     active_subepisodes=10,
+    start_after_warm_start=True,
     coordinate_weights=None,
     label_weight_overrides=None,
     action_gap_tolerance=0.0,
     tail_anchor=None,
+    release_gate=None,
+    handoff=None,
 ):
     return {
         "enabled": bool(enabled),
         "target_mode": str(target_mode),
         "lambda_bc_start": float(lambda_bc_start),
         "lambda_bc_end": float(lambda_bc_end),
-        "decay_mode": "exp",
+        "decay_mode": str(decay_mode),
         "active_subepisodes": int(active_subepisodes),
-        "start_after_warm_start": True,
+        "start_after_warm_start": bool(start_after_warm_start),
         "log_diagnostics": True,
         "coordinate_weights": None if coordinate_weights is None else np.asarray(coordinate_weights, float).copy(),
         "label_weight_overrides": {} if label_weight_overrides is None else dict(label_weight_overrides),
         "action_gap_tolerance": float(action_gap_tolerance),
         "tail_anchor": None if tail_anchor is None else deepcopy(tail_anchor),
+        "release_gate": None if release_gate is None else deepcopy(release_gate),
+        "handoff": None if handoff is None else deepcopy(handoff),
     }
+
+
+def _copy_td3_authority_ramp_defaults(kind):
+    kind = str(kind).strip().lower()
+    if kind == "residual":
+        return {
+            "enabled": False,
+            "mode": "residual_delta_u_cap",
+            "units": "scaled_input_delta",
+            "start_cap": 0.005,
+            "end_cap": 0.02,
+            "protected_subepisodes": 0,
+            "ramp_subepisodes": 30,
+            "diagnostic_release_gate_only": True,
+        }
+    raise ValueError(f"Unknown TD3 authority ramp kind: {kind}")
 
 
 def _copy_td3_priority_fallback_defaults(enabled=True):
@@ -1070,7 +1092,10 @@ POLYMER_RESIDUAL_DEFAULTS = {
     "run_mode": "disturb",
     "state_mode": "mismatch",  # Options: "standard" | "mismatch". The latter feeds the authority error to the agent and normalizes it in the same way as the state features.
     **_copy_residual_authority_defaults(),
-    "use_rho_authority": True,  # Legacy alias kept for notebook compatibility.
+    "residual_authority_enabled": False,
+    "append_rho_to_state": False,
+    "authority_use_rho": False,
+    "use_rho_authority": False,  # Legacy alias kept for notebook compatibility.
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
@@ -1083,15 +1108,67 @@ POLYMER_RESIDUAL_DEFAULTS = {
         ("sac", "disturb"): {"result_prefix": "sac_residual_disturb", "compare_prefix": "disturb_compare_sac_residual", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
     "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
-    "post_warm_start_action_freeze_subepisodes": 5,
-    "post_warm_start_actor_freeze_subepisodes": 5,
+    "post_warm_start_action_freeze_subepisodes": 0,
+    "post_warm_start_actor_freeze_subepisodes": 0,
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
         enabled=True,
-        target_mode="executed_action",
-        lambda_bc_start=0.3,
-        active_subepisodes=20,
+        target_mode="nominal_only",
+        lambda_bc_start=1.0,
+        lambda_bc_end=0.05,
+        decay_mode="exp",
+        active_subepisodes=10,
+        start_after_warm_start=False,
         action_gap_tolerance=1e-6,
+        release_gate={
+            "enabled": True,
+            "diagnostic_only": True,
+            "window_subepisodes": 1,
+            "mean_action_gap_max": 0.25,
+            "max_coordinate_gap_max": 0.20,
+            "min_window_fraction": 1.0,
+        },
+        handoff={
+            "enabled": True,
+            "mode": "raw_action_blend",
+            "start_authority": 0.1,
+            "end_authority": 1.0,
+            "active_subepisodes": 10,
+            "start_after_warm_start": True,
+        },
     ),
+    "td3_authority_ramp": {
+        **_copy_td3_authority_ramp_defaults("residual"),
+        "enabled": True,
+        "diagnostic_release_gate_only": False,
+    },
+    "residual_safety": {
+        "enabled": True,
+        "reward_probation": {
+            "enabled": False,
+            "reference_warm_episodes": 3,
+            "collapse_threshold": 5.0,
+            "cooldown_subepisodes": 2,
+            "cooldown_residual_cap": 0.005,
+        },
+        "fallback_to_zero_on_nonfinite": True,
+        "shadow_rho_authority": {
+            "enabled": True,
+        },
+        "shadow_residual_deadband": {
+            "enabled": True,
+        },
+        "shadow_direction_risk": {
+            "enabled": True,
+        },
+        "early_release_guard": {
+            "enabled": True,
+            "post_warm_subepisodes": 20,
+            "objective_relative_tolerance": 0.05,
+            "objective_absolute_tolerance": 1e-8,
+            "error_norm_tolerance": 0.05,
+            "shrink_scales": [0.5, 0.25, 0.1, 0.0],
+        },
+    },
     "controller": {
         "predict_h": 9,
         "cont_h": 3,

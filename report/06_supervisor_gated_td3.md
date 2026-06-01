@@ -88,9 +88,9 @@ The inherited `sample(...)` format is unchanged. New code uses `sample_supervise
 
 The critic is trained on the action that actually produced the next state. If the gate selects the supervisor, the replay action is the supervisor action. If the gate selects the policy, the replay action is the policy action. The implementation does not train the critic on both actions for the same next state, because that would create a counterfactual transition that was not observed.
 
-## Future Notebook Use
+## Polymer Residual Entrypoint
 
-A future notebook or runner should create a normalized supervisor action, call `select_action_with_supervisor(...)`, execute `decision.action`, and then call `push_supervised(...)` with the executed action plus the policy, supervisor, previous-action, source, score, and advantage metadata. Warm-start periods should execute the supervisor and store `SOURCE_WARM_START` if transitions are retained.
+The first opt-in execution surface is `RL_assisted_MPC_residual_supervisor_gated_td3_unified.py`. It uses the existing polymer residual runner, sets `agent_kind = "sg_td3"`, and treats the zero residual correction as the supervisor action. The runner calls `select_action_with_supervisor(...)`, executes the residual action after the existing handoff, cap, guard, and projection logic, and stores the final executed residual action in replay through `push_supervised(...)`.
 
 Initial polymer experiments should compare existing TD3, supervisor-only control, and supervisor-gated TD3 with and without positive advantage margins and critic-disagreement penalties. Distillation should not be the first smoke path.
 

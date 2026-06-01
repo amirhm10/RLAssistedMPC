@@ -208,7 +208,8 @@ Important preservation rules:
 - Do not claim the repo has a reproducible shell environment unless the user adds one.
 - The intended notebook/runtime environment is the Conda environment `rl-env`.
 - The Jupyter kernel name for this repo should be `rl-env` with display name `Python (rl-env)`.
-- When running Python-based checks from the terminal, prefer `C:\Users\HAMEDI\miniconda3\envs\rl-env\python.exe` instead of the shell `python`, because the shell interpreter may not have the scientific stack installed.
+- On this machine, the base interpreter for repo checks and scripts is `C:\Users\hamediaa\.conda\envs\rl-env\python.exe`.
+- When running Python-based checks from the terminal, prefer `C:\Users\hamediaa\.conda\envs\rl-env\python.exe` instead of the shell `python`, because the shell interpreter may not have the scientific stack installed.
 - Because the environment is not declared in-repo, prefer documenting observed behavior over inventing setup commands.
 
 ## VS Code Workflow Preferences

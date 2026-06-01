@@ -223,7 +223,7 @@ def _apply_residual_early_release_guard(
 
 def run_residual_supervisor(residual_cfg, runtime_ctx):
     """
-    Run the TD3/SAC residual-correction supervisor and return a normalized result bundle.
+    Run the TD3/SAC/TD7 residual-correction supervisor and return a normalized result bundle.
 
     Parameters
     ----------
@@ -251,6 +251,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     disturbance_labels = runtime_ctx.get("disturbance_labels")
 
     agent_kind = str(residual_cfg["agent_kind"]).lower()
+    td3_like_agent_kind = agent_kind in {"td3", "td7"}
     run_mode = str(residual_cfg["run_mode"]).lower()
     state_mode = str(residual_cfg.get("state_mode", "standard")).lower()
     residual_authority_enabled = bool(residual_cfg.get("residual_authority_enabled", state_mode == "mismatch"))
@@ -283,8 +284,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     early_release_guard_enabled = bool(
         residual_safety_enabled and early_release_guard_cfg.get("enabled", False)
     )
-    if agent_kind not in {"td3", "sac"}:
-        raise ValueError("residual_cfg['agent_kind'] must be 'td3' or 'sac'.")
+    if agent_kind not in {"td3", "sac", "td7"}:
+        raise ValueError("residual_cfg['agent_kind'] must be 'td3', 'sac', or 'td7'.")
     if run_mode not in {"nominal", "disturb"}:
         raise ValueError("residual_cfg['run_mode'] must be 'nominal' or 'disturb'.")
     use_shifted_mpc_warm_start = bool(residual_cfg.get("use_shifted_mpc_warm_start", False))
@@ -355,7 +356,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     bc_logs = init_behavioral_cloning_logs(nFE)
     bc_handoff_logs = init_bc_handoff_logs(nFE, action_dim)
     bc_release_gate = init_protected_bc_release_gate(bc_schedule, nFE)
-    bc_handoff_enabled = bool(agent_kind == "td3" and dict(bc_schedule.get("handoff", {}) or {}).get("enabled", False))
+    bc_handoff_enabled = bool(td3_like_agent_kind and dict(bc_schedule.get("handoff", {}) or {}).get("enabled", False))
     bc_action_gap_tolerance = float(bc_schedule.get("action_gap_tolerance", 0.0))
     bc_target_mode = str(bc_schedule.get("target_mode", "nominal_only")).strip().lower()
     bc_train_start_step = (
@@ -364,15 +365,15 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         else int(warm_start_step)
     )
     protected_bc_release_enabled = bool(bc_release_gate["state"].get("live_blocking_enabled", False))
-    td3_authority_ramp_cfg = dict(residual_cfg.get("td3_authority_ramp", {}) or {}) if agent_kind == "td3" else {}
+    td3_authority_ramp_cfg = dict(residual_cfg.get("td3_authority_ramp", {}) or {}) if td3_like_agent_kind else {}
     td3_authority_ramp_logs = init_td3_authority_ramp_logs(nFE, action_dim)
 
     phase1 = None
     phase1_action_source_log = None
     phase1_train_traces = None
-    if agent_kind == "td3":
+    if td3_like_agent_kind:
         phase1 = build_phase1_schedule(
-            agent_kind=agent_kind,
+            agent_kind="td3",
             warm_start_step=warm_start_step,
             time_in_sub_episodes=time_in_sub_episodes,
             n_steps=nFE,
@@ -563,7 +564,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
         policy_action_for_log = zero_action.copy()
-        if agent_kind == "td3":
+        if td3_like_agent_kind:
             policy_action_for_log = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
             if policy_action_for_log.size != action_dim or not np.all(np.isfinite(policy_action_for_log)):
                 policy_action_for_log = zero_action.copy()
@@ -1179,6 +1180,16 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "bc_weight_trace",
         "bc_loss_trace",
         "bc_actor_target_distance_trace",
+        "encoder_losses",
+        "q_value_min_trace",
+        "q_value_max_trace",
+        "q_target_min_trace",
+        "q_target_max_trace",
+        "priority_mean_trace",
+        "priority_max_trace",
+        "priority_min_trace",
+        "checkpoint_active_trace",
+        "checkpoint_update_trace",
     ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)

@@ -1,6 +1,14 @@
+from types import SimpleNamespace
+
 import numpy as np
 import scipy.optimize as spo
 
+from TD3Agent.supervisor_replay_buffer import (
+    SOURCE_FALLBACK,
+    SOURCE_POLICY,
+    SOURCE_SUPERVISOR,
+    SOURCE_WARM_START,
+)
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
 from utils.behavioral_cloning import (
     apply_bc_handoff_action,
@@ -32,6 +40,7 @@ from utils.phase1_hidden_release import (
     build_phase1_bundle_fields,
     build_phase1_schedule,
     init_phase1_train_traces,
+    record_phase1_train_step,
 )
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.state_features import (
@@ -134,6 +143,8 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     disturbance_labels = runtime_ctx.get("disturbance_labels")
 
     agent_kind = str(weight_cfg["agent_kind"]).lower()
+    supervisor_gated_agent_kind = agent_kind == "sg_td3"
+    td3_like_agent_kind = agent_kind in {"td3", "sg_td3"}
     run_mode = str(weight_cfg["run_mode"]).lower()
     state_mode = str(weight_cfg.get("state_mode", "standard")).lower()
     weight_safety_cfg = dict(weight_cfg.get("weight_safety", {}) or {})
@@ -153,8 +164,8 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     shadow_identity_cfg = dict(weight_safety_cfg.get("shadow_identity_mpc", {}) or {})
     shadow_identity_enabled = bool(weight_safety_enabled and shadow_identity_cfg.get("enabled", False))
     shadow_identity_stride = int(max(1, shadow_identity_cfg.get("diagnostic_stride", 5)))
-    if agent_kind not in {"td3", "sac"}:
-        raise ValueError("weight_cfg['agent_kind'] must be 'td3' or 'sac'.")
+    if agent_kind not in {"td3", "sac", "sg_td3"}:
+        raise ValueError("weight_cfg['agent_kind'] must be 'td3', 'sac', or 'sg_td3'.")
     if run_mode not in {"nominal", "disturb"}:
         raise ValueError("weight_cfg['run_mode'] must be 'nominal' or 'disturb'.")
     use_shifted_mpc_warm_start = bool(weight_cfg.get("use_shifted_mpc_warm_start", False))
@@ -223,7 +234,9 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     bc_logs = init_behavioral_cloning_logs(nFE)
     bc_handoff_logs = init_bc_handoff_logs(nFE, action_dim)
     bc_release_gate = init_protected_bc_release_gate(bc_schedule, nFE)
-    bc_handoff_enabled = bool(agent_kind == "td3" and dict(bc_schedule.get("handoff", {}) or {}).get("enabled", False))
+    bc_handoff_enabled = bool(
+        td3_like_agent_kind and dict(bc_schedule.get("handoff", {}) or {}).get("enabled", False)
+    )
     bc_action_gap_tolerance = float(bc_schedule.get("action_gap_tolerance", 0.0))
     bc_train_start_step = (
         int(bc_schedule.get("start_step", warm_start_step))
@@ -231,7 +244,7 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         else int(warm_start_step)
     )
     protected_bc_release_enabled = bool(bc_release_gate["state"].get("live_blocking_enabled", False))
-    td3_authority_ramp_cfg = dict(weight_cfg.get("td3_authority_ramp", {}) or {}) if agent_kind == "td3" else {}
+    td3_authority_ramp_cfg = dict(weight_cfg.get("td3_authority_ramp", {}) or {}) if td3_like_agent_kind else {}
     td3_authority_ramp_logs = init_td3_authority_ramp_logs(nFE, action_dim)
 
     phase1 = None
@@ -239,9 +252,9 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     policy_action_raw_log = None
     executed_action_raw_log = None
     phase1_train_traces = None
-    if agent_kind == "td3":
+    if td3_like_agent_kind:
         phase1 = build_phase1_schedule(
-            agent_kind=agent_kind,
+            agent_kind="td3",
             warm_start_step=warm_start_step,
             time_in_sub_episodes=time_in_sub_episodes,
             n_steps=nFE,
@@ -313,6 +326,20 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     weight_shadow_first_move_delta_norm_log = np.full(nFE, np.nan, dtype=float)
     weight_shadow_selected_first_move_log = np.full((nFE, n_inputs), np.nan, dtype=float)
     weight_shadow_identity_first_move_log = np.full((nFE, n_inputs), np.nan, dtype=float)
+    sg_policy_action_raw_log = np.full((nFE, action_dim), np.nan, dtype=float)
+    sg_supervisor_action_raw_log = np.full((nFE, action_dim), np.nan, dtype=float)
+    sg_executed_action_raw_log = np.full((nFE, action_dim), np.nan, dtype=float)
+    sg_previous_action_raw_log = np.full((nFE, action_dim), np.nan, dtype=float)
+    sg_selected_source_log = np.zeros(nFE, dtype=int)
+    sg_score_policy_log = np.full(nFE, np.nan, dtype=float)
+    sg_score_supervisor_log = np.full(nFE, np.nan, dtype=float)
+    sg_advantage_log = np.full(nFE, np.nan, dtype=float)
+    sg_q1_policy_log = np.full(nFE, np.nan, dtype=float)
+    sg_q2_policy_log = np.full(nFE, np.nan, dtype=float)
+    sg_q1_supervisor_log = np.full(nFE, np.nan, dtype=float)
+    sg_q2_supervisor_log = np.full(nFE, np.nan, dtype=float)
+    sg_q_gap_policy_log = np.full(nFE, np.nan, dtype=float)
+    sg_q_gap_supervisor_log = np.full(nFE, np.nan, dtype=float)
     warm_reference_rewards = []
     warm_start_subepisodes = int(np.ceil(float(warm_start_step + 1) / float(max(1, time_in_sub_episodes))))
     probation_cooldown_until_subepisode = 0
@@ -369,7 +396,7 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
         policy_action_for_gate = identity_action.copy()
-        if agent_kind == "td3":
+        if td3_like_agent_kind:
             policy_action_for_gate = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
             if policy_action_for_gate.size != action_dim or not np.all(np.isfinite(policy_action_for_gate)):
                 policy_action_for_gate = identity_action.copy()
@@ -394,19 +421,73 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         weight_probation_active_log[i] = int(probation_active)
         weight_probation_cooldown_until_subepisode_log[i] = int(probation_cooldown_until_subepisode)
 
-        action_decision = select_continuous_action(
-            agent=agent,
-            state=current_rl_state,
-            step=i,
-            warm_start_step=-1 if bc_handoff_enabled else warm_start_step,
-            test=test,
-            baseline_action=identity_action,
-            phase1=phase1,
-            action_dim=action_dim,
-            nonfinite_fallback=fallback_to_identity_on_nonfinite,
+        sg_previous_action_for_gate = (
+            executed_action_raw_log[i - 1, :].copy()
+            if td3_like_agent_kind and executed_action_raw_log is not None and i > 0
+            else identity_action.copy()
         )
+        if supervisor_gated_agent_kind:
+            hidden_active = bool(
+                phase1 is not None
+                and phase1.get("enabled", False)
+                and bool(phase1["hidden_window_active_log"][i])
+            )
+            warm_blocked = bool(i <= (-1 if bc_handoff_enabled else warm_start_step))
+            if warm_blocked or hidden_active:
+                action_requested = identity_action.copy()
+                policy_action_for_log = np.asarray(agent.act_eval(current_rl_state), float).reshape(-1)
+                if policy_action_for_log.size != action_dim or not np.all(np.isfinite(policy_action_for_log)):
+                    policy_action_for_log = identity_action.copy()
+                sg_selected_source = SOURCE_WARM_START if warm_blocked else SOURCE_SUPERVISOR
+                nonfinite_selected = False
+                source = 0 if warm_blocked else 1
+            else:
+                sg_decision = agent.select_action_with_supervisor(
+                    current_rl_state,
+                    supervisor_action=identity_action,
+                    previous_action=sg_previous_action_for_gate,
+                    explore=not test,
+                    test=test,
+                )
+                action_requested = np.asarray(sg_decision.action, float).reshape(-1)
+                policy_action_for_log = np.asarray(sg_decision.policy_action, float).reshape(-1)
+                sg_selected_source = int(sg_decision.selected_source)
+                nonfinite_selected = bool(sg_selected_source == SOURCE_FALLBACK)
+                source = 3 if test else 2
+                sg_score_policy_log[i] = float(sg_decision.score_policy)
+                sg_score_supervisor_log[i] = float(sg_decision.score_supervisor)
+                sg_advantage_log[i] = float(sg_decision.advantage_policy_supervisor)
+                sg_q1_policy_log[i] = float(sg_decision.q1_policy)
+                sg_q2_policy_log[i] = float(sg_decision.q2_policy)
+                sg_q1_supervisor_log[i] = float(sg_decision.q1_supervisor)
+                sg_q2_supervisor_log[i] = float(sg_decision.q2_supervisor)
+                sg_q_gap_policy_log[i] = float(sg_decision.q_gap_policy)
+                sg_q_gap_supervisor_log[i] = float(sg_decision.q_gap_supervisor)
+            sg_policy_action_raw_log[i, :] = policy_action_for_log
+            sg_supervisor_action_raw_log[i, :] = identity_action
+            sg_previous_action_raw_log[i, :] = sg_previous_action_for_gate
+            sg_selected_source_log[i] = int(sg_selected_source)
+            policy_action_for_gate = policy_action_for_log
+            action_decision = SimpleNamespace(
+                action=np.asarray(action_requested, float).reshape(-1),
+                source=int(source),
+                nonfinite_fallback_used=bool(nonfinite_selected),
+            )
+            policy_action = policy_action_for_log
+        else:
+            action_decision = select_continuous_action(
+                agent=agent,
+                state=current_rl_state,
+                step=i,
+                warm_start_step=-1 if bc_handoff_enabled else warm_start_step,
+                test=test,
+                baseline_action=identity_action,
+                phase1=phase1,
+                action_dim=action_dim,
+                nonfinite_fallback=fallback_to_identity_on_nonfinite,
+            )
+            policy_action = action_decision.policy_action
         action_requested = np.asarray(action_decision.action, float).reshape(-1)
-        policy_action = action_decision.policy_action
         weight_requested_action_raw_log[i, :] = action_requested
         weight_requested_multiplier_log[i, :] = _map_to_bounds(action_requested, low_coef, high_coef).reshape(-1)
 
@@ -502,12 +583,16 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             weight_action_source_log[i] = WEIGHT_ACTION_SOURCE_CODES["identity_fallback"]
         elif i <= warm_start_step and float(np.linalg.norm(multipliers - np.ones(4, dtype=float))) <= 1.0e-12:
             weight_action_source_log[i] = WEIGHT_ACTION_SOURCE_CODES["identity_warm"]
+        elif supervisor_gated_agent_kind and sg_selected_source_log[i] == SOURCE_SUPERVISOR:
+            weight_action_source_log[i] = WEIGHT_ACTION_SOURCE_CODES["identity_fallback"]
         elif bool(ramp_clip_info["projection_active"]):
             weight_action_source_log[i] = WEIGHT_ACTION_SOURCE_CODES["projected_td3"]
         else:
             weight_action_source_log[i] = WEIGHT_ACTION_SOURCE_CODES["td3_accepted"]
         weight_fallback_reason_log[i] = int(fallback_reason_code)
         weight_executed_action_raw_log[i, :] = action
+        if supervisor_gated_agent_kind:
+            sg_executed_action_raw_log[i, :] = action
         weight_log[i, :] = multipliers
         sat = np.isclose(multipliers, low_coef, atol=1.0e-9) | np.isclose(multipliers, high_coef, atol=1.0e-9)
         weight_multiplier_saturation_count_log[i] = int(np.sum(sat))
@@ -644,7 +729,7 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         )
 
         bc_context = None
-        if agent_kind == "td3" and not test:
+        if td3_like_agent_kind and not test:
             if float(np.max(np.abs(policy_action_for_gate - identity_action))) > bc_action_gap_tolerance:
                 bc_context = resolve_behavioral_cloning_context(
                     bc_schedule,
@@ -653,19 +738,44 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
                     policy_action=policy_action_for_gate,
                 )
 
-        train_result = replay_train_continuous_agent(
-            agent=agent,
-            state=current_rl_state,
-            action=action,
-            reward=reward,
-            next_state=next_rl_state,
-            done=0.0,
-            step=i,
-            test=test,
-            train_start_step=bc_train_start_step,
-            phase1_train_traces=phase1_train_traces if phase1 is not None else None,
-            bc_context=bc_context,
-        )
+        if supervisor_gated_agent_kind:
+            train_result = {"pushed": False, "trained": False, "train_meta": None}
+            if not test:
+                agent.push_supervised(
+                    np.asarray(current_rl_state, np.float32),
+                    np.asarray(action, np.float32),
+                    float(reward),
+                    np.asarray(next_rl_state, np.float32),
+                    False,
+                    policy_action=sg_policy_action_raw_log[i, :],
+                    supervisor_action=identity_action,
+                    previous_action=sg_previous_action_for_gate,
+                    selected_source=int(sg_selected_source_log[i]),
+                    score_policy=sg_score_policy_log[i],
+                    score_supervisor=sg_score_supervisor_log[i],
+                    advantage_policy_supervisor=sg_advantage_log[i],
+                )
+                train_result["pushed"] = True
+                if i >= bc_train_start_step:
+                    train_meta = agent.train_step(bc_context=bc_context)
+                    train_result["trained"] = True
+                    train_result["train_meta"] = train_meta
+                    if phase1_train_traces is not None:
+                        record_phase1_train_step(phase1_train_traces, i, train_meta)
+        else:
+            train_result = replay_train_continuous_agent(
+                agent=agent,
+                state=current_rl_state,
+                action=action,
+                reward=reward,
+                next_state=next_rl_state,
+                done=0.0,
+                step=i,
+                test=test,
+                train_start_step=bc_train_start_step,
+                phase1_train_traces=phase1_train_traces if phase1 is not None else None,
+                bc_context=bc_context,
+            )
         record_behavioral_cloning_step(
             bc_logs,
             step_idx=i,
@@ -769,6 +879,29 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         "weight_shadow_first_move_delta_norm_log": weight_shadow_first_move_delta_norm_log,
         "weight_shadow_selected_first_move_log": weight_shadow_selected_first_move_log,
         "weight_shadow_identity_first_move_log": weight_shadow_identity_first_move_log,
+        "supervisor_gated_td3_enabled": bool(supervisor_gated_agent_kind),
+        "sg_policy_action_raw_log": sg_policy_action_raw_log if supervisor_gated_agent_kind else None,
+        "sg_supervisor_action_raw_log": sg_supervisor_action_raw_log if supervisor_gated_agent_kind else None,
+        "sg_executed_action_raw_log": sg_executed_action_raw_log if supervisor_gated_agent_kind else None,
+        "sg_previous_action_raw_log": sg_previous_action_raw_log if supervisor_gated_agent_kind else None,
+        "sg_selected_source_log": sg_selected_source_log if supervisor_gated_agent_kind else None,
+        "sg_score_policy_log": sg_score_policy_log if supervisor_gated_agent_kind else None,
+        "sg_score_supervisor_log": sg_score_supervisor_log if supervisor_gated_agent_kind else None,
+        "sg_advantage_log": sg_advantage_log if supervisor_gated_agent_kind else None,
+        "sg_q1_policy_log": sg_q1_policy_log if supervisor_gated_agent_kind else None,
+        "sg_q2_policy_log": sg_q2_policy_log if supervisor_gated_agent_kind else None,
+        "sg_q1_supervisor_log": sg_q1_supervisor_log if supervisor_gated_agent_kind else None,
+        "sg_q2_supervisor_log": sg_q2_supervisor_log if supervisor_gated_agent_kind else None,
+        "sg_q_gap_policy_log": sg_q_gap_policy_log if supervisor_gated_agent_kind else None,
+        "sg_q_gap_supervisor_log": sg_q_gap_supervisor_log if supervisor_gated_agent_kind else None,
+        "sg_rl_selected_fraction": (
+            float(np.mean(sg_selected_source_log == SOURCE_POLICY)) if supervisor_gated_agent_kind and nFE else None
+        ),
+        "sg_supervisor_selected_fraction": (
+            float(np.mean(sg_selected_source_log == SOURCE_SUPERVISOR))
+            if supervisor_gated_agent_kind and nFE
+            else None
+        ),
         "low_coef": low_coef,
         "high_coef": high_coef,
         "test_train_dict": test_train_dict,
@@ -824,6 +957,17 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         "truncated_fraction_trace",
         "lambda_return_mean_trace",
         "target_logprob_mean_trace",
+        "sg_score_policy_trace",
+        "sg_score_supervisor_trace",
+        "sg_advantage_trace",
+        "sg_selected_source_trace",
+        "sg_q_policy_trace",
+        "sg_q_supervisor_trace",
+        "sg_q_gap_policy_trace",
+        "sg_q_gap_supervisor_trace",
+        "sg_weight_trace",
+        "sg_bc_loss_trace",
+        "sg_smooth_loss_trace",
     ):
         if hasattr(agent, attr):
             result_bundle[attr] = np.asarray(getattr(agent, attr), float)

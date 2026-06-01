@@ -242,6 +242,47 @@ POLYMER_DEFAULT_ACTOR_HIDDEN = [512, 512, 512, 512, 512]
 POLYMER_DEFAULT_CRITIC_HIDDEN = [512, 512, 512, 512, 512]
 
 
+def _copy_td7_agent_defaults():
+    replay_defaults = _copy_replay_defaults()
+    replay_defaults["replay_alpha"] = 0.4
+    return {
+        "actor_hidden": list(POLYMER_DEFAULT_ACTOR_HIDDEN),
+        "critic_hidden": list(POLYMER_DEFAULT_CRITIC_HIDDEN),
+        "encoder_hidden": list(POLYMER_DEFAULT_CRITIC_HIDDEN),
+        "zs_dim": 256,
+        **replay_defaults,
+        "gamma": 0.99,
+        "n_step": 1,
+        "multistep_mode": "one_step",
+        "lambda_value": None,
+        "actor_lr": 1e-4,
+        "critic_lr": 1e-4,
+        "encoder_lr": 1e-4,
+        "batch_size": 128,
+        "grad_clip_norm": 10.0,
+        "policy_delay": 2,
+        "target_update_rate": 250,
+        "target_policy_smoothing_noise_std": 0.2,
+        "noise_clip": 0.5,
+        "max_action": 1.0,
+        "actor_activation": "relu",
+        "critic_activation": "elu",
+        "encoder_activation": "elu",
+        "use_layernorm": False,
+        "dropout": 0.0,
+        "std_start": 0.2,
+        "std_end": 0.02,
+        "std_decay_rate": 0.99995,
+        "std_decay_steps": 100_000,
+        "std_decay_mode": "exp",
+        "bc_lambda_scale": 1.0,
+        "actor_freeze": 0,
+        "use_adamw": False,
+        "min_priority": 1.0,
+        "use_checkpoints": False,
+    }
+
+
 def _polymer_matrix_multiplier_bounds():
     low = np.full(3, POLYMER_DEFAULT_MULTIPLIER_LOW, dtype=float)
     high = np.array(
@@ -1036,6 +1077,8 @@ POLYMER_RESIDUAL_DEFAULTS = {
     "run_profiles": {
         ("td3", "nominal"): {"result_prefix": "td3_residual_nominal", "compare_prefix": "nominal_compare_td3_residual", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
         ("td3", "disturb"): {"result_prefix": "td3_residual_disturb", "compare_prefix": "disturb_compare_td3_residual", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("td7", "nominal"): {"result_prefix": "td7_residual_nominal", "compare_prefix": "nominal_compare_td7_residual", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("td7", "disturb"): {"result_prefix": "td7_residual_disturb", "compare_prefix": "disturb_compare_td7_residual", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
         ("sac", "nominal"): {"result_prefix": "sac_residual_nominal", "compare_prefix": "nominal_compare_sac_residual", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
         ("sac", "disturb"): {"result_prefix": "sac_residual_disturb", "compare_prefix": "disturb_compare_sac_residual", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
@@ -1092,6 +1135,7 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "loss_type": "huber",
         "param_noise_resample_interval": 4,
     },
+    "td7_agent": _copy_td7_agent_defaults(),
     "sac_agent": {
         "actor_hidden": list(POLYMER_DEFAULT_ACTOR_HIDDEN),
         "critic_hidden": list(POLYMER_DEFAULT_CRITIC_HIDDEN),

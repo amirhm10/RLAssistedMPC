@@ -1,0 +1,95 @@
+{
+  "latest_vs_baseline": {
+    "tail20_reward_delta": -0.016395447044111222,
+    "final_reward_delta": -0.0025839925472066483,
+    "tail20_comp_mae_ratio": 1.0001726894135412,
+    "tail20_temp_mae_ratio": 1.000194080229287,
+    "tail20_band_mae_ratio": 1.0001847737802316
+  },
+  "latest_vs_may30": {
+    "tail20_reward_delta": -3.419821895641353,
+    "tail20_comp_mae_delta": -0.0011021189351123092,
+    "tail20_temp_mae_delta": 0.06148586421125765,
+    "latest_tail20_weight_mean": [
+      0.75,
+      0.75,
+      0.7506328115751967,
+      0.7500000029988587
+    ],
+    "may30_tail20_weight_mean": [
+      1.0122855943707036,
+      1.7392954299159682,
+      1.4140827230950817,
+      1.5570342170769362
+    ]
+  },
+  "best_historical_current_reward": {
+    "kind": "td3",
+    "run": "20260528_194904",
+    "tail20_reward": 16.44254314116979,
+    "tail20_comp_mae": 0.0007064701165791058,
+    "tail20_temp_mae": 0.16692924070483467,
+    "tail20_weight_mean": [
+      1.4073659496657525,
+      1.4005774854460447,
+      1.3811254723647288,
+      1.2395341309347896
+    ]
+  },
+  "best_sac_current_reward": {
+    "run": "20260518_142138",
+    "tail20_reward": 9.980345759935537,
+    "tail20_comp_mae": 0.0015702120859453386,
+    "tail20_temp_mae": 0.17517618274847235,
+    "tail20_weight_mean": [
+      1.0025577859949135,
+      1.0504921806403718,
+      1.0396488847241654,
+      1.019602077900288
+    ]
+  },
+  "reward_defaults": {
+    "k_rel": [
+      0.3,
+      0.01
+    ],
+    "band_floor_phys": [
+      0.003,
+      0.2
+    ],
+    "Q_diag": [
+      37000.0,
+      20000.0
+    ],
+    "R_diag": [
+      2500.0,
+      2500.0
+    ],
+    "tau_frac": 0.7,
+    "gamma_out": 0.5,
+    "gamma_in": 0.5,
+    "beta": 7.0,
+    "gate": "geom",
+    "lam_in": 1.0,
+    "bonus_kind": "exp",
+    "bonus_k": 12.0,
+    "bonus_p": 0.6,
+    "bonus_c": 20.0,
+    "reward_scale": 1.0
+  },
+  "artifacts": {
+    "figure_dir": "report\\figures\\distillation_weights_latest_20260601",
+    "csvs": [
+      "selected_episode_profiles.csv",
+      "selected_tail_metrics.csv",
+      "weight_run_summary.csv"
+    ],
+    "figures": [
+      "fig_current_reward_trajectories.png",
+      "fig_latest_action_layers.png",
+      "fig_latest_vs_may30_multipliers.png",
+      "fig_tail20_reward_ranking.png",
+      "fig_tail_tracking_errors.png"
+    ]
+  }
+}

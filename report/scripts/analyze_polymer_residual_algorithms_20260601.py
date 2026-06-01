@@ -223,6 +223,9 @@ def performance_metrics(run: MethodRun) -> dict:
     rewards_tail = run.rewards_step[tail] if run.rewards_step.size else np.array([], dtype=float)
     rewards_post = run.rewards_step[post] if run.rewards_step.size else np.array([], dtype=float)
     du_tail = run.delta_u_scaled[tail]
+    last_start = max(0, run.nfe - run.time_in_sub)
+    e_last = run.err_phys[last_start : run.nfe]
+    rewards_last = run.rewards_step[last_start : run.nfe] if run.rewards_step.size else np.array([], dtype=float)
     episode_tail_count = min(20, run.avg_rewards.size)
     return {
         "Method": run.label,
@@ -241,6 +244,13 @@ def performance_metrics(run: MethodRun) -> dict:
         "Post-warm eta RMSE": float(np.sqrt(np.mean(e_post[:, 0] ** 2))),
         "Post-warm T RMSE": float(np.sqrt(np.mean(e_post[:, 1] ** 2))),
         "Tail mean abs du scaled": float(np.mean(np.abs(du_tail))),
+        "Last episode reward": _nanmean(rewards_last),
+        "Last eta RMSE": float(np.sqrt(np.mean(e_last[:, 0] ** 2))),
+        "Last T RMSE": float(np.sqrt(np.mean(e_last[:, 1] ** 2))),
+        "Last eta MAE": float(np.mean(np.abs(e_last[:, 0]))),
+        "Last T MAE": float(np.mean(np.abs(e_last[:, 1]))),
+        "Last eta max abs": float(np.max(np.abs(e_last[:, 0]))),
+        "Last T max abs": float(np.max(np.abs(e_last[:, 1]))),
     }
 
 
@@ -303,6 +313,78 @@ def safety_metrics(run: MethodRun) -> dict:
         "Shadow rho eff mean": _nanmean(np.asarray(run.bundle["shadow_rho_eff_log"], float)[post]),
         "SG policy selected": sg_policy,
         "SG supervisor selected": sg_supervisor,
+    }
+
+
+def recovery_metrics(runs: list[MethodRun]) -> dict:
+    baseline = next(run for run in runs if run.label == "OF-MPC")
+    sg = next(run for run in runs if run.label == "SG-TD3 Residual")
+    warm_ep = int(sg.warm_episode)
+    sg_rewards = np.asarray(sg.avg_rewards, float)
+    base_rewards = np.asarray(baseline.avg_rewards, float)
+    n_ep = min(sg_rewards.size, base_rewards.size)
+    sg_rewards = sg_rewards[:n_ep]
+    base_rewards = base_rewards[:n_ep]
+    post = sg_rewards[warm_ep:]
+
+    first_better = None
+    for idx in range(warm_ep, n_ep):
+        if sg_rewards[idx] > base_rewards[idx]:
+            first_better = idx + 1
+            break
+
+    first_5_better = None
+    for idx in range(warm_ep, n_ep - 4):
+        if np.all(sg_rewards[idx : idx + 5] > base_rewards[idx : idx + 5]):
+            first_5_better = idx + 1
+            break
+
+    tail20_sg = float(np.mean(sg_rewards[-20:]))
+    tail20_base = float(np.mean(base_rewards[-20:]))
+    threshold_80 = tail20_base + 0.8 * (tail20_sg - tail20_base)
+    first_80_start = None
+    first_80_end = None
+    for idx in range(warm_ep, n_ep - 4):
+        if float(np.mean(sg_rewards[idx : idx + 5])) >= threshold_80:
+            first_80_start = idx + 1
+            first_80_end = idx + 5
+            break
+
+    def _episode_fraction(key: str) -> np.ndarray:
+        arr = np.asarray(sg.bundle[key], float)[: sg.episode_count * sg.time_in_sub]
+        return np.nanmean(arr.reshape(sg.episode_count, sg.time_in_sub), axis=1)
+
+    sg_source = np.asarray(sg.bundle["sg_selected_source_log"], int)[: sg.episode_count * sg.time_in_sub]
+    sg_source = sg_source.reshape(sg.episode_count, sg.time_in_sub)
+    policy_fraction = np.mean(sg_source == 2, axis=1)
+    supervisor_fraction = np.mean(sg_source == 1, axis=1)
+    cap_clip = _episode_fraction("residual_cap_projection_active_log")
+    guard_trigger = _episode_fraction("residual_guard_triggered_log")
+    shadow_rho = _episode_fraction("shadow_rho_projection_due_to_authority_log")
+
+    return {
+        "Method": sg.label,
+        "Warm episode count": warm_ep,
+        "Warm mean reward": float(np.mean(sg_rewards[:warm_ep])),
+        "Post-warm minimum reward": float(np.min(post)),
+        "Post-warm minimum episode": int(np.argmin(post) + warm_ep + 1),
+        "First episode better than OF-MPC": first_better,
+        "First 5-episode run better than OF-MPC": first_5_better,
+        "First 5-episode 80pct tail recovery start": first_80_start,
+        "First 5-episode 80pct tail recovery end": first_80_end,
+        "OF-MPC tail-20 reward": tail20_base,
+        "SG-TD3 tail-20 reward": tail20_sg,
+        "80pct recovery reward threshold": float(threshold_80),
+        "Cap clip ep11-40": float(np.mean(cap_clip[10:40])),
+        "Cap clip ep41-200": float(np.mean(cap_clip[40:])),
+        "Guard trigger ep11-40": float(np.mean(guard_trigger[10:40])),
+        "Guard trigger ep41-200": float(np.mean(guard_trigger[40:])),
+        "Shadow rho authority ep11-40": float(np.mean(shadow_rho[10:40])),
+        "Shadow rho authority ep41-200": float(np.mean(shadow_rho[40:])),
+        "Policy selected ep11-40": float(np.mean(policy_fraction[10:40])),
+        "Policy selected ep41-200": float(np.mean(policy_fraction[40:])),
+        "Policy selected tail20": float(np.mean(policy_fraction[-20:])),
+        "Supervisor selected tail20": float(np.mean(supervisor_fraction[-20:])),
     }
 
 
@@ -370,6 +452,28 @@ def plot_tail_tracking(runs: list[MethodRun]) -> None:
     unique = dict(zip(labels, handles))
     axes[0].legend(unique.values(), unique.keys(), frameon=False, ncol=3)
     fig.savefig(FIG_DIR / "tail_tracking_overlay.png", dpi=180)
+    plt.close(fig)
+
+
+def plot_last_episode_tracking(runs: list[MethodRun]) -> None:
+    ref = runs[0]
+    start = max(0, ref.nfe - ref.time_in_sub)
+    stop = ref.nfe
+    x = np.arange(stop - start)
+    fig, axes = plt.subplots(2, 1, figsize=(11.0, 6.6), sharex=True, constrained_layout=True)
+    for out_idx, ax in enumerate(axes):
+        ax.step(x, ref.y_sp_phys[start:stop, out_idx], where="post", color="#D62728", linewidth=1.6, label="setpoint")
+        for run in runs:
+            y = run.y[1 : run.nfe + 1]
+            ax.plot(x, y[start:stop, out_idx], color=run.spec["color"], linewidth=1.15, alpha=0.95, label=run.label)
+        ax.set_ylabel(OUTPUT_LABELS[out_idx])
+        ax.grid(alpha=0.22)
+    axes[0].set_title("Final subepisode output tracking")
+    axes[1].set_xlabel("Step within final subepisode")
+    handles, labels = axes[0].get_legend_handles_labels()
+    unique = dict(zip(labels, handles))
+    axes[0].legend(unique.values(), unique.keys(), frameon=False, ncol=3)
+    fig.savefig(FIG_DIR / "last_episode_tracking_overlay.png", dpi=180)
     plt.close(fig)
 
 
@@ -494,14 +598,17 @@ def main() -> None:
     runs = [load_method(label, spec) for label, spec in RUN_SPECS.items()]
     perf_rows = [performance_metrics(run) for run in runs]
     safety_rows = [safety_metrics(run) for run in runs]
+    recovery_row = recovery_metrics(runs)
 
     _write_csv(TABLE_DIR / "performance_summary.csv", make_serializable(perf_rows))
     _write_csv(TABLE_DIR / "safety_summary.csv", make_serializable(safety_rows))
+    _write_csv(TABLE_DIR / "recovery_summary.csv", [recovery_row])
     with (TABLE_DIR / "analysis_summary.json").open("w", encoding="utf-8") as handle:
         json.dump(
             {
                 "performance": make_serializable(perf_rows),
                 "safety": make_serializable(safety_rows),
+                "recovery": recovery_row,
                 "guard_reason_counts": {
                     run.label: guard_reason_counts(run) for run in runs if run.spec["kind"] == "residual"
                 },
@@ -538,6 +645,35 @@ def main() -> None:
             "Tail eta MAE",
             "Tail T MAE",
             "Tail mean abs du scaled",
+        ],
+    )
+
+    last_episode_rows = []
+    for row in perf_rows:
+        last_episode_rows.append(
+            {
+                "Method": row["Method"],
+                "Last episode reward": _fmt(row["Last episode reward"], 3),
+                "Last eta RMSE": _fmt(row["Last eta RMSE"], 4),
+                "Last T RMSE": _fmt(row["Last T RMSE"], 4),
+                "Last eta MAE": _fmt(row["Last eta MAE"], 4),
+                "Last T MAE": _fmt(row["Last T MAE"], 4),
+                "Last eta max abs": _fmt(row["Last eta max abs"], 4),
+                "Last T max abs": _fmt(row["Last T max abs"], 4),
+            }
+        )
+    _write_markdown_table(
+        TABLE_DIR / "last_episode_summary.md",
+        last_episode_rows,
+        [
+            "Method",
+            "Last episode reward",
+            "Last eta RMSE",
+            "Last T RMSE",
+            "Last eta MAE",
+            "Last T MAE",
+            "Last eta max abs",
+            "Last T max abs",
         ],
     )
 
@@ -578,8 +714,42 @@ def main() -> None:
         ],
     )
 
+    recovery_md_row = {
+        "Method": recovery_row["Method"],
+        "Post-warm minimum": _fmt(recovery_row["Post-warm minimum reward"], 3),
+        "Minimum episode": recovery_row["Post-warm minimum episode"],
+        "First better than OF-MPC": recovery_row["First episode better than OF-MPC"],
+        "First 5-episode better": recovery_row["First 5-episode run better than OF-MPC"],
+        "80pct recovery start": recovery_row["First 5-episode 80pct tail recovery start"],
+        "80pct recovery end": recovery_row["First 5-episode 80pct tail recovery end"],
+        "Cap clip ep11-40": _fmt_pct(recovery_row["Cap clip ep11-40"]),
+        "Cap clip ep41-200": _fmt_pct(recovery_row["Cap clip ep41-200"]),
+        "Guard trigger ep11-40": _fmt_pct(recovery_row["Guard trigger ep11-40"]),
+        "Guard trigger ep41-200": _fmt_pct(recovery_row["Guard trigger ep41-200"]),
+        "Policy selected tail20": _fmt_pct(recovery_row["Policy selected tail20"]),
+    }
+    _write_markdown_table(
+        TABLE_DIR / "recovery_summary.md",
+        [recovery_md_row],
+        [
+            "Method",
+            "Post-warm minimum",
+            "Minimum episode",
+            "First better than OF-MPC",
+            "First 5-episode better",
+            "80pct recovery start",
+            "80pct recovery end",
+            "Cap clip ep11-40",
+            "Cap clip ep41-200",
+            "Guard trigger ep11-40",
+            "Guard trigger ep41-200",
+            "Policy selected tail20",
+        ],
+    )
+
     plot_rewards(runs)
     plot_tail_tracking(runs)
+    plot_last_episode_tracking(runs)
     plot_tail_bars(perf_rows)
     plot_residual_safety(runs)
     for run in runs:

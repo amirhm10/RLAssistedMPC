@@ -104,6 +104,19 @@ $$ p_k = \max(|y_k^{Q}-Q_1(s_k,a_k)|,\ |y_k^{Q}-Q_2(s_k,a_k)|). $$
 
 ![Tail tracking overlay](figures/polymer_residual_algorithm_comparison_20260601/tail_tracking_overlay.png)
 
+## Last Episode Tracking
+
+| Method | Last episode reward | Last eta RMSE | Last T RMSE | Last eta MAE | Last T MAE | Last eta max abs | Last T max abs |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| OF-MPC | -4.417 | 0.1917 | 0.5678 | 0.0646 | 0.2654 | 1.0986 | 2.9777 |
+| TD3 Residual | -2.858 | 0.1580 | 0.3792 | 0.0330 | 0.1037 | 1.0978 | 2.9571 |
+| SG-TD3 Residual | -2.827 | 0.1578 | 0.3969 | 0.0336 | 0.0962 | 1.0976 | 2.9673 |
+| TD7 Residual | -2.908 | 0.1587 | 0.3852 | 0.0355 | 0.1270 | 1.0995 | 2.9529 |
+
+![Last episode tracking overlay](figures/polymer_residual_algorithm_comparison_20260601/last_episode_tracking_overlay.png)
+
+The last subepisode confirms the tail-window conclusion. All three residual controllers remove most of the large OF-MPC temperature excursion after the setpoint switch. SG-TD3 has the best last-episode reward and the best last-episode eta RMSE. TD3 still has the best last-episode temperature RMSE, while SG-TD3 has the best last-episode temperature MAE.
+
 All three residual algorithms improve the final 20-subepisode reward and physical tracking metrics relative to OF-MPC. SG-TD3 has the best mean reward, post-warm reward, and tail-20 reward. It also has the best tail eta RMSE and the best tail mean absolute errors for both outputs.
 
 TD3 has the best tail temperature RMSE by a small margin, `0.3851` versus `0.3866` for TD7 and `0.3962` for SG-TD3. SG-TD3 still has the lowest temperature MAE, `0.0989`, so it is better for typical temperature error but has a few larger temperature deviations that raise RMSE.
@@ -173,6 +186,16 @@ The shadow rho logs are also informative. If rho authority had been active with 
 
 One log caveat: `projection_active_log` is almost always true in these runs. The cause-specific projection logs show that headroom projection is below `1%`, and rho authority was disabled. Therefore the generic `projection_active_log` should not be interpreted alone as a physical safety intervention count. The meaningful logged safety signals here are `residual_cap_projection_active_log`, `residual_guard_triggered_log`, `projection_due_to_headroom_log`, and the `shadow_rho_*` diagnostics.
 
+## SG-TD3 Post-Warm Recovery
+
+| Method | Post-warm minimum | Minimum episode | First better than OF-MPC | First 5-episode better | 80pct recovery start | 80pct recovery end | Cap clip ep11-40 | Cap clip ep41-200 | Guard trigger ep11-40 | Guard trigger ep41-200 | Policy selected tail20 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SG-TD3 Residual | -9.812 | 34 | 11 | 21 | 65 | 69 | 12.2% | 0.0% | 0.3% | 0.0% | 56.9% |
+
+SG-TD3 did recover after warm start, but the recovery was not instantaneous. The run is already better than OF-MPC on episode 11, and it has its first five-episode run above OF-MPC starting at episode 21. It then has a deeper exploration and release dip, reaching a post-warm minimum reward of `-9.812` at episode 34. A five-episode window reaches `80%` of the final tail improvement over OF-MPC from episodes 65 to 69.
+
+The safety logs show why the recovery is credible. During episodes 11 to 40, the cap-clipping rate is `12.2%`, but after episode 40 it drops to `0.0%`. The early-release guard is almost never needed for SG-TD3, and after episode 40 its trigger fraction is also `0.0%`. At the end of training, the gate is no longer just falling back to the supervisor. The learned policy is selected on `56.9%` of tail-20 steps.
+
 ## Interpretation By Algorithm
 
 TD3 Residual learns a strong residual correction and improves tracking substantially. Its main weakness is authority usage. It uses the largest tail input movement and causes the early-release guard to intervene often. This is consistent with an actor that learns useful corrections but pushes hard into the newly corrected full polymer residual authority.
@@ -181,6 +204,22 @@ SG-TD3 Residual is the strongest run in this batch. The gate prevents many high-
 
 TD7 Residual recovers to nearly the same tail reward as TD3, but it has a worse average reward because of a deeper early post-warm degradation. The TD7 encoder and priority machinery do not remove the residual-authority release problem in this run. The guard and cap logs show that TD7 also asks for high-authority residuals during the release phase.
 
+## Distillation Transfer Assessment
+
+SG-TD3 can be transferred to the distillation residual workflow, but it is not wired as a distillation entrypoint yet. The shared residual runner already accepts `agent_kind = "sg_td3"`, and the runner logic is system-agnostic once the distillation runtime context provides the plant, MPC model, scaling, reward, and disturbance schedule. The current distillation residual scripts only construct `TD3Agent`, `SACAgent`, or `TD7Agent`, so a distillation SG-TD3 run needs a new entrypoint or a guarded branch that constructs `SupervisorGatedTD3Agent`.
+
+The transfer is scientifically reasonable for three reasons. First, the supervisor candidate is zero residual, which is valid for both polymer and distillation because it reduces to the existing OF-MPC move. Second, distillation residual bounds are already `[-0.02, 0.02]`, and the distillation ramp already releases from `0.005` to `0.02`, so there is no authority-scale mismatch like the old polymer bug. Third, the distillation residual runs have the same mismatch-state and residual-safety logging surface, so the same diagnostics can be used: cap clipping, guard triggering, headroom projection, shadow rho authority, and SG policy-versus-supervisor selection.
+
+The transfer should still be treated as a new experiment, not a guaranteed improvement. Distillation has different time constants, stronger input scaling asymmetry, and a smaller residual authority. A gate that helps polymer by avoiding high-authority residuals may become too conservative in distillation if the zero-residual supervisor dominates the early critic. The first distillation SG-TD3 test should therefore be no-rho, same residual bounds, same ramp, and same disturbance profile as the TD3 distillation residual baseline. Only after that should rho-enabled SG-TD3 be tested.
+
+The practical implementation path is:
+
+1. Create `distillation_RL_assisted_MPC_residual_supervisor_gated_td3_unified.py` from the current distillation residual entrypoint.
+2. Import `SupervisorGatedTD3Agent` and `SupervisorGateConfig`.
+3. Set `NB["agent_kind"] = "sg_td3"` and instantiate the supervisor-gated agent with the distillation `STATE_DIM`, `ACTION_DIM`, replay settings, and TD3 hyperparameters.
+4. Keep the supervisor action as zero residual for the first test.
+5. Compare against `distillation_RL_assisted_MPC_residual_unified.py` using the same `run_mode = disturb` and `disturbance_profile = fluctuation`.
+
 ## Bugs, Inconsistencies, And Risks
 
 - The old polymer ramp bug is fixed in these bundles. All three residual runs show `end_cap = 0.25`, not the old distillation-scale `0.02`.
@@ -188,6 +227,7 @@ TD7 Residual recovers to nearly the same tail reward as TD3, but it has a worse 
 - The actual rho authority is disabled. The rho analysis is based on shadow logs only.
 - TD3 and TD7 both make heavy use of the full residual authority. This improves final tracking but increases reliance on the ramp and guard.
 - The SG-TD3 temperature RMSE is slightly worse than TD3 and TD7 in the tail even though its mean absolute temperature error is better. This points to fewer typical errors but some larger temperature excursions.
+- Distillation transfer requires a new entrypoint or agent-construction branch. The runner supports `sg_td3`, but the current distillation residual script does not instantiate `SupervisorGatedTD3Agent`.
 
 ## Literature Connections
 
@@ -199,11 +239,13 @@ No new citations were added. The local implementation connects to standard TD3-s
 
 2. Run three seeds for the three residual methods. SG-TD3 currently looks best, but the TD7 release dip and TD3 authority usage need seed-spread confirmation.
 
-3. Test rho-enabled polymer residuals now that the ramp reaches `0.25`. Start with SG-TD3 because the shadow rho authority projection rate is much lower than TD3 and TD7. The key failure mode to watch is whether rho authority erases useful residual corrections near large setpoint transitions.
+3. Add and run a distillation SG-TD3 residual entrypoint with no rho authority first. The confirmation metric is whether SG-TD3 reduces release shock and guard activity without collapsing to zero residual.
 
-4. Tune rho authority for polymer separately from distillation. A useful grid is `authority_beta_res` in `{0.25, 0.5, 0.75}` and `authority_du0_res` in `{0.001, 0.005, 0.01}` while keeping the full residual bounds at `[-0.25, 0.25]`.
+4. Test rho-enabled polymer residuals now that the ramp reaches `0.25`. Start with SG-TD3 because the shadow rho authority projection rate is much lower than TD3 and TD7. The key failure mode to watch is whether rho authority erases useful residual corrections near large setpoint transitions.
 
-5. For TD3 and TD7, try a longer release or a critic-aware release gate. The current full-authority ramp is correct, but the cap and guard logs show that the actor often reaches full authority before the critic is reliable.
+5. Tune rho authority for polymer separately from distillation. A useful grid is `authority_beta_res` in `{0.25, 0.5, 0.75}` and `authority_du0_res` in `{0.001, 0.005, 0.01}` while keeping the full residual bounds at `[-0.25, 0.25]`.
+
+6. For TD3 and TD7, try a longer release or a critic-aware release gate. The current full-authority ramp is correct, but the cap and guard logs show that the actor often reaches full authority before the critic is reliable.
 
 ## Remaining Uncertainty
 
@@ -216,9 +258,12 @@ The current evidence supports SG-TD3 as the best algorithm in this single batch,
 | `report/scripts/analyze_polymer_residual_algorithms_20260601.py` | Reproducible analysis script |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/performance_summary.csv` | Raw performance metrics |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/safety_summary.csv` | Raw safety metrics |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/last_episode_summary.md` | Last-subepisode metrics |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/recovery_summary.md` | SG-TD3 post-warm recovery metrics |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/analysis_summary.json` | Combined machine-readable summary |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/reward_curves.png` | Reward traces |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/tail_metric_bars.png` | Tail metric comparison |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/tail_tracking_overlay.png` | Tail output tracking |
+| `report/figures/polymer_residual_algorithm_comparison_20260601/last_episode_tracking_overlay.png` | Last-subepisode output tracking |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/residual_safety_dashboard.png` | Residual safety logs |
 | `report/figures/polymer_residual_algorithm_comparison_20260601/supervisor_gate_diagnostics.png` | SG-TD3 gate diagnostics |

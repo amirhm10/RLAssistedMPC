@@ -2423,24 +2423,66 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                         ls_post_fraction = np.nan
                         nominal_post_fraction = np.nan
                     mean_z = np.mean(history["z_executed_log"][start:stop, :], axis=0)
-                    print(
-                        "Sub_Episode:",
-                        ctx["sub_episode_changes_dict"][step],
-                        "| avg. reward:",
-                        avg_reward,
-                        "| accepted (subepisode):",
-                        accepted_fraction,
-                        "| TD3 executed (subepisode):",
-                        td3_sub_fraction,
-                        "| LS fallback (subepisode):",
-                        ls_sub_fraction,
-                        "| nominal fallback (subepisode):",
-                        nominal_sub_fraction,
-                        "| TD3/LS/nominal post-warm cumulative:",
-                        (td3_post_fraction, ls_post_fraction, nominal_post_fraction),
-                        "| avg z:",
-                        mean_z,
-                    )
+                    if supervisor_gated_markov:
+                        sources_sub = history["rl_action_source_log"][start:stop]
+                        sg_policy_sub_fraction = float(np.mean(sources_sub == 2))
+                        sg_ls_supervisor_sub_fraction = float(np.mean(sources_sub == 6))
+                        sg_mpc_supervisor_sub_fraction = float(np.mean(sources_sub == 7))
+                        sg_solver_fallback_sub_fraction = float(np.mean(sources_sub == 8))
+                        if stop > post_start:
+                            sg_policy_post_fraction = float(np.mean(post_sources == 2))
+                            sg_ls_supervisor_post_fraction = float(np.mean(post_sources == 6))
+                            sg_mpc_supervisor_post_fraction = float(np.mean(post_sources == 7))
+                            sg_solver_fallback_post_fraction = float(np.mean(post_sources == 8))
+                        else:
+                            sg_policy_post_fraction = np.nan
+                            sg_ls_supervisor_post_fraction = np.nan
+                            sg_mpc_supervisor_post_fraction = np.nan
+                            sg_solver_fallback_post_fraction = np.nan
+                        print(
+                            "Sub_Episode:",
+                            ctx["sub_episode_changes_dict"][step],
+                            "| avg. reward:",
+                            avg_reward,
+                            "| accepted (subepisode):",
+                            accepted_fraction,
+                            "| SG policy executed (subepisode):",
+                            sg_policy_sub_fraction,
+                            "| SG LS supervisor (subepisode):",
+                            sg_ls_supervisor_sub_fraction,
+                            "| SG MPC supervisor (subepisode):",
+                            sg_mpc_supervisor_sub_fraction,
+                            "| SG solver fallback (subepisode):",
+                            sg_solver_fallback_sub_fraction,
+                            "| SG policy/LSsup/MPCsup/fallback post-warm cumulative:",
+                            (
+                                sg_policy_post_fraction,
+                                sg_ls_supervisor_post_fraction,
+                                sg_mpc_supervisor_post_fraction,
+                                sg_solver_fallback_post_fraction,
+                            ),
+                            "| avg z:",
+                            mean_z,
+                        )
+                    else:
+                        print(
+                            "Sub_Episode:",
+                            ctx["sub_episode_changes_dict"][step],
+                            "| avg. reward:",
+                            avg_reward,
+                            "| accepted (subepisode):",
+                            accepted_fraction,
+                            "| TD3 executed (subepisode):",
+                            td3_sub_fraction,
+                            "| LS fallback (subepisode):",
+                            ls_sub_fraction,
+                            "| nominal fallback (subepisode):",
+                            nominal_sub_fraction,
+                            "| TD3/LS/nominal post-warm cumulative:",
+                            (td3_post_fraction, ls_post_fraction, nominal_post_fraction),
+                            "| avg z:",
+                            mean_z,
+                        )
 
             if bool(config.get("use_shifted_mpc_warm_start", False)):
                 x_init = shift_control_sequence(U_exec[: nu * control_horizon], nu, control_horizon)

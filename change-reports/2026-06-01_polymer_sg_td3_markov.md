@@ -13,6 +13,7 @@
 - SG-TD3 action gate: compare the actor action with the supervisor action in normalized Markov action space.
 - Replay: store the executed action plus policy, supervisor, previous-action, selected-source, score, and advantage metadata.
 - Numerical fallback: if the selected policy action cannot solve corrected MPC, execute the current supervisor and log the fallback reason.
+- Progress printing reports SG policy, LS-supervisor, MPC-supervisor, and solver-fallback execution fractions separately from legacy Markov fallback labels.
 
 ## Validation Plan
 

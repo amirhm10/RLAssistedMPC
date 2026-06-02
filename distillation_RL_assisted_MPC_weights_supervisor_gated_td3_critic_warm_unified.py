@@ -12,7 +12,7 @@ Training process:
   while replay is collected and critic updates occur.
 - After that critic-only window, the actor may train and the gate chooses the
   policy action only when its conservative critic score beats the identity
-  supervisor by a positive margin.
+  supervisor.
 """
 
 from __future__ import annotations
@@ -38,10 +38,10 @@ def configure_sg_td3_weights_critic_warm(nb: dict) -> dict:
     nb["post_warm_start_action_freeze_subepisodes"] = 3
     nb["post_warm_start_actor_freeze_subepisodes"] = 3
     nb["result_prefix_override"] = (
-        "distillation_weights_sg_td3_critic_warm3_manual_off_disturb_fluctuation_mismatch"
+        "distillation_weights_sg_td3_critic_warm3_margin0_sup001_gauss015_003_manual_off_disturb_fluctuation_mismatch"
     )
     nb["compare_prefix_override"] = (
-        "distillation_compare_weights_sg_td3_critic_warm3_manual_off_disturb_fluctuation"
+        "distillation_compare_weights_sg_td3_critic_warm3_margin0_sup001_gauss015_003_manual_off_disturb_fluctuation"
     )
 
     profiles = deepcopy(nb.get("run_profiles", {}))
@@ -103,10 +103,16 @@ def configure_sg_td3_weights_critic_warm(nb: dict) -> dict:
     safety_cfg["shadow_identity_mpc"]["enabled"] = False
     nb["weight_safety"] = safety_cfg
 
+    td3_cfg = deepcopy(nb.get("td3_agent", {}))
+    td3_cfg["exploration_mode"] = "gaussian"
+    td3_cfg["std_start"] = 0.15
+    td3_cfg["std_end"] = 0.03
+    nb["td3_agent"] = td3_cfg
+
     gate_cfg = deepcopy(nb.get("supervisor_gate", {}))
-    gate_cfg["advantage_margin"] = 0.5
+    gate_cfg["advantage_margin"] = 0.0
     gate_cfg["score_uncertainty_weight"] = 0.5
-    gate_cfg["score_supervisor_action_weight"] = 0.05
+    gate_cfg["score_supervisor_action_weight"] = 0.01
     gate_cfg["score_previous_action_weight"] = 0.01
     gate_cfg["supervisor_bc_weight"] = 0.0
     gate_cfg["enable_supervisor_actor_loss"] = False

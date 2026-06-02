@@ -239,6 +239,18 @@ td3_agent_kwargs = {
     "multistep_mode": TD3_MULTISTEP_MODE,
     "lambda_value": TD3_LAMBDA_VALUE,
 }
+td3_exploration_settings = {
+    "exploration_mode": TD3_EXPLORATION_MODE,
+    "std_start": float(TD3_CFG["std_start"]),
+    "std_end": float(TD3_CFG["std_end"]),
+    "std_decay_mode": TD3_CFG["std_decay_mode"],
+    "std_decay_rate": float(TD3_CFG["std_decay_rate"]),
+    "target_policy_smoothing_noise_std": float(TD3_CFG["target_policy_smoothing_noise_std"]),
+    "noise_clip": float(TD3_CFG["noise_clip"]),
+    "param_noise_std_start": TD3_PARAM_NOISE_STD_START,
+    "param_noise_std_end": TD3_PARAM_NOISE_STD_END,
+    "param_noise_resample_interval": TD3_PARAM_NOISE_RESAMPLE_INTERVAL,
+}
 if AGENT_KIND == "td3":
     weight_agent = TD3Agent(**td3_agent_kwargs)
 elif AGENT_KIND == "sg_td3":
@@ -265,7 +277,7 @@ print_grouped_notebook_summary(
         "Run setup": {"Agent kind": AGENT_KIND, "Run mode": RUN_MODE, "Disturbance profile": DISTURBANCE_PROFILE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "test_cycle": TEST_CYCLE, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START},
         "System / controller": {"delta_t_hours": SYS["delta_t_hours"], "predict_h": predict_h, "cont_h": cont_h, "Q penalties": [Q1_penalty, Q2_penalty], "R penalties": [R1_penalty, R2_penalty], "observer_poles": poles.tolist()},
         "Reward": reward_params,
-        "Agent": {"supervisor": "identity weight multiplier gated by TD3 critics" if AGENT_KIND == "sg_td3" else "weight multiplier", "buffer_size": (TD3_CFG if TD3_LIKE_AGENT else SAC_CFG)["buffer_size"], "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": TD3_EXPLORATION_MODE if TD3_LIKE_AGENT else "policy_stochastic", "loss_type": TD3_LOSS_TYPE if TD3_LIKE_AGENT else SAC_LOSS_TYPE, "supervisor_gate": GATE_CFG if AGENT_KIND == "sg_td3" else None},
+        "Agent": {"supervisor": "identity weight multiplier gated by TD3 critics" if AGENT_KIND == "sg_td3" else "weight multiplier", "buffer_size": (TD3_CFG if TD3_LIKE_AGENT else SAC_CFG)["buffer_size"], "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": TD3_EXPLORATION_MODE if TD3_LIKE_AGENT else "policy_stochastic", "td3_exploration": td3_exploration_settings if TD3_LIKE_AGENT else None, "loss_type": TD3_LOSS_TYPE if TD3_LIKE_AGENT else SAC_LOSS_TYPE, "supervisor_gate": GATE_CFG if AGENT_KIND == "sg_td3" else None},
         "Replay": REPLAY_SETTINGS,
         "Behavioral cloning": dict(BEHAVIORAL_CLONING_CFG),
         "TD3 controlled authority": dict(TD3_AUTHORITY_RAMP_CFG),
@@ -311,6 +323,7 @@ weight_cfg = {
     "td3_authority_ramp": dict(TD3_AUTHORITY_RAMP_CFG),
     "weight_safety": dict(WEIGHT_SAFETY_CFG),
     "supervisor_gate": dict(GATE_CFG),
+    "td3_exploration": dict(td3_exploration_settings) if TD3_LIKE_AGENT else None,
     "test_cycle": TEST_CYCLE,
     "predict_h": predict_h,
     "cont_h": cont_h,

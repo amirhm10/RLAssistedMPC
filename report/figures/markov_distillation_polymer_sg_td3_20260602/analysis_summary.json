@@ -1,0 +1,30 @@
+{
+  "source_paths": {
+    "distillation_td3_full_no_safeguard": {
+      "rl_path": "Distillation/Results/distillation_markov_td3_disturb_fluctuation_td3_only_no_safeguard_current_reward_unified/20260601_214256/input_data.pkl",
+      "compare_path": "Distillation/Results/distillation_compare_markov_td3_disturb_fluctuation_td3_only_no_safeguard_current_reward/20260601_214316/input_data.pkl",
+      "mpc_path": "Distillation/Data/mpc_results_disturb_fluctuation.pickle"
+    },
+    "polymer_sg_td3_markov": {
+      "rl_path": "Polymer/Results/sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb/20260601_215126/input_data.pkl",
+      "compare_path": "Polymer/Results/disturb_compare_sg_td3_markov_critic_warm3_ls_else_mpc_shadow/20260601_215148/input_data.pkl",
+      "mpc_path": "Polymer/Data/mpc_results_dist.pickle"
+    }
+  },
+  "figures": {
+    "reward_curves": "report/figures/markov_distillation_polymer_sg_td3_20260602/reward_curves.png",
+    "distillation_final_tracking": "report/figures/markov_distillation_polymer_sg_td3_20260602/final_episode_tracking_distillation.png",
+    "polymer_final_tracking": "report/figures/markov_distillation_polymer_sg_td3_20260602/final_episode_tracking_polymer.png",
+    "tail20_blockwise_mae": "report/figures/markov_distillation_polymer_sg_td3_20260602/tail20_blockwise_mae.png",
+    "action_source_fractions": "report/figures/markov_distillation_polymer_sg_td3_20260602/action_source_fractions.png",
+    "distillation_episode_reward_vs_diagnostics": "report/figures/markov_distillation_polymer_sg_td3_20260602/distillation_episode_reward_vs_diagnostics.png"
+  },
+  "tables": {
+    "reward_summary": "report/figures/markov_distillation_polymer_sg_td3_20260602/reward_summary.csv",
+    "tracking_summary": "report/figures/markov_distillation_polymer_sg_td3_20260602/tracking_summary.csv",
+    "blockwise_tracking_summary": "report/figures/markov_distillation_polymer_sg_td3_20260602/blockwise_tracking_summary.csv",
+    "action_source_summary": "report/figures/markov_distillation_polymer_sg_td3_20260602/action_source_summary.csv",
+    "diagnostic_summary": "report/figures/markov_distillation_polymer_sg_td3_20260602/diagnostic_summary.csv",
+    "episode_diagnostics": "report/figures/markov_distillation_polymer_sg_td3_20260602/episode_diagnostics.csv"
+  }
+}

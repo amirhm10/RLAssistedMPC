@@ -1,0 +1,78 @@
+{
+  "reward_defaults": {
+    "k_rel": [
+      0.3,
+      0.01
+    ],
+    "band_floor_phys": [
+      0.003,
+      0.2
+    ],
+    "Q_diag": [
+      37000.0,
+      20000.0
+    ],
+    "R_diag": [
+      2500.0,
+      2500.0
+    ],
+    "tau_frac": 0.7,
+    "gamma_out": 0.5,
+    "gamma_in": 0.5,
+    "beta": 7.0,
+    "gate": "geom",
+    "lam_in": 1.0,
+    "bonus_kind": "exp",
+    "bonus_k": 12.0,
+    "bonus_p": 0.6,
+    "bonus_c": 20.0,
+    "reward_scale": 1.0
+  },
+  "best_current_tail20": {
+    "kind": "td3",
+    "run": "20260528_194904",
+    "current_tail20_reward": 16.44254314116979,
+    "stored_tail20_reward": 18.74175640552117,
+    "tail20_comp_mae": 0.0007064701165791058,
+    "tail20_temp_mae": 0.16692924070483467,
+    "tail20_weight_mean": [
+      1.4073659496657525,
+      1.4005774854460447,
+      1.3811254723647288,
+      1.2395341309347896
+    ]
+  },
+  "baseline": {
+    "current_tail20_reward": 6.390950484125978,
+    "tail20_comp_mae": 0.0015451226693251852,
+    "tail20_temp_mae": 0.19208502552678386
+  },
+  "sg_td3_weights": {
+    "current_tail20_reward": 14.374864542986566,
+    "stored_tail20_reward": 14.374864542986566,
+    "tail20_current_minus_baseline_reward": 7.983914058860589,
+    "tail20_comp_mae": 0.0013262564886437165,
+    "tail20_temp_mae": 0.15707102217438437,
+    "tail20_band_norm_mae": 0.48132921951357127,
+    "tail20_sg_policy_frac": 0.32325,
+    "tail20_sg_supervisor_frac": 0.67675
+  },
+  "latest_plain_td3": {
+    "run": "20260601_155305",
+    "current_tail20_reward": 6.374555037081866,
+    "stored_tail20_reward": 6.374555037081867,
+    "tail20_current_minus_baseline_reward": -0.016395447044111222
+  },
+  "artifacts": {
+    "figure_dir": "report\\figures\\distillation_weights_reward_gate_followup_20260602",
+    "csvs": [
+      "reward_gate_followup_summary.csv",
+      "reward_gate_selected_runs.csv"
+    ],
+    "figures": [
+      "fig_tail20_current_reward_with_sg.png",
+      "fig_logged_vs_current_reward_drift.png",
+      "fig_tail_tracking_tradeoff_selected.png"
+    ]
+  }
+}

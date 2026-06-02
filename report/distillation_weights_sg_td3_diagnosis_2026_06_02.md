@@ -46,7 +46,15 @@ My conclusion:
 1. SG-TD3 weights is too conservative for this family.
 2. Parameter noise is not the only issue. The actor proposes diverse weights, but the gate does not execute them.
 3. The current action basis wastes authority on a common-scale direction that barely changes the MPC solution.
-4. The next run should combine less conservative gating, better coordinate exploration, and a relative-weight action parameterization.
+4. Reward-parameter drift is real: older logged rewards are not directly comparable with the current reward.
+5. Reward drift is not the whole explanation: two older TD3 weights runs still beat the June 2 SG-TD3 weights run when rescored under the active 2026-06-02 reward.
+6. The next run should combine less conservative gating, better coordinate exploration, and a relative-weight action parameterization.
+
+The most direct next ablation is now:
+
+$$ \epsilon_A=0.0,\qquad \kappa_{\mathrm{sup}}=0.01,\qquad \rho_Q=0.5,\qquad \kappa_{\mathrm{prev}}=0.01. $$
+
+In config names, this means `advantage_margin = 0.0`, `score_supervisor_action_weight = 0.01`, `score_uncertainty_weight = 0.5`, and `score_previous_action_weight = 0.01`.
 
 ## Files Inspected
 
@@ -58,6 +66,7 @@ Implementation:
 - `TD3Agent/supervisor_gated_agent.py`
 - `TD3Agent/supervisor_replay_buffer.py`
 - `utils/supervisor_gated_action.py`
+- `systems/distillation/config.py`
 - `systems/distillation/notebook_params.py`
 
 Prior reports:
@@ -77,10 +86,14 @@ Result bundles:
 Generated analysis artifacts:
 
 - `report/scripts/analyze_distillation_weights_sg_td3_20260602.py`
+- `report/scripts/analyze_distillation_weights_reward_gate_followup_20260602.py`
 - `report/figures/distillation_weights_sg_td3_20260602/summary_metrics.csv`
 - `report/figures/distillation_weights_sg_td3_20260602/window_metrics.csv`
 - `report/figures/distillation_weights_sg_td3_20260602/sg_episode_metrics.csv`
 - `report/figures/distillation_weights_sg_td3_20260602/analysis_summary.json`
+- `report/figures/distillation_weights_reward_gate_followup_20260602/reward_gate_followup_summary.csv`
+- `report/figures/distillation_weights_reward_gate_followup_20260602/reward_gate_selected_runs.csv`
+- `report/figures/distillation_weights_reward_gate_followup_20260602/analysis_summary.json`
 
 ## Method
 
@@ -189,6 +202,129 @@ Interpretation:
 - SG-TD3 weights improves tracking over OF-MPC.
 - SG-TD3 weights does not produce the large improvement seen with SG-TD3 residual.
 - Standard TD3 weights ends with nearly common lower-bound multipliers, which is both unsafe during training and unhelpful in the tail.
+
+## Follow-Up: Advantage Margin And Reward Provenance
+
+Your two new concerns are both valid, but they point to different failure mechanisms.
+
+Short answer:
+
+1. **Yes, changing the SG-TD3 advantage margin from `0.5` to `0.0` is a good next ablation for the weights family.**
+2. **Yes, reward function and reward-parameter changes are part of the story.**
+3. **But the reward change does not fully explain the disappointing current weights result, because two older TD3 weights runs still beat the June 2 SG-TD3 weights run when all runs are rescored under the active 2026-06-02 reward.**
+
+The active distillation reward defaults are now:
+
+| Reward field | Active value |
+| --- | --- |
+| `k_rel` | `[0.3, 0.01]` |
+| `band_floor_phys` | `[0.003, 0.2]` |
+| `Q_diag` | `[37000, 20000]` |
+| `R_diag` | `[2500, 2500]` |
+| `gate` | `geom` |
+| `bonus_kind` | `exp` |
+| `reward_scale` | `1.0` |
+
+This matters because the older reports used or discussed milder temperature penalties at different times, including `Q_diag = [37000, 1500]` and `Q_diag = [37000, 5000]`. So logged rewards from older saved runs are not directly comparable to current logged rewards.
+
+I therefore rescored the saved historical TD3/SAC weight runs and the June 2 SG-TD3 weights run with the same active 2026-06-02 reward. The result is nuanced:
+
+![Same-reward weight ranking](figures/distillation_weights_reward_gate_followup_20260602/fig_tail20_current_reward_with_sg.png)
+
+| Run | Method | Current tail-20 reward | Logged tail-20 reward | Current minus OF-MPC | Tail comp MAE | Tail temp MAE | Tail band MAE | Tail weight mean |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| `20260528_194904` | TD3 weights | `16.443` | `18.742` | `10.052` | `0.000706` | `0.1669` | `0.4358` | `[1.407, 1.401, 1.381, 1.240]` |
+| `20260521_150600` | TD3 weights | `16.128` | `20.016` | `9.737` | `0.000630` | `0.1492` | `0.3902` | `[1.478, 1.394, 0.843, 1.094]` |
+| `20260602_140102` | SG-TD3 weights | `14.375` | `14.375` | `7.984` | `0.001326` | `0.1571` | `0.4813` | `[0.982, 1.043, 0.971, 0.998]` |
+| `20260518_142138` | SAC weights | `9.980` | `15.885` | `3.589` | `0.001570` | `0.1752` | `0.5624` | `[1.003, 1.050, 1.040, 1.020]` |
+| `20260530_220604` | TD3 weights | `9.794` | `9.794` | `3.403` | `0.002648` | `0.1306` | `0.6165` | `[1.012, 1.739, 1.414, 1.557]` |
+| OF-MPC | baseline | `6.391` | not comparable | `0.000` | `0.001545` | `0.1921` | `0.5833` | identity |
+| `20260601_155305` | TD3 weights | `6.375` | `6.375` | `-0.016` | `0.001545` | `0.1921` | `0.5834` | `[0.750, 0.750, 0.751, 0.750]` |
+
+This table answers the reward question directly.
+
+Reward drift explains why some older SAC and TD3 logged rewards looked much better than they look now. For example, SAC `20260518_142138` logged `15.885`, but rescored to `9.980`. However, reward drift does **not** erase the older TD3 successes. TD3 `20260528_194904` and TD3 `20260521_150600` still score above the June 2 SG-TD3 weights run under the active reward.
+
+![Logged versus current reward](figures/distillation_weights_reward_gate_followup_20260602/fig_logged_vs_current_reward_drift.png)
+
+The scatter plot shows the same point visually. Some historical points fall far below the diagonal after rescoring, which confirms that reward changes matter. But the best TD3 points remain high after rescoring, which confirms that the current SG-TD3 result is also limited by gate, exploration, and action parameterization.
+
+![Selected tracking tradeoff](figures/distillation_weights_reward_gate_followup_20260602/fig_tail_tracking_tradeoff_selected.png)
+
+The tracking tradeoff gives the practical interpretation:
+
+- TD3 `20260521_150600` found a strong relative-weight direction: high `Q` weights, lower `R_1`, and better composition and temperature tracking than OF-MPC.
+- TD3 `20260528_194904` also found a useful non-identity region, with very strong composition improvement and moderate temperature improvement.
+- SG-TD3 `20260602_140102` stayed close to identity in the tail, with mean weights `[0.982, 1.043, 0.971, 0.998]`. It improved temperature and reward, but it did not move far enough in relative-weight space.
+
+So my updated diagnosis is:
+
+$$ \text{current weights weakness} = \text{reward drift} + \text{conservative SG gate} + \text{weak exploration/action basis}. $$
+
+The reward drift explains why some old numbers are not comparable. The conservative SG gate explains why the current actor proposals were often not executed. The action basis explains why near-common multipliers can look active while changing the MPC solution only weakly.
+
+### Should `advantage_margin` Be Zero?
+
+For weights, I now recommend a direct ablation with:
+
+| Gate field | Current | Recommended ablation |
+| --- | ---: | ---: |
+| `advantage_margin` | `0.5` | `0.0` |
+| `score_uncertainty_weight` | `0.5` | `0.5` |
+| `score_supervisor_action_weight` | `0.05` | `0.01` |
+| `score_previous_action_weight` | `0.01` | `0.01` |
+
+Mathematically, the current gate executes the policy only when:
+
+$$ S(s_k,a_{\mathrm{policy},k})-S(s_k,a_{\mathrm{sup},k})>0.5. $$
+
+With `advantage_margin = 0.0`, the condition becomes:
+
+$$ S(s_k,a_{\mathrm{policy},k})>S(s_k,a_{\mathrm{sup},k}). $$
+
+This is still not reckless. The supervisor remains the default whenever the policy score is worse or tied. The uncertainty penalty still punishes critic disagreement. The previous-action penalty still discourages abrupt jumps. The main change is that we stop requiring a large extra score gap before trying a weight action.
+
+Why this is more appropriate for weights than for residual actions:
+
+- residual actions directly perturb the plant input, so a stricter gate is useful;
+- weight actions only perturb MPC preferences, and the MPC optimizer still enforces its own constraints;
+- identity weights are a strong supervisor, so a `0.5` margin can make the actor prove too much before it gets enough executed data;
+- the June 2 run already showed the actor proposing more diverse multipliers than the gate executed.
+
+I would not change only `advantage_margin`. I would also reduce `score_supervisor_action_weight` from `0.05` to `0.01`, because the current value double-counts identity preference. The score already compares against the identity supervisor; an additional distance-to-supervisor penalty makes non-identity weights pay an extra tax before the critics can evaluate them.
+
+### Could The Current Reward Be The Wrong Reward For Weights?
+
+Possibly, yes. More precisely: the current reward may be good for residual control but less informative for weight adaptation.
+
+The residual agent has direct authority. If the reward heavily emphasizes temperature, the residual policy can directly correct the input move. The weight agent is more indirect. It must learn which penalty changes cause MPC to trade composition, temperature, reflux movement, and reboiler movement differently. If the reward is too steep or too dominated by one output, many exploratory weight choices will look bad before the policy has enough data.
+
+The current reward with:
+
+$$ Q_{\mathrm{reward}}=\mathrm{diag}(37000,20000) $$
+
+is much more temperature-sensitive than earlier configurations. That can make training safer and more focused, but it can also make critic targets sharper and reduce tolerance for exploratory weight schedules.
+
+Recommended reward ablations:
+
+| Ablation | Purpose | Expected signal |
+| --- | --- | --- |
+| Current reward, relaxed gate | Isolate SG conservatism | policy fraction should rise above `0.323` in the tail without worse worst-case reward |
+| `Q_diag = [37000, 5000]`, relaxed gate | Test whether temperature penalty is too steep for weight learning | more exploratory relative weights, maybe better composition reward |
+| `Q_diag = [37000, 10000]`, relaxed gate | Middle ground between old and current scoring | safer than `5000`, less sharp than `20000` |
+| Current reward plus Gaussian action noise | Test exploration without changing objective | executed relative-weight diversity should rise earlier |
+| Current reward plus relative-log weights | Remove common-scaling null direction | stronger `Q_1/Q_2`, `R_1/R_2`, and `Q/R` learning |
+
+The cleanest next experiment is therefore:
+
+1. keep the current reward,
+2. set `advantage_margin = 0.0`,
+3. set `score_supervisor_action_weight = 0.01`,
+4. add Gaussian action noise,
+5. keep the same 10 warm episodes and 3 critic-warm episodes,
+6. turn on shadow identity MPC diagnostics only.
+
+If that still stays near identity, then the reward and action parameterization become the main suspects. If it starts exploring useful relative weights and beats `16.44`, then the original problem was mainly gate conservatism.
 
 ## Weight-Diversity Diagnostics
 

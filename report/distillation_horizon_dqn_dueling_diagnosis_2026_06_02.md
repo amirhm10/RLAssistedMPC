@@ -207,6 +207,37 @@ I found SG-TD3 result families for weights and residual work, but no SG-DQN hori
 
 So the current horizon results should be interpreted as ungated DQN and ungated dueling DQN.
 
+## June 2 Exploration And Range Update
+
+The active distillation horizon defaults were changed from NoisyNet exploration to epsilon-greedy exploration for the next horizon reruns:
+
+| Agent | Old exploration | New exploration | New epsilon schedule |
+|---|---|---|---|
+| Standard DDQN | `noisy` | `epsilon` | linear `0.20 -> 0.02` over `50000` steps |
+| Dueling DDQN | `noisy` | `epsilon` | linear `0.20 -> 0.02` over `50000` steps |
+
+This isolates the suspected late-action-churn mechanism more cleanly than NoisyNet. For standard DDQN, the entrypoint was also updated to pass `eps_decay_steps` into `DQNAgent`, because the old exponential schedule would not actually reach the requested low epsilon within one 200-subepisode run.
+
+The horizon range should not be increased for the next run. The saved widened-grid runs used `263` recipes and failed badly. The better question is whether to keep the current `87` recipes for one epsilon-greedy ablation, then reduce to a medium grid if recipe churn persists.
+
+Evidence from the top current-reward 87-recipe runs:
+
+| Method | Run | Tail reward | Unique pairs | Top pair | Top frac | Tail Np range | Tail Nc range | Fraction in `Np 4-12, Nc 2-8` |
+|---|---|---:|---:|---|---:|---|---|---:|
+| Standard DDQN | `20260519_202111` | `10.547` | `31` | `(6, 3)` | `0.513` | `6-14` | `2-11` | `0.817` |
+| Standard DDQN | `20260520_193757` | `9.177` | `26` | `(6, 3)` | `0.444` | `5-14` | `2-13` | `0.810` |
+| Dueling DDQN | `20260511_131656` | `9.084` | `73` | `(6, 3)` | `0.678` | `4-14` | `2-13` | `0.911` |
+| Dueling DDQN | `20260521_154934` | `9.073` | `62` | `(11, 11)` | `0.314` | `4-14` | `2-13` | `0.640` |
+| Standard DDQN | `20260601_160538` | `8.708` | `86` | `(12, 7)` | `0.056` | `4-14` | `2-13` | `0.668` |
+
+Aggregate top-pair frequencies across the top ten 87-recipe runs were dominated by `(6, 3)` at about `34.9%`, followed by `(11, 11)` at about `12.2%`. This argues against a very tight grid such as `Np 4-10, Nc 2-6`, because that would remove `(11, 11)` and `(12, 7)`. A medium grid such as `Np 4-12, Nc 2-8` has `53` actions and keeps `(6, 3)` plus `(12, 7)`, but it removes `(11, 11)`. A slightly larger medium grid such as `Np 4-12, Nc 2-11` has `62` actions and keeps all three historical anchors.
+
+Recommended range decision:
+
+1. Keep the current 87-recipe grid for the first epsilon-greedy rerun so the exploration change is isolated.
+2. Do not increase the grid beyond 87 until a frozen evaluation shows the learned policy is stable.
+3. If epsilon-greedy still gives high churn, test a medium reduced grid. Prefer `Np 4-12, Nc 2-11` before a tighter grid because it preserves `(6, 3)`, `(11, 11)`, and `(12, 7)`.
+
 ## Bugs, Inconsistencies, Or Risks Found
 
 I did not find evidence that the latest poor results are caused by a simple exploration-off bug, replay-capacity regression, or horizon safety override. The main risks are experimental and algorithmic:
@@ -336,7 +367,9 @@ The largest uncertainty is that the current bundles do not provide a separate po
 ## Files Changed
 
 - Created `report/scripts/analyze_distillation_horizon_dqn_dueling_20260602.py`
-- Created `report/distillation_horizon_dqn_dueling_diagnosis_2026_06_02.md`
+- Created and updated `report/distillation_horizon_dqn_dueling_diagnosis_2026_06_02.md`
+- Updated `systems/distillation/notebook_params.py` so standard and dueling horizon defaults use epsilon-greedy exploration with linear `0.20 -> 0.02` decay over `50000` steps
+- Updated `distillation_RL_assisted_MPC_horizons_unified.py` so standard DDQN receives `eps_decay_steps`
 - Generated local ignored artifacts under `report/figures/distillation_horizon_dqn_dueling_20260602/`
 
 ## How To Verify

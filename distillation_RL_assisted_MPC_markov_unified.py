@@ -22,7 +22,18 @@ from utils.notebook_setup import prepare_distillation_notebook_env, print_groupe
 from utils.plotting import compare_mpc_rl_from_dirs, plot_markov_correction_results
 from utils.rewards import make_reward_fn_relative_QR
 
+NOTEBOOK_SOURCE = globals().get("NOTEBOOK_SOURCE_OVERRIDE", "distillation_RL_assisted_MPC_markov_unified.py")
+RUN_SUMMARY_TITLE = globals().get(
+    "RUN_SUMMARY_TITLE_OVERRIDE",
+    "Resolved Distillation Markov parameters",
+)
+NB_CONFIGURE = globals().get("NB_CONFIGURE")
 NB = get_distillation_notebook_defaults("markov")
+if NB_CONFIGURE is not None:
+    configured_nb = NB_CONFIGURE(NB)
+    if configured_nb is not None:
+        NB = configured_nb
+
 AGENT_KIND = NB["agent_kind"]
 RUN_MODE = NB["run_mode"]
 DISTURBANCE_PROFILE = NB["disturbance_profile"]
@@ -62,8 +73,8 @@ REPO_ROOT, DATA_DIR, RESULT_DIR, DISTURBANCE_PROFILE, DYN_PATH, SNAPS_PATH, ASPE
     results_dir_override=DISTILLATION_RESULTS_DIR_OVERRIDE,
 )
 os.chdir(REPO_ROOT)
-if AGENT_KIND != "td3":
-    raise ValueError("Distillation Markov v1 supports TD3 only.")
+if AGENT_KIND not in {"td3", "sg_td3"}:
+    raise ValueError("Distillation Markov supports TD3 and SG-TD3 only.")
 
 # --- Cell 2 (code) ---
 SYS = NB["system_setup"]
@@ -128,7 +139,10 @@ CTRL = NB["controller"]
 TD3_CFG = NB["td3_agent"]
 REWARD_CFG = NB["reward"]
 BEHAVIORAL_CLONING = dict(NB.get("behavioral_cloning", {}))
+SUPERVISOR_GATE_CFG = dict(NB.get("supervisor_gate", {}))
 TD3_AUTHORITY_RAMP_CFG = dict(CTRL.get("td3_authority_ramp", {}))
+MARKOV_SUPERVISOR_MODE = str(NB.get("markov_supervisor_mode", CTRL.get("markov_supervisor_mode", "ls_else_mpc")))
+MARKOV_LIVE_SAFETY_MODE = str(NB.get("markov_live_safety_mode", CTRL.get("markov_live_safety_mode", "default")))
 
 n_tests = int(EPISODE_CFG["n_tests"] if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
 set_points_len = int(EPISODE_CFG["set_points_len"] if SET_POINTS_LEN_OVERRIDE is None else SET_POINTS_LEN_OVERRIDE)
@@ -169,6 +183,7 @@ run_live_corrected_mpc = bool(CTRL["run_live_corrected_mpc"])
 run_rl_proposal = bool(CTRL["run_rl_proposal"])
 rl_fallback_to_ls = bool(CTRL["rl_fallback_to_ls"])
 force_td3_execute = bool(CTRL["force_td3_execute"])
+force_td3_respects_warm_start = bool(CTRL.get("force_td3_respects_warm_start", False))
 rl_store_executed_action_in_replay = bool(CTRL["rl_store_executed_action_in_replay"])
 rl_save_agent_checkpoint = bool(CTRL["rl_save_agent_checkpoint"])
 debug_validate_lifted = bool(CTRL["debug_validate_lifted"] if DEBUG_VALIDATE_LIFTED_OVERRIDE is None else DEBUG_VALIDATE_LIFTED_OVERRIDE)
@@ -188,7 +203,7 @@ MPC_obj = MpcSolverGeneral(
 reward_params, reward_fn = make_reward_fn_relative_QR(data_min, data_max, inputs_number, **REWARD_CFG)
 
 print_grouped_notebook_summary(
-    "Resolved Distillation Markov parameters",
+    RUN_SUMMARY_TITLE,
     {
         "Paths": {
             "Repo root": REPO_ROOT,
@@ -222,6 +237,9 @@ print_grouped_notebook_summary(
             "gain_drift_max": gain_drift_max,
             "nominal_solver_mode": nominal_solver_mode,
             "force_td3_execute": force_td3_execute,
+            "force_td3_respects_warm_start": force_td3_respects_warm_start,
+            "markov_supervisor_mode": MARKOV_SUPERVISOR_MODE,
+            "markov_live_safety_mode": MARKOV_LIVE_SAFETY_MODE,
             "td3_controlled_authority": TD3_AUTHORITY_RAMP_CFG,
             "td3_controlled_authority_enabled": bool(TD3_AUTHORITY_RAMP_CFG.get("enabled", False)),
             "td3_priority_fallback_enabled": bool(CTRL.get("td3_priority_fallback", {}).get("enabled", False)),
@@ -232,6 +250,8 @@ print_grouped_notebook_summary(
             "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START,
         },
         "Behavioral cloning": BEHAVIORAL_CLONING,
+        "Supervisor gate": SUPERVISOR_GATE_CFG if AGENT_KIND == "sg_td3" else None,
+        "Markov shadow safety": CTRL.get("markov_shadow_safety", {}),
         "Reward": reward_params,
         "Debug": {
             "debug_validate_lifted": debug_validate_lifted,
@@ -243,6 +263,7 @@ print_grouped_notebook_summary(
 # --- Cell 4 (code) ---
 markov_cfg = {
     "agent_kind": AGENT_KIND,
+    "notebook_source": NOTEBOOK_SOURCE,
     "run_mode": RUN_MODE,
     "n_tests": n_tests,
     "set_points_len": set_points_len,
@@ -268,8 +289,14 @@ markov_cfg = {
     "run_rl_proposal": run_rl_proposal,
     "rl_fallback_to_ls": rl_fallback_to_ls,
     "force_td3_execute": force_td3_execute,
+    "force_td3_respects_warm_start": force_td3_respects_warm_start,
+    "markov_supervisor_mode": MARKOV_SUPERVISOR_MODE,
+    "markov_live_safety_mode": MARKOV_LIVE_SAFETY_MODE,
+    "post_warm_start_action_freeze_subepisodes": int(NB.get("post_warm_start_action_freeze_subepisodes", 0)),
+    "post_warm_start_actor_freeze_subepisodes": int(NB.get("post_warm_start_actor_freeze_subepisodes", 0)),
     "td3_authority_ramp": dict(TD3_AUTHORITY_RAMP_CFG),
     "td3_priority_fallback": CTRL.get("td3_priority_fallback", {}),
+    "markov_shadow_safety": CTRL.get("markov_shadow_safety", {}),
     "rl_store_executed_action_in_replay": rl_store_executed_action_in_replay,
     "rl_save_agent_checkpoint": rl_save_agent_checkpoint,
     "debug_validate_lifted": debug_validate_lifted,
@@ -287,6 +314,7 @@ markov_cfg = {
     "b_min": system_data["b_min"],
     "b_max": system_data["b_max"],
     "behavioral_cloning": BEHAVIORAL_CLONING,
+    "supervisor_gate": SUPERVISOR_GATE_CFG,
     "td3_agent": TD3_CFG,
     "max_steps": MAX_STEPS_OVERRIDE,
 }

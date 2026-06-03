@@ -143,7 +143,9 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     disturbance_labels = runtime_ctx.get("disturbance_labels")
 
     agent_kind = str(weight_cfg["agent_kind"]).lower()
-    supervisor_gated_agent_kind = agent_kind == "sg_td3"
+    supervisor_gated_agent_kind = agent_kind in {"sg_td3", "sg_sac"}
+    supervisor_gated_td3_agent_kind = agent_kind == "sg_td3"
+    supervisor_gated_sac_agent_kind = agent_kind == "sg_sac"
     td3_like_agent_kind = agent_kind in {"td3", "sg_td3"}
     run_mode = str(weight_cfg["run_mode"]).lower()
     state_mode = str(weight_cfg.get("state_mode", "standard")).lower()
@@ -164,8 +166,8 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     shadow_identity_cfg = dict(weight_safety_cfg.get("shadow_identity_mpc", {}) or {})
     shadow_identity_enabled = bool(weight_safety_enabled and shadow_identity_cfg.get("enabled", False))
     shadow_identity_stride = int(max(1, shadow_identity_cfg.get("diagnostic_stride", 5)))
-    if agent_kind not in {"td3", "sac", "sg_td3"}:
-        raise ValueError("weight_cfg['agent_kind'] must be 'td3', 'sac', or 'sg_td3'.")
+    if agent_kind not in {"td3", "sac", "sg_td3", "sg_sac"}:
+        raise ValueError("weight_cfg['agent_kind'] must be 'td3', 'sac', 'sg_td3', or 'sg_sac'.")
     if run_mode not in {"nominal", "disturb"}:
         raise ValueError("weight_cfg['run_mode'] must be 'nominal' or 'disturb'.")
     use_shifted_mpc_warm_start = bool(weight_cfg.get("use_shifted_mpc_warm_start", False))
@@ -252,9 +254,9 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     policy_action_raw_log = None
     executed_action_raw_log = None
     phase1_train_traces = None
-    if td3_like_agent_kind:
+    if td3_like_agent_kind or supervisor_gated_sac_agent_kind:
         phase1 = build_phase1_schedule(
-            agent_kind="td3",
+            agent_kind=agent_kind,
             warm_start_step=warm_start_step,
             time_in_sub_episodes=time_in_sub_episodes,
             n_steps=nFE,
@@ -272,6 +274,8 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
             train_start_step=bc_train_start_step,
         )
         agent.actor_freeze = int(phase1["effective_actor_freeze"])
+        if supervisor_gated_sac_agent_kind:
+            agent.alpha_freeze = int(max(getattr(agent, "alpha_freeze", 0), phase1["effective_actor_freeze"]))
         phase1_action_source_log = np.zeros(nFE, dtype=int)
         policy_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
         executed_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
@@ -423,7 +427,7 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
 
         sg_previous_action_for_gate = (
             executed_action_raw_log[i - 1, :].copy()
-            if td3_like_agent_kind and executed_action_raw_log is not None and i > 0
+            if supervisor_gated_agent_kind and executed_action_raw_log is not None and i > 0
             else identity_action.copy()
         )
         if supervisor_gated_agent_kind:
@@ -879,7 +883,9 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
         "weight_shadow_first_move_delta_norm_log": weight_shadow_first_move_delta_norm_log,
         "weight_shadow_selected_first_move_log": weight_shadow_selected_first_move_log,
         "weight_shadow_identity_first_move_log": weight_shadow_identity_first_move_log,
-        "supervisor_gated_td3_enabled": bool(supervisor_gated_agent_kind),
+        "supervisor_gated_td3_enabled": bool(supervisor_gated_td3_agent_kind),
+        "supervisor_gated_sac_enabled": bool(supervisor_gated_sac_agent_kind),
+        "supervisor_gated_algorithm": agent_kind if supervisor_gated_agent_kind else None,
         "sg_policy_action_raw_log": sg_policy_action_raw_log if supervisor_gated_agent_kind else None,
         "sg_supervisor_action_raw_log": sg_supervisor_action_raw_log if supervisor_gated_agent_kind else None,
         "sg_executed_action_raw_log": sg_executed_action_raw_log if supervisor_gated_agent_kind else None,

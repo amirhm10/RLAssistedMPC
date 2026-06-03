@@ -50,7 +50,7 @@ def build_phase1_schedule(
     train_start_step = int(train_start_step)
 
     enabled = (
-        str(agent_kind).strip().lower() == "td3"
+        str(agent_kind).strip().lower() in {"td3", "sg_td3", "sg_sac"}
         and action_freeze_subepisodes > 0
         and actor_freeze_subepisodes > 0
     )

@@ -16,7 +16,17 @@ from systems.polymer import get_polymer_notebook_defaults
 from systems.polymer.data_io import canonical_baseline_path
 from utils.notebook_setup import prepare_polymer_notebook_env, print_grouped_notebook_summary
 
+NOTEBOOK_SOURCE = globals().get("NOTEBOOK_SOURCE_OVERRIDE", "RL_assisted_MPC_residual_unified.py")
+RUN_SUMMARY_TITLE = globals().get(
+    "RUN_SUMMARY_TITLE_OVERRIDE",
+    "Polymer Residual Supervisor run summary",
+)
+NB_CONFIGURE = globals().get("NB_CONFIGURE")
 NB = get_polymer_notebook_defaults("residual")
+if NB_CONFIGURE is not None:
+    configured_nb = NB_CONFIGURE(NB)
+    if configured_nb is not None:
+        NB = configured_nb
 AGENT_KIND = NB["agent_kind"]
 RUN_MODE = NB["run_mode"]
 STATE_MODE = NB["state_mode"]
@@ -61,6 +71,7 @@ import numpy as np
 import torch
 
 from SACAgent.sac_agent import SACAgent
+from SACAgent.supervisor_gated_sac_agent import SupervisorGatedSACAgent
 from Simulation.mpc import MpcSolverGeneral
 from Simulation.system_functions import PolymerCSTR
 from TD3Agent.agent import TD3Agent
@@ -119,6 +130,7 @@ EPISODE_CFG = NB["episode_defaults"]
 CTRL = NB["controller"]
 TD3_CFG = NB["td3_agent"]
 SAC_CFG = NB["sac_agent"]
+GATE_CFG = dict(NB.get("supervisor_gate", {}))
 REWARD_CFG = NB["reward"]
 
 n_tests = int(EPISODE_CFG["n_tests"] if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
@@ -216,8 +228,11 @@ if AGENT_KIND == "td3":
 elif AGENT_KIND == "sac":
     target_entropy = -ACTION_DIM if SAC_CFG["target_entropy"] == "auto_negative_action_dim" else SAC_CFG["target_entropy"]
     residual_agent = SACAgent(state_dim=STATE_DIM, action_dim=ACTION_DIM, actor_hidden=list(SAC_CFG["actor_hidden"]), critic_hidden=list(SAC_CFG["critic_hidden"]), gamma=SAC_CFG["gamma"], actor_lr=SAC_CFG["actor_lr"], critic_lr=SAC_CFG["critic_lr"], alpha_lr=SAC_CFG["alpha_lr"], batch_size=SAC_CFG["batch_size"], grad_clip_norm=SAC_CFG["grad_clip_norm"], init_alpha=SAC_CFG["init_alpha"], learn_alpha=SAC_CFG["learn_alpha"], target_entropy=target_entropy, alpha_freeze=SAC_CFG.get("alpha_freeze", SAC_CFG["actor_freeze"]), target_update=SAC_CFG["target_update"], tau=SAC_CFG["tau"], hard_update_interval=SAC_CFG["hard_update_interval"], actor_q_mode=SAC_CFG.get("actor_q_mode", "min"), activation=SAC_CFG["activation"], use_layernorm=SAC_CFG["use_layernorm"], dropout=SAC_CFG["dropout"], max_action=SAC_CFG["max_action"], buffer_size=SAC_BUFFER_SIZE, replay_frac_per=SAC_REPLAY_FRAC_PER, replay_frac_recent=SAC_REPLAY_FRAC_RECENT, replay_recent_window=SAC_REPLAY_RECENT_WINDOW, replay_alpha=SAC_REPLAY_ALPHA, replay_beta_start=SAC_REPLAY_BETA_START, replay_beta_end=SAC_REPLAY_BETA_END, replay_beta_steps=SAC_REPLAY_BETA_STEPS, device=DEVICE, use_adamw=SAC_CFG["use_adamw"], actor_freeze=SAC_CFG["actor_freeze"], loss_type=SAC_LOSS_TYPE, n_step=SAC_N_STEP, multistep_mode=SAC_MULTISTEP_MODE, lambda_value=SAC_LAMBDA_VALUE)
+elif AGENT_KIND == "sg_sac":
+    target_entropy = -ACTION_DIM if SAC_CFG["target_entropy"] == "auto_negative_action_dim" else SAC_CFG["target_entropy"]
+    residual_agent = SupervisorGatedSACAgent(state_dim=STATE_DIM, action_dim=ACTION_DIM, actor_hidden=list(SAC_CFG["actor_hidden"]), critic_hidden=list(SAC_CFG["critic_hidden"]), gamma=SAC_CFG["gamma"], actor_lr=SAC_CFG["actor_lr"], critic_lr=SAC_CFG["critic_lr"], alpha_lr=SAC_CFG["alpha_lr"], batch_size=SAC_CFG["batch_size"], grad_clip_norm=SAC_CFG["grad_clip_norm"], init_alpha=SAC_CFG["init_alpha"], learn_alpha=SAC_CFG["learn_alpha"], target_entropy=target_entropy, alpha_freeze=SAC_CFG.get("alpha_freeze", SAC_CFG["actor_freeze"]), target_update=SAC_CFG["target_update"], tau=SAC_CFG["tau"], hard_update_interval=SAC_CFG["hard_update_interval"], actor_q_mode=SAC_CFG.get("actor_q_mode", "min"), activation=SAC_CFG["activation"], use_layernorm=SAC_CFG["use_layernorm"], dropout=SAC_CFG["dropout"], max_action=SAC_CFG["max_action"], buffer_size=SAC_BUFFER_SIZE, replay_frac_per=SAC_REPLAY_FRAC_PER, replay_frac_recent=SAC_REPLAY_FRAC_RECENT, replay_recent_window=SAC_REPLAY_RECENT_WINDOW, replay_alpha=SAC_REPLAY_ALPHA, replay_beta_start=SAC_REPLAY_BETA_START, replay_beta_end=SAC_REPLAY_BETA_END, replay_beta_steps=SAC_REPLAY_BETA_STEPS, device=DEVICE, use_adamw=SAC_CFG["use_adamw"], actor_freeze=SAC_CFG["actor_freeze"], loss_type=SAC_LOSS_TYPE, n_step=SAC_N_STEP, multistep_mode=SAC_MULTISTEP_MODE, lambda_value=SAC_LAMBDA_VALUE, supervisor_gate_config=dict(GATE_CFG))
 else:
-    raise ValueError("AGENT_KIND must be 'td3' or 'sac'.")
+    raise ValueError("AGENT_KIND must be 'td3', 'sac', or 'sg_sac'.")
 
 REPLAY_SETTINGS = ACTIVE_REPLAY_SETTINGS
 
@@ -226,13 +241,13 @@ REPLAY_SETTINGS = ACTIVE_REPLAY_SETTINGS
 
 # --- Cell 10 (code) ---
 print_grouped_notebook_summary(
-    "Polymer Residual Supervisor run summary",
+    RUN_SUMMARY_TITLE,
     {
         "Paths": {"Repo root": REPO_ROOT, "Data dir": DATA_DIR, "Results dir": RESULT_DIR, "Baseline MPC": BASELINE_MPC_PATH},
         "Run setup": {"Agent kind": AGENT_KIND, "Run mode": RUN_MODE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "test_cycle": TEST_CYCLE, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START, "use_rho_authority": USE_RHO_AUTHORITY},
         "System / controller": {"delta_t_hours": delta_t, "predict_h": predict_h, "cont_h": cont_h, "Q penalties": [Q1_penalty, Q2_penalty], "R penalties": [R1_penalty, R2_penalty], "observer_poles": POLYMER_OBSERVER_POLES.tolist()},
         "Reward": reward_params,
-        "Agent": {"supervisor": "residual correction", "buffer_size": (TD3_CFG if AGENT_KIND == "td3" else SAC_CFG)["buffer_size"], "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": TD3_EXPLORATION_MODE if AGENT_KIND == "td3" else "policy_stochastic", "loss_type": TD3_LOSS_TYPE if AGENT_KIND == "td3" else SAC_LOSS_TYPE},
+        "Agent": {"supervisor": "residual correction", "buffer_size": (TD3_CFG if AGENT_KIND == "td3" else SAC_CFG)["buffer_size"], "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": TD3_EXPLORATION_MODE if AGENT_KIND == "td3" else "policy_stochastic", "loss_type": TD3_LOSS_TYPE if AGENT_KIND == "td3" else SAC_LOSS_TYPE, "supervisor_gate": GATE_CFG if AGENT_KIND == "sg_sac" else None},
         "Replay": REPLAY_SETTINGS,
         "Mismatch": {"clip": MISMATCH_CLIP, "innovation_scale_mode": INNOVATION_SCALE_MODE, "tracking_scale_mode": TRACKING_SCALE_MODE, "tracking_eta_tol": TRACKING_ETA_TOL, "tracking_scale_floor_mode": TRACKING_SCALE_FLOOR_MODE},
         "Residual authority": {"enabled": RESIDUAL_AUTHORITY_ENABLED, "use_rho": USE_RHO_AUTHORITY, "append_rho_to_state": APPEND_RHO_TO_STATE, "rho_floor": AUTHORITY_RHO_FLOOR, "rho_power": AUTHORITY_RHO_POWER},
@@ -265,7 +280,7 @@ residual_cfg = {
     "mismatch_transform_tanh_scale": MISMATCH_TRANSFORM_TANH_SCALE,
     "mismatch_transform_post_clip": MISMATCH_TRANSFORM_POST_CLIP,
     "observer_update_alignment": OBSERVER_UPDATE_ALIGNMENT,
-    "notebook_source": "RL_assisted_MPC_residual_unified.ipynb",
+    "notebook_source": NOTEBOOK_SOURCE,
     "residual_authority_enabled": RESIDUAL_AUTHORITY_ENABLED,
     "authority_use_rho": USE_RHO_AUTHORITY,
     "use_rho_authority": USE_RHO_AUTHORITY,
@@ -291,6 +306,7 @@ residual_cfg = {
     "behavioral_cloning": dict(BEHAVIORAL_CLONING_CFG),
     "td3_authority_ramp": dict(TD3_AUTHORITY_RAMP_CFG),
     "residual_safety": dict(RESIDUAL_SAFETY_CFG),
+    "supervisor_gate": dict(GATE_CFG),
     "test_cycle": TEST_CYCLE,
     "predict_h": predict_h,
     "cont_h": cont_h,

@@ -5,6 +5,7 @@ from copy import deepcopy
 import numpy as np
 import scipy.optimize as spo
 
+from SACAgent.supervisor_gated_sac_agent import SupervisorGatedSACAgent
 from TD3Agent.agent import TD3Agent
 from TD3Agent.supervisor_gated_agent import SupervisorGatedTD3Agent, SupervisorGateConfig
 from TD3Agent.supervisor_replay_buffer import (
@@ -104,7 +105,11 @@ def _markov_shadow_safety_cfg(config):
 
 
 def _is_supervisor_gated_markov(config) -> bool:
-    return str(config.get("agent_kind", "td3")).strip().lower() == "sg_td3"
+    return str(config.get("agent_kind", "td3")).strip().lower() in {"sg_td3", "sg_sac"}
+
+
+def _is_supervisor_gated_sac_markov(config) -> bool:
+    return str(config.get("agent_kind", "td3")).strip().lower() == "sg_sac"
 
 
 def resolve_markov_supervisor_action(
@@ -649,6 +654,63 @@ def avg_by_episode(rewards, sub_episode_changes, time_in_sub_episodes):
 
 
 def make_td3_markov_agent(config, state_dim, action_dim, *, set_points_len):
+    agent_kind = str(config.get("agent_kind", "td3")).strip().lower()
+    if agent_kind not in {"td3", "sg_td3", "sg_sac"}:
+        raise ValueError("Markov agent construction supports only 'td3', 'sg_td3', and 'sg_sac'.")
+
+    if agent_kind == "sg_sac":
+        sac_cfg = deepcopy(config["sac_agent"])
+        buffer_size = int(sac_cfg.get("buffer_size", 40_000))
+        recent_window = sac_cfg.get("replay_recent_window")
+        if recent_window is None:
+            recent_window = min(
+                buffer_size,
+                int(sac_cfg.get("replay_recent_window_mult", 5)) * int(set_points_len),
+            )
+        target_entropy = sac_cfg.get("target_entropy")
+        if target_entropy == "auto_negative_action_dim":
+            target_entropy = -float(action_dim)
+
+        return SupervisorGatedSACAgent(
+            state_dim=int(state_dim),
+            action_dim=int(action_dim),
+            actor_hidden=list(sac_cfg["actor_hidden"]),
+            critic_hidden=list(sac_cfg["critic_hidden"]),
+            gamma=float(sac_cfg.get("gamma", DEFAULT_TD3_GAMMA)),
+            actor_lr=float(sac_cfg.get("actor_lr", 1.0e-4)),
+            critic_lr=float(sac_cfg.get("critic_lr", 1.0e-4)),
+            alpha_lr=float(sac_cfg.get("alpha_lr", 1.0e-4)),
+            batch_size=int(sac_cfg.get("batch_size", 128)),
+            n_step=int(sac_cfg.get("n_step", 1)),
+            multistep_mode=str(sac_cfg.get("multistep_mode", "one_step")),
+            lambda_value=float(sac_cfg.get("lambda_value", 0.9)),
+            grad_clip_norm=sac_cfg.get("grad_clip_norm", 10.0),
+            init_alpha=float(sac_cfg.get("init_alpha", 0.01)),
+            learn_alpha=bool(sac_cfg.get("learn_alpha", True)),
+            target_entropy=target_entropy,
+            alpha_freeze=sac_cfg.get("alpha_freeze", sac_cfg.get("actor_freeze", 0)),
+            target_update=str(sac_cfg.get("target_update", "soft")),
+            tau=float(sac_cfg.get("tau", 0.005)),
+            hard_update_interval=int(sac_cfg.get("hard_update_interval", 10_000)),
+            actor_q_mode=str(sac_cfg.get("actor_q_mode", "min")),
+            activation=str(sac_cfg.get("activation", "relu")),
+            use_layernorm=bool(sac_cfg.get("use_layernorm", False)),
+            dropout=float(sac_cfg.get("dropout", 0.0)),
+            max_action=float(sac_cfg.get("max_action", 1.0)),
+            buffer_size=buffer_size,
+            replay_frac_per=float(sac_cfg.get("replay_frac_per", 0.5)),
+            replay_frac_recent=float(sac_cfg.get("replay_frac_recent", 0.2)),
+            replay_recent_window=int(recent_window),
+            replay_alpha=float(sac_cfg.get("replay_alpha", 0.6)),
+            replay_beta_start=float(sac_cfg.get("replay_beta_start", 0.4)),
+            replay_beta_end=float(sac_cfg.get("replay_beta_end", 1.0)),
+            replay_beta_steps=int(sac_cfg.get("replay_beta_steps", 50_000)),
+            use_adamw=bool(sac_cfg.get("use_adamw", True)),
+            actor_freeze=int(sac_cfg.get("actor_freeze", 0)),
+            loss_type=str(sac_cfg.get("loss_type", "huber")),
+            supervisor_gate_config=dict(config.get("supervisor_gate", {}) or {}),
+        )
+
     td3_cfg = deepcopy(config["td3_agent"])
     buffer_size = int(td3_cfg.get("buffer_size", 40_000))
     recent_window = td3_cfg.get("replay_recent_window")
@@ -657,10 +719,6 @@ def make_td3_markov_agent(config, state_dim, action_dim, *, set_points_len):
             buffer_size,
             int(td3_cfg.get("replay_recent_window_mult", 5)) * int(set_points_len),
         )
-
-    agent_kind = str(config.get("agent_kind", "td3")).strip().lower()
-    if agent_kind not in {"td3", "sg_td3"}:
-        raise ValueError("Markov TD3 agent construction supports only 'td3' and 'sg_td3'.")
 
     agent_cls = SupervisorGatedTD3Agent if agent_kind == "sg_td3" else TD3Agent
     extra_kwargs = {}
@@ -1340,8 +1398,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     if use_rl:
         rl_agent = ctx.get("agent")
         if rl_agent is None:
-            if str(config.get("agent_kind", "td3")).lower() not in {"td3", "sg_td3"}:
-                raise ValueError("The shared Markov runner currently supports TD3/SG-TD3 live proposals only.")
+            if str(config.get("agent_kind", "td3")).lower() not in {"td3", "sg_td3", "sg_sac"}:
+                raise ValueError("The shared Markov runner currently supports TD3/SG-TD3/SG-SAC live proposals only.")
             rl_agent = make_td3_markov_agent(
                 config,
                 rl_state_dim,
@@ -1358,6 +1416,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 initial_buffer_size=len(getattr(rl_agent, "buffer", [])),
             )
             rl_agent.actor_freeze = int(max(getattr(rl_agent, "actor_freeze", 0), freeze_train_steps))
+            if _is_supervisor_gated_sac_markov(config):
+                rl_agent.alpha_freeze = int(max(getattr(rl_agent, "alpha_freeze", 0), freeze_train_steps))
 
     system = ctx.get("system")
     if system is None:
@@ -2552,6 +2612,11 @@ def summarize_history(config, ctx, history):
 
     return {
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
+        "supervisor_gated_td3_enabled": str(config.get("agent_kind", "td3")).lower() == "sg_td3",
+        "supervisor_gated_sac_enabled": str(config.get("agent_kind", "td3")).lower() == "sg_sac",
+        "supervisor_gated_algorithm": str(config.get("agent_kind", "td3")).lower()
+        if _is_supervisor_gated_markov(config)
+        else None,
         "run_mode": str(config["run_mode"]).lower(),
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
         "td3_priority_fallback_enabled": _td3_priority_enabled(config),
@@ -2559,6 +2624,7 @@ def summarize_history(config, ctx, history):
         "force_td3_respects_warm_start": bool(config.get("force_td3_respects_warm_start", False)),
         "rl_store_executed_action_in_replay": bool(config.get("rl_store_executed_action_in_replay", True)),
         "td3_seed": config.get("td3_agent", {}).get("seed"),
+        "sac_seed": config.get("sac_agent", {}).get("seed"),
         "accepted_fraction": accepted_fraction,
         "td3_accepted_fraction": td3_accepted_fraction,
         "ls_fallback_fraction": ls_fallback_fraction,
@@ -2641,6 +2707,11 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
 
     result_bundle = {
         "agent_kind": str(config.get("agent_kind", "td3")).lower(),
+        "supervisor_gated_td3_enabled": str(config.get("agent_kind", "td3")).lower() == "sg_td3",
+        "supervisor_gated_sac_enabled": str(config.get("agent_kind", "td3")).lower() == "sg_sac",
+        "supervisor_gated_algorithm": str(config.get("agent_kind", "td3")).lower()
+        if _is_supervisor_gated_markov(config)
+        else None,
         "notebook_source": config.get("notebook_source"),
         "run_mode": ctx["run_mode"],
         "nominal_solver_mode": str(config.get("nominal_solver_mode", "state_space_shared")).lower(),
@@ -2652,6 +2723,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         if bool(config.get("rl_store_executed_action_in_replay", True))
         else "requested",
         "td3_seed": config.get("td3_agent", {}).get("seed"),
+        "sac_seed": config.get("sac_agent", {}).get("seed"),
         "system_metadata": ctx["system_metadata"],
         "A": None if ctx.get("system_data", {}).get("A") is None else np.asarray(ctx["system_data"]["A"], float),
         "B": None if ctx.get("system_data", {}).get("B") is None else np.asarray(ctx["system_data"]["B"], float),

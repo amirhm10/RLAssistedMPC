@@ -56,6 +56,7 @@ import numpy as np
 import torch
 
 from SACAgent.sac_agent import SACAgent
+from SACAgent.supervisor_gated_sac_agent import SupervisorGatedSACAgent
 from Simulation.mpc import MpcSolverGeneral
 from Simulation.system_functions import PolymerCSTR
 from TD3Agent.agent import TD3Agent
@@ -215,8 +216,11 @@ elif AGENT_KIND == "sg_td3":
 elif AGENT_KIND == "sac":
     target_entropy = -ACTION_DIM if SAC_CFG["target_entropy"] == "auto_negative_action_dim" else SAC_CFG["target_entropy"]
     weight_agent = SACAgent(state_dim=STATE_DIM, action_dim=ACTION_DIM, actor_hidden=list(SAC_CFG["actor_hidden"]), critic_hidden=list(SAC_CFG["critic_hidden"]), gamma=SAC_CFG["gamma"], actor_lr=SAC_CFG["actor_lr"], critic_lr=SAC_CFG["critic_lr"], alpha_lr=SAC_CFG["alpha_lr"], batch_size=SAC_CFG["batch_size"], grad_clip_norm=SAC_CFG["grad_clip_norm"], init_alpha=SAC_CFG["init_alpha"], learn_alpha=SAC_CFG["learn_alpha"], target_entropy=target_entropy, alpha_freeze=SAC_CFG.get("alpha_freeze", SAC_CFG["actor_freeze"]), target_update=SAC_CFG["target_update"], tau=SAC_CFG["tau"], hard_update_interval=SAC_CFG["hard_update_interval"], actor_q_mode=SAC_CFG.get("actor_q_mode", "min"), activation=SAC_CFG["activation"], use_layernorm=SAC_CFG["use_layernorm"], dropout=SAC_CFG["dropout"], max_action=SAC_CFG["max_action"], buffer_size=SAC_BUFFER_SIZE, replay_frac_per=SAC_REPLAY_FRAC_PER, replay_frac_recent=SAC_REPLAY_FRAC_RECENT, replay_recent_window=SAC_REPLAY_RECENT_WINDOW, replay_alpha=SAC_REPLAY_ALPHA, replay_beta_start=SAC_REPLAY_BETA_START, replay_beta_end=SAC_REPLAY_BETA_END, replay_beta_steps=SAC_REPLAY_BETA_STEPS, device=DEVICE, use_adamw=SAC_CFG["use_adamw"], actor_freeze=SAC_CFG["actor_freeze"], loss_type=SAC_LOSS_TYPE, n_step=SAC_N_STEP, multistep_mode=SAC_MULTISTEP_MODE, lambda_value=SAC_LAMBDA_VALUE)
+elif AGENT_KIND == "sg_sac":
+    target_entropy = -ACTION_DIM if SAC_CFG["target_entropy"] == "auto_negative_action_dim" else SAC_CFG["target_entropy"]
+    weight_agent = SupervisorGatedSACAgent(state_dim=STATE_DIM, action_dim=ACTION_DIM, actor_hidden=list(SAC_CFG["actor_hidden"]), critic_hidden=list(SAC_CFG["critic_hidden"]), gamma=SAC_CFG["gamma"], actor_lr=SAC_CFG["actor_lr"], critic_lr=SAC_CFG["critic_lr"], alpha_lr=SAC_CFG["alpha_lr"], batch_size=SAC_CFG["batch_size"], grad_clip_norm=SAC_CFG["grad_clip_norm"], init_alpha=SAC_CFG["init_alpha"], learn_alpha=SAC_CFG["learn_alpha"], target_entropy=target_entropy, alpha_freeze=SAC_CFG.get("alpha_freeze", SAC_CFG["actor_freeze"]), target_update=SAC_CFG["target_update"], tau=SAC_CFG["tau"], hard_update_interval=SAC_CFG["hard_update_interval"], actor_q_mode=SAC_CFG.get("actor_q_mode", "min"), activation=SAC_CFG["activation"], use_layernorm=SAC_CFG["use_layernorm"], dropout=SAC_CFG["dropout"], max_action=SAC_CFG["max_action"], buffer_size=SAC_BUFFER_SIZE, replay_frac_per=SAC_REPLAY_FRAC_PER, replay_frac_recent=SAC_REPLAY_FRAC_RECENT, replay_recent_window=SAC_REPLAY_RECENT_WINDOW, replay_alpha=SAC_REPLAY_ALPHA, replay_beta_start=SAC_REPLAY_BETA_START, replay_beta_end=SAC_REPLAY_BETA_END, replay_beta_steps=SAC_REPLAY_BETA_STEPS, device=DEVICE, use_adamw=SAC_CFG["use_adamw"], actor_freeze=SAC_CFG["actor_freeze"], loss_type=SAC_LOSS_TYPE, n_step=SAC_N_STEP, multistep_mode=SAC_MULTISTEP_MODE, lambda_value=SAC_LAMBDA_VALUE, supervisor_gate_config=dict(GATE_CFG))
 else:
-    raise ValueError("AGENT_KIND must be 'td3', 'sg_td3', or 'sac'.")
+    raise ValueError("AGENT_KIND must be 'td3', 'sg_td3', 'sac', or 'sg_sac'.")
 
 REPLAY_SETTINGS = ACTIVE_REPLAY_SETTINGS
 
@@ -231,7 +235,7 @@ print_grouped_notebook_summary(
         "Run setup": {"Agent kind": AGENT_KIND, "Run mode": RUN_MODE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "test_cycle": TEST_CYCLE, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START},
         "System / controller": {"delta_t_hours": delta_t, "predict_h": predict_h, "cont_h": cont_h, "Q penalties": [Q1_penalty, Q2_penalty], "R penalties": [R1_penalty, R2_penalty], "observer_poles": POLYMER_OBSERVER_POLES.tolist()},
         "Reward": reward_params,
-        "Agent": {"supervisor": "weight multiplier", "buffer_size": (TD3_CFG if TD3_LIKE_AGENT else SAC_CFG)["buffer_size"], "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": TD3_EXPLORATION_MODE if TD3_LIKE_AGENT else "policy_stochastic", "loss_type": TD3_LOSS_TYPE if TD3_LIKE_AGENT else SAC_LOSS_TYPE, "supervisor_gate": GATE_CFG if AGENT_KIND == "sg_td3" else None},
+        "Agent": {"supervisor": "weight multiplier", "buffer_size": (TD3_CFG if TD3_LIKE_AGENT else SAC_CFG)["buffer_size"], "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": TD3_EXPLORATION_MODE if TD3_LIKE_AGENT else "policy_stochastic", "loss_type": TD3_LOSS_TYPE if TD3_LIKE_AGENT else SAC_LOSS_TYPE, "supervisor_gate": GATE_CFG if AGENT_KIND in {"sg_td3", "sg_sac"} else None},
         "Replay": REPLAY_SETTINGS,
         "Mismatch": {"clip": MISMATCH_CLIP, "innovation_scale_mode": INNOVATION_SCALE_MODE, "tracking_scale_mode": TRACKING_SCALE_MODE, "tracking_eta_tol": TRACKING_ETA_TOL, "tracking_scale_floor_mode": TRACKING_SCALE_FLOOR_MODE},
         "Plotting / export": {"style_profile": STYLE_PROFILE, "save_pdf": SAVE_PDF, "result_prefix": RESULT_PREFIX, "compare_prefix": COMPARE_PREFIX, "plot_start_episode": PLOT_START_EPISODE, "compare_start_episode": COMPARE_START_EPISODE},

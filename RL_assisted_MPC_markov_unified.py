@@ -109,6 +109,7 @@ y_sp_scenario = apply_min_max(y_sp_scenario_phys, data_min[n_inputs:], data_max[
 EPISODE_CFG = NB["episode_defaults"]
 CTRL = NB["controller"]
 TD3_CFG = NB["td3_agent"]
+SAC_CFG = NB.get("sac_agent", {})
 REWARD_CFG = NB["reward"]
 BEHAVIORAL_CLONING = dict(NB.get("behavioral_cloning", {}))
 SUPERVISOR_GATE_CFG = dict(NB.get("supervisor_gate", {}))
@@ -147,7 +148,7 @@ gain_drift_max = float(CTRL["gain_drift_max"])
 nominal_cost_relative_tol = float(CTRL["nominal_cost_relative_tol"])
 nominal_cost_absolute_tol = float(CTRL["nominal_cost_absolute_tol"])
 nominal_solver_mode = str(CTRL.get("nominal_solver_mode", "state_space_shared"))
-td3_seed = TD3_CFG.get("seed")
+agent_seed = SAC_CFG.get("seed") if AGENT_KIND == "sg_sac" else TD3_CFG.get("seed")
 mismatch_clip = float(CTRL["mismatch_clip"])
 base_state_norm_mode = str(CTRL["base_state_norm_mode"])
 base_state_running_norm_clip = float(CTRL["base_state_running_norm_clip"])
@@ -211,7 +212,7 @@ print_grouped_notebook_summary(
         "Run setup": {
             "Agent kind": AGENT_KIND,
             "Run mode": RUN_MODE,
-            "TD3 seed": td3_seed,
+            "Agent seed": agent_seed,
             "n_tests": n_tests,
             "set_points_len": set_points_len,
             "warm_start": warm_start,
@@ -242,7 +243,7 @@ print_grouped_notebook_summary(
             "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START,
         },
         "Behavioral cloning": BEHAVIORAL_CLONING,
-        "Supervisor gate": SUPERVISOR_GATE_CFG if AGENT_KIND == "sg_td3" else None,
+        "Supervisor gate": SUPERVISOR_GATE_CFG if AGENT_KIND in {"sg_td3", "sg_sac"} else None,
         "Reward": reward_params,
         "Debug": {
             "debug_validate_lifted": debug_validate_lifted,
@@ -320,6 +321,7 @@ markov_cfg = {
     "behavioral_cloning": BEHAVIORAL_CLONING,
     "supervisor_gate": SUPERVISOR_GATE_CFG,
     "td3_agent": TD3_CFG,
+    "sac_agent": SAC_CFG,
     "max_steps": MAX_STEPS_OVERRIDE,
 }
 
@@ -356,7 +358,7 @@ out_dir_rl = plot_markov_correction_results(
         "save_pdf": SAVE_PDF,
         "style_profile": STYLE_PROFILE,
         "save_agent_checkpoint": rl_save_agent_checkpoint,
-        "agent_checkpoint_prefix": "td3_markov_agent",
+        "agent_checkpoint_prefix": "sg_sac_markov_agent" if AGENT_KIND == "sg_sac" else "td3_markov_agent",
         "s_pred_min": s_pred_min,
     },
 )

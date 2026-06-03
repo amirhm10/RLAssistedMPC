@@ -259,7 +259,9 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     disturbance_labels = runtime_ctx.get("disturbance_labels")
 
     agent_kind = str(residual_cfg["agent_kind"]).lower()
-    supervisor_gated_agent_kind = agent_kind == "sg_td3"
+    supervisor_gated_agent_kind = agent_kind in {"sg_td3", "sg_sac"}
+    supervisor_gated_td3_agent_kind = agent_kind == "sg_td3"
+    supervisor_gated_sac_agent_kind = agent_kind == "sg_sac"
     td3_like_agent_kind = agent_kind in {"td3", "td7", "sg_td3"}
     run_mode = str(residual_cfg["run_mode"]).lower()
     state_mode = str(residual_cfg.get("state_mode", "standard")).lower()
@@ -293,8 +295,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     early_release_guard_enabled = bool(
         residual_safety_enabled and early_release_guard_cfg.get("enabled", False)
     )
-    if agent_kind not in {"td3", "sac", "td7", "sg_td3"}:
-        raise ValueError("residual_cfg['agent_kind'] must be 'td3', 'sac', 'td7', or 'sg_td3'.")
+    if agent_kind not in {"td3", "sac", "td7", "sg_td3", "sg_sac"}:
+        raise ValueError("residual_cfg['agent_kind'] must be 'td3', 'sac', 'td7', 'sg_td3', or 'sg_sac'.")
     if run_mode not in {"nominal", "disturb"}:
         raise ValueError("residual_cfg['run_mode'] must be 'nominal' or 'disturb'.")
     use_shifted_mpc_warm_start = bool(residual_cfg.get("use_shifted_mpc_warm_start", False))
@@ -380,9 +382,9 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
     phase1 = None
     phase1_action_source_log = None
     phase1_train_traces = None
-    if td3_like_agent_kind:
+    if td3_like_agent_kind or supervisor_gated_sac_agent_kind:
         phase1 = build_phase1_schedule(
-            agent_kind="td3",
+            agent_kind=agent_kind,
             warm_start_step=warm_start_step,
             time_in_sub_episodes=time_in_sub_episodes,
             n_steps=nFE,
@@ -400,6 +402,8 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
             train_start_step=bc_train_start_step,
         )
         agent.actor_freeze = int(phase1["effective_actor_freeze"])
+        if supervisor_gated_sac_agent_kind:
+            agent.alpha_freeze = int(max(getattr(agent, "alpha_freeze", 0), phase1["effective_actor_freeze"]))
         phase1_action_source_log = np.zeros(nFE, dtype=int)
         phase1_train_traces = init_phase1_train_traces()
     policy_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
@@ -1183,7 +1187,9 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "executed_action_raw_log": executed_action_raw_log,
         "policy_executed_gap_norm_log": policy_executed_gap_norm_log,
         "residual_raw_executed_norm_ratio_log": residual_raw_executed_norm_ratio_log,
-        "supervisor_gated_td3_enabled": bool(supervisor_gated_agent_kind),
+        "supervisor_gated_td3_enabled": bool(supervisor_gated_td3_agent_kind),
+        "supervisor_gated_sac_enabled": bool(supervisor_gated_sac_agent_kind),
+        "supervisor_gated_algorithm": agent_kind if supervisor_gated_agent_kind else None,
         "sg_policy_action_raw_log": sg_policy_action_raw_log if supervisor_gated_agent_kind else None,
         "sg_supervisor_action_raw_log": sg_supervisor_action_raw_log if supervisor_gated_agent_kind else None,
         "sg_executed_action_raw_log": sg_executed_action_raw_log if supervisor_gated_agent_kind else None,

@@ -30,6 +30,21 @@ import numpy as np
 import torch
 
 NB = get_distillation_notebook_defaults("horizon_dueling")
+NOTEBOOK_SOURCE = globals().get(
+    "NOTEBOOK_SOURCE_OVERRIDE",
+    "distillation_RL_assisted_MPC_horizons_dueling_unified.ipynb",
+)
+RUN_SUMMARY_TITLE = globals().get(
+    "RUN_SUMMARY_TITLE_OVERRIDE",
+    "Distillation Dueling Horizon Supervisor run summary",
+)
+HORIZON_AGENT_CLASS = globals().get("HORIZON_AGENT_CLASS_OVERRIDE", DuelingDQNAgent)
+NB_CONFIGURE = globals().get("NB_CONFIGURE")
+if NB_CONFIGURE is not None:
+    configured_nb = NB_CONFIGURE(NB)
+    if not isinstance(configured_nb, dict):
+        raise TypeError("NB_CONFIGURE must return a notebook-default dictionary.")
+    NB = configured_nb
 RUN_MODE = NB["run_mode"]
 DISTURBANCE_PROFILE = NB["disturbance_profile"]
 STATE_MODE = NB["state_mode"]
@@ -168,20 +183,23 @@ qi_change = CTRL["qi_change"]
 qs_change = CTRL["qs_change"]
 ha_change = CTRL["ha_change"]
 # Agent setup.
-dqn_agent = DuelingDQNAgent(state_dim=STATE_DIM, action_dim=len(HORIZON_RECIPES), hidden_dim=list(AGENT_CFG["hidden_layers"]), gamma=AGENT_CFG["gamma"], n_step=N_STEP, multistep_mode=MULTISTEP_MODE, lambda_value=LAMBDA_VALUE, lr=AGENT_CFG["lr"], batch_size=AGENT_CFG["batch_size"], buffer_size=BUFFER_SIZE, replay_frac_per=REPLAY_FRAC_PER, replay_frac_recent=REPLAY_FRAC_RECENT, replay_recent_window=REPLAY_RECENT_WINDOW, replay_alpha=REPLAY_ALPHA, replay_beta_start=REPLAY_BETA_START, replay_beta_end=REPLAY_BETA_END, replay_beta_steps=REPLAY_BETA_STEPS, grad_clip_norm=AGENT_CFG["grad_clip_norm"], double_dqn=AGENT_CFG["double_dqn"], target_update=AGENT_CFG["target_update"], tau=AGENT_CFG["tau"], hard_update_interval=AGENT_CFG["hard_update_interval"], activation=AGENT_CFG["activation"], use_layer_norm=AGENT_CFG["use_layer_norm"], dropout=AGENT_CFG["dropout"], device=DEVICE, exploration_mode=EXPLORATION_MODE, loss_type=LOSS_TYPE, noisy_sigma_init=AGENT_CFG["noisy_sigma_init"], eps_start=AGENT_CFG["eps_start"], eps_end=AGENT_CFG["eps_end"], eps_decay_rate=AGENT_CFG["eps_decay_rate"], eps_decay_mode=AGENT_CFG["eps_decay_mode"], eps_decay_steps=AGENT_CFG["eps_decay_steps"])
+agent_extra_kwargs = {}
+if AGENT_CFG.get("supervisor_gate") is not None:
+    agent_extra_kwargs["supervisor_gate_config"] = AGENT_CFG["supervisor_gate"]
+dqn_agent = HORIZON_AGENT_CLASS(state_dim=STATE_DIM, action_dim=len(HORIZON_RECIPES), hidden_dim=list(AGENT_CFG["hidden_layers"]), gamma=AGENT_CFG["gamma"], n_step=N_STEP, multistep_mode=MULTISTEP_MODE, lambda_value=LAMBDA_VALUE, lr=AGENT_CFG["lr"], batch_size=AGENT_CFG["batch_size"], buffer_size=BUFFER_SIZE, replay_frac_per=REPLAY_FRAC_PER, replay_frac_recent=REPLAY_FRAC_RECENT, replay_recent_window=REPLAY_RECENT_WINDOW, replay_alpha=REPLAY_ALPHA, replay_beta_start=REPLAY_BETA_START, replay_beta_end=REPLAY_BETA_END, replay_beta_steps=REPLAY_BETA_STEPS, grad_clip_norm=AGENT_CFG["grad_clip_norm"], double_dqn=AGENT_CFG["double_dqn"], target_update=AGENT_CFG["target_update"], tau=AGENT_CFG["tau"], hard_update_interval=AGENT_CFG["hard_update_interval"], activation=AGENT_CFG["activation"], use_layer_norm=AGENT_CFG["use_layer_norm"], dropout=AGENT_CFG["dropout"], device=DEVICE, exploration_mode=EXPLORATION_MODE, loss_type=LOSS_TYPE, noisy_sigma_init=AGENT_CFG["noisy_sigma_init"], eps_start=AGENT_CFG["eps_start"], eps_end=AGENT_CFG["eps_end"], eps_decay_rate=AGENT_CFG["eps_decay_rate"], eps_decay_mode=AGENT_CFG["eps_decay_mode"], eps_decay_steps=AGENT_CFG["eps_decay_steps"], **agent_extra_kwargs)
 
 # --- Cell 7 (markdown) ---
 # ## Resolved Summary
 
 # --- Cell 8 (code) ---
 print_grouped_notebook_summary(
-    "Distillation Dueling Horizon Supervisor run summary",
+    RUN_SUMMARY_TITLE,
     {
         "Paths": {"Repo root": REPO_ROOT, "Data dir": DATA_DIR, "Results dir": RESULT_DIR, "Aspen source": ASPEN_SOURCE, "Dyn path": DYN_PATH, "Snaps path": SNAPS_PATH, "Baseline MPC": BASELINE_MPC_PATH},
         "Run setup": {"Run mode": RUN_MODE, "Disturbance profile": DISTURBANCE_PROFILE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "q_warm_release_subepisodes": POST_WARM_START_ACTION_FREEZE_SUBEPISODES, "test_cycle": TEST_CYCLE, "decision_interval": DECISION_INTERVAL, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START, "seed": SEED},
         "System / controller": {"delta_t_hours": SYS["delta_t_hours"], "predict_h": predict_h, "cont_h": cont_h, "predict_grid": PREDICT_GRID, "control_grid": CONTROL_GRID, "observer_poles": poles.tolist(), "setpoints_phys": y_sp_scenario_phys.tolist()},
         "Reward": reward_params,
-        "Agent": {"algorithm": "dueling_ddqn", "hidden_layers": AGENT_CFG["hidden_layers"], "buffer_size": BUFFER_SIZE, "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": EXPLORATION_MODE, "noisy_sigma_init": AGENT_CFG["noisy_sigma_init"], "loss_type": LOSS_TYPE},
+        "Agent": {"algorithm": "dueling_ddqn", "agent_kind": NB.get("agent_kind", "dueling_dqn"), "hidden_layers": AGENT_CFG["hidden_layers"], "buffer_size": BUFFER_SIZE, "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": EXPLORATION_MODE, "noisy_sigma_init": AGENT_CFG["noisy_sigma_init"], "loss_type": LOSS_TYPE, "supervisor_gate": AGENT_CFG.get("supervisor_gate")},
         "Replay": REPLAY_SETTINGS,
         "Safety": {"horizon_safety_enabled": bool(HORIZON_SAFETY_CFG.get("enabled", False)), "release_filter_enabled": bool(HORIZON_SAFETY_CFG.get("release_filter", {}).get("enabled", False)), "reward_probation_enabled": bool(HORIZON_SAFETY_CFG.get("reward_probation", {}).get("enabled", False)), "shadow_default_mpc_enabled": bool(HORIZON_SAFETY_CFG.get("shadow_default_mpc", {}).get("enabled", False))},
         "Mismatch": {"clip": MISMATCH_CLIP, "innovation_scale_mode": INNOVATION_SCALE_MODE, "tracking_scale_mode": TRACKING_SCALE_MODE, "tracking_eta_tol": TRACKING_ETA_TOL, "tracking_scale_floor_mode": TRACKING_SCALE_FLOOR_MODE},
@@ -197,7 +215,8 @@ print_grouped_notebook_summary(
 dueling_cfg = {
     "mode": RUN_MODE,
     "state_mode": STATE_MODE,
-    "algorithm": "dueling_ddqn",
+    "algorithm": "sg_dueling_dqn" if str(NB.get("agent_kind", "")).lower() == "sg_dueling_dqn" else "dueling_ddqn",
+    "agent_kind": NB.get("agent_kind", "dueling_dqn"),
         "mismatch_clip": MISMATCH_CLIP,
     "innovation_scale_mode": INNOVATION_SCALE_MODE,
     "innovation_scale_ref": INNOVATION_SCALE_REF,
@@ -214,7 +233,8 @@ dueling_cfg = {
     "observer_update_alignment": OBSERVER_UPDATE_ALIGNMENT,
     "horizon_safety": HORIZON_SAFETY_CFG,
     "post_warm_start_action_freeze_subepisodes": POST_WARM_START_ACTION_FREEZE_SUBEPISODES,
-    "notebook_source": "distillation_RL_assisted_MPC_horizons_dueling_unified.ipynb",
+    "supervisor_gate": AGENT_CFG.get("supervisor_gate"),
+    "notebook_source": NOTEBOOK_SOURCE,
     "predict_h": predict_h,
     "cont_h": cont_h,
     "decision_interval": DECISION_INTERVAL,

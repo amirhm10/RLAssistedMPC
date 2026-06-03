@@ -2,7 +2,14 @@ import numpy as np
 import scipy.optimize as spo
 
 from Simulation.mpc import MpcSolverGeneral
-from utils.agent_step_runtime import replay_train_horizon_agent, select_horizon_action
+from utils.agent_step_runtime import (
+    DISCRETE_SUPERVISOR_SOURCE_NAMES,
+    replay_train_horizon_agent,
+    replay_train_supervisor_gated_horizon_agent,
+    select_horizon_action,
+    select_supervisor_gated_horizon_action,
+)
+from DQN.supervisor_gated_dqn_agent import SOURCE_POLICY, SOURCE_SUPERVISOR
 from utils.helpers import (
     action_to_horizons,
     apply_min_max,
@@ -176,6 +183,8 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     if not default_action:
         raise ValueError("Default (predict_h, cont_h) is not present in horizon_recipes.")
     default_action = int(default_action[0])
+    agent_kind = str(horizon_cfg.get("agent_kind", horizon_cfg.get("algorithm", "ddqn"))).strip().lower()
+    supervisor_gated_horizon = bool(agent_kind in {"sg_dqn", "supervisor_gated_dqn"})
     current_ic_opt = np.zeros(n_inputs * int(current_Hc))
     horizon_safety_cfg = dict(horizon_cfg.get("horizon_safety", {}) or {})
     horizon_safety_logs = init_horizon_safety_logs(nFE)
@@ -208,6 +217,16 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     horizon_shadow_first_move_delta_norm_log = np.full(nFE, np.nan, dtype=float)
     horizon_shadow_selected_first_move_log = np.full((nFE, n_inputs), np.nan, dtype=float)
     horizon_shadow_default_first_move_log = np.full((nFE, n_inputs), np.nan, dtype=float)
+    sg_policy_action_log = np.full(nFE, -1, dtype=int) if supervisor_gated_horizon else None
+    sg_supervisor_action_log = np.full(nFE, -1, dtype=int) if supervisor_gated_horizon else None
+    sg_executed_action_log = np.full(nFE, -1, dtype=int) if supervisor_gated_horizon else None
+    sg_previous_action_log = np.full(nFE, -1, dtype=int) if supervisor_gated_horizon else None
+    sg_selected_source_log = np.full(nFE, -1, dtype=int) if supervisor_gated_horizon else None
+    sg_score_policy_log = np.full(nFE, np.nan, dtype=float) if supervisor_gated_horizon else None
+    sg_score_supervisor_log = np.full(nFE, np.nan, dtype=float) if supervisor_gated_horizon else None
+    sg_advantage_log = np.full(nFE, np.nan, dtype=float) if supervisor_gated_horizon else None
+    sg_q_policy_log = np.full(nFE, np.nan, dtype=float) if supervisor_gated_horizon else None
+    sg_q_supervisor_log = np.full(nFE, np.nan, dtype=float) if supervisor_gated_horizon else None
     previous_executed_pair = None
     subepisode_switch_count = 0
 
@@ -257,19 +276,43 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
             tracking_error_raw_log[i, :] = state_debug["tracking_error_raw"]
             tracking_scale_log[i, :] = state_debug["tracking_scale_now"]
 
-        horizon_decision = select_horizon_action(
-            agent=agent,
-            state=current_rl_state,
-            step=i,
-            warm_start_step=warm_start_step,
-            decision_interval=decision_interval,
-            default_action=default_action,
-            last_action=last_action,
-            test=test,
-            post_warm_action_freeze_steps=post_warm_action_freeze_steps,
-        )
+        if supervisor_gated_horizon:
+            horizon_decision = select_supervisor_gated_horizon_action(
+                agent=agent,
+                state=current_rl_state,
+                step=i,
+                warm_start_step=warm_start_step,
+                decision_interval=decision_interval,
+                default_action=default_action,
+                supervisor_action=default_action,
+                last_action=last_action,
+                test=test,
+                post_warm_action_freeze_steps=post_warm_action_freeze_steps,
+            )
+        else:
+            horizon_decision = select_horizon_action(
+                agent=agent,
+                state=current_rl_state,
+                step=i,
+                warm_start_step=warm_start_step,
+                decision_interval=decision_interval,
+                default_action=default_action,
+                last_action=last_action,
+                test=test,
+                post_warm_action_freeze_steps=post_warm_action_freeze_steps,
+            )
         horizon_action_source_log[i] = int(horizon_decision.source)
         horizon_decision_log[i] = int(horizon_decision.decision_taken)
+        if supervisor_gated_horizon:
+            sg_policy_action_log[i] = int(horizon_decision.policy_action)
+            sg_supervisor_action_log[i] = int(horizon_decision.supervisor_action)
+            sg_previous_action_log[i] = int(horizon_decision.previous_action)
+            sg_selected_source_log[i] = int(horizon_decision.selected_source)
+            sg_score_policy_log[i] = float(horizon_decision.score_policy)
+            sg_score_supervisor_log[i] = float(horizon_decision.score_supervisor)
+            sg_advantage_log[i] = float(horizon_decision.advantage_policy_supervisor)
+            sg_q_policy_log[i] = float(horizon_decision.q_policy)
+            sg_q_supervisor_log[i] = float(horizon_decision.q_supervisor)
         if warm_start_step < i <= post_warm_action_freeze_end_step:
             horizon_q_warm_release_active_log[i] = 1
         requested_a_idx = int(horizon_decision.action)
@@ -293,6 +336,8 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
             last_action = None
         else:
             last_action = a_idx
+        if supervisor_gated_horizon:
+            sg_executed_action_log[i] = int(a_idx)
         Hp, Hc = action_to_horizons(h_recipes, a_idx)
         executed_pair = (int(Hp), int(Hc))
         if previous_executed_pair is not None and executed_pair != previous_executed_pair:
@@ -416,18 +461,33 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         )
         done = 0.0
 
-        replay_train_horizon_agent(
-            agent=agent,
-            state=current_rl_state,
-            action=a_idx,
-            reward=reward,
-            next_state=next_rl_state,
-            done=done,
-            step=i,
-            test=test,
-            replay_start_step=time_in_sub_episodes,
-            train_start_step=warm_start_step,
-        )
+        if supervisor_gated_horizon:
+            replay_train_supervisor_gated_horizon_agent(
+                agent=agent,
+                state=current_rl_state,
+                action=a_idx,
+                reward=reward,
+                next_state=next_rl_state,
+                done=done,
+                step=i,
+                test=test,
+                replay_start_step=time_in_sub_episodes,
+                train_start_step=warm_start_step,
+                decision=horizon_decision,
+            )
+        else:
+            replay_train_horizon_agent(
+                agent=agent,
+                state=current_rl_state,
+                action=a_idx,
+                reward=reward,
+                next_state=next_rl_state,
+                done=done,
+                step=i,
+                test=test,
+                replay_start_step=time_in_sub_episodes,
+                train_start_step=warm_start_step,
+            )
 
         if i in sub_episodes_changes_dict:
             avg_reward = float(np.mean(rewards[max(0, i - time_in_sub_episodes + 1): i + 1]))
@@ -470,6 +530,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         "run_mode": mode,
         "method_family": "horizon",
         "algorithm": str(horizon_cfg.get("algorithm", "ddqn")).lower(),
+        "agent_kind": agent_kind,
         "state_mode": state_mode,
         "system_metadata": system_metadata,
         "notebook_source": horizon_cfg.get("notebook_source"),
@@ -546,6 +607,31 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         "mismatch_transform_post_clip": mismatch_cfg["mismatch_transform_post_clip"],
         "observer_update_alignment": observer_update_alignment,
     }
+    if supervisor_gated_horizon:
+        valid_sg = sg_selected_source_log >= 0
+        sg_den = int(max(1, int(np.sum(valid_sg))))
+        result_bundle.update(
+            {
+                "supervisor_gated_dqn_enabled": True,
+                "horizon_supervisor_action": int(default_action),
+                "horizon_supervisor_pair": tuple(int(v) for v in h_recipes[int(default_action)]),
+                "sg_source_names": dict(DISCRETE_SUPERVISOR_SOURCE_NAMES),
+                "sg_policy_action_log": sg_policy_action_log,
+                "sg_supervisor_action_log": sg_supervisor_action_log,
+                "sg_executed_action_log": sg_executed_action_log,
+                "sg_previous_action_log": sg_previous_action_log,
+                "sg_selected_source_log": sg_selected_source_log,
+                "sg_score_policy_log": sg_score_policy_log,
+                "sg_score_supervisor_log": sg_score_supervisor_log,
+                "sg_advantage_log": sg_advantage_log,
+                "sg_q_policy_log": sg_q_policy_log,
+                "sg_q_supervisor_log": sg_q_supervisor_log,
+                "sg_policy_fraction": float(np.sum(sg_selected_source_log[valid_sg] == SOURCE_POLICY) / sg_den),
+                "sg_supervisor_fraction": float(
+                    np.sum(sg_selected_source_log[valid_sg] == SOURCE_SUPERVISOR) / sg_den
+                ),
+            }
+        )
 
     diagnostics = {
         "dqn_loss_trace": getattr(agent, "loss_history", None),

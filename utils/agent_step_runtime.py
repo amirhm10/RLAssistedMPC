@@ -2,6 +2,12 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from DQN.supervisor_gated_dqn_agent import (
+    SOURCE_HELD,
+    SOURCE_NAMES as DISCRETE_SUPERVISOR_SOURCE_NAMES,
+    SOURCE_SUPERVISOR,
+    SOURCE_WARM_START,
+)
 from utils.phase1_hidden_release import (
     ACTION_SOURCE_HELD_INTERVAL,
     ACTION_SOURCE_PHASE1_HIDDEN_BASELINE,
@@ -19,6 +25,23 @@ class HorizonStepDecision:
     last_action: int | None
     decision_taken: int
     source: int
+
+
+@dataclass
+class SupervisorGatedHorizonStepDecision:
+    action: int
+    last_action: int | None
+    decision_taken: int
+    source: int
+    policy_action: int
+    supervisor_action: int
+    previous_action: int
+    selected_source: int
+    score_policy: float
+    score_supervisor: float
+    advantage_policy_supervisor: float
+    q_policy: float
+    q_supervisor: float
 
 
 @dataclass
@@ -89,6 +112,103 @@ def select_horizon_action(
     )
 
 
+def select_supervisor_gated_horizon_action(
+    *,
+    agent,
+    state,
+    step: int,
+    warm_start_step: int,
+    decision_interval: int,
+    default_action: int,
+    last_action: int | None,
+    test: bool,
+    post_warm_action_freeze_steps: int = 0,
+    supervisor_action: int | None = None,
+) -> SupervisorGatedHorizonStepDecision:
+    """Select a discrete horizon action with an SG-DQN gate against a supervisor."""
+    warm_start_step = int(warm_start_step)
+    step = int(step)
+    decision_interval = int(max(1, decision_interval))
+    post_warm_action_freeze_steps = int(max(0, post_warm_action_freeze_steps))
+    action_freeze_end_step = warm_start_step + post_warm_action_freeze_steps
+    supervisor_idx = int(default_action if supervisor_action is None else supervisor_action)
+    previous_idx = int(supervisor_idx if last_action is None else last_action)
+
+    if step <= warm_start_step:
+        return SupervisorGatedHorizonStepDecision(
+            action=int(supervisor_idx),
+            last_action=last_action,
+            decision_taken=0,
+            source=ACTION_SOURCE_WARM_START_BASELINE,
+            policy_action=int(supervisor_idx),
+            supervisor_action=int(supervisor_idx),
+            previous_action=int(previous_idx),
+            selected_source=SOURCE_WARM_START,
+            score_policy=float("nan"),
+            score_supervisor=float("nan"),
+            advantage_policy_supervisor=float("nan"),
+            q_policy=float("nan"),
+            q_supervisor=float("nan"),
+        )
+    if post_warm_action_freeze_steps > 0 and step <= action_freeze_end_step:
+        return SupervisorGatedHorizonStepDecision(
+            action=int(supervisor_idx),
+            last_action=None,
+            decision_taken=0,
+            source=ACTION_SOURCE_PHASE1_HIDDEN_BASELINE,
+            policy_action=int(supervisor_idx),
+            supervisor_action=int(supervisor_idx),
+            previous_action=int(previous_idx),
+            selected_source=SOURCE_SUPERVISOR,
+            score_policy=float("nan"),
+            score_supervisor=float("nan"),
+            advantage_policy_supervisor=float("nan"),
+            q_policy=float("nan"),
+            q_supervisor=float("nan"),
+        )
+
+    if (step % decision_interval == 0) or (last_action is None):
+        sg_decision = agent.select_action_with_supervisor(
+            np.asarray(state, np.float32),
+            supervisor_action=int(supervisor_idx),
+            previous_action=int(previous_idx),
+            explore=not bool(test),
+            test=bool(test),
+        )
+        source = ACTION_SOURCE_POLICY_EVAL_LIVE if test else ACTION_SOURCE_POLICY_TRAIN_LIVE
+        return SupervisorGatedHorizonStepDecision(
+            action=int(sg_decision.action),
+            last_action=int(sg_decision.action),
+            decision_taken=1,
+            source=source,
+            policy_action=int(sg_decision.policy_action),
+            supervisor_action=int(sg_decision.supervisor_action),
+            previous_action=int(previous_idx),
+            selected_source=int(sg_decision.selected_source),
+            score_policy=float(sg_decision.score_policy),
+            score_supervisor=float(sg_decision.score_supervisor),
+            advantage_policy_supervisor=float(sg_decision.advantage_policy_supervisor),
+            q_policy=float(sg_decision.q_policy),
+            q_supervisor=float(sg_decision.q_supervisor),
+        )
+
+    return SupervisorGatedHorizonStepDecision(
+        action=int(last_action),
+        last_action=last_action,
+        decision_taken=0,
+        source=ACTION_SOURCE_HELD_INTERVAL,
+        policy_action=int(last_action),
+        supervisor_action=int(supervisor_idx),
+        previous_action=int(previous_idx),
+        selected_source=SOURCE_HELD,
+        score_policy=float("nan"),
+        score_supervisor=float("nan"),
+        advantage_policy_supervisor=float("nan"),
+        q_policy=float("nan"),
+        q_supervisor=float("nan"),
+    )
+
+
 def replay_train_horizon_agent(
     *,
     agent,
@@ -114,6 +234,47 @@ def replay_train_horizon_agent(
                 float(reward),
                 np.asarray(next_state, np.float32),
                 float(done),
+            )
+            pushed = True
+        if step >= train_start_step:
+            train_meta = agent.train_step()
+            trained = True
+    return {"pushed": pushed, "trained": trained, "train_meta": train_meta}
+
+
+def replay_train_supervisor_gated_horizon_agent(
+    *,
+    agent,
+    state,
+    action: int,
+    reward: float,
+    next_state,
+    done: float,
+    step: int,
+    test: bool,
+    replay_start_step: int,
+    train_start_step: int,
+    decision: SupervisorGatedHorizonStepDecision,
+) -> dict:
+    """Push/train an SG-DQN horizon agent using executed-action replay."""
+    pushed = False
+    trained = False
+    train_meta = None
+    if not test:
+        if step > replay_start_step:
+            agent.push_supervised(
+                np.asarray(state, np.float32),
+                int(action),
+                float(reward),
+                np.asarray(next_state, np.float32),
+                float(done),
+                policy_action=int(decision.policy_action),
+                supervisor_action=int(decision.supervisor_action),
+                previous_action=int(decision.previous_action),
+                selected_source=int(decision.selected_source),
+                score_policy=float(decision.score_policy),
+                score_supervisor=float(decision.score_supervisor),
+                advantage_policy_supervisor=float(decision.advantage_policy_supervisor),
             )
             pushed = True
         if step >= train_start_step:

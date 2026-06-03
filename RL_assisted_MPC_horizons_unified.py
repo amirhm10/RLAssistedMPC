@@ -16,7 +16,18 @@ from systems.polymer import get_polymer_notebook_defaults
 from systems.polymer.data_io import canonical_baseline_path
 from utils.notebook_setup import prepare_polymer_notebook_env, print_grouped_notebook_summary
 
+NOTEBOOK_SOURCE = globals().get("NOTEBOOK_SOURCE_OVERRIDE", "RL_assisted_MPC_horizons_unified.py")
+RUN_SUMMARY_TITLE = globals().get(
+    "RUN_SUMMARY_TITLE_OVERRIDE",
+    "Polymer Horizon Supervisor run summary",
+)
+NB_CONFIGURE = globals().get("NB_CONFIGURE")
 NB = get_polymer_notebook_defaults("horizon_standard")
+if NB_CONFIGURE is not None:
+    configured_nb = NB_CONFIGURE(NB)
+    if not isinstance(configured_nb, dict):
+        raise TypeError("NB_CONFIGURE must return a notebook-default dictionary.")
+    NB = configured_nb
 
 # Main notebook controls.
 # Edit these values for a one-off run, or edit systems/polymer/notebook_params.py
@@ -61,6 +72,7 @@ import numpy as np
 import torch
 
 from DQN.dqn_agent import DQNAgent
+HORIZON_AGENT_CLASS = globals().get("HORIZON_AGENT_CLASS_OVERRIDE", DQNAgent)
 from Simulation.system_functions import PolymerCSTR
 from systems.polymer import (
     HORIZON_CONTROL_GRID,
@@ -186,10 +198,13 @@ REPLAY_BETA_STEPS = int(AGENT_CFG["replay_beta_steps"])
 N_STEP = int(AGENT_CFG["n_step"])
 MULTISTEP_MODE = AGENT_CFG["multistep_mode"]
 LAMBDA_VALUE = float(AGENT_CFG["lambda_value"])
+EPS_DECAY_STEPS = int(AGENT_CFG.get("eps_decay_steps", 100_000))
 DECISION_INTERVAL = int(CTRL["decision_interval"])
 EXPLORATION_MODE = AGENT_CFG["exploration_mode"]
 LOSS_TYPE = AGENT_CFG["loss_type"]
 USE_SHIFTED_MPC_WARM_START = CTRL["use_shifted_mpc_warm_start"]
+POST_WARM_START_ACTION_FREEZE_SUBEPISODES = int(max(0, NB.get("post_warm_start_action_freeze_subepisodes", 0)))
+HORIZON_SAFETY_CFG = dict(NB.get("horizon_safety", {}) or {})
 REPLAY_SETTINGS = {
     "buffer_size": BUFFER_SIZE,
     "replay_frac_per": REPLAY_FRAC_PER,
@@ -219,7 +234,10 @@ ha_change = CTRL["ha_change"]
 reward_params, reward_fn = make_reward_fn_relative_QR(data_min, data_max, n_inputs=2, **REWARD_CFG)
 
 # Agent setup.
-dqn_agent = DQNAgent(
+agent_extra_kwargs = {}
+if AGENT_CFG.get("supervisor_gate") is not None:
+    agent_extra_kwargs["supervisor_gate_config"] = AGENT_CFG["supervisor_gate"]
+dqn_agent = HORIZON_AGENT_CLASS(
     state_dim=STATE_DIM,
     action_dim=len(HORIZON_RECIPES),
     hidden_dim=HIDDEN_LAYERS,
@@ -251,8 +269,10 @@ dqn_agent = DQNAgent(
     eps_start=AGENT_CFG["eps_start"],
     eps_end=AGENT_CFG["eps_end"],
     eps_decay_rate=AGENT_CFG["eps_decay_rate"],
+    eps_decay_steps=EPS_DECAY_STEPS,
     eps_decay_mode=AGENT_CFG["eps_decay_mode"],
     target_combine=AGENT_CFG["target_combine"],
+    **agent_extra_kwargs,
 )
 
 print_grouped_notebook_summary(
@@ -264,6 +284,7 @@ print_grouped_notebook_summary(
         "plot_start_episode": PLOT_START_EPISODE,
         "compare_start_episode": COMPARE_START_EPISODE,
         "decision_interval": DECISION_INTERVAL,
+        "q_warm_release_subepisodes": POST_WARM_START_ACTION_FREEZE_SUBEPISODES,
         "buffer_size": BUFFER_SIZE,
         "n_step": N_STEP,
         "multistep_mode": MULTISTEP_MODE,
@@ -278,14 +299,15 @@ print_grouped_notebook_summary(
 
 # --- Cell 10 (code) ---
 print_grouped_notebook_summary(
-    "Polymer Horizon Supervisor run summary",
+    RUN_SUMMARY_TITLE,
     {
         "Paths": {"Repo root": REPO_ROOT, "Data dir": DATA_DIR, "Results dir": RESULT_DIR, "Baseline MPC": BASELINE_MPC_PATH},
-        "Run setup": {"Run mode": RUN_MODE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "test_cycle": TEST_CYCLE, "decision_interval": DECISION_INTERVAL, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START},
+        "Run setup": {"Run mode": RUN_MODE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "q_warm_release_subepisodes": POST_WARM_START_ACTION_FREEZE_SUBEPISODES, "test_cycle": TEST_CYCLE, "decision_interval": DECISION_INTERVAL, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START},
         "System / controller": {"delta_t_hours": delta_t, "predict_h": predict_h, "cont_h": cont_h, "predict_grid": PREDICT_GRID, "control_grid": CONTROL_GRID, "observer_poles": poles.tolist()},
         "Reward": reward_params,
-        "Agent": {"algorithm": "ddqn", "hidden_layers": AGENT_CFG["hidden_layers"], "buffer_size": BUFFER_SIZE, "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": EXPLORATION_MODE, "loss_type": LOSS_TYPE},
+        "Agent": {"algorithm": "sg_dqn" if str(NB.get("agent_kind", "")).lower() == "sg_dqn" else "ddqn", "agent_kind": NB.get("agent_kind", "dqn"), "hidden_layers": AGENT_CFG["hidden_layers"], "buffer_size": BUFFER_SIZE, "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": EXPLORATION_MODE, "loss_type": LOSS_TYPE, "supervisor_gate": AGENT_CFG.get("supervisor_gate")},
         "Replay": REPLAY_SETTINGS,
+        "Safety": {"horizon_safety_enabled": bool(HORIZON_SAFETY_CFG.get("enabled", False)), "release_filter_enabled": bool(HORIZON_SAFETY_CFG.get("release_filter", {}).get("enabled", False)), "reward_probation_enabled": bool(HORIZON_SAFETY_CFG.get("reward_probation", {}).get("enabled", False)), "shadow_default_mpc_enabled": bool(HORIZON_SAFETY_CFG.get("shadow_default_mpc", {}).get("enabled", False))},
         "Mismatch": {"clip": MISMATCH_CLIP, "innovation_scale_mode": INNOVATION_SCALE_MODE, "tracking_scale_mode": TRACKING_SCALE_MODE, "tracking_eta_tol": TRACKING_ETA_TOL, "tracking_scale_floor_mode": TRACKING_SCALE_FLOOR_MODE},
         "Plotting / export": {"style_profile": STYLE_PROFILE, "save_pdf": SAVE_PDF, "result_prefix": RESULT_PREFIX, "compare_prefix": COMPARE_PREFIX, "plot_start_episode": PLOT_START_EPISODE, "compare_start_episode": COMPARE_START_EPISODE},
     },
@@ -299,7 +321,8 @@ print_grouped_notebook_summary(
 horizon_cfg = {
     "mode": RUN_MODE,
     "state_mode": STATE_MODE,
-    "algorithm": "ddqn",
+    "algorithm": "sg_dqn" if str(NB.get("agent_kind", "")).lower() == "sg_dqn" else "ddqn",
+    "agent_kind": NB.get("agent_kind", "dqn"),
         "mismatch_clip": MISMATCH_CLIP,
     "innovation_scale_mode": INNOVATION_SCALE_MODE,
     "innovation_scale_ref": INNOVATION_SCALE_REF,
@@ -314,7 +337,10 @@ horizon_cfg = {
     "mismatch_transform_tanh_scale": MISMATCH_TRANSFORM_TANH_SCALE,
     "mismatch_transform_post_clip": MISMATCH_TRANSFORM_POST_CLIP,
     "observer_update_alignment": OBSERVER_UPDATE_ALIGNMENT,
-    "notebook_source": "RL_assisted_MPC_horizons_unified.ipynb",
+    "horizon_safety": HORIZON_SAFETY_CFG,
+    "post_warm_start_action_freeze_subepisodes": POST_WARM_START_ACTION_FREEZE_SUBEPISODES,
+    "supervisor_gate": AGENT_CFG.get("supervisor_gate"),
+    "notebook_source": NOTEBOOK_SOURCE,
     "predict_h": predict_h,
     "cont_h": cont_h,
     "decision_interval": DECISION_INTERVAL,

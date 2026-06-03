@@ -18,6 +18,7 @@ from DQN.supervisor_gated_dqn_agent import (
 )
 from DuelingDQN.supervisor_gated_dueling_dqn_agent import SupervisorGatedDuelingDQNAgent
 from systems.distillation import get_distillation_notebook_defaults
+from systems.polymer import get_polymer_notebook_defaults
 from utils.agent_step_runtime import (
     replay_train_supervisor_gated_horizon_agent,
     select_supervisor_gated_horizon_action,
@@ -96,6 +97,64 @@ def test_wrapper_modules_reference_sg_agent_classes():
 
     assert standard.SupervisorGatedDQNAgent is SupervisorGatedDQNAgent
     assert dueling.SupervisorGatedDuelingDQNAgent is SupervisorGatedDuelingDQNAgent
+
+
+def test_polymer_wrapper_configs_set_sg_defaults_and_disable_old_safety():
+    from RL_assisted_MPC_horizons_supervisor_gated_dqn_unified import (
+        configure_sg_dqn_horizon_critic_warm,
+    )
+    from RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_unified import (
+        configure_sg_dueling_dqn_horizon_critic_warm,
+    )
+
+    standard = configure_sg_dqn_horizon_critic_warm(get_polymer_notebook_defaults("horizon_standard"))
+    dueling = configure_sg_dueling_dqn_horizon_critic_warm(get_polymer_notebook_defaults("horizon_dueling"))
+
+    assert standard["agent_kind"] == "sg_dqn"
+    assert dueling["agent_kind"] == "sg_dueling_dqn"
+    for configured in (standard, dueling):
+        assert configured["run_mode"] == "disturb"
+        assert configured["state_mode"] == "mismatch"
+        assert configured["warm_start_override"] == 10
+        assert configured["post_warm_start_action_freeze_subepisodes"] == 3
+        assert configured["controller"]["predict_h"] == 9
+        assert configured["controller"]["cont_h"] == 3
+        assert configured["supervisor_gate"]["advantage_margin"] == 0.0
+        assert configured["supervisor_gate"]["default_to_supervisor"] is True
+        assert configured["supervisor_gate"]["min_train_steps_before_policy_gate"] == 0
+        assert configured["agent"]["supervisor_gate"] == configured["supervisor_gate"]
+        assert configured["agent"]["exploration_mode"] == "epsilon"
+        assert configured["agent"]["eps_start"] == 0.2
+        assert configured["agent"]["eps_end"] == 0.02
+        assert configured["agent"]["eps_decay_steps"] == 38_000
+        safety = configured["horizon_safety"]
+        assert safety["enabled"] is False
+        assert safety["release_filter"]["enabled"] is False
+        assert safety["reward_probation"]["enabled"] is False
+        assert safety["shadow_default_mpc"]["enabled"] is False
+
+    assert standard["agent"]["multistep_mode"] == "one_step"
+    assert dueling["agent"]["multistep_mode"] == "n_step"
+
+
+def test_polymer_wrapper_modules_reference_sg_agent_classes():
+    import RL_assisted_MPC_horizons_supervisor_gated_dqn_unified as standard
+    import RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_unified as dueling
+
+    assert standard.SupervisorGatedDQNAgent is SupervisorGatedDQNAgent
+    assert dueling.SupervisorGatedDuelingDQNAgent is SupervisorGatedDuelingDQNAgent
+
+
+def test_polymer_exported_scripts_expose_wrapper_hooks_without_execution():
+    standard_source = (ROOT / "RL_assisted_MPC_horizons_unified.py").read_text(encoding="utf-8")
+    dueling_source = (ROOT / "RL_assisted_MPC_horizons_dueling_unified.py").read_text(encoding="utf-8")
+
+    for source in (standard_source, dueling_source):
+        assert "NB_CONFIGURE" in source
+        assert "NOTEBOOK_SOURCE_OVERRIDE" in source
+        assert "RUN_SUMMARY_TITLE_OVERRIDE" in source
+        assert "HORIZON_AGENT_CLASS_OVERRIDE" in source
+        assert "supervisor_gate_config" in source
 
 
 def test_sg_horizon_helper_tie_defaults_to_supervisor():
@@ -210,6 +269,9 @@ def test_supervised_replay_helper_pushes_final_executed_action():
 def run_direct():
     test_wrapper_configs_set_sg_defaults_and_disable_old_safety()
     test_wrapper_modules_reference_sg_agent_classes()
+    test_polymer_wrapper_configs_set_sg_defaults_and_disable_old_safety()
+    test_polymer_wrapper_modules_reference_sg_agent_classes()
+    test_polymer_exported_scripts_expose_wrapper_hooks_without_execution()
     test_sg_horizon_helper_tie_defaults_to_supervisor()
     test_sg_horizon_helper_selects_policy_when_q_advantage_is_positive()
     test_held_interval_is_logged_as_held()

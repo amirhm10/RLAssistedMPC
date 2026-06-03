@@ -754,7 +754,7 @@ def make_td3_markov_agent(config, state_dim, action_dim, *, set_points_len):
         std_end=float(td3_cfg.get("std_end", 0.02)),
         std_decay_rate=float(td3_cfg.get("std_decay_rate", 0.99995)),
         std_decay_mode=str(td3_cfg.get("std_decay_mode", "exp")),
-        exploration_mode=str(td3_cfg.get("exploration_mode", "param_noise")),
+        exploration_mode=str(td3_cfg.get("exploration_mode", "gaussian")),
         param_noise_std_start=float(td3_cfg.get("param_noise_std_start", 0.2)),
         param_noise_std_end=float(td3_cfg.get("param_noise_std_end", 0.02)),
         param_noise_resample_interval=int(td3_cfg.get("param_noise_resample_interval", 4)),

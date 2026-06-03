@@ -106,7 +106,7 @@ class DuelingDQNAgent(nn.Module):
         eps_decay_rate: float = 0.99995,
         eps_decay_steps: int = 15_000,
         eps_decay_mode: Literal["linear", "exp", "cosine"] = "linear",
-        exploration_mode: Literal["epsilon", "noisy"] = "noisy",
+        exploration_mode: Literal["epsilon", "noisy"] = "epsilon",
         loss_type: Literal["huber", "mse"] = "huber",
         noisy_sigma_init: float = 0.5,
         replay_frac_per: float = 0.5,

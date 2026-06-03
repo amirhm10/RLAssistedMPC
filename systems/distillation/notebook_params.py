@@ -92,7 +92,7 @@ def _copy_active_td3_noise_defaults():
         "param_noise_std_end": 0.02,
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
-        "exploration_mode": "param_noise",
+        "exploration_mode": "gaussian",
         "param_noise_resample_interval": 4,
     }
 

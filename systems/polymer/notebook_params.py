@@ -612,7 +612,7 @@ POLYMER_HORIZON_DUELING_DEFAULTS = {
         "use_layer_norm": False,
         "dropout": 0.0,
         "target_combine": "q1",
-        "exploration_mode": "noisy",  # Dueling default is the upgraded NoisyNet path
+        "exploration_mode": "epsilon",  # Options: "epsilon" | "noisy"
         "loss_type": "huber",
         "eps_start": 0.30,
         "eps_end": 0.01,
@@ -696,7 +696,7 @@ POLYMER_MATRIX_DEFAULTS = {
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
         "actor_freeze": 0,
-        "exploration_mode": "param_noise",  # Options: "gaussian" | "param_noise"
+        "exploration_mode": "gaussian",  # Options: "gaussian" | "param_noise"
         "loss_type": "huber",
         "param_noise_resample_interval": 4,
     },
@@ -1103,7 +1103,7 @@ POLYMER_WEIGHT_DEFAULTS = {
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
         "actor_freeze": 0,
-        "exploration_mode": "param_noise",
+        "exploration_mode": "gaussian",
         "loss_type": "huber",
         "param_noise_resample_interval": 4,
     },
@@ -1265,7 +1265,7 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
         "actor_freeze": 0,
-        "exploration_mode": "param_noise",
+        "exploration_mode": "gaussian",
         "loss_type": "huber",
         "param_noise_resample_interval": 4,
     },

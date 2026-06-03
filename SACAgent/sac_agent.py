@@ -96,10 +96,12 @@ class SACAgent(nn.Module):
             init_alpha: float = 0.2,
             learn_alpha: bool = True,
             target_entropy: Optional[float] = None,
+            alpha_freeze: int | str | None = None,
             # targets update
             target_update: Literal["soft", "hard"] = "soft",
             tau: float = 0.005,
             hard_update_interval: int = 10_000,
+            actor_q_mode: Literal["min", "q1", "mean", "max"] = "min",
             # architecture of the actor and critic
             activation: str = "relu",
             use_layernorm: bool = False,
@@ -143,13 +145,19 @@ class SACAgent(nn.Module):
         self.replay_beta_end = float(replay_beta_end)
         self.replay_beta_steps = int(replay_beta_steps)
         self.actor_freeze = int(actor_freeze)
+        self.alpha_freeze = self._resolve_alpha_freeze(alpha_freeze, self.actor_freeze)
         self.loss_type = str(loss_type).lower()
         if self.multistep_mode not in {"one_step", "n_step", "sac_n", "lambda"}:
             raise ValueError("multistep_mode must be 'one_step', 'n_step', 'sac_n', or 'lambda'.")
+        self.actor_q_mode = str(actor_q_mode).lower()
+        if self.actor_q_mode not in {"min", "q1", "mean", "max"}:
+            raise ValueError("actor_q_mode must be one of 'min', 'q1', 'mean', or 'max'.")
         self.actor_lr = float(actor_lr)
         self.critic_lr = float(critic_lr)
         self.alpha_lr = float(alpha_lr)
         self.init_alpha = float(init_alpha)
+        if self.init_alpha <= 0.0:
+            raise ValueError("init_alpha must be positive.")
 
         # ---- critic (double Q) ----
         self.critic = Critic(
@@ -186,10 +194,10 @@ class SACAgent(nn.Module):
         ).to(self.device)
 
         # ---- temperature (alpha) ----
-        self.learn_alpha = learn_alpha
+        self.learn_alpha = bool(learn_alpha)
         # log_alpha will be parameterized so alpha = exp(log_alpha) > 0
         self.log_alpha = torch.tensor(
-            np.log(init_alpha), dtype=torch.float32, device=self.device, requires_grad=True
+            np.log(self.init_alpha), dtype=torch.float32, device=self.device, requires_grad=True
         )
 
         # --- optimizers and loss function ---
@@ -244,6 +252,20 @@ class SACAgent(nn.Module):
         self.bc_weight_trace = []
         self.bc_loss_trace = []
         self.bc_actor_target_distance_trace = []
+        self.alpha_updated_trace = []
+
+    @staticmethod
+    def _resolve_alpha_freeze(alpha_freeze, actor_freeze: int) -> int:
+        if alpha_freeze is None:
+            return int(actor_freeze)
+        if isinstance(alpha_freeze, str):
+            value = alpha_freeze.strip().lower()
+            if value == "actor_freeze":
+                return int(actor_freeze)
+            if value == "":
+                return 0
+            return int(value)
+        return int(alpha_freeze)
 
     # ---- interactions ----
     @torch.no_grad()
@@ -433,8 +455,8 @@ class SACAgent(nn.Module):
         # ---- actor update ----
         # sample action from current policy for states s
         new_actions, logp_new, mean_new = self.actor.sample(s)
-        # Q(s, a_new) using critic 1
-        q_new = self.critic.combined_forward(s, new_actions, mode="q1")
+        # Q(s, a_new) using the configured conservative SAC policy objective.
+        q_new = self.critic.combined_forward(s, new_actions, mode=self.actor_q_mode)
         q_new = col(q_new)
 
         alpha = self.log_alpha.exp().detach()
@@ -485,13 +507,15 @@ class SACAgent(nn.Module):
             actor_updated = True
 
         # ---- temperature (alpha) update ----
-        if self.learn_alpha:
-            # L(alpha) = E[-alpha * (log_pi + H_target)]
-            alpha_loss = -(self.log_alpha.exp() * (logp_new + self.target_entropy).detach()).mean()
-
+        alpha_updated = False
+        if self.learn_alpha and self.train_steps >= self.alpha_freeze:
+            # Dual update on log_alpha keeps the temperature positive and matches
+            # the common modern SAC implementation.
+            alpha_loss = -(self.log_alpha * (logp_new + self.target_entropy).detach()).mean()
             self.alpha_optimizer.zero_grad(set_to_none=True)
             alpha_loss.backward()
             self.alpha_optimizer.step()
+            alpha_updated = True
         else:
             alpha_loss = torch.tensor(0.0, device=self.device)
 
@@ -526,14 +550,20 @@ class SACAgent(nn.Module):
         self.bc_actor_target_distance_trace.append(
             np.nan if bc_actor_target_distance is None else float(bc_actor_target_distance)
         )
+        self.alpha_updated_trace.append(float(alpha_updated))
 
         return {
             "critic_updated": True,
             "actor_slot": True,
             "actor_updated": bool(actor_updated),
+            "alpha_updated": bool(alpha_updated),
             "critic_loss": float(critic_loss.item()),
             "actor_loss": float(actor_loss.item()),
             "alpha": float(self.log_alpha.exp().item()),
+            "alpha_loss": float(alpha_loss.item()),
+            "entropy": float((-logp_new).mean().item()),
+            "mean_log_prob": float(logp_new.mean().item()),
+            "actor_q_mode": self.actor_q_mode,
             "bc_active": bool(bc_active),
             "bc_weight": float(bc_weight),
             "bc_loss": bc_loss_value,
@@ -587,11 +617,15 @@ class SACAgent(nn.Module):
             "noise_clip",
             "max_action",
             "actor_freeze",
+            "alpha_freeze",
+            "actor_q_mode",
             "steps",
             "train_steps",
             "total_it",
             # SAC-specific
             "alpha",
+            "init_alpha",
+            "learn_alpha",
             "alpha_lr",
             "target_entropy",
             "n_step",
@@ -695,6 +729,17 @@ class SACAgent(nn.Module):
         # ---- SAC-specific alpha stuff (safe for TD3; just checks) ----
         if "alpha" in hparams and hasattr(self, "alpha"):
             self.alpha = hparams["alpha"]
+        if "learn_alpha" in hparams:
+            self.learn_alpha = bool(hparams["learn_alpha"])
+        if "target_entropy" in hparams:
+            self.target_entropy = float(hparams["target_entropy"])
+        if "actor_q_mode" in hparams:
+            actor_q_mode = str(hparams["actor_q_mode"]).lower()
+            if actor_q_mode not in {"min", "q1", "mean", "max"}:
+                raise ValueError("Loaded actor_q_mode must be one of 'min', 'q1', 'mean', or 'max'.")
+            self.actor_q_mode = actor_q_mode
+        if "alpha_freeze" in hparams:
+            self.alpha_freeze = int(hparams["alpha_freeze"])
 
         if load_alpha and "log_alpha" in hparams and hasattr(self, "log_alpha"):
             with torch.no_grad():

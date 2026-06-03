@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from typing import List
+import math
 from utils.helpers_net import build_network
 
 
@@ -27,7 +28,9 @@ class GaussianActor(nn.Module):
             log_std_max: float = 2.0,
     ):
         super(GaussianActor, self).__init__()
-        self.max_action = max_action
+        self.max_action = float(max_action)
+        if self.max_action <= 0.0:
+            raise ValueError("max_action must be positive.")
         self.log_std_min = log_std_min
         self.log_std_max = log_std_max
 
@@ -92,6 +95,8 @@ class GaussianActor(nn.Module):
 
         # tanh jacobian correction
         log_prob -= torch.log(1.0 - y.pow(2) + 1e-6).sum(dim=-1, keepdim=True)
+        if self.max_action != 1.0:
+            log_prob -= math.log(self.max_action) * y.shape[-1]
 
         # deterministic action for eval (without sampling)
         mean_action = torch.tanh(mean) * self.max_action

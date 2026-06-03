@@ -335,6 +335,8 @@ def _copy_active_sac_agent_defaults():
         "max_action": 1.0,
         "use_adamw": True,
         "actor_freeze": 0,
+        "alpha_freeze": "actor_freeze",
+        "actor_q_mode": "min",
         "loss_type": "huber",
     }
 
@@ -824,6 +826,8 @@ DISTILLATION_MATRIX_DEFAULTS = {
         "max_action": 1.0,
         "use_adamw": True,
         "actor_freeze": 0,
+        "alpha_freeze": "actor_freeze",
+        "actor_q_mode": "min",
         "loss_type": "huber",
     },
     "reward": _copy_reward_defaults(),

@@ -15,6 +15,7 @@ Both wrappers reuse the existing standard and dueling horizon runners. They pass
 
 - Uses the OF-MPC default horizon `(Hp, Hc) = (6, 3)` as the supervisor action.
 - Keeps the old `horizon_safety` release filter, reward probation, and shadow diagnostics disabled for the first SG-DQN ablation.
+- Sets `eps_decay_steps = 18_600` in the wrapper defaults so epsilon reaches `0.02` on the decision-call scale when `decision_interval = 4`.
 - Preserves the existing high-level horizon action-source log while adding SG-specific policy, supervisor, executed, previous, score, Q, and selected-source logs.
 - Trains SG-DQN replay on the final executed action using `push_supervised`.
 - Reuses existing Aspen families:

@@ -61,6 +61,7 @@ def configure_sg_dqn_horizon_critic_warm(nb: dict) -> dict:
     agent_cfg["exploration_mode"] = "epsilon"
     agent_cfg["eps_start"] = 0.2
     agent_cfg["eps_end"] = 0.02
+    agent_cfg["eps_decay_steps"] = 18_600
     agent_cfg["n_step"] = 1
     agent_cfg["multistep_mode"] = "one_step"
     agent_cfg["supervisor_gate"] = deepcopy(gate_cfg)

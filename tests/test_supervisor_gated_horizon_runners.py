@@ -82,6 +82,7 @@ def test_wrapper_configs_set_sg_defaults_and_disable_old_safety():
         assert configured["agent"]["exploration_mode"] == "epsilon"
         assert configured["agent"]["eps_start"] == 0.2
         assert configured["agent"]["eps_end"] == 0.02
+        assert configured["agent"]["eps_decay_steps"] == 18_600
         safety = configured["horizon_safety"]
         assert safety["enabled"] is False
         assert safety["release_filter"]["enabled"] is False

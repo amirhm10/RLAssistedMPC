@@ -64,15 +64,15 @@ def configure_sg_dueling_dqn_horizon_aspen6_legacy_reward(nb: dict) -> dict:
     nb["agent_kind"] = "sg_dueling_dqn"
     nb["run_mode"] = "disturb"
     nb["disturbance_profile"] = "fluctuation"
-    nb["state_mode"] = "mismatch"
+    nb["state_mode"] = "standard"
     nb["aspen_preset"] = 6
     nb["warm_start_override"] = 10
     nb["post_warm_start_action_freeze_subepisodes"] = 3
     nb["result_prefix_override"] = (
-        "distillation_dueling_horizon_sg_dqn_aspen6_legacyreward_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_mismatch"
+        "distillation_dueling_horizon_sg_dqn_aspen6_legacyreward_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_standard"
     )
     nb["compare_prefix_override"] = (
-        "distillation_compare_dueling_horizon_sg_dqn_aspen6_legacyreward_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation"
+        "distillation_compare_dueling_horizon_sg_dqn_aspen6_legacyreward_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_standard"
     )
 
     _disable_horizon_safety(nb)

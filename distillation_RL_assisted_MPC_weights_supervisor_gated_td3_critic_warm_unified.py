@@ -33,15 +33,15 @@ def configure_sg_td3_weights_critic_warm(nb: dict) -> dict:
     nb["agent_kind"] = "sg_td3"
     nb["run_mode"] = "disturb"
     nb["disturbance_profile"] = "fluctuation"
-    nb["state_mode"] = "mismatch"
+    nb["state_mode"] = "standard"
     nb["warm_start_override"] = 10
     nb["post_warm_start_action_freeze_subepisodes"] = 3
     nb["post_warm_start_actor_freeze_subepisodes"] = 3
     nb["result_prefix_override"] = (
-        "distillation_weights_sg_td3_critic_warm3_margin0_sup001_gauss015_003_manual_off_disturb_fluctuation_mismatch"
+        "distillation_weights_sg_td3_critic_warm3_margin0_sup001_gauss015_003_manual_off_disturb_fluctuation_standard"
     )
     nb["compare_prefix_override"] = (
-        "distillation_compare_weights_sg_td3_critic_warm3_margin0_sup001_gauss015_003_manual_off_disturb_fluctuation"
+        "distillation_compare_weights_sg_td3_critic_warm3_margin0_sup001_gauss015_003_manual_off_disturb_fluctuation_standard"
     )
 
     profiles = deepcopy(nb.get("run_profiles", {}))

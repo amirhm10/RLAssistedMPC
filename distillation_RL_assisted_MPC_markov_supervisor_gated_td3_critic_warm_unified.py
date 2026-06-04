@@ -28,16 +28,17 @@ def configure_sg_td3_markov_critic_warm(nb: dict) -> dict:
     nb["agent_kind"] = "sg_td3"
     nb["run_mode"] = "disturb"
     nb["disturbance_profile"] = "fluctuation"
+    nb["state_mode"] = "standard"
     nb["warm_start_override"] = 10
     nb["post_warm_start_action_freeze_subepisodes"] = 3
     nb["post_warm_start_actor_freeze_subepisodes"] = 3
     nb["markov_supervisor_mode"] = "ls_else_mpc"
     nb["markov_live_safety_mode"] = "shadow_only"
     nb["result_prefix_override"] = (
-        "distillation_markov_sg_td3_critic_warm3_ls_else_mpc_shadow_disturb_fluctuation_unified"
+        "distillation_markov_sg_td3_critic_warm3_ls_else_mpc_shadow_disturb_fluctuation_standard"
     )
     nb["compare_prefix_override"] = (
-        "distillation_compare_markov_sg_td3_critic_warm3_ls_else_mpc_shadow_disturb_fluctuation"
+        "distillation_compare_markov_sg_td3_critic_warm3_ls_else_mpc_shadow_disturb_fluctuation_standard"
     )
 
     profiles = deepcopy(nb.get("run_profiles", {}))

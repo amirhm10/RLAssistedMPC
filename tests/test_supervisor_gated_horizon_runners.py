@@ -73,7 +73,9 @@ def test_wrapper_configs_set_sg_defaults_and_disable_old_safety():
     for configured in (standard, dueling):
         assert configured["run_mode"] == "disturb"
         assert configured["disturbance_profile"] == "fluctuation"
-        assert configured["state_mode"] == "mismatch"
+        assert configured["state_mode"] == "standard"
+        assert "standard" in configured["result_prefix_override"]
+        assert "standard" in configured["compare_prefix_override"]
         assert configured["warm_start_override"] == 10
         assert configured["post_warm_start_action_freeze_subepisodes"] == 3
         assert configured["supervisor_gate"]["advantage_margin"] == 0.0
@@ -103,10 +105,12 @@ def test_distillation_dueling_aspen6_legacy_reward_wrapper_config():
     assert configured["agent_kind"] == "sg_dueling_dqn"
     assert configured["run_mode"] == "disturb"
     assert configured["disturbance_profile"] == "fluctuation"
-    assert configured["state_mode"] == "mismatch"
+    assert configured["state_mode"] == "standard"
     assert configured["aspen_preset"] == 6
     assert "aspen6_legacyreward" in configured["result_prefix_override"]
     assert "aspen6_legacyreward" in configured["compare_prefix_override"]
+    assert "standard" in configured["result_prefix_override"]
+    assert "standard" in configured["compare_prefix_override"]
 
     reward = configured["reward"]
     np.testing.assert_allclose(reward["k_rel"], np.asarray([0.3, 0.02]))

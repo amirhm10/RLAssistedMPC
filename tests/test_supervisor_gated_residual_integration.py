@@ -37,7 +37,9 @@ def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
     assert configured["agent_kind"] == "sg_td3"
     assert configured["run_mode"] == "disturb"
     assert configured["disturbance_profile"] == "fluctuation"
-    assert configured["state_mode"] == "mismatch"
+    assert configured["state_mode"] == "standard"
+    assert "standard" in configured["result_prefix_override"]
+    assert "standard" in configured["compare_prefix_override"]
     assert configured["warm_start_override"] == 10
     assert configured["post_warm_start_action_freeze_subepisodes"] == 3
     assert configured["post_warm_start_actor_freeze_subepisodes"] == 3
@@ -75,6 +77,30 @@ def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
     assert gate_cfg["min_train_steps_before_policy_gate"] == 0
 
 
+def test_distillation_sg_td3_weights_and_markov_use_standard_state():
+    from distillation_RL_assisted_MPC_markov_supervisor_gated_td3_critic_warm_unified import (
+        configure_sg_td3_markov_critic_warm,
+    )
+    from distillation_RL_assisted_MPC_weights_supervisor_gated_td3_critic_warm_unified import (
+        configure_sg_td3_weights_critic_warm,
+    )
+    from systems.distillation import get_distillation_notebook_defaults
+
+    weights = configure_sg_td3_weights_critic_warm(get_distillation_notebook_defaults("weights"))
+    markov = configure_sg_td3_markov_critic_warm(get_distillation_notebook_defaults("markov"))
+
+    for configured in (weights, markov):
+        assert configured["agent_kind"] == "sg_td3"
+        assert configured["run_mode"] == "disturb"
+        assert configured["disturbance_profile"] == "fluctuation"
+        assert configured["state_mode"] == "standard"
+        assert "standard" in configured["result_prefix_override"]
+        assert "standard" in configured["compare_prefix_override"]
+
+    assert markov["markov_supervisor_mode"] == "ls_else_mpc"
+    assert markov["markov_live_safety_mode"] == "shadow_only"
+
+
 def test_polymer_sg_td3_critic_warm_wrappers_use_standard_state():
     from RL_assisted_MPC_residual_supervisor_gated_td3_critic_warm_unified import (
         configure_critic_warm_start,
@@ -106,6 +132,7 @@ def run_direct():
     test_polymer_residual_sg_td3_profile_available()
     test_distillation_residual_sg_td3_profile_available()
     test_distillation_sg_td3_critic_warm_config_manual_layers_off()
+    test_distillation_sg_td3_weights_and_markov_use_standard_state()
     test_polymer_sg_td3_critic_warm_wrappers_use_standard_state()
     test_residual_runner_imports_with_supervisor_gated_branch()
     print("supervisor_gated_residual_integration tests passed")

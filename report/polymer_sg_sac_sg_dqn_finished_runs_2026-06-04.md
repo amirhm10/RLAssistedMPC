@@ -254,28 +254,95 @@ Generated follow-up artifacts:
 - `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_policy_fraction_detgate_vs_critic_warm3.png`
 - `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_critic_dominance_detgate_vs_critic_warm3.png`
 
-## Updated Recommended Next Experiment
+## Standard-State Versus Mismatch-State Follow-Up
 
-The detgate hidden-7 acceptance run has now been completed for the three
-continuous SG-SAC families. The next ablation should be the standard-state
-rerun created after this result set:
+The standard-state polymer SG reruns are now complete for the TD3, SAC, and DQN
+families. I compared each standard run against the closest mismatch-state run
+with the same algorithmic recipe. Standard mode removes the appended
+innovation/tracking-error mismatch features from the RL observation:
 
-- `RL_assisted_MPC_residual_supervisor_gated_sac_critic_warm_unified.py`
-- `RL_assisted_MPC_weights_supervisor_gated_sac_critic_warm_unified.py`
-- `RL_assisted_MPC_markov_supervisor_gated_sac_critic_warm_unified.py`
+$$ s_{\mathrm{standard}} = [\hat{x}_{\mathrm{aug}}, y_{\mathrm{sp}}, u_{\mathrm{prev}}], \qquad s_{\mathrm{mismatch}} = [s_{\mathrm{standard}}, e_{\mathrm{innov}}, e_{\mathrm{track}}]. $$
 
-Acceptance targets for the standard-state rerun:
+For the two-output polymer plant, this removes four RL inputs. The continuous
+residual, weights, horizon, and dueling-horizon agents therefore drop from an
+inferred state dimension of `17` to `13`, a `23.53%` reduction. Markov drops
+from `27` to `23`, a `14.81%` reduction, because its Markov-specific `z`
+features remain appended in both modes.
 
-- Residual should preserve the protected handover behavior: first-live-10 mean
-  reward should stay near `-4.77` or better, without the old `-10.49` collapse.
-- Weights should keep the detgate tracking improvement but recover reward
-  toward the pre-detgate `-2.841` tail benchmark.
-- Markov should keep the detgate tail reward improvement while improving, or at
-  least not worsening, prediction-score and gain-drift diagnostics.
+### Standard-State Comparison Table
 
-For SG-DQN, the dueling SG-DQN run is the strongest of the five and should be
-kept as the current horizon baseline when comparing future continuous SG-SAC
-methods.
+Positive percentages below mean standard mode improved over mismatch mode.
+Negative percentages mean standard mode worsened.
+
+| family | reward standard | reward mismatch | reward change | scaled MAE standard | scaled MAE mismatch | scaled change | T MAE standard | T MAE mismatch | T change | policy standard | policy mismatch | state reduction |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| TD3 residual | `-3.022` | `-2.956` | `-2.23%` | `0.197` | `0.158` | `-24.10%` | `0.143` | `0.107` | `-33.44%` | `7.74%` | `7.13%` | `23.53%` |
+| TD3 weights | `-2.716` | `-2.703` | `-0.48%` | `0.184` | `0.177` | `-3.43%` | `0.121` | `0.114` | `-5.44%` | `6.89%` | `9.13%` | `23.53%` |
+| TD3 Markov | `-3.795` | `-3.804` | `+0.23%` | `0.200` | `0.202` | `+0.83%` | `0.129` | `0.129` | `+0.31%` | `63.54%` | `57.73%` | `14.81%` |
+| SAC residual | `-3.050` | `-2.995` | `-1.85%` | `0.194` | `0.181` | `-7.48%` | `0.138` | `0.131` | `-5.36%` | `5.59%` | `6.69%` | `23.53%` |
+| SAC weights | `-2.831` | `-2.939` | `+3.65%` | `0.193` | `0.187` | `-3.02%` | `0.129` | `0.120` | `-7.60%` | `5.91%` | `7.86%` | `23.53%` |
+| SAC Markov | `-3.799` | `-3.762` | `-0.97%` | `0.200` | `0.199` | `-0.13%` | `0.128` | `0.128` | `+0.27%` | `56.51%` | `70.36%` | `14.81%` |
+| DQN horizon | `-2.665` | `-2.631` | `-1.27%` | `0.195` | `0.178` | `-9.36%` | `0.135` | `0.118` | `-14.20%` | `6.91%` | `21.51%` | `23.53%` |
+| Dueling DQN | `-2.571` | `-2.555` | `-0.63%` | `0.186` | `0.179` | `-4.20%` | `0.129` | `0.120` | `-7.32%` | `21.58%` | `20.30%` | `23.53%` |
+
+![Standard versus mismatch percent change](figures/2026-06-04_polymer_sg_standard_vs_mismatch/standard_vs_mismatch_percent_change.png)
+
+![Standard versus mismatch reward](figures/2026-06-04_polymer_sg_standard_vs_mismatch/tail_reward_standard_vs_mismatch.png)
+
+![Standard versus mismatch scaled tracking](figures/2026-06-04_polymer_sg_standard_vs_mismatch/tail_scaled_mae_standard_vs_mismatch.png)
+
+### Handover and Movement Diagnostics
+
+| family | first-live reward standard | first-live reward mismatch | first-live change | post abs du standard | post abs du mismatch | du change | pred score standard | pred score mismatch | gain drift standard | gain drift mismatch |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| TD3 residual | `-4.338` | `-4.736` | `+8.41%` | `0.0228` | `0.0269` | `+15.02%` | `NA` | `NA` | `NA` | `NA` |
+| TD3 weights | `-4.137` | `-4.320` | `+4.23%` | `0.0225` | `0.0230` | `+2.17%` | `NA` | `NA` | `NA` | `NA` |
+| TD3 Markov | `-4.369` | `-4.398` | `+0.65%` | `0.0163` | `0.0165` | `+1.11%` | `0.0293` | `0.0369` | `0.0285` | `0.0339` |
+| SAC residual | `-4.367` | `-4.367` | `+0.00%` | `0.0193` | `0.0235` | `+18.10%` | `NA` | `NA` | `NA` | `NA` |
+| SAC weights | `-4.367` | `-4.367` | `+0.00%` | `0.0228` | `0.0209` | `-8.89%` | `NA` | `NA` | `NA` | `NA` |
+| SAC Markov | `-4.397` | `-4.397` | `+0.00%` | `0.0163` | `0.0164` | `+0.61%` | `0.0352` | `0.0335` | `0.0284` | `0.0309` |
+| DQN horizon | `-3.599` | `-3.554` | `-1.27%` | `0.0298` | `0.0303` | `+1.56%` | `NA` | `NA` | `NA` | `NA` |
+| Dueling DQN | `-3.582` | `-3.571` | `-0.30%` | `0.0315` | `0.0311` | `-1.34%` | `NA` | `NA` | `NA` | `NA` |
+
+![Standard versus mismatch reward traces](figures/2026-06-04_polymer_sg_standard_vs_mismatch/standard_vs_mismatch_reward_traces.png)
+
+![Standard versus mismatch policy fraction](figures/2026-06-04_polymer_sg_standard_vs_mismatch/tail_policy_fraction_standard_vs_mismatch.png)
+
+![Standard versus mismatch state dimension](figures/2026-06-04_polymer_sg_standard_vs_mismatch/state_dim_standard_vs_mismatch.png)
+
+### Interpretation and Recipe Decision
+
+Reward is close enough that standard mode should become the default SG recipe
+for polymer. Seven of the eight standard-vs-mismatch reward changes are within
+`2.3%`, and SAC weights improves by `3.65%`. Standard mode also improves the
+first-live handover window for all three TD3 families and removes four
+observation dimensions, which reduces avoidable feature engineering around
+observer innovation and tracking bands.
+
+The caveat is tracking: mismatch still gives better tail scaled error in six of
+the eight families and is clearly stronger for TD3 residual and DQN horizon
+tracking. That means mismatch features are informative, but the current single
+runs do not show enough reward benefit to justify making them the default
+execution recipe. The clean decision is:
+
+- Use standard state as the default for future polymer SG-TD3, SG-SAC, and
+  SG-DQN recipes.
+- Keep mismatch as an explicit ablation or tracking-focused fallback, especially
+  for residual and horizon studies.
+- Do not add more live manual safety layers to compensate for removing mismatch
+  features; the simpler standard observation is already reward-competitive.
+
+Generated standard-vs-mismatch artifacts:
+
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/polymer_sg_standard_vs_mismatch_metrics.csv`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/summary.json`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/standard_vs_mismatch_percent_change.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/standard_vs_mismatch_reward_traces.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/state_dim_standard_vs_mismatch.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/tail_policy_fraction_standard_vs_mismatch.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/tail_reward_standard_vs_mismatch.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/tail_scaled_mae_standard_vs_mismatch.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/tail_T_mae_standard_vs_mismatch.png`
 
 ## Files Inspected
 
@@ -296,6 +363,25 @@ methods.
   - `Polymer/Results/disturb_compare_sg_sac_residual_detgate_hidden7_zero_shadow/20260603_230203/input_data.pkl`
   - `Polymer/Results/disturb_compare_sg_sac_weights_detgate_hidden7_identity_shadow/20260603_230144/input_data.pkl`
   - `Polymer/Results/disturb_compare_sg_sac_markov_detgate_hidden7_ls_else_mpc_shadow/20260603_234211/input_data.pkl`
+- Standard-vs-mismatch SG bundles:
+  - `Polymer/Results/sg_td3_residual_critic_warm3_conservative_disturb/20260601_182754/input_data.pkl`
+  - `Polymer/Results/sg_td3_residual_critic_warm3_conservative_disturb_standard/20260604_023110/input_data.pkl`
+  - `Polymer/Results/sg_td3_weights_critic_warm3_conservative_disturb/20260601_184718/input_data.pkl`
+  - `Polymer/Results/sg_td3_weights_critic_warm3_conservative_disturb_standard/20260604_023040/input_data.pkl`
+  - `Polymer/Results/sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb/20260601_215126/input_data.pkl`
+  - `Polymer/Results/sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb_standard/20260604_031237/input_data.pkl`
+  - `Polymer/Results/sg_sac_residual_detgate_hidden7_zero_shadow_disturb/20260603_230146/input_data.pkl`
+  - `Polymer/Results/sg_sac_residual_detgate_hidden7_zero_shadow_disturb_standard/20260604_025548/input_data.pkl`
+  - `Polymer/Results/sg_sac_weights_detgate_hidden7_identity_shadow_disturb/20260603_230130/input_data.pkl`
+  - `Polymer/Results/sg_sac_weights_detgate_hidden7_identity_shadow_disturb_standard/20260604_025515/input_data.pkl`
+  - `Polymer/Results/sg_sac_markov_detgate_hidden7_ls_else_mpc_shadow_disturb/20260603_234148/input_data.pkl`
+  - `Polymer/Results/sg_sac_markov_detgate_hidden7_ls_else_mpc_shadow_disturb_standard/20260604_032618/input_data.pkl`
+  - `Polymer/Results/horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_mismatch/20260603_210127/input_data.pkl`
+  - `Polymer/Results/horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_standard/20260604_014818/input_data.pkl`
+  - `Polymer/Results/dueling_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_mismatch/20260603_210913/input_data.pkl`
+  - `Polymer/Results/dueling_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_standard/20260604_022558/input_data.pkl`
+- Standard-vs-mismatch compare bundles listed in
+  `report/scripts/analyze_polymer_sg_standard_vs_mismatch_20260604.py`.
 
 ## Files Changed
 
@@ -317,3 +403,13 @@ methods.
 - `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_T_phys_mae_detgate_vs_critic_warm3.png`
 - `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_policy_fraction_detgate_vs_critic_warm3.png`
 - `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_critic_dominance_detgate_vs_critic_warm3.png`
+- `report/scripts/analyze_polymer_sg_standard_vs_mismatch_20260604.py`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/polymer_sg_standard_vs_mismatch_metrics.csv`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/summary.json`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/standard_vs_mismatch_percent_change.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/standard_vs_mismatch_reward_traces.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/state_dim_standard_vs_mismatch.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/tail_policy_fraction_standard_vs_mismatch.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/tail_reward_standard_vs_mismatch.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/tail_scaled_mae_standard_vs_mismatch.png`
+- `report/figures/2026-06-04_polymer_sg_standard_vs_mismatch/tail_T_mae_standard_vs_mismatch.png`

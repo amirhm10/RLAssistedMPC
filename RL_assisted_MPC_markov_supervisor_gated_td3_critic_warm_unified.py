@@ -27,25 +27,26 @@ def configure_sg_td3_markov_critic_warm(nb: dict) -> dict:
 
     nb["agent_kind"] = "sg_td3"
     nb["run_mode"] = "disturb"
+    nb["state_mode"] = "standard"
     nb["warm_start_override"] = 10
     nb["post_warm_start_action_freeze_subepisodes"] = 3
     nb["post_warm_start_actor_freeze_subepisodes"] = 3
     nb["markov_supervisor_mode"] = "ls_else_mpc"
     nb["markov_live_safety_mode"] = "shadow_only"
-    nb["result_prefix_override"] = "sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb"
-    nb["compare_prefix_override"] = "disturb_compare_sg_td3_markov_critic_warm3_ls_else_mpc_shadow"
+    nb["result_prefix_override"] = "sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb_standard"
+    nb["compare_prefix_override"] = "disturb_compare_sg_td3_markov_critic_warm3_ls_else_mpc_shadow_standard"
 
     profiles = deepcopy(nb.get("run_profiles", {}))
     profiles[("sg_td3", "nominal")] = {
-        "result_prefix": "sg_td3_markov_critic_warm3_ls_else_mpc_shadow_nominal",
-        "compare_prefix": "nominal_compare_sg_td3_markov_critic_warm3_ls_else_mpc_shadow",
+        "result_prefix": "sg_td3_markov_critic_warm3_ls_else_mpc_shadow_nominal_standard",
+        "compare_prefix": "nominal_compare_sg_td3_markov_critic_warm3_ls_else_mpc_shadow_standard",
         "compare_mode": "nominal",
         "plot_start_episode": 2,
         "compare_start_episode": 2,
     }
     profiles[("sg_td3", "disturb")] = {
-        "result_prefix": "sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb",
-        "compare_prefix": "disturb_compare_sg_td3_markov_critic_warm3_ls_else_mpc_shadow",
+        "result_prefix": "sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb_standard",
+        "compare_prefix": "disturb_compare_sg_td3_markov_critic_warm3_ls_else_mpc_shadow_standard",
         "compare_mode": "disturb",
         "plot_start_episode": 2,
         "compare_start_episode": 2,

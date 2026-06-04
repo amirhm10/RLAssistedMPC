@@ -121,6 +121,7 @@ def test_residual_sg_sac_wrapper_config_shadow_only():
 def test_markov_sg_sac_wrapper_config_shadow_only():
     configured = configure_sg_sac_markov_critic_warm(get_polymer_notebook_defaults("markov"))
     _assert_common_sg_sac_config(configured)
+    assert configured["state_mode"] == "standard"
     assert configured["markov_supervisor_mode"] == "ls_else_mpc"
     assert configured["markov_live_safety_mode"] == "shadow_only"
     assert configured["supervisor_gate"]["advantage_margin"] == 0.0
@@ -128,6 +129,8 @@ def test_markov_sg_sac_wrapper_config_shadow_only():
     assert configured["supervisor_gate"]["score_supervisor_action_weight"] == 0.02
     assert "detgate_hidden7" in configured["result_prefix_override"]
     assert "detgate_hidden7" in configured["compare_prefix_override"]
+    assert "standard" in configured["result_prefix_override"]
+    assert "standard" in configured["compare_prefix_override"]
 
     bc = configured["behavioral_cloning"]
     assert bc["enabled"] is False

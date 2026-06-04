@@ -37,6 +37,7 @@ if NB_CONFIGURE is not None:
 AGENT_KIND = NB["agent_kind"]
 RUN_MODE = NB["run_mode"]
 DISTURBANCE_PROFILE = NB["disturbance_profile"]
+STATE_MODE = str(NB.get("state_mode", "mismatch")).strip().lower()
 STYLE_PROFILE = NB["style_profile"]
 SAVE_PDF = NB["save_pdf"]
 ASPEN_PRESET = NB["aspen_preset"]
@@ -234,6 +235,7 @@ print_grouped_notebook_summary(
             "cont_h": cont_h,
             "decision_interval": decision_interval,
             "basis_family": basis_family,
+            "state_mode": STATE_MODE,
             "z_bound": z_bound,
             "z_safety": z_safety,
             "prediction_window": prediction_window,
@@ -268,6 +270,7 @@ markov_cfg = {
     "agent_kind": AGENT_KIND,
     "notebook_source": NOTEBOOK_SOURCE,
     "run_mode": RUN_MODE,
+    "state_mode": STATE_MODE,
     "n_tests": n_tests,
     "set_points_len": set_points_len,
     "warm_start": warm_start,

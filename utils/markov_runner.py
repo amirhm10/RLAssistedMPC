@@ -112,6 +112,27 @@ def _is_supervisor_gated_sac_markov(config) -> bool:
     return str(config.get("agent_kind", "td3")).strip().lower() == "sg_sac"
 
 
+def resolve_markov_state_mode(config) -> str:
+    mode = str(config.get("state_mode", config.get("markov_state_mode", "mismatch"))).strip().lower()
+    if mode not in {"standard", "mismatch"}:
+        raise ValueError("Markov state_mode must be 'standard' or 'mismatch'.")
+    return mode
+
+
+def get_markov_rl_state_dim(base_aug_dim, n_outputs, n_inputs, z_dim, state_mode) -> int:
+    return int(
+        get_rl_state_dim(
+            base_aug_dim,
+            n_outputs,
+            n_inputs,
+            resolve_markov_state_mode({"state_mode": state_mode}),
+            append_rho_to_state=False,
+        )
+        + 2 * int(z_dim)
+        + 2
+    )
+
+
 def resolve_markov_supervisor_action(
     *,
     mode,
@@ -1265,8 +1286,9 @@ def build_runtime_context(markov_cfg, runtime_ctx):
     if min_max_dict is None:
         raise KeyError("runtime_ctx or system_data must provide 'min_max_dict' for Markov state conditioning.")
 
+    markov_state_mode = resolve_markov_state_mode(markov_cfg)
     mismatch_cfg = resolve_mismatch_settings(
-        state_mode="mismatch",
+        state_mode=markov_state_mode,
         mismatch_cfg=markov_cfg,
         reward_params=reward_params,
         y_sp_scenario=y_sp,
@@ -1322,6 +1344,7 @@ def build_runtime_context(markov_cfg, runtime_ctx):
         "ha": np.asarray(ha, float),
         "disturbance_schedule": disturbance_schedule,
         "observer_alignment": observer_alignment,
+        "markov_state_mode": markov_state_mode,
         "poles": poles,
         "run_mode": str(markov_cfg["run_mode"]).lower(),
     }
@@ -1343,7 +1366,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     nu = int(B.shape[1])
     z_dim = int(basis_blocks.shape[0])
     z_bounds = [(-float(config["z_bound"]), float(config["z_bound"])) for _ in range(z_dim)]
-    rl_state_dim = int(get_rl_state_dim(A.shape[0], ny, nu, "mismatch", append_rho_to_state=False) + z_dim + z_dim + 2)
+    markov_state_mode = str(ctx.get("markov_state_mode", resolve_markov_state_mode(config))).strip().lower()
+    rl_state_dim = get_markov_rl_state_dim(A.shape[0], ny, nu, z_dim, markov_state_mode)
     history = initialize_history(nFE, A.shape[0], ny, nu, z_dim, control_horizon, rl_state_dim)
     test_flags = build_test_flags(nFE, ctx["test_train_dict"])
     state_conditioner = make_state_conditioner_from_settings(ctx["mismatch_cfg"])
@@ -1752,29 +1776,29 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 )
 
             z_ls_safe = z_ls if ls_accepted else np.zeros(z_dim, dtype=float)
-            innovation = history["y_scaled_dev"][step, :] - yhat
-            tracking_error = history["y_scaled_dev"][step, :] - ctx["y_sp"][step, :]
-            y_sp_phys = reverse_min_max(
-                ctx["y_sp"][step, :] + ctx["y_ss_scaled"],
-                ctx["data_min"][nu:],
-                ctx["data_max"][nu:],
-            )
-            _, tracking_scale_now = compute_tracking_scale_now(
-                y_sp_phys=y_sp_phys,
-                data_min=ctx["data_min"],
-                data_max=ctx["data_max"],
-                n_inputs=nu,
-                k_rel=ctx["mismatch_cfg"]["k_rel"],
-                band_floor_phys=ctx["mismatch_cfg"]["band_floor_phys"],
-                tracking_eta_tol=ctx["mismatch_cfg"]["tracking_eta_tol"],
-                tracking_scale_floor=ctx["mismatch_cfg"]["tracking_scale_floor"],
-            )
+            tracking_scale_now = None
+            if markov_state_mode == "mismatch":
+                y_sp_phys = reverse_min_max(
+                    ctx["y_sp"][step, :] + ctx["y_ss_scaled"],
+                    ctx["data_min"][nu:],
+                    ctx["data_max"][nu:],
+                )
+                _, tracking_scale_now = compute_tracking_scale_now(
+                    y_sp_phys=y_sp_phys,
+                    data_min=ctx["data_min"],
+                    data_max=ctx["data_max"],
+                    n_inputs=nu,
+                    k_rel=ctx["mismatch_cfg"]["k_rel"],
+                    band_floor_phys=ctx["mismatch_cfg"]["band_floor_phys"],
+                    tracking_eta_tol=ctx["mismatch_cfg"]["tracking_eta_tol"],
+                    tracking_scale_floor=ctx["mismatch_cfg"]["tracking_scale_floor"],
+                )
             conditioned_state, _state_debug = build_rl_state(
                 min_max_dict=ctx["min_max_dict"],
                 x_d_states=x_model,
                 y_sp=ctx["y_sp"][step, :],
                 u=u_prev_dev,
-                state_mode="mismatch",
+                state_mode=markov_state_mode,
                 y_prev_scaled=history["y_scaled_dev"][step, :],
                 yhat_pred=yhat,
                 innovation_scale_ref=ctx["mismatch_cfg"]["innovation_scale_ref"],
@@ -2758,7 +2782,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "reward_params": ctx["reward_params"],
         "summary_metrics": summary_metrics,
         "markov_base_state_norm_stats": history.get("_markov_state_norm_stats"),
-        "markov_state_mode": "mismatch_conditioned",
+        "markov_state_mode": ctx["markov_state_mode"],
         "markov_mismatch_feature_transform_mode": ctx["mismatch_cfg"]["mismatch_feature_transform_mode"],
         "M_blocks_nominal": m_blocks,
         "basis_family": str(config["basis_family"]),

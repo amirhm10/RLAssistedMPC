@@ -15,7 +15,7 @@ from RL_assisted_MPC_markov_supervisor_gated_td3_critic_warm_unified import (
 from TD3Agent.supervisor_gated_agent import SupervisorGatedTD3Agent
 from TD3Agent.supervisor_replay_buffer import SOURCE_POLICY
 from systems.polymer import get_polymer_notebook_defaults
-from utils.markov_runner import make_td3_markov_agent, resolve_markov_supervisor_action
+from utils.markov_runner import get_markov_rl_state_dim, make_td3_markov_agent, resolve_markov_supervisor_action
 
 
 def test_polymer_markov_sg_td3_profile_available():
@@ -33,11 +33,14 @@ def test_polymer_sg_td3_markov_critic_warm_config_shadow_only():
 
     assert configured["agent_kind"] == "sg_td3"
     assert configured["run_mode"] == "disturb"
+    assert configured["state_mode"] == "standard"
     assert configured["warm_start_override"] == 10
     assert configured["post_warm_start_action_freeze_subepisodes"] == 3
     assert configured["post_warm_start_actor_freeze_subepisodes"] == 3
     assert configured["markov_supervisor_mode"] == "ls_else_mpc"
     assert configured["markov_live_safety_mode"] == "shadow_only"
+    assert "standard" in configured["result_prefix_override"]
+    assert "standard" in configured["compare_prefix_override"]
     assert bc["enabled"] is False
     assert bc["handoff"]["enabled"] is False
     assert ctrl["z_safety"]["enabled"] is False
@@ -51,6 +54,26 @@ def test_make_td3_markov_agent_returns_supervisor_gated_agent():
     configured = configure_sg_td3_markov_critic_warm(get_polymer_notebook_defaults("markov"))
     agent = make_td3_markov_agent(configured, state_dim=12, action_dim=4, set_points_len=20)
     assert isinstance(agent, SupervisorGatedTD3Agent)
+
+
+def test_markov_standard_state_dimension_excludes_mismatch_features():
+    standard_dim = get_markov_rl_state_dim(
+        base_aug_dim=10,
+        n_outputs=2,
+        n_inputs=2,
+        z_dim=4,
+        state_mode="standard",
+    )
+    mismatch_dim = get_markov_rl_state_dim(
+        base_aug_dim=10,
+        n_outputs=2,
+        n_inputs=2,
+        z_dim=4,
+        state_mode="mismatch",
+    )
+
+    assert standard_dim == 10 + 2 + 2 + 4 + 4 + 2
+    assert mismatch_dim == standard_dim + 2 * 2
 
 
 def test_resolve_markov_supervisor_action_ls_else_mpc():
@@ -111,6 +134,7 @@ def run_direct():
     test_polymer_markov_sg_td3_profile_available()
     test_polymer_sg_td3_markov_critic_warm_config_shadow_only()
     test_make_td3_markov_agent_returns_supervisor_gated_agent()
+    test_markov_standard_state_dimension_excludes_mismatch_features()
     test_resolve_markov_supervisor_action_ls_else_mpc()
     test_supervisor_gated_markov_replay_metadata_roundtrip()
     print("supervisor_gated_markov_integration tests passed")

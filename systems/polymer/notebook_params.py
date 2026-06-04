@@ -736,6 +736,7 @@ POLYMER_MATRIX_DEFAULTS = {
 POLYMER_MARKOV_DEFAULTS = {
     "agent_kind": "td3",
     "run_mode": "disturb",
+    "state_mode": "mismatch",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),

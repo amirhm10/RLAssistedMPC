@@ -27,6 +27,11 @@ RUN_SUMMARY_TITLE = globals().get(
 )
 NB_CONFIGURE = globals().get("NB_CONFIGURE")
 NB = get_polymer_notebook_defaults("residual")
+NB["state_mode"] = "standard"
+NB["run_profiles"][("sg_td3", "nominal")]["result_prefix"] = "sg_td3_residual_nominal_standard"
+NB["run_profiles"][("sg_td3", "nominal")]["compare_prefix"] = "nominal_compare_sg_td3_residual_standard"
+NB["run_profiles"][("sg_td3", "disturb")]["result_prefix"] = "sg_td3_residual_disturb_standard"
+NB["run_profiles"][("sg_td3", "disturb")]["compare_prefix"] = "disturb_compare_sg_td3_residual_standard"
 if NB_CONFIGURE is not None:
     configured_nb = NB_CONFIGURE(NB)
     if configured_nb is not None:

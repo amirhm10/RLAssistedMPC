@@ -146,9 +146,11 @@ def test_polymer_wrapper_configs_set_sg_defaults_and_disable_old_safety():
     assert dueling["agent_kind"] == "sg_dueling_dqn"
     for configured in (standard, dueling):
         assert configured["run_mode"] == "disturb"
-        assert configured["state_mode"] == "mismatch"
+        assert configured["state_mode"] == "standard"
         assert configured["warm_start_override"] == 10
         assert configured["post_warm_start_action_freeze_subepisodes"] == 3
+        assert "standard" in configured["result_prefix_override"]
+        assert "standard" in configured["compare_prefix_override"]
         assert configured["controller"]["predict_h"] == 9
         assert configured["controller"]["cont_h"] == 3
         assert configured["supervisor_gate"]["advantage_margin"] == 0.0

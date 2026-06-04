@@ -31,11 +31,12 @@ def configure_critic_warm_start(nb: dict) -> dict:
 
     nb["agent_kind"] = "sg_td3"
     nb["run_mode"] = "disturb"
+    nb["state_mode"] = "standard"
     nb["warm_start_override"] = 10
     nb["post_warm_start_action_freeze_subepisodes"] = 3
     nb["post_warm_start_actor_freeze_subepisodes"] = 3
-    nb["result_prefix_override"] = "sg_td3_residual_critic_warm3_conservative_disturb"
-    nb["compare_prefix_override"] = "disturb_compare_sg_td3_residual_critic_warm3_conservative"
+    nb["result_prefix_override"] = "sg_td3_residual_critic_warm3_conservative_disturb_standard"
+    nb["compare_prefix_override"] = "disturb_compare_sg_td3_residual_critic_warm3_conservative_standard"
 
     nb["residual_authority_enabled"] = False
     nb["authority_use_rho"] = False

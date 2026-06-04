@@ -40,14 +40,14 @@ def configure_sg_dqn_horizon_critic_warm(nb: dict) -> dict:
 
     nb["agent_kind"] = "sg_dqn"
     nb["run_mode"] = "disturb"
-    nb["state_mode"] = "mismatch"
+    nb["state_mode"] = "standard"
     nb["warm_start_override"] = 10
     nb["post_warm_start_action_freeze_subepisodes"] = 3
     nb["result_prefix_override"] = (
-        "horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_mismatch"
+        "horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_standard"
     )
     nb["compare_prefix_override"] = (
-        "disturb_compare_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002"
+        "disturb_compare_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_standard"
     )
 
     _disable_horizon_safety(nb)

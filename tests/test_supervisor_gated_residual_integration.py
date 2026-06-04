@@ -75,6 +75,27 @@ def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
     assert gate_cfg["min_train_steps_before_policy_gate"] == 0
 
 
+def test_polymer_sg_td3_critic_warm_wrappers_use_standard_state():
+    from RL_assisted_MPC_residual_supervisor_gated_td3_critic_warm_unified import (
+        configure_critic_warm_start,
+    )
+    from RL_assisted_MPC_weights_supervisor_gated_td3_critic_warm_unified import (
+        configure_sg_td3_weights_critic_warm,
+    )
+    from systems.polymer import get_polymer_notebook_defaults
+
+    residual = configure_critic_warm_start(get_polymer_notebook_defaults("residual"))
+    weights = configure_sg_td3_weights_critic_warm(get_polymer_notebook_defaults("weights"))
+
+    for configured in (residual, weights):
+        assert configured["agent_kind"] == "sg_td3"
+        assert configured["run_mode"] == "disturb"
+        assert configured["state_mode"] == "standard"
+        assert configured["warm_start_override"] == 10
+        assert "standard" in configured["result_prefix_override"]
+        assert "standard" in configured["compare_prefix_override"]
+
+
 def test_residual_runner_imports_with_supervisor_gated_branch():
     from utils.residual_runner import run_residual_supervisor
 
@@ -85,6 +106,7 @@ def run_direct():
     test_polymer_residual_sg_td3_profile_available()
     test_distillation_residual_sg_td3_profile_available()
     test_distillation_sg_td3_critic_warm_config_manual_layers_off()
+    test_polymer_sg_td3_critic_warm_wrappers_use_standard_state()
     test_residual_runner_imports_with_supervisor_gated_branch()
     print("supervisor_gated_residual_integration tests passed")
 

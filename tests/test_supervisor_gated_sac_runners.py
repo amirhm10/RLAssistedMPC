@@ -63,12 +63,14 @@ def test_polymer_sg_sac_profiles_available():
 def test_weights_sg_sac_wrapper_config_shadow_identity():
     configured = configure_sg_sac_weights_critic_warm(get_polymer_notebook_defaults("weights"))
     _assert_common_sg_sac_config(configured)
-    assert configured["state_mode"] == "mismatch"
+    assert configured["state_mode"] == "standard"
     assert configured["supervisor_gate"]["advantage_margin"] == 0.5
     assert configured["supervisor_gate"]["critic_dominance_margin"] == 0.5
     assert configured["supervisor_gate"]["score_supervisor_action_weight"] == 0.05
     assert "detgate_hidden7" in configured["result_prefix_override"]
     assert "detgate_hidden7" in configured["compare_prefix_override"]
+    assert "standard" in configured["result_prefix_override"]
+    assert "standard" in configured["compare_prefix_override"]
 
     bc = configured["behavioral_cloning"]
     assert bc["enabled"] is False
@@ -86,12 +88,14 @@ def test_weights_sg_sac_wrapper_config_shadow_identity():
 def test_residual_sg_sac_wrapper_config_shadow_only():
     configured = configure_sg_sac_residual_critic_warm(get_polymer_notebook_defaults("residual"))
     _assert_common_sg_sac_config(configured)
-    assert configured["state_mode"] == "mismatch"
+    assert configured["state_mode"] == "standard"
     assert configured["supervisor_gate"]["advantage_margin"] == 0.5
     assert configured["supervisor_gate"]["critic_dominance_margin"] == 0.5
     assert configured["supervisor_gate"]["score_supervisor_action_weight"] == 0.05
     assert "detgate_hidden7" in configured["result_prefix_override"]
     assert "detgate_hidden7" in configured["compare_prefix_override"]
+    assert "standard" in configured["result_prefix_override"]
+    assert "standard" in configured["compare_prefix_override"]
 
     assert configured["residual_authority_enabled"] is False
     assert configured["authority_use_rho"] is False

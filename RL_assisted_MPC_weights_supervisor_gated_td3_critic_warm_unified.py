@@ -23,23 +23,24 @@ def configure_sg_td3_weights_critic_warm(nb: dict) -> dict:
 
     nb["agent_kind"] = "sg_td3"
     nb["run_mode"] = "disturb"
+    nb["state_mode"] = "standard"
     nb["warm_start_override"] = 10
     nb["post_warm_start_action_freeze_subepisodes"] = 3
     nb["post_warm_start_actor_freeze_subepisodes"] = 3
-    nb["result_prefix_override"] = "sg_td3_weights_critic_warm3_conservative_disturb"
-    nb["compare_prefix_override"] = "disturb_compare_sg_td3_weights_critic_warm3_conservative"
+    nb["result_prefix_override"] = "sg_td3_weights_critic_warm3_conservative_disturb_standard"
+    nb["compare_prefix_override"] = "disturb_compare_sg_td3_weights_critic_warm3_conservative_standard"
 
     profiles = deepcopy(nb.get("run_profiles", {}))
     profiles[("sg_td3", "nominal")] = {
-        "result_prefix": "sg_td3_weights_critic_warm3_conservative_nominal",
-        "compare_prefix": "nominal_compare_sg_td3_weights_critic_warm3_conservative",
+        "result_prefix": "sg_td3_weights_critic_warm3_conservative_nominal_standard",
+        "compare_prefix": "nominal_compare_sg_td3_weights_critic_warm3_conservative_standard",
         "compare_mode": "nominal",
         "plot_start_episode": 2,
         "compare_start_episode": 2,
     }
     profiles[("sg_td3", "disturb")] = {
-        "result_prefix": "sg_td3_weights_critic_warm3_conservative_disturb",
-        "compare_prefix": "disturb_compare_sg_td3_weights_critic_warm3_conservative",
+        "result_prefix": "sg_td3_weights_critic_warm3_conservative_disturb_standard",
+        "compare_prefix": "disturb_compare_sg_td3_weights_critic_warm3_conservative_standard",
         "compare_mode": "disturb",
         "plot_start_episode": 2,
         "compare_start_episode": 2,

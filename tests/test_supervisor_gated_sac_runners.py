@@ -11,6 +11,9 @@ if str(ROOT) not in sys.path:
 from RL_assisted_MPC_markov_supervisor_gated_sac_critic_warm_unified import (
     configure_sg_sac_markov_critic_warm,
 )
+from RL_assisted_MPC_markov_supervisor_gated_sac_critic_warm_standard_standard_unified import (
+    configure_sg_sac_markov_critic_warm_standard_standard,
+)
 from RL_assisted_MPC_residual_supervisor_gated_sac_critic_warm_unified import (
     configure_sg_sac_residual_critic_warm,
 )
@@ -148,6 +151,20 @@ def test_markov_sg_sac_wrapper_config_shadow_only():
     assert ctrl["markov_shadow_safety"]["compute_ls_candidate"] is False
 
 
+def test_markov_sg_sac_standard_standard_wrapper_config_base_only():
+    configured = configure_sg_sac_markov_critic_warm_standard_standard(get_polymer_notebook_defaults("markov"))
+    _assert_common_sg_sac_config(configured)
+    assert configured["state_mode"] == "standard"
+    assert configured["markov_agent_state_features"] == "base_only"
+    assert configured["markov_supervisor_mode"] == "ls_else_mpc"
+    assert configured["markov_live_safety_mode"] == "shadow_only"
+    assert configured["supervisor_gate"]["candidate_mode"] == "deterministic"
+    assert configured["supervisor_gate"]["critic_dominance_margin"] == 0.0
+    assert "standard_standard" in configured["result_prefix_override"]
+    assert "standard_standard" in configured["compare_prefix_override"]
+    assert configured["run_profiles"][("sg_sac", "disturb")]["result_prefix"].endswith("standard_standard")
+
+
 def test_markov_sg_sac_construction_returns_supervisor_gated_sac_agent():
     configured = configure_sg_sac_markov_critic_warm(get_polymer_notebook_defaults("markov"))
     configured["sac_agent"].update(
@@ -181,6 +198,7 @@ def run_direct():
     test_weights_sg_sac_wrapper_config_shadow_identity()
     test_residual_sg_sac_wrapper_config_shadow_only()
     test_markov_sg_sac_wrapper_config_shadow_only()
+    test_markov_sg_sac_standard_standard_wrapper_config_base_only()
     test_markov_sg_sac_construction_returns_supervisor_gated_sac_agent()
     test_shared_continuous_runners_accept_sg_sac_without_closed_loop_execution()
     print("supervisor_gated_sac_runner tests passed")

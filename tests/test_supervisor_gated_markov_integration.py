@@ -13,12 +13,16 @@ if str(ROOT) not in sys.path:
 from RL_assisted_MPC_markov_supervisor_gated_td3_critic_warm_unified import (
     configure_sg_td3_markov_critic_warm,
 )
+from RL_assisted_MPC_markov_supervisor_gated_td3_critic_warm_standard_standard_unified import (
+    configure_sg_td3_markov_critic_warm_standard_standard,
+)
 from TD3Agent.supervisor_gated_agent import SupervisorGatedTD3Agent
 from TD3Agent.supervisor_replay_buffer import SOURCE_POLICY
 from systems.polymer import get_polymer_notebook_defaults
 from utils.markov_runner import (
     get_markov_rl_state_dim,
     make_td3_markov_agent,
+    resolve_markov_agent_state_features,
     resolve_markov_supervisor_action,
     run_single_closed_loop,
 )
@@ -80,6 +84,48 @@ def test_markov_standard_state_dimension_excludes_mismatch_features():
 
     assert standard_dim == 10 + 2 + 2 + 4 + 4 + 2
     assert mismatch_dim == standard_dim + 2 * 2
+
+
+def test_markov_base_only_standard_state_dimension_excludes_markov_features():
+    standard_full_dim = get_markov_rl_state_dim(
+        base_aug_dim=10,
+        n_outputs=2,
+        n_inputs=2,
+        z_dim=4,
+        state_mode="standard",
+    )
+    standard_base_only_dim = get_markov_rl_state_dim(
+        base_aug_dim=10,
+        n_outputs=2,
+        n_inputs=2,
+        z_dim=4,
+        state_mode="standard",
+        markov_agent_state_features="base_only",
+    )
+    mismatch_base_only_dim = get_markov_rl_state_dim(
+        base_aug_dim=10,
+        n_outputs=2,
+        n_inputs=2,
+        z_dim=4,
+        state_mode="mismatch",
+        markov_agent_state_features="base_only",
+    )
+
+    assert resolve_markov_agent_state_features({"markov_agent_state_features": "standard_standard"}) == "base_only"
+    assert standard_full_dim == 10 + 2 + 2 + 4 + 4 + 2
+    assert standard_base_only_dim == 10 + 2 + 2
+    assert mismatch_base_only_dim == standard_base_only_dim + 2 * 2
+
+
+def test_polymer_sg_td3_markov_standard_standard_config_base_only():
+    configured = configure_sg_td3_markov_critic_warm_standard_standard(get_polymer_notebook_defaults("markov"))
+
+    assert configured["agent_kind"] == "sg_td3"
+    assert configured["state_mode"] == "standard"
+    assert configured["markov_agent_state_features"] == "base_only"
+    assert "standard_standard" in configured["result_prefix_override"]
+    assert "standard_standard" in configured["compare_prefix_override"]
+    assert configured["run_profiles"][("sg_td3", "disturb")]["result_prefix"].endswith("standard_standard")
 
 
 def test_standard_markov_mode_still_computes_observer_innovation():
@@ -151,6 +197,8 @@ def run_direct():
     test_polymer_sg_td3_markov_critic_warm_config_shadow_only()
     test_make_td3_markov_agent_returns_supervisor_gated_agent()
     test_markov_standard_state_dimension_excludes_mismatch_features()
+    test_markov_base_only_standard_state_dimension_excludes_markov_features()
+    test_polymer_sg_td3_markov_standard_standard_config_base_only()
     test_standard_markov_mode_still_computes_observer_innovation()
     test_resolve_markov_supervisor_action_ls_else_mpc()
     test_supervisor_gated_markov_replay_metadata_roundtrip()

@@ -119,18 +119,48 @@ def resolve_markov_state_mode(config) -> str:
     return mode
 
 
-def get_markov_rl_state_dim(base_aug_dim, n_outputs, n_inputs, z_dim, state_mode) -> int:
-    return int(
-        get_rl_state_dim(
-            base_aug_dim,
-            n_outputs,
-            n_inputs,
-            resolve_markov_state_mode({"state_mode": state_mode}),
-            append_rho_to_state=False,
+def resolve_markov_agent_state_features(config) -> str:
+    mode = str(
+        config.get(
+            "markov_agent_state_features",
+            config.get("markov_state_features", "markov"),
         )
-        + 2 * int(z_dim)
-        + 2
+    ).strip().lower()
+    aliases = {
+        "full": "markov",
+        "with_markov": "markov",
+        "markov_features": "markov",
+        "markov": "markov",
+        "base": "base_only",
+        "base_only": "base_only",
+        "standard": "base_only",
+        "standard_standard": "base_only",
+        "none": "base_only",
+    }
+    mode = aliases.get(mode, mode)
+    if mode not in {"markov", "base_only"}:
+        raise ValueError("markov_agent_state_features must be 'markov' or 'base_only'.")
+    return mode
+
+
+def get_markov_rl_state_dim(
+    base_aug_dim,
+    n_outputs,
+    n_inputs,
+    z_dim,
+    state_mode,
+    markov_agent_state_features="markov",
+) -> int:
+    dim = get_rl_state_dim(
+        base_aug_dim,
+        n_outputs,
+        n_inputs,
+        resolve_markov_state_mode({"state_mode": state_mode}),
+        append_rho_to_state=False,
     )
+    if resolve_markov_agent_state_features({"markov_agent_state_features": markov_agent_state_features}) == "markov":
+        dim += 2 * int(z_dim) + 2
+    return int(dim)
 
 
 def resolve_markov_supervisor_action(
@@ -1287,6 +1317,7 @@ def build_runtime_context(markov_cfg, runtime_ctx):
         raise KeyError("runtime_ctx or system_data must provide 'min_max_dict' for Markov state conditioning.")
 
     markov_state_mode = resolve_markov_state_mode(markov_cfg)
+    markov_agent_state_features = resolve_markov_agent_state_features(markov_cfg)
     mismatch_cfg = resolve_mismatch_settings(
         state_mode=markov_state_mode,
         mismatch_cfg=markov_cfg,
@@ -1345,6 +1376,7 @@ def build_runtime_context(markov_cfg, runtime_ctx):
         "disturbance_schedule": disturbance_schedule,
         "observer_alignment": observer_alignment,
         "markov_state_mode": markov_state_mode,
+        "markov_agent_state_features": markov_agent_state_features,
         "poles": poles,
         "run_mode": str(markov_cfg["run_mode"]).lower(),
     }
@@ -1367,7 +1399,23 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
     z_dim = int(basis_blocks.shape[0])
     z_bounds = [(-float(config["z_bound"]), float(config["z_bound"])) for _ in range(z_dim)]
     markov_state_mode = str(ctx.get("markov_state_mode", resolve_markov_state_mode(config))).strip().lower()
-    rl_state_dim = get_markov_rl_state_dim(A.shape[0], ny, nu, z_dim, markov_state_mode)
+    markov_agent_state_features = resolve_markov_agent_state_features(
+        {
+            "markov_agent_state_features": (
+                ctx.get("markov_agent_state_features")
+                or config.get("markov_agent_state_features")
+                or "markov"
+            )
+        }
+    )
+    rl_state_dim = get_markov_rl_state_dim(
+        A.shape[0],
+        ny,
+        nu,
+        z_dim,
+        markov_state_mode,
+        markov_agent_state_features=markov_agent_state_features,
+    )
     history = initialize_history(nFE, A.shape[0], ny, nu, z_dim, control_horizon, rl_state_dim)
     test_flags = build_test_flags(nFE, ctx["test_train_dict"])
     state_conditioner = make_state_conditioner_from_settings(ctx["mismatch_cfg"])
@@ -1814,14 +1862,17 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 mismatch_transform_tanh_scale=ctx["mismatch_cfg"]["mismatch_transform_tanh_scale"],
                 mismatch_transform_post_clip=ctx["mismatch_cfg"]["mismatch_transform_post_clip"],
             )
-            rl_state = np.concatenate(
-                [
-                    np.asarray(conditioned_state, np.float32).reshape(-1),
-                    np.asarray(z_prev, np.float32).reshape(-1),
-                    np.asarray(z_ls_safe, np.float32).reshape(-1),
-                    np.asarray([float(ls_score["score"]), float(ls_drift)], np.float32),
-                ]
-            ).astype(np.float32, copy=False)
+            if markov_agent_state_features == "base_only":
+                rl_state = np.asarray(conditioned_state, np.float32).reshape(-1)
+            else:
+                rl_state = np.concatenate(
+                    [
+                        np.asarray(conditioned_state, np.float32).reshape(-1),
+                        np.asarray(z_prev, np.float32).reshape(-1),
+                        np.asarray(z_ls_safe, np.float32).reshape(-1),
+                        np.asarray([float(ls_score["score"]), float(ls_drift)], np.float32),
+                    ]
+                ).astype(np.float32, copy=False)
             if rl_state.size != rl_state_dim:
                 raise ValueError(f"Conditioned Markov RL state has size {rl_state.size}, expected {rl_state_dim}.")
             history["rl_state_log"][step, :] = rl_state
@@ -2787,6 +2838,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "summary_metrics": summary_metrics,
         "markov_base_state_norm_stats": history.get("_markov_state_norm_stats"),
         "markov_state_mode": ctx["markov_state_mode"],
+        "markov_agent_state_features": ctx["markov_agent_state_features"],
         "markov_mismatch_feature_transform_mode": ctx["mismatch_cfg"]["mismatch_feature_transform_mode"],
         "M_blocks_nominal": m_blocks,
         "basis_family": str(config["basis_family"]),

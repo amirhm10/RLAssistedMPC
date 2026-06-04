@@ -4,7 +4,7 @@ Date: 2026-06-04
 
 ## Summary
 
-Changed the distillation supervisor-gated horizon DQN wrappers to use a reduced standard-state horizon grid:
+Changed the main distillation supervisor-gated horizon DQN wrappers to use a reduced standard-state horizon grid:
 
 - prediction horizon `Np = 6..11`
 - control horizon `Nc = 3..11`
@@ -16,9 +16,10 @@ Updated wrappers:
 
 - `distillation_RL_assisted_MPC_horizons_supervisor_gated_dqn_unified.py`
 - `distillation_RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_unified.py`
-- `distillation_RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_aspen6_legacy_reward_unified.py`
 
 The result and compare prefixes include `np6_11_nc3_11` so these runs remain distinguishable from the previous `87`-action grid.
+
+The Aspen-6 legacy-reward check runner is intentionally excluded and keeps the inherited `87`-action horizon grid. That runner remains a reward/Aspen-preset check rather than a reduced-grid ablation.
 
 ## Validation
 

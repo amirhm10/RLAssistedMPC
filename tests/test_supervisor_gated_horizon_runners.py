@@ -122,16 +122,16 @@ def test_distillation_dueling_aspen6_legacy_reward_wrapper_config():
     assert "aspen6_legacyreward" in configured["compare_prefix_override"]
     assert "standard" in configured["result_prefix_override"]
     assert "standard" in configured["compare_prefix_override"]
-    assert "np6_11_nc3_11" in configured["result_prefix_override"]
-    assert "np6_11_nc3_11" in configured["compare_prefix_override"]
-    assert configured["controller"]["predict_grid"] == list(range(6, 12))
-    assert configured["controller"]["control_grid"] == list(range(3, 12))
+    assert "np6_11_nc3_11" not in configured["result_prefix_override"]
+    assert "np6_11_nc3_11" not in configured["compare_prefix_override"]
+    assert configured["controller"]["predict_grid"] == list(range(4, 15))
+    assert configured["controller"]["control_grid"] == list(range(2, 14))
     assert len(
         build_horizon_recipes(
             configured["controller"]["predict_grid"],
             configured["controller"]["control_grid"],
         )
-    ) == 39
+    ) == 87
 
     reward = configured["reward"]
     np.testing.assert_allclose(reward["k_rel"], np.asarray([0.3, 0.02]))

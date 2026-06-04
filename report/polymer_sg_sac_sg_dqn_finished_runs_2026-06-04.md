@@ -143,13 +143,15 @@ from those per-run fields.
 - This is a single-run comparison for each family. Most current bundles have
   `seed=None`, while the dueling horizon run records `seed=7`. Seed spread is
   needed before claiming robust superiority.
-- Markov output-tracking error logs are missing, so Markov improvement is based
-  on reward and model-prediction diagnostics only.
+- Markov `tracking_error_log` fields are missing, so the pre-change Markov
+  table above is reward and model-diagnostic based. The detgate follow-up
+  recomputes output tracking from `delta_y_storage`, `y`, `y_sp`, and scaling
+  artifacts.
 - The previous horizon ancestors are non-SG DQN and dueling-DQN runs, so their
   SG policy-fraction fields are not available.
-- The SG-SAC residual collapse is consistent with stochastic candidate release,
-  but this analysis cannot prove the mechanism without rerunning with the
-  deterministic/dominance gate and comparing gate decisions step by step.
+- The pre-change SG-SAC residual collapse was consistent with stochastic
+  candidate release. The detgate follow-up below supports that diagnosis, but
+  it is still a single-seed comparison rather than a robustness claim.
 
 ## Literature Connections
 
@@ -161,26 +163,115 @@ action changes the MPC move directly. This is why the later deterministic
 candidate and twin-critic dominance changes are scientifically well motivated
 without adding a manual residual safety layer.
 
-## Recommended Next Experiment
+## SG-SAC Detgate Hidden-7 Follow-Up
 
-Run the new SG-SAC `detgate_hidden7` wrappers using the same disturbed polymer
-setup:
+The new safer SG-SAC reruns finished after the pre-change analysis above. I
+compared the three continuous SG-SAC families against their immediate
+pre-detgate SG-SAC counterparts:
+
+- residual: `critic_warm3_zero_shadow` versus `detgate_hidden7_zero_shadow`
+- weights: `critic_warm3_identity_shadow` versus `detgate_hidden7_identity_shadow`
+- Markov: `critic_warm3_ls_else_mpc_shadow` versus `detgate_hidden7_ls_else_mpc_shadow`
+
+The new runs use the intended protected handover:
+
+| family | previous release | detgate release | candidate | dominance gate | sampled supervisor BC |
+| --- | ---: | ---: | --- | --- | ---: |
+| residual | action freeze `3`, actor freeze `3` | action freeze `10`, actor freeze `3`, hidden actor train `7` | deterministic | enabled, margin `0.5` | `0.01` |
+| weights | action freeze `3`, actor freeze `3` | action freeze `10`, actor freeze `3`, hidden actor train `7` | deterministic | enabled, margin `0.5` | `0.01` |
+| Markov | action freeze `3`, actor freeze `3` | action freeze `10`, actor freeze `3`, hidden actor train `7` | deterministic | enabled, margin `0.0` | `0.01` |
+
+Tracking metrics in this follow-up are recomputed from saved plant outputs,
+setpoints, steady states, and scaling artifacts. This means the eta and
+temperature MAEs below are true physical output errors. The earlier table in
+this report used `tracking_error_raw_log`, which is a mismatch-feature raw
+error normalized by the reward band, not a physical-unit error.
+
+### Detgate Performance Table
+
+| family | tail reward previous | tail reward detgate | reward change | detgate vs OF-MPC | scaled MAE previous | scaled MAE detgate | eta MAE detgate | T MAE detgate | tail policy previous | tail policy detgate |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| residual | `-3.008` | `-2.995` | `+0.42%` | `+32.20%` | `0.1831` | `0.1809` | `0.0430` | `0.1311` | `7.71%` | `6.69%` |
+| weights | `-2.841` | `-2.939` | `-3.43%` | `+33.48%` | `0.1913` | `0.1872` | `0.0490` | `0.1197` | `10.75%` | `7.86%` |
+| Markov | `-3.792` | `-3.762` | `+0.77%` | `+14.83%` | `0.2009` | `0.1994` | `0.0521` | `0.1280` | `71.55%` | `70.36%` |
+
+![SG-SAC detgate tail reward](figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_reward_detgate_vs_critic_warm3.png)
+
+![SG-SAC detgate scaled tracking](figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_scaled_mae_detgate_vs_critic_warm3.png)
+
+![SG-SAC detgate temperature tracking](figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_T_phys_mae_detgate_vs_critic_warm3.png)
+
+### Gate and Handover Diagnostics
+
+| family | first live-10 reward previous | first live-10 reward detgate | detgate hidden-window reward | score gap previous | score gap detgate | dominance previous | dominance detgate |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| residual | `-10.488` | `-4.768` | `-4.361` | `0.577` | `0.690` | `6.82%` | `7.04%` |
+| weights | `-3.467` | `-4.081` | `-4.361` | `1.206` | `2.388` | `7.59%` | `8.94%` |
+| Markov | `-4.364` | `-4.353` | `-4.389` | `11.207` | `13.480` | `65.01%` | `74.73%` |
+
+![SG-SAC reward traces](figures/2026-06-04_polymer_sg_sac_detgate_hidden7/sg_sac_reward_traces.png)
+
+![SG-SAC policy fraction](figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_policy_fraction_detgate_vs_critic_warm3.png)
+
+![SG-SAC critic dominance](figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_critic_dominance_detgate_vs_critic_warm3.png)
+
+The residual result is the clearest win for the safer handover. The old
+critic-warm-3 run had a severe first-live-window dip, with mean reward
+`-10.49`; detgate hidden-7 improves that window to `-4.77`, then ends with a
+slightly better tail reward and lower scaled/physical tracking error. This
+supports the original diagnosis: residual SG-SAC was risky mainly at handover,
+not because residual authority must be manually safety-filtered.
+
+The weights result is mixed. Detgate hidden-7 reduces tail scaled tracking
+error and improves physical temperature MAE, but tail reward worsens by
+`3.43%`. The likely reason is that the deterministic dominance gate admits a
+smaller policy fraction and improves output tracking while not improving the
+full reward objective, which also penalizes moves. Post-warm input movement is
+almost unchanged, so this is not yet a clean reward improvement.
+
+The Markov result is modestly positive on closed-loop reward and tracking:
+tail reward improves by `0.77%`, scaled MAE improves by `0.76%`, and physical
+temperature MAE improves by `1.32%`. However, Markov model diagnostics move in
+the wrong direction: prediction-score mean increases from `0.0312` to `0.0335`,
+and gain-drift mean increases from `0.0297` to `0.0309`. So the Markov detgate
+run is a closed-loop improvement, but not a model-correction diagnostic
+improvement.
+
+All three detgate runs remain above the saved disturbed OF-MPC reward baseline
+of `-4.417`. The important difference is that the residual run now also looks
+protected at handover, which was the main failure mode we wanted to fix without
+adding a manual residual safety layer.
+
+Generated follow-up artifacts:
+
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/polymer_sg_sac_detgate_hidden7_metrics.csv`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/summary.json`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/sg_sac_reward_traces.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_reward_detgate_vs_critic_warm3.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_scaled_mae_detgate_vs_critic_warm3.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_eta_phys_mae_detgate_vs_critic_warm3.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_T_phys_mae_detgate_vs_critic_warm3.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_policy_fraction_detgate_vs_critic_warm3.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_critic_dominance_detgate_vs_critic_warm3.png`
+
+## Updated Recommended Next Experiment
+
+The detgate hidden-7 acceptance run has now been completed for the three
+continuous SG-SAC families. The next ablation should be the standard-state
+rerun created after this result set:
 
 - `RL_assisted_MPC_residual_supervisor_gated_sac_critic_warm_unified.py`
 - `RL_assisted_MPC_weights_supervisor_gated_sac_critic_warm_unified.py`
 - `RL_assisted_MPC_markov_supervisor_gated_sac_critic_warm_unified.py`
 
-Acceptance targets:
+Acceptance targets for the standard-state rerun:
 
-- Residual SG-SAC should recover at least the previous SG-TD3 residual tail
-  benchmark: tail reward better than `-2.956`, tail scaled MAE below `0.921`,
-  and temperature MAE below `3.950`.
-- Weights SG-SAC should beat the SG-TD3 weights tail reward `-2.703` or, if it
-  remains quieter, it should show a clear tracking improvement rather than only
-  reduced input movement.
-- Markov SG-SAC should keep the small reward/model-diagnostic gain while adding
-  explicit saved tracking-error logs so reward and output tracking can be
-  checked together.
+- Residual should preserve the protected handover behavior: first-live-10 mean
+  reward should stay near `-4.77` or better, without the old `-10.49` collapse.
+- Weights should keep the detgate tracking improvement but recover reward
+  toward the pre-detgate `-2.841` tail benchmark.
+- Markov should keep the detgate tail reward improvement while improving, or at
+  least not worsening, prediction-score and gain-drift diagnostics.
 
 For SG-DQN, the dueling SG-DQN run is the strongest of the five and should be
 kept as the current horizon baseline when comparing future continuous SG-SAC
@@ -197,14 +288,32 @@ methods.
 - The five current run bundles listed in the objective.
 - The five previous comparison bundles listed in the method summary.
 - The five current `disturb_compare_*` bundles used for OF-MPC reward.
+- Detgate hidden-7 SG-SAC bundles:
+  - `Polymer/Results/sg_sac_residual_detgate_hidden7_zero_shadow_disturb/20260603_230146/input_data.pkl`
+  - `Polymer/Results/sg_sac_weights_detgate_hidden7_identity_shadow_disturb/20260603_230130/input_data.pkl`
+  - `Polymer/Results/sg_sac_markov_detgate_hidden7_ls_else_mpc_shadow_disturb/20260603_234148/input_data.pkl`
+- Detgate hidden-7 compare bundles:
+  - `Polymer/Results/disturb_compare_sg_sac_residual_detgate_hidden7_zero_shadow/20260603_230203/input_data.pkl`
+  - `Polymer/Results/disturb_compare_sg_sac_weights_detgate_hidden7_identity_shadow/20260603_230144/input_data.pkl`
+  - `Polymer/Results/disturb_compare_sg_sac_markov_detgate_hidden7_ls_else_mpc_shadow/20260603_234211/input_data.pkl`
 
 ## Files Changed
 
 - `report/polymer_sg_sac_sg_dqn_finished_runs_2026-06-04.md`
 - `tools/analyze_polymer_sg_finished_runs.py`
+- `report/scripts/analyze_polymer_sg_sac_detgate_hidden7_20260604.py`
 - `report/figures/2026-06-04_polymer_sg_runs/polymer_sg_run_metrics.csv`
 - `report/figures/2026-06-04_polymer_sg_runs/tail_reward_comparison.png`
 - `report/figures/2026-06-04_polymer_sg_runs/tail_scaled_tracking_mae.png`
 - `report/figures/2026-06-04_polymer_sg_runs/tail_eta_mae.png`
 - `report/figures/2026-06-04_polymer_sg_runs/tail_T_mae.png`
 - `report/figures/2026-06-04_polymer_sg_runs/sg_policy_fraction.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/polymer_sg_sac_detgate_hidden7_metrics.csv`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/summary.json`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/sg_sac_reward_traces.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_reward_detgate_vs_critic_warm3.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_scaled_mae_detgate_vs_critic_warm3.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_eta_phys_mae_detgate_vs_critic_warm3.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_T_phys_mae_detgate_vs_critic_warm3.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_policy_fraction_detgate_vs_critic_warm3.png`
+- `report/figures/2026-06-04_polymer_sg_sac_detgate_hidden7/tail_critic_dominance_detgate_vs_critic_warm3.png`

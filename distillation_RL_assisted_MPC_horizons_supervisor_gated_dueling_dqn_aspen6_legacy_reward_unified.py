@@ -69,11 +69,16 @@ def configure_sg_dueling_dqn_horizon_aspen6_legacy_reward(nb: dict) -> dict:
     nb["warm_start_override"] = 10
     nb["post_warm_start_action_freeze_subepisodes"] = 3
     nb["result_prefix_override"] = (
-        "distillation_dueling_horizon_sg_dqn_aspen6_legacyreward_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_standard"
+        "distillation_dueling_horizon_sg_dqn_aspen6_legacyreward_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_standard_np6_11_nc3_11"
     )
     nb["compare_prefix_override"] = (
-        "distillation_compare_dueling_horizon_sg_dqn_aspen6_legacyreward_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_standard"
+        "distillation_compare_dueling_horizon_sg_dqn_aspen6_legacyreward_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_standard_np6_11_nc3_11"
     )
+
+    ctrl_cfg = deepcopy(nb.get("controller", {}))
+    ctrl_cfg["predict_grid"] = list(range(6, 12))
+    ctrl_cfg["control_grid"] = list(range(3, 12))
+    nb["controller"] = ctrl_cfg
 
     _disable_horizon_safety(nb)
     _restore_legacy_horizon_reward(nb)

@@ -23,6 +23,7 @@ from utils.agent_step_runtime import (
     replay_train_supervisor_gated_horizon_agent,
     select_supervisor_gated_horizon_action,
 )
+from utils.helpers import build_horizon_recipes
 from utils.phase1_hidden_release import ACTION_SOURCE_HELD_INTERVAL
 
 
@@ -76,6 +77,16 @@ def test_wrapper_configs_set_sg_defaults_and_disable_old_safety():
         assert configured["state_mode"] == "standard"
         assert "standard" in configured["result_prefix_override"]
         assert "standard" in configured["compare_prefix_override"]
+        assert "np6_11_nc3_11" in configured["result_prefix_override"]
+        assert "np6_11_nc3_11" in configured["compare_prefix_override"]
+        assert configured["controller"]["predict_grid"] == list(range(6, 12))
+        assert configured["controller"]["control_grid"] == list(range(3, 12))
+        assert len(
+            build_horizon_recipes(
+                configured["controller"]["predict_grid"],
+                configured["controller"]["control_grid"],
+            )
+        ) == 39
         assert configured["warm_start_override"] == 10
         assert configured["post_warm_start_action_freeze_subepisodes"] == 3
         assert configured["supervisor_gate"]["advantage_margin"] == 0.0
@@ -111,6 +122,16 @@ def test_distillation_dueling_aspen6_legacy_reward_wrapper_config():
     assert "aspen6_legacyreward" in configured["compare_prefix_override"]
     assert "standard" in configured["result_prefix_override"]
     assert "standard" in configured["compare_prefix_override"]
+    assert "np6_11_nc3_11" in configured["result_prefix_override"]
+    assert "np6_11_nc3_11" in configured["compare_prefix_override"]
+    assert configured["controller"]["predict_grid"] == list(range(6, 12))
+    assert configured["controller"]["control_grid"] == list(range(3, 12))
+    assert len(
+        build_horizon_recipes(
+            configured["controller"]["predict_grid"],
+            configured["controller"]["control_grid"],
+        )
+    ) == 39
 
     reward = configured["reward"]
     np.testing.assert_allclose(reward["k_rel"], np.asarray([0.3, 0.02]))

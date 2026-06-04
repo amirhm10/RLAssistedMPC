@@ -1,10 +1,10 @@
-# Distillation Dueling Horizon History
+# Distillation Horizon and SG-DQN History
 
 Date: 2026-06-04
 
 ## Objective
 
-This report reviews only the distillation dueling-horizon DQN family, including both `standard` and `mismatch` state modes, across all saved disturbed-fluctuation run bundles found under `Distillation/Results/`. The goal is to explain why earlier dueling-horizon runs looked more successful, whether that was only reward provenance, and what horizon recipe range or candidates look better for the next ablation.
+This report first reviews the distillation dueling-horizon DQN family, including both `standard` and `mismatch` state modes, across all saved disturbed-fluctuation run bundles found under `Distillation/Results/`. It then extends that history with the completed June 4 SG-DQN and SG-dueling-DQN horizon runs. The goal is to explain why earlier dueling-horizon runs looked more successful, why the SG-dueling result is weaker than expected, and what horizon recipe range or candidates look better for the next ablation.
 
 No Aspen run was launched for this analysis. All results are from saved `input_data.pkl` bundles.
 
@@ -18,21 +18,36 @@ The best current-reward saved dueling trajectory is an April standard-state run,
 
 The latest completed dueling mismatch run, `20260603_130106`, is better than the June 1 and June 2 runs under current reward: tail reward `9.29`, delta `+2.90` versus OF-MPC. But it still churns across all `87` recipes and ends with epsilon about `0.133`, so it is not yet a settled controller.
 
+The June 4 SG-DQN follow-up splits the story. Standard SG-DQN is a real improvement: tail reward rises to `11.06`, the worst post-warm episode improves from `-22.86` to `-0.44`, and tail T85 MAE improves from `0.2063` to `0.1907`. SG-dueling-DQN is the disappointing run: tail reward drops to `6.35`, essentially OF-MPC level, negative post-warm episodes increase to `43`, and tail T85 MAE worsens to `0.2142`.
+
+The SG-dueling failure is not caused by epsilon staying high; the corrected schedule reaches `0.02`. It is also not caused by the old horizon safety layer, which is disabled. The gate accepts the SG-dueling policy on `71.7%` of tail decision points, but the accepted dueling schedule concentrates around `(6, 3)` and `(11, 11)` while still worsening T85. In other words, the gate reduces random churn but does not guarantee that the dueling Q ranking is aligned with the current reward.
+
 ## Files Inspected
 
 - `Distillation/Results/distillation_dueling_horizon_disturb_fluctuation_standard_unified/*/input_data.pkl`
 - `Distillation/Results/distillation_dueling_horizon_disturb_fluctuation_mismatch_unified/*/input_data.pkl`
+- `Distillation/Results/distillation_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_mismatch/20260604_103231/input_data.pkl`
+- `Distillation/Results/distillation_compare_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation/20260604_103242/input_data.pkl`
+- `Distillation/Results/distillation_dueling_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_mismatch/20260604_105140/input_data.pkl`
+- `Distillation/Results/distillation_compare_dueling_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation/20260604_105151/input_data.pkl`
+- `Distillation/Results/distillation_horizon_disturb_fluctuation_mismatch_unified/20260603_130635/input_data.pkl`
+- `Distillation/Results/distillation_dueling_horizon_disturb_fluctuation_mismatch_unified/20260603_130106/input_data.pkl`
 - `Distillation/Data/mpc_results_disturb_fluctuation.pickle`
 - `systems/distillation/config.py`
 - `systems/distillation/notebook_params.py`
 - `distillation_RL_assisted_MPC_horizons_dueling_unified.py`
 - `distillation_RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_unified.py`
+- `distillation_RL_assisted_MPC_horizons_supervisor_gated_dqn_unified.py`
 - `utils/horizon_runner_dueling.py`
+- `utils/horizon_runner.py`
 - `utils/rewards.py`
+- `DQN/supervisor_gated_dqn_agent.py`
+- `DuelingDQN/supervisor_gated_dueling_dqn_agent.py`
 - Prior reports:
   - `report/distillation_horizon_dqn_dueling_diagnosis_2026_06_02.md`
   - `report/distillation_horizon_agents_failure_analysis_2026_06_01.md`
   - `report/distillation_run_history_audit_2026_05_19.md`
+  - `report/distillation_weights_horizon_next_experiments_2026_06_03.md`
 
 ## Analysis Artifacts
 
@@ -40,6 +55,7 @@ Script:
 
 ```powershell
 C:\Users\hamediaa\.conda\envs\rl-env\python.exe report\scripts\analyze_distillation_dueling_horizon_history_20260604.py
+C:\Users\hamediaa\.conda\envs\rl-env\python.exe report\scripts\analyze_distillation_sg_dqn_horizon_followup_20260604.py
 ```
 
 Generated outputs:
@@ -49,12 +65,16 @@ Generated outputs:
 - `report/figures/distillation_dueling_horizon_history_20260604/recommended_horizon_pairs.csv`
 - `report/figures/distillation_dueling_horizon_history_20260604/recommended_horizon_ranges.csv`
 - `report/figures/distillation_dueling_horizon_history_20260604/summary.json`
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_summary.csv`
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_comparisons.csv`
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_top_pairs.csv`
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_summary.json`
 
 The scan found `22` saved dueling run folders but only `17` unique trajectories. Some timestamped folders are exact duplicate trajectories, so the report avoids treating folder count as independent evidence.
 
 ## Method Differences Across Runs
 
-All saved runs in this analysis use a dueling DDQN value architecture for horizon selection. There is no completed SG-dueling-DQN bundle in this dueling-only history yet; the SG wrapper exists, but its acceptance result is not part of these saved bundles.
+The historical scan covers saved dueling DDQN value-architecture runs. The SG follow-up covers both standard SG-DQN and SG-dueling-DQN. Both SG wrappers use the OF-MPC default horizon `(6, 3)` as the supervisor action, disable the older horizon safety/probation layer, and use the corrected epsilon schedule on decision-call scale.
 
 Important differences across the dueling runs are:
 
@@ -228,12 +248,133 @@ Recommendation:
 3. Do not return to the `263`-recipe grid for dueling unless there is a separate action-pruning or gate-preselection mechanism.
 4. A manual candidate whitelist is also defensible: `{(6, 3), (8, 2), (10, 8), (11, 11), (13, 5), (11, 2), (10, 7), (5, 3), (9, 3), (12, 3)}`. This should be treated as an exploratory reduced candidate set, not a final design.
 
+## SG-DQN Follow-Up: June 4 Runs
+
+The SG-DQN ablation tested the exact question proposed after the June 3 horizon analysis: can a value gate against the OF-MPC default horizon protect the horizon agent without reintroducing the old safety/probation layer?
+
+The answer is mixed:
+
+- Standard SG-DQN works much better than the previous standard DDQN run.
+- SG-dueling-DQN does not. It is safer than the worst old crash, but it falls back to OF-MPC-level tail reward and worsens T85.
+
+The SG gate is:
+
+$$ a_{\mathrm{exec}} = \begin{cases} a_{\pi}, & Q(s,a_{\pi}) > Q(s,a_{\mathrm{sup}}) + m, \\ a_{\mathrm{sup}}, & \mathrm{otherwise}, \end{cases} \qquad a_{\mathrm{sup}}=(6,3),\quad m=0. $$
+
+The old release filter, reward probation, and shadow default-MPC safety layer are disabled in these SG runs, so the observed behavior is the learned Q gate plus the default supervisor, not manual horizon safety.
+
+### SG-DQN Outcome Table
+
+All rewards below use the current reward definition. The OF-MPC tail reward is `6.391`.
+
+| Method | Tail current reward | Delta vs OF-MPC | Final reward | Worst post-warm | Negative post-warm eps | x24 MAE | T85 MAE | Outside-band frac | Tail unique pairs | Top pair | Top frac | Default frac | Switch frac | Final epsilon |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|---:|---:|---:|
+| OF-MPC | `6.391` | `NA` | `6.926` | `4.488` | `0` | `0.001545` | `0.1921` | `25.1%` | `NA` |  | `NA` | `NA` | `NA` | `NA` |
+| DDQN epsilon | `8.653` | `+2.262` | `9.736` | `-22.864` | `13` | `0.001052` | `0.2063` | `24.9%` | `87` | `(4, 3)` | `4.5%` | `0.1%` | `17.4%` | `0.133` |
+| SG-DQN | `11.058` | `+4.668` | `14.042` | `-0.438` | `1` | `0.000940` | `0.1907` | `23.7%` | `63` | `(6, 3)` | `6.8%` | `6.8%` | `14.7%` | `0.020` |
+| Dueling epsilon | `9.292` | `+2.901` | `15.222` | `-9.422` | `30` | `0.001295` | `0.2008` | `28.0%` | `87` | `(4, 2)` | `14.0%` | `0.5%` | `16.3%` | `0.133` |
+| SG-dueling-DQN | `6.354` | `-0.037` | `4.915` | `-8.914` | `43` | `0.001448` | `0.2142` | `30.1%` | `69` | `(6, 3)` | `28.3%` | `28.3%` | `11.6%` | `0.020` |
+| Stable dueling `20260511` | `9.084` | `+2.693` | `7.360` | `-11.836` | `10` | `0.001587` | `0.1966` | `29.4%` | `73` | `(6, 3)` | `67.8%` | `67.8%` | `7.4%` | `0.000` |
+
+![SG-DQN reward curves](figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_reward_curves.png)
+
+![SG-DQN tail reward](figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_tail_reward.png)
+
+![SG-DQN tracking tradeoff](figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_tracking_tradeoff.png)
+
+### What Improved In Standard SG-DQN
+
+Standard SG-DQN is the best horizon result in this small follow-up. Relative to the June 3 standard DDQN run:
+
+| Comparison | Tail reward delta | T85 MAE delta | x24 MAE delta | Negative post-warm delta | Tail unique-pair delta | Tail default-frac delta | Tail policy decision frac |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| SG-DQN vs DDQN epsilon | `+2.405` | `-0.0156` | `-0.000112` | `-12` | `-24` | `+0.066` | `93.25%` |
+
+The important mechanism is the first-live window. Standard SG-DQN uses the default supervisor heavily immediately after release:
+
+| Method | First-live reward | First-live T85 MAE | First-live default frac | First-live policy decision frac | Tail policy decision frac | Tail policy step frac | Tail supervisor step frac | Tail held step frac | Tail advantage median | Tail advantage q10 to q90 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| SG-DQN | `9.445` | `0.1779` | `79.2%` | `14.3%` | `93.2%` | `23.3%` | `1.7%` | `75.0%` | `15.961` | `2.900` to `37.232` |
+| SG-dueling-DQN | `8.707` | `0.1871` | `67.7%` | `22.3%` | `71.7%` | `17.9%` | `7.1%` | `75.0%` | `1.776` | `0.000` to `18.573` |
+
+The step-level SG fractions include held plant steps between horizon decisions. The decision-level fraction is the clearer gate metric. Standard SG-DQN starts conservative, then trusts the learned policy on `93.2%` of tail decisions after epsilon reaches `0.02`. That is the handover behavior we wanted.
+
+### Why SG-Dueling-DQN Did Not Work
+
+SG-dueling-DQN fixed the exploration-rate problem but not the value-ranking problem. The final epsilon is `0.02`, and tail recipe count drops from `87` to `69`, so the run is less random than the June 3 dueling epsilon run. But reward drops by `2.94`, T85 MAE worsens by `0.0134`, and negative post-warm episodes increase from `30` to `43`.
+
+The top executed tail pairs show why:
+
+| Run | Rank | Pair | Tail fraction |
+|---|---:|---|---:|
+| SG-DQN | `1` | `(6, 3)` | `6.75%` |
+| SG-DQN | `2` | `(12, 11)` | `5.00%` |
+| SG-DQN | `3` | `(5, 2)` | `3.65%` |
+| SG-DQN | `4` | `(14, 4)` | `2.70%` |
+| SG-DQN | `5` | `(14, 8)` | `2.50%` |
+| SG-dueling-DQN | `1` | `(6, 3)` | `28.30%` |
+| SG-dueling-DQN | `2` | `(11, 11)` | `19.00%` |
+| SG-dueling-DQN | `3` | `(12, 9)` | `7.75%` |
+| SG-dueling-DQN | `4` | `(4, 2)` | `5.80%` |
+| SG-dueling-DQN | `5` | `(9, 6)` | `5.45%` |
+
+![SG-DQN gate diagnostics](figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_gate_diagnostics.png)
+
+![SG-DQN horizon stability](figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_horizon_stability.png)
+
+![SG-DQN top tail pairs](figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_top_pairs.png)
+
+The bad result is not because SG-dueling never leaves the supervisor. It accepts policy on `71.7%` of tail decision points. The bad result is that the accepted dueling policy is not better under the current reward. It overweights a default-plus-long-horizon mixture, especially `(6,3)`, `(11,11)`, and `(12,9)`, while tail T85 worsens to `0.2142`. This is the same failure mode diagnosed earlier: the agent can improve or preserve composition, but the current reward punishes the temperature degradation.
+
+There is also an architectural lesson. Dueling DQN is not automatically better for this horizon problem. Dueling helps when the state value and action advantage can be separated reliably. Here, many horizon recipes are close in value, the reward is temperature-sensitive, and the Q differences around the supervisor can be small or noisy. The SG-dueling tail advantage median is only `1.776`, versus `15.961` for standard SG-DQN, so the dueling gate has a weaker ranking signal even though it still accepts many policy decisions.
+
+### Updated Horizon Recommendation
+
+The SG-DQN follow-up changes the recommendation slightly:
+
+1. Keep standard SG-DQN as the current best distillation horizon baseline.
+2. Do not repeat SG-dueling-DQN unchanged. Its first-live protection is acceptable, but its tail Q ranking is not aligned with the current reward.
+3. For a second SG-dueling attempt, add one of these changes before rerunning:
+   - reduce the grid to `Np = 6..11`, `Nc = 2..11`,
+   - or use the manual candidate set from the earlier mining step,
+   - or add a short supervised Q prefill around `(6,3)`, `(8,2)`, `(10,8)`, and `(11,11)` before policy release.
+4. Keep the corrected epsilon schedule. It worked as intended: both SG runs reach `0.02` in the tail.
+5. Judge horizon methods primarily by tail T85 MAE and negative post-warm episodes, not only scalar reward. The disappointing dueling run is mainly a T85 failure.
+
+Generated SG follow-up artifacts:
+
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_summary.csv`
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_comparisons.csv`
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_top_pairs.csv`
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_summary.json`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_reward_curves.png`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_tail_reward.png`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_tracking_tradeoff.png`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_gate_diagnostics.png`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_horizon_stability.png`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_top_pairs.png`
+
+Files changed in this extension:
+
+- `report/distillation_dueling_horizon_history_2026_06_04.md`
+- `report/scripts/analyze_distillation_sg_dqn_horizon_followup_20260604.py`
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_summary.csv`
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_comparisons.csv`
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_top_pairs.csv`
+- `report/figures/distillation_dueling_horizon_history_20260604/sg_dqn_followup_summary.json`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_reward_curves.png`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_tail_reward.png`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_tracking_tradeoff.png`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_gate_diagnostics.png`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_horizon_stability.png`
+- `report/figures/distillation_dueling_horizon_history_20260604/fig_sg_dqn_followup_top_pairs.png`
+
 ## Bottom Line
 
-We are not failing because dueling DDQN can never work for distillation horizons. The saved history has real successful dueling trajectories. The current failures come from three interacting causes:
+We are not failing because DQN horizon selection can never work for distillation. The saved history has real successful dueling trajectories, and the June 4 standard SG-DQN run is now a strong horizon result. The current failures come from three interacting causes:
 
 - reward drift made older curves look better and made current temperature errors more visible,
 - several recent policies worsened T85 enough to fail under the current reward,
 - and the learned horizon policy often remains too high-churn instead of settling into a small recipe schedule.
 
-The next most informative experiment is SG-dueling-DQN on the current 87-grid, with special attention to whether the gate increases default or top-pair concentration while retaining the useful non-default candidates. If it still churns, prune to `Np = 6..11`, `Nc = 2..11` or use the manual candidate whitelist above.
+The new conclusion is that SG-DQN is promising, but SG-dueling-DQN should not be repeated unchanged. Keep standard SG-DQN as the immediate horizon baseline. For dueling, either prune the action grid to `Np = 6..11`, `Nc = 2..11`, or use the manual candidate whitelist before rerunning the SG gate. The acceptance metric is not just higher reward; it is higher reward without T85 degradation and without many negative post-warm episodes.

@@ -91,6 +91,38 @@ def test_wrapper_configs_set_sg_defaults_and_disable_old_safety():
         assert safety["shadow_default_mpc"]["enabled"] is False
 
 
+def test_distillation_dueling_aspen6_legacy_reward_wrapper_config():
+    from distillation_RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_aspen6_legacy_reward_unified import (
+        configure_sg_dueling_dqn_horizon_aspen6_legacy_reward,
+    )
+
+    configured = configure_sg_dueling_dqn_horizon_aspen6_legacy_reward(
+        get_distillation_notebook_defaults("horizon_dueling")
+    )
+
+    assert configured["agent_kind"] == "sg_dueling_dqn"
+    assert configured["run_mode"] == "disturb"
+    assert configured["disturbance_profile"] == "fluctuation"
+    assert configured["state_mode"] == "mismatch"
+    assert configured["aspen_preset"] == 6
+    assert "aspen6_legacyreward" in configured["result_prefix_override"]
+    assert "aspen6_legacyreward" in configured["compare_prefix_override"]
+
+    reward = configured["reward"]
+    np.testing.assert_allclose(reward["k_rel"], np.asarray([0.3, 0.02]))
+    np.testing.assert_allclose(reward["band_floor_phys"], np.asarray([0.003, 0.3]))
+    np.testing.assert_allclose(reward["Q_diag"], np.asarray([3.7e4, 1.5e3]))
+    np.testing.assert_allclose(reward["R_diag"], np.asarray([2.5e3, 2.5e3]))
+    assert reward["beta"] == 7.0
+    assert reward["reward_scale"] == 1.0
+
+    safety = configured["horizon_safety"]
+    assert safety["enabled"] is False
+    assert safety["release_filter"]["enabled"] is False
+    assert safety["reward_probation"]["enabled"] is False
+    assert safety["shadow_default_mpc"]["enabled"] is False
+
+
 def test_wrapper_modules_reference_sg_agent_classes():
     import distillation_RL_assisted_MPC_horizons_supervisor_gated_dqn_unified as standard
     import distillation_RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_unified as dueling
@@ -268,6 +300,7 @@ def test_supervised_replay_helper_pushes_final_executed_action():
 
 def run_direct():
     test_wrapper_configs_set_sg_defaults_and_disable_old_safety()
+    test_distillation_dueling_aspen6_legacy_reward_wrapper_config()
     test_wrapper_modules_reference_sg_agent_classes()
     test_polymer_wrapper_configs_set_sg_defaults_and_disable_old_safety()
     test_polymer_wrapper_modules_reference_sg_agent_classes()

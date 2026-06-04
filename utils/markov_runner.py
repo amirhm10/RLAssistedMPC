@@ -1776,13 +1776,17 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
                 )
 
             z_ls_safe = z_ls if ls_accepted else np.zeros(z_dim, dtype=float)
+            # Observer correction and reward scaling use these in both standard
+            # and mismatch Markov state modes. Only the extra mismatch RL-state
+            # features are mode-gated below.
+            innovation = history["y_scaled_dev"][step, :] - yhat
+            y_sp_phys = reverse_min_max(
+                ctx["y_sp"][step, :] + ctx["y_ss_scaled"],
+                ctx["data_min"][nu:],
+                ctx["data_max"][nu:],
+            )
             tracking_scale_now = None
             if markov_state_mode == "mismatch":
-                y_sp_phys = reverse_min_max(
-                    ctx["y_sp"][step, :] + ctx["y_ss_scaled"],
-                    ctx["data_min"][nu:],
-                    ctx["data_max"][nu:],
-                )
                 _, tracking_scale_now = compute_tracking_scale_now(
                     y_sp_phys=y_sp_phys,
                     data_min=ctx["data_min"],

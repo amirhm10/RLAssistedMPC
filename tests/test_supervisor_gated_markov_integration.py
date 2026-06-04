@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import pathlib
 import sys
 
@@ -15,7 +16,12 @@ from RL_assisted_MPC_markov_supervisor_gated_td3_critic_warm_unified import (
 from TD3Agent.supervisor_gated_agent import SupervisorGatedTD3Agent
 from TD3Agent.supervisor_replay_buffer import SOURCE_POLICY
 from systems.polymer import get_polymer_notebook_defaults
-from utils.markov_runner import get_markov_rl_state_dim, make_td3_markov_agent, resolve_markov_supervisor_action
+from utils.markov_runner import (
+    get_markov_rl_state_dim,
+    make_td3_markov_agent,
+    resolve_markov_supervisor_action,
+    run_single_closed_loop,
+)
 
 
 def test_polymer_markov_sg_td3_profile_available():
@@ -74,6 +80,16 @@ def test_markov_standard_state_dimension_excludes_mismatch_features():
 
     assert standard_dim == 10 + 2 + 2 + 4 + 4 + 2
     assert mismatch_dim == standard_dim + 2 * 2
+
+
+def test_standard_markov_mode_still_computes_observer_innovation():
+    source = inspect.getsource(run_single_closed_loop)
+    innovation_assignment = 'innovation = history["y_scaled_dev"][step, :] - yhat'
+    observer_update = "x_model = A @ x_model + B @ u_dev + L @ innovation"
+
+    assert innovation_assignment in source
+    assert observer_update in source
+    assert source.index(innovation_assignment) < source.index(observer_update)
 
 
 def test_resolve_markov_supervisor_action_ls_else_mpc():
@@ -135,6 +151,7 @@ def run_direct():
     test_polymer_sg_td3_markov_critic_warm_config_shadow_only()
     test_make_td3_markov_agent_returns_supervisor_gated_agent()
     test_markov_standard_state_dimension_excludes_mismatch_features()
+    test_standard_markov_mode_still_computes_observer_innovation()
     test_resolve_markov_supervisor_action_ls_else_mpc()
     test_supervisor_gated_markov_replay_metadata_roundtrip()
     print("supervisor_gated_markov_integration tests passed")

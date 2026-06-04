@@ -23,12 +23,16 @@ from utils.supervisor_gated_action import (
 
 @dataclass
 class SACSupervisorGateConfig:
+    candidate_mode: str = "sampled"
     score_uncertainty_weight: float = 0.0
     score_previous_action_weight: float = 0.0
     score_supervisor_action_weight: float = 0.0
     advantage_margin: float = 0.0
     default_to_supervisor: bool = True
+    critic_dominance_gate_enabled: bool = False
+    critic_dominance_margin: float = 0.0
     supervisor_bc_weight: float = 0.0
+    sampled_supervisor_bc_weight: float = 0.0
     supervisor_bc_temperature: float = 1.0
     smooth_action_weight: float = 0.0
     detach_supervisor_weight: bool = True
@@ -99,7 +103,13 @@ class SupervisorGatedSACAgent(SACAgent):
         self.sg_q_gap_supervisor_trace = []
         self.sg_weight_trace = []
         self.sg_bc_loss_trace = []
+        self.sg_sampled_bc_loss_trace = []
         self.sg_smooth_loss_trace = []
+
+        candidate_mode = str(self.supervisor_gate_config.candidate_mode).strip().lower()
+        if candidate_mode not in {"sampled", "deterministic"}:
+            raise ValueError("SAC supervisor gate candidate_mode must be 'sampled' or 'deterministic'.")
+        self.supervisor_gate_config.candidate_mode = candidate_mode
 
     @staticmethod
     def _coerce_gate_config(config) -> SACSupervisorGateConfig:
@@ -197,7 +207,12 @@ class SupervisorGatedSACAgent(SACAgent):
         self.actor.eval()
         try:
             mean_policy = self.actor.deterministic_action(state_t).view(-1).detach().cpu().numpy()
-            if bool(explore) and not bool(test):
+            use_sampled_candidate = (
+                bool(explore)
+                and not bool(test)
+                and str(self.supervisor_gate_config.candidate_mode).strip().lower() == "sampled"
+            )
+            if use_sampled_candidate:
                 sampled, _, _ = self.actor.sample(state_t)
                 policy_arr = sampled.view(-1).detach().cpu().numpy()
                 self.last_exploration_value = float(np.mean(np.abs(policy_arr - mean_policy)))
@@ -245,6 +260,12 @@ class SupervisorGatedSACAgent(SACAgent):
             margin=self.supervisor_gate_config.advantage_margin,
             default_to_supervisor=self.supervisor_gate_config.default_to_supervisor,
         )
+        if bool(self.supervisor_gate_config.critic_dominance_gate_enabled):
+            margin = float(self.supervisor_gate_config.critic_dominance_margin)
+            q1_delta = float(policy_score["q1"] - supervisor_score["q1"])
+            q2_delta = float(policy_score["q2"] - supervisor_score["q2"])
+            if q1_delta <= margin or q2_delta <= margin:
+                choice = "supervisor"
         if self.train_steps < int(self.supervisor_gate_config.min_train_steps_before_policy_gate):
             choice = "supervisor"
 
@@ -413,6 +434,7 @@ class SupervisorGatedSACAgent(SACAgent):
         bc_actor_target_distance = None
         sg_weight_value = None
         sg_bc_loss_value = None
+        sg_sampled_bc_loss_value = None
         sg_smooth_loss_value = None
 
         cfg = self.supervisor_gate_config
@@ -437,6 +459,15 @@ class SupervisorGatedSACAgent(SACAgent):
             sg_bc_loss = torch.mean(supervisor_weight * sg_bc_penalty)
             actor_loss = actor_loss + float(cfg.supervisor_bc_weight) * sg_bc_loss
             sg_bc_loss_value = float(sg_bc_loss.item())
+        if bool(cfg.enable_supervisor_actor_loss) and cfg.sampled_supervisor_bc_weight > 0.0:
+            sg_sampled_bc_penalty = torch.sum(
+                (new_actions - supervisor_actions.detach()) ** 2,
+                dim=1,
+                keepdim=True,
+            )
+            sg_sampled_bc_loss = torch.mean(supervisor_weight * sg_sampled_bc_penalty)
+            actor_loss = actor_loss + float(cfg.sampled_supervisor_bc_weight) * sg_sampled_bc_loss
+            sg_sampled_bc_loss_value = float(sg_sampled_bc_loss.item())
         if cfg.smooth_action_weight > 0.0:
             sg_smooth_loss = torch.mean(torch.sum((mean_new - previous_actions.detach()) ** 2, dim=1))
             actor_loss = actor_loss + float(cfg.smooth_action_weight) * sg_smooth_loss
@@ -535,6 +566,9 @@ class SupervisorGatedSACAgent(SACAgent):
         self.sg_q_gap_supervisor_trace.append(sg_q_gap_supervisor_value)
         self.sg_weight_trace.append(np.nan if sg_weight_value is None else float(sg_weight_value))
         self.sg_bc_loss_trace.append(np.nan if sg_bc_loss_value is None else float(sg_bc_loss_value))
+        self.sg_sampled_bc_loss_trace.append(
+            np.nan if sg_sampled_bc_loss_value is None else float(sg_sampled_bc_loss_value)
+        )
         self.sg_smooth_loss_trace.append(
             np.nan if sg_smooth_loss_value is None else float(sg_smooth_loss_value)
         )
@@ -561,6 +595,9 @@ class SupervisorGatedSACAgent(SACAgent):
             "sg_selected_source": sg_selected_source_value,
             "sg_weight": np.nan if sg_weight_value is None else float(sg_weight_value),
             "sg_bc_loss": np.nan if sg_bc_loss_value is None else float(sg_bc_loss_value),
+            "sg_sampled_bc_loss": (
+                np.nan if sg_sampled_bc_loss_value is None else float(sg_sampled_bc_loss_value)
+            ),
             "sg_smooth_loss": np.nan if sg_smooth_loss_value is None else float(sg_smooth_loss_value),
             "train_index_before": int(self.train_steps - 1),
             "train_index_after": int(self.train_steps),

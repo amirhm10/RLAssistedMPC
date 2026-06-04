@@ -28,12 +28,15 @@ def _assert_common_sg_sac_config(configured):
     assert configured["agent_kind"] == "sg_sac"
     assert configured["run_mode"] == "disturb"
     assert configured["warm_start_override"] == 10
-    assert configured["post_warm_start_action_freeze_subepisodes"] == 3
+    assert configured["post_warm_start_action_freeze_subepisodes"] == 10
     assert configured["post_warm_start_actor_freeze_subepisodes"] == 3
 
     gate = configured["supervisor_gate"]
+    assert gate["candidate_mode"] == "deterministic"
+    assert gate["critic_dominance_gate_enabled"] is True
     assert gate["enable_supervisor_actor_loss"] is True
     assert gate["supervisor_bc_weight"] == 0.01
+    assert gate["sampled_supervisor_bc_weight"] == 0.01
     assert gate["smooth_action_weight"] == 0.001
     assert gate["score_uncertainty_weight"] == 0.5
     assert gate["score_previous_action_weight"] == 0.01
@@ -62,7 +65,10 @@ def test_weights_sg_sac_wrapper_config_shadow_identity():
     _assert_common_sg_sac_config(configured)
     assert configured["state_mode"] == "mismatch"
     assert configured["supervisor_gate"]["advantage_margin"] == 0.5
+    assert configured["supervisor_gate"]["critic_dominance_margin"] == 0.5
     assert configured["supervisor_gate"]["score_supervisor_action_weight"] == 0.05
+    assert "detgate_hidden7" in configured["result_prefix_override"]
+    assert "detgate_hidden7" in configured["compare_prefix_override"]
 
     bc = configured["behavioral_cloning"]
     assert bc["enabled"] is False
@@ -82,7 +88,10 @@ def test_residual_sg_sac_wrapper_config_shadow_only():
     _assert_common_sg_sac_config(configured)
     assert configured["state_mode"] == "mismatch"
     assert configured["supervisor_gate"]["advantage_margin"] == 0.5
+    assert configured["supervisor_gate"]["critic_dominance_margin"] == 0.5
     assert configured["supervisor_gate"]["score_supervisor_action_weight"] == 0.05
+    assert "detgate_hidden7" in configured["result_prefix_override"]
+    assert "detgate_hidden7" in configured["compare_prefix_override"]
 
     assert configured["residual_authority_enabled"] is False
     assert configured["authority_use_rho"] is False
@@ -111,7 +120,10 @@ def test_markov_sg_sac_wrapper_config_shadow_only():
     assert configured["markov_supervisor_mode"] == "ls_else_mpc"
     assert configured["markov_live_safety_mode"] == "shadow_only"
     assert configured["supervisor_gate"]["advantage_margin"] == 0.0
+    assert configured["supervisor_gate"]["critic_dominance_margin"] == 0.0
     assert configured["supervisor_gate"]["score_supervisor_action_weight"] == 0.02
+    assert "detgate_hidden7" in configured["result_prefix_override"]
+    assert "detgate_hidden7" in configured["compare_prefix_override"]
 
     bc = configured["behavioral_cloning"]
     assert bc["enabled"] is False
@@ -143,7 +155,10 @@ def test_markov_sg_sac_construction_returns_supervisor_gated_sac_agent():
     agent = make_td3_markov_agent(configured, state_dim=12, action_dim=4, set_points_len=20)
     assert isinstance(agent, SupervisorGatedSACAgent)
     assert agent.multistep_mode == "one_step"
+    assert agent.supervisor_gate_config.candidate_mode == "deterministic"
+    assert agent.supervisor_gate_config.critic_dominance_gate_enabled is True
     assert agent.supervisor_gate_config.supervisor_bc_weight == 0.01
+    assert agent.supervisor_gate_config.sampled_supervisor_bc_weight == 0.01
     assert agent.supervisor_gate_config.smooth_action_weight == 0.001
 
 

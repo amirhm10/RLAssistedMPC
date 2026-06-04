@@ -1,8 +1,10 @@
-"""Polymer SG-SAC Markov runner with LS-or-MPC supervisor and critic-warm release.
+"""Polymer SG-SAC Markov runner with deterministic LS-or-MPC supervisor gate.
 
 This entrypoint mirrors the SG-TD3 Markov critic-warm runner while using SAC as
 the policy. Live Markov safety layers are disabled; their previous settings are
-kept as shadow diagnostics in the result bundle.
+kept as shadow diagnostics in the result bundle. The first 3 hidden
+subepisodes are critic-only, followed by 7 hidden subepisodes where actor/alpha
+train while the LS-or-MPC supervisor still executes.
 """
 
 from __future__ import annotations
@@ -35,24 +37,24 @@ def configure_sg_sac_markov_critic_warm(nb: dict) -> dict:
     nb["agent_kind"] = "sg_sac"
     nb["run_mode"] = "disturb"
     nb["warm_start_override"] = 10
-    nb["post_warm_start_action_freeze_subepisodes"] = 3
+    nb["post_warm_start_action_freeze_subepisodes"] = 10
     nb["post_warm_start_actor_freeze_subepisodes"] = 3
     nb["markov_supervisor_mode"] = "ls_else_mpc"
     nb["markov_live_safety_mode"] = "shadow_only"
-    nb["result_prefix_override"] = "sg_sac_markov_critic_warm3_ls_else_mpc_shadow_disturb"
-    nb["compare_prefix_override"] = "disturb_compare_sg_sac_markov_critic_warm3_ls_else_mpc_shadow"
+    nb["result_prefix_override"] = "sg_sac_markov_detgate_hidden7_ls_else_mpc_shadow_disturb"
+    nb["compare_prefix_override"] = "disturb_compare_sg_sac_markov_detgate_hidden7_ls_else_mpc_shadow"
 
     profiles = deepcopy(nb.get("run_profiles", {}))
     profiles[("sg_sac", "nominal")] = {
-        "result_prefix": "sg_sac_markov_critic_warm3_ls_else_mpc_shadow_nominal",
-        "compare_prefix": "nominal_compare_sg_sac_markov_critic_warm3_ls_else_mpc_shadow",
+        "result_prefix": "sg_sac_markov_detgate_hidden7_ls_else_mpc_shadow_nominal",
+        "compare_prefix": "nominal_compare_sg_sac_markov_detgate_hidden7_ls_else_mpc_shadow",
         "compare_mode": "nominal",
         "plot_start_episode": 2,
         "compare_start_episode": 2,
     }
     profiles[("sg_sac", "disturb")] = {
-        "result_prefix": "sg_sac_markov_critic_warm3_ls_else_mpc_shadow_disturb",
-        "compare_prefix": "disturb_compare_sg_sac_markov_critic_warm3_ls_else_mpc_shadow",
+        "result_prefix": "sg_sac_markov_detgate_hidden7_ls_else_mpc_shadow_disturb",
+        "compare_prefix": "disturb_compare_sg_sac_markov_detgate_hidden7_ls_else_mpc_shadow",
         "compare_mode": "disturb",
         "plot_start_episode": 2,
         "compare_start_episode": 2,
@@ -99,12 +101,16 @@ def configure_sg_sac_markov_critic_warm(nb: dict) -> dict:
     nb["controller"] = ctrl
 
     gate_cfg = deepcopy(nb.get("supervisor_gate", {}))
+    gate_cfg["candidate_mode"] = "deterministic"
     gate_cfg["advantage_margin"] = 0.0
+    gate_cfg["critic_dominance_gate_enabled"] = True
+    gate_cfg["critic_dominance_margin"] = 0.0
     gate_cfg["score_uncertainty_weight"] = 0.5
     gate_cfg["score_supervisor_action_weight"] = 0.02
     gate_cfg["score_previous_action_weight"] = 0.01
     gate_cfg["enable_supervisor_actor_loss"] = True
     gate_cfg["supervisor_bc_weight"] = 0.01
+    gate_cfg["sampled_supervisor_bc_weight"] = 0.01
     gate_cfg["smooth_action_weight"] = 0.001
     gate_cfg["min_train_steps_before_policy_gate"] = 0
     nb["supervisor_gate"] = gate_cfg

@@ -403,7 +403,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         )
         agent.actor_freeze = int(phase1["effective_actor_freeze"])
         if supervisor_gated_sac_agent_kind:
-            agent.alpha_freeze = int(max(getattr(agent, "alpha_freeze", 0), phase1["effective_actor_freeze"]))
+            agent.alpha_freeze = int(max(getattr(agent, "alpha_freeze", 0), agent.actor_freeze))
         phase1_action_source_log = np.zeros(nFE, dtype=int)
         phase1_train_traces = init_phase1_train_traces()
     policy_action_raw_log = np.zeros((nFE, action_dim), dtype=float)
@@ -1328,6 +1328,7 @@ def run_residual_supervisor(residual_cfg, runtime_ctx):
         "sg_q_gap_supervisor_trace",
         "sg_weight_trace",
         "sg_bc_loss_trace",
+        "sg_sampled_bc_loss_trace",
         "sg_smooth_loss_trace",
     ):
         if hasattr(agent, attr):

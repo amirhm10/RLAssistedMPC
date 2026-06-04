@@ -77,6 +77,24 @@ def set_linear_action_q(agent, weights, bias=0.0):
             )
 
 
+def set_twin_linear_action_q(agent, q1_weights, q2_weights, q1_bias=0.0, q2_bias=0.0):
+    q_specs = {
+        "q1_network": (q1_weights, q1_bias),
+        "q2_network": (q2_weights, q2_bias),
+    }
+    for network_name, (weights, bias) in q_specs.items():
+        weights = np.asarray(weights, dtype=np.float32).reshape(-1)
+        assert weights.size == agent.buffer.action_dim
+        network = getattr(agent.critic, network_name)
+        layer = network[-1]
+        with torch.no_grad():
+            layer.weight.zero_()
+            layer.bias.fill_(float(bias))
+            layer.weight[0, agent.buffer.state_dim : agent.buffer.state_dim + agent.buffer.action_dim] = (
+                torch.as_tensor(weights)
+            )
+
+
 def test_import_supervisor_gated_sac_classes():
     assert SupervisorGatedSACAgent is not None
     assert SACSupervisorGateConfig is not None
@@ -138,6 +156,63 @@ def test_supervisor_selected_when_margin_not_met():
     assert 0.0 < decision.advantage_policy_supervisor < 0.5
 
 
+def test_deterministic_candidate_mode_ignores_sampled_action():
+    agent = make_agent(
+        supervisor_gate_config=SACSupervisorGateConfig(
+            candidate_mode="deterministic",
+            advantage_margin=0.0,
+            default_to_supervisor=True,
+        )
+    )
+    set_actor_mean_action(agent, [0.5, 0.0])
+    set_linear_action_q(agent, [1.0, 0.0])
+
+    def fail_sample(_state):
+        raise AssertionError("deterministic SG-SAC gate should not sample the actor")
+
+    agent.actor.sample = fail_sample
+    decision = agent.select_action_with_supervisor(
+        np.zeros(3, dtype=np.float32),
+        supervisor_action=np.zeros(2, dtype=np.float32),
+        explore=True,
+        test=False,
+    )
+    assert decision.selected_source == SOURCE_POLICY
+    assert np.allclose(decision.policy_action, np.array([0.5, 0.0], dtype=np.float32), atol=1e-6)
+    assert agent.last_exploration_value == 0.0
+
+
+def test_critic_dominance_gate_rejects_one_critic_deficit():
+    agent = make_agent(
+        supervisor_gate_config=SACSupervisorGateConfig(
+            advantage_margin=0.0,
+            default_to_supervisor=True,
+            score_uncertainty_weight=0.0,
+            score_supervisor_action_weight=0.0,
+            score_previous_action_weight=0.0,
+            critic_dominance_gate_enabled=True,
+            critic_dominance_margin=0.0,
+        )
+    )
+    set_actor_mean_action(agent, [0.5, 0.0])
+    set_twin_linear_action_q(
+        agent,
+        q1_weights=[20.0, 0.0],
+        q1_bias=0.0,
+        q2_weights=[-2.0, 0.0],
+        q2_bias=2.0,
+    )
+    decision = agent.select_action_with_supervisor(
+        np.zeros(3, dtype=np.float32),
+        supervisor_action=np.zeros(2, dtype=np.float32),
+        explore=False,
+    )
+    assert decision.score_policy > decision.score_supervisor
+    assert decision.q1_policy > decision.q1_supervisor
+    assert decision.q2_policy < decision.q2_supervisor
+    assert decision.selected_source == SOURCE_SUPERVISOR
+
+
 def test_replay_metadata_roundtrip():
     agent = make_agent()
     state, action, reward, next_state, done, supervisor, previous = random_transition(1)
@@ -167,6 +242,7 @@ def test_one_step_training_smoke_with_sg_bc_and_smoothness():
     agent = make_agent(
         supervisor_gate_config=SACSupervisorGateConfig(
             supervisor_bc_weight=0.1,
+            sampled_supervisor_bc_weight=0.1,
             smooth_action_weight=0.05,
             enable_supervisor_actor_loss=True,
         )
@@ -194,7 +270,9 @@ def test_one_step_training_smoke_with_sg_bc_and_smoothness():
     assert meta["alpha_updated"] is True
     assert "sg_advantage" in meta
     assert np.isfinite(meta["sg_bc_loss"])
+    assert np.isfinite(meta["sg_sampled_bc_loss"])
     assert np.isfinite(meta["sg_smooth_loss"])
+    assert np.isfinite(agent.sg_sampled_bc_loss_trace[-1])
 
 
 def test_existing_sac_agent_still_usable():
@@ -226,6 +304,8 @@ def run_direct():
     test_tie_defaults_to_supervisor()
     test_policy_selected_when_q_advantage_exceeds_margin()
     test_supervisor_selected_when_margin_not_met()
+    test_deterministic_candidate_mode_ignores_sampled_action()
+    test_critic_dominance_gate_rejects_one_critic_deficit()
     test_replay_metadata_roundtrip()
     test_one_step_training_smoke_with_sg_bc_and_smoothness()
     test_existing_sac_agent_still_usable()

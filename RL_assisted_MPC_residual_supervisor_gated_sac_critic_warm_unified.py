@@ -1,9 +1,11 @@
-"""Polymer SG-SAC residual runner with zero-residual supervisor.
+"""Polymer SG-SAC residual runner with deterministic zero-residual gate.
 
 This runner mirrors the SG-TD3 residual critic-warm experiment while using the
 SupervisorGatedSACAgent. The live residual safety layers remain off so the
 experiment isolates the SG candidate-vs-supervisor gate; shadow diagnostics
-remain enabled in the saved bundle.
+remain enabled in the saved bundle. The first 3 hidden subepisodes are
+critic-only, followed by 7 hidden subepisodes where actor/alpha train while the
+zero supervisor still executes.
 """
 
 from __future__ import annotations
@@ -34,22 +36,22 @@ def configure_sg_sac_residual_critic_warm(nb: dict) -> dict:
     nb["run_mode"] = "disturb"
     nb["state_mode"] = "mismatch"
     nb["warm_start_override"] = 10
-    nb["post_warm_start_action_freeze_subepisodes"] = 3
+    nb["post_warm_start_action_freeze_subepisodes"] = 10
     nb["post_warm_start_actor_freeze_subepisodes"] = 3
-    nb["result_prefix_override"] = "sg_sac_residual_critic_warm3_zero_shadow_disturb"
-    nb["compare_prefix_override"] = "disturb_compare_sg_sac_residual_critic_warm3_zero_shadow"
+    nb["result_prefix_override"] = "sg_sac_residual_detgate_hidden7_zero_shadow_disturb"
+    nb["compare_prefix_override"] = "disturb_compare_sg_sac_residual_detgate_hidden7_zero_shadow"
 
     profiles = deepcopy(nb.get("run_profiles", {}))
     profiles[("sg_sac", "nominal")] = {
-        "result_prefix": "sg_sac_residual_critic_warm3_zero_shadow_nominal",
-        "compare_prefix": "nominal_compare_sg_sac_residual_critic_warm3_zero_shadow",
+        "result_prefix": "sg_sac_residual_detgate_hidden7_zero_shadow_nominal",
+        "compare_prefix": "nominal_compare_sg_sac_residual_detgate_hidden7_zero_shadow",
         "compare_mode": "nominal",
         "plot_start_episode": 2,
         "compare_start_episode": 2,
     }
     profiles[("sg_sac", "disturb")] = {
-        "result_prefix": "sg_sac_residual_critic_warm3_zero_shadow_disturb",
-        "compare_prefix": "disturb_compare_sg_sac_residual_critic_warm3_zero_shadow",
+        "result_prefix": "sg_sac_residual_detgate_hidden7_zero_shadow_disturb",
+        "compare_prefix": "disturb_compare_sg_sac_residual_detgate_hidden7_zero_shadow",
         "compare_mode": "disturb",
         "plot_start_episode": 2,
         "compare_start_episode": 2,
@@ -94,12 +96,16 @@ def configure_sg_sac_residual_critic_warm(nb: dict) -> dict:
     nb["residual_safety"] = safety_cfg
 
     gate_cfg = deepcopy(nb.get("supervisor_gate", {}))
+    gate_cfg["candidate_mode"] = "deterministic"
     gate_cfg["advantage_margin"] = 0.5
+    gate_cfg["critic_dominance_gate_enabled"] = True
+    gate_cfg["critic_dominance_margin"] = 0.5
     gate_cfg["score_uncertainty_weight"] = 0.5
     gate_cfg["score_supervisor_action_weight"] = 0.05
     gate_cfg["score_previous_action_weight"] = 0.01
     gate_cfg["enable_supervisor_actor_loss"] = True
     gate_cfg["supervisor_bc_weight"] = 0.01
+    gate_cfg["sampled_supervisor_bc_weight"] = 0.01
     gate_cfg["smooth_action_weight"] = 0.001
     gate_cfg["min_train_steps_before_policy_gate"] = 0
     nb["supervisor_gate"] = gate_cfg

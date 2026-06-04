@@ -73,8 +73,8 @@ REPO_ROOT, DATA_DIR, RESULT_DIR, DISTURBANCE_PROFILE, DYN_PATH, SNAPS_PATH, ASPE
     results_dir_override=DISTILLATION_RESULTS_DIR_OVERRIDE,
 )
 os.chdir(REPO_ROOT)
-if AGENT_KIND not in {"td3", "sg_td3"}:
-    raise ValueError("Distillation Markov supports TD3 and SG-TD3 only.")
+if AGENT_KIND not in {"td3", "sg_td3", "sg_sac"}:
+    raise ValueError("Distillation Markov supports TD3, SG-TD3, and SG-SAC only.")
 
 # --- Cell 2 (code) ---
 SYS = NB["system_setup"]
@@ -137,6 +137,7 @@ def close_markov_system(system):
 EPISODE_CFG = RUN_PROFILE
 CTRL = NB["controller"]
 TD3_CFG = NB["td3_agent"]
+SAC_CFG = NB["sac_agent"]
 REWARD_CFG = NB["reward"]
 BEHAVIORAL_CLONING = dict(NB.get("behavioral_cloning", {}))
 SUPERVISOR_GATE_CFG = dict(NB.get("supervisor_gate", {}))
@@ -178,6 +179,7 @@ nominal_cost_relative_tol = float(CTRL["nominal_cost_relative_tol"])
 nominal_cost_absolute_tol = float(CTRL["nominal_cost_absolute_tol"])
 nominal_solver_mode = str(CTRL.get("nominal_solver_mode", "state_space_shared"))
 td3_seed = TD3_CFG.get("seed")
+sac_seed = SAC_CFG.get("seed")
 run_adaptive_ls = bool(CTRL["run_adaptive_ls"])
 run_live_corrected_mpc = bool(CTRL["run_live_corrected_mpc"])
 run_rl_proposal = bool(CTRL["run_rl_proposal"])
@@ -219,6 +221,7 @@ print_grouped_notebook_summary(
             "Run mode": RUN_MODE,
             "Disturbance profile": DISTURBANCE_PROFILE,
             "TD3 seed": td3_seed,
+            "SAC seed": sac_seed,
             "n_tests": n_tests,
             "set_points_len": set_points_len,
             "warm_start": warm_start,
@@ -250,7 +253,7 @@ print_grouped_notebook_summary(
             "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START,
         },
         "Behavioral cloning": BEHAVIORAL_CLONING,
-        "Supervisor gate": SUPERVISOR_GATE_CFG if AGENT_KIND == "sg_td3" else None,
+        "Supervisor gate": SUPERVISOR_GATE_CFG if AGENT_KIND in {"sg_td3", "sg_sac"} else None,
         "Markov shadow safety": CTRL.get("markov_shadow_safety", {}),
         "Reward": reward_params,
         "Debug": {
@@ -316,6 +319,7 @@ markov_cfg = {
     "behavioral_cloning": BEHAVIORAL_CLONING,
     "supervisor_gate": SUPERVISOR_GATE_CFG,
     "td3_agent": TD3_CFG,
+    "sac_agent": SAC_CFG,
     "max_steps": MAX_STEPS_OVERRIDE,
 }
 

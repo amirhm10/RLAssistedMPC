@@ -981,6 +981,7 @@ DISTILLATION_MARKOV_DEFAULTS = {
         "debug_run_shadow_ls": False,
     },
     "td3_agent": _copy_active_td3_agent_defaults(),
+    "sac_agent": _copy_active_sac_agent_defaults(),
     "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
 }

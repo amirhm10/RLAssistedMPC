@@ -99,6 +99,8 @@ def test_distillation_sg_td3_weights_and_markov_use_mismatch_state():
 
     assert markov["markov_supervisor_mode"] == "ls_else_mpc"
     assert markov["markov_live_safety_mode"] == "shadow_only"
+    assert markov["td3_agent"]["exploration_mode"] == "param_noise"
+    assert "paramnoise" in markov["result_prefix_override"]
 
 
 def test_polymer_sg_td3_critic_warm_wrappers_use_standard_state():

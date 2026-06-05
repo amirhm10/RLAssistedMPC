@@ -35,10 +35,10 @@ def configure_sg_td3_markov_critic_warm(nb: dict) -> dict:
     nb["markov_supervisor_mode"] = "ls_else_mpc"
     nb["markov_live_safety_mode"] = "shadow_only"
     nb["result_prefix_override"] = (
-        "distillation_markov_sg_td3_critic_warm3_ls_else_mpc_shadow_disturb_fluctuation_mismatch"
+        "distillation_markov_sg_td3_critic_warm3_ls_else_mpc_shadow_disturb_fluctuation_mismatch_paramnoise"
     )
     nb["compare_prefix_override"] = (
-        "distillation_compare_markov_sg_td3_critic_warm3_ls_else_mpc_shadow_disturb_fluctuation_mismatch"
+        "distillation_compare_markov_sg_td3_critic_warm3_ls_else_mpc_shadow_disturb_fluctuation_mismatch_paramnoise"
     )
 
     profiles = deepcopy(nb.get("run_profiles", {}))
@@ -107,6 +107,13 @@ def configure_sg_td3_markov_critic_warm(nb: dict) -> dict:
     }
     ctrl["rl_store_executed_action_in_replay"] = True
     nb["controller"] = ctrl
+
+    td3_cfg = deepcopy(nb.get("td3_agent", {}))
+    td3_cfg["exploration_mode"] = "param_noise"
+    td3_cfg["param_noise_std_start"] = 0.2
+    td3_cfg["param_noise_std_end"] = 0.02
+    td3_cfg["param_noise_resample_interval"] = 4
+    nb["td3_agent"] = td3_cfg
 
     gate_cfg = deepcopy(nb.get("supervisor_gate", {}))
     gate_cfg["advantage_margin"] = 0.0

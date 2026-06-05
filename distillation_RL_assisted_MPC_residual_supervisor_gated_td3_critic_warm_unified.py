@@ -33,15 +33,15 @@ def configure_sg_td3_residual_critic_warm(nb: dict) -> dict:
     nb["agent_kind"] = "sg_td3"
     nb["run_mode"] = "disturb"
     nb["disturbance_profile"] = "fluctuation"
-    nb["state_mode"] = "standard"
+    nb["state_mode"] = "mismatch"
     nb["warm_start_override"] = 10
     nb["post_warm_start_action_freeze_subepisodes"] = 3
     nb["post_warm_start_actor_freeze_subepisodes"] = 3
     nb["result_prefix_override"] = (
-        "distillation_residual_sg_td3_critic_warm3_manual_off_disturb_fluctuation_standard_no_rho"
+        "distillation_residual_sg_td3_critic_warm3_manual_off_disturb_fluctuation_mismatch_no_rho"
     )
     nb["compare_prefix_override"] = (
-        "distillation_compare_residual_sg_td3_critic_warm3_manual_off_disturb_fluctuation_standard"
+        "distillation_compare_residual_sg_td3_critic_warm3_manual_off_disturb_fluctuation_mismatch"
     )
 
     nb["residual_authority_enabled"] = False

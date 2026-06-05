@@ -74,9 +74,9 @@ def test_wrapper_configs_set_sg_defaults_and_disable_old_safety():
     for configured in (standard, dueling):
         assert configured["run_mode"] == "disturb"
         assert configured["disturbance_profile"] == "fluctuation"
-        assert configured["state_mode"] == "standard"
-        assert "standard" in configured["result_prefix_override"]
-        assert "standard" in configured["compare_prefix_override"]
+        assert configured["state_mode"] == "mismatch"
+        assert "mismatch" in configured["result_prefix_override"]
+        assert "mismatch" in configured["compare_prefix_override"]
         assert "np6_11_nc3_11" in configured["result_prefix_override"]
         assert "np6_11_nc3_11" in configured["compare_prefix_override"]
         assert configured["controller"]["predict_grid"] == list(range(6, 12))
@@ -116,12 +116,12 @@ def test_distillation_dueling_aspen6_legacy_reward_wrapper_config():
     assert configured["agent_kind"] == "sg_dueling_dqn"
     assert configured["run_mode"] == "disturb"
     assert configured["disturbance_profile"] == "fluctuation"
-    assert configured["state_mode"] == "standard"
+    assert configured["state_mode"] == "mismatch"
     assert configured["aspen_preset"] == 6
     assert "aspen6_legacyreward" in configured["result_prefix_override"]
     assert "aspen6_legacyreward" in configured["compare_prefix_override"]
-    assert "standard" in configured["result_prefix_override"]
-    assert "standard" in configured["compare_prefix_override"]
+    assert "mismatch" in configured["result_prefix_override"]
+    assert "mismatch" in configured["compare_prefix_override"]
     assert "np6_11_nc3_11" not in configured["result_prefix_override"]
     assert "np6_11_nc3_11" not in configured["compare_prefix_override"]
     assert configured["controller"]["predict_grid"] == list(range(4, 15))

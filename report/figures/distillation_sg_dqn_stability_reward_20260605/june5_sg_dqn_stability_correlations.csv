@@ -1,0 +1,10 @@
+metric,key,pearson_vs_tail_current_reward,n
+unique tail pairs,tail_unique_pairs,-0.4900333784443892,5
+top-pair fraction,tail_top_pair_frac,-0.2201691884891339,5
+default-pair fraction,tail_default_pair_frac,-0.2201691884891339,5
+switch fraction,tail_switch_frac,0.10187427062223448,5
+tail T85 MAE,tail_temp_mae,-0.9452173151779066,5
+negative post-warm episodes,negative_postwarm_episodes,-0.9738612742674327,5
+worst post-warm reward,worst_postwarm_current_reward,0.5112224542258601,5
+policy decision fraction,tail_sg_policy_decision_frac,0.2295333241321334,4
+tail SG advantage median,tail_sg_adv_median,0.5257697346165316,4

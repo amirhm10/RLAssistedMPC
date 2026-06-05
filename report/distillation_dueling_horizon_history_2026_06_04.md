@@ -378,3 +378,71 @@ We are not failing because DQN horizon selection can never work for distillation
 - and the learned horizon policy often remains too high-churn instead of settling into a small recipe schedule.
 
 The new conclusion is that SG-DQN is promising, but SG-dueling-DQN should not be repeated unchanged. Keep standard SG-DQN as the immediate horizon baseline. For dueling, either prune the action grid to `Np = 6..11`, `Nc = 2..11`, or use the manual candidate whitelist before rerunning the SG gate. The acceptance metric is not just higher reward; it is higher reward without T85 degradation and without many negative post-warm episodes.
+
+## June 5 Extension: Stability Versus Reward
+
+Two new saved runs were analyzed after the standard-state wrapper changes:
+
+- `distillation_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_standard_np6_11_nc3_11/20260605_105331`
+- `distillation_dueling_horizon_sg_dqn_aspen6_legacyreward_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_standard/20260605_105758`
+
+The first run is the main standard SG-DQN runner with the reduced `39`-action grid, `Np = 6..11`, `Nc = 3..11`, and the current reward. The second run is the Aspen-6 legacy-reward SG-dueling check. It intentionally keeps the inherited `87`-action grid and uses the legacy horizon reward parameters.
+
+Analysis script:
+
+```powershell
+C:\Users\hamediaa\.conda\envs\rl-env\python.exe report\scripts\analyze_distillation_sg_dqn_stability_reward_20260605.py
+```
+
+Generated artifacts:
+
+- `report/figures/distillation_sg_dqn_stability_reward_20260605/june5_sg_dqn_stability_summary.csv`
+- `report/figures/distillation_sg_dqn_stability_reward_20260605/june5_sg_dqn_stability_correlations.csv`
+- `report/figures/distillation_sg_dqn_stability_reward_20260605/june5_sg_dqn_stability_top_pairs.csv`
+- `report/figures/distillation_sg_dqn_stability_reward_20260605/fig_june5_reward_curves.png`
+- `report/figures/distillation_sg_dqn_stability_reward_20260605/fig_june5_reward_vs_stability.png`
+- `report/figures/distillation_sg_dqn_stability_reward_20260605/fig_june5_tail_reward_negative_episodes.png`
+- `report/figures/distillation_sg_dqn_stability_reward_20260605/fig_june5_top_tail_pairs.png`
+
+### June 5 Performance Table
+
+All reward values in this table use the current reward for a fair physical comparison, even for the legacy-reward run.
+
+| Method | Tail current reward | Delta vs OF-MPC | Final reward | Worst post-warm | Negative post-warm eps | Tail T85 MAE | Tail x24 MAE | Recipes | Unique tail pairs | Top pair | Top frac | Switch frac | Policy decision frac |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|---:|---:|
+| OF-MPC | `6.391` | `0.000` | `6.926` | `4.488` | `0` | `0.1921` | `0.001545` | `NA` | `NA` | `NA` | `NA` | `NA` | `NA` |
+| June 4 SG-DQN 87 mismatch | `11.058` | `+4.668` | `14.042` | `-0.438` | `1` | `0.1907` | `0.000940` | `87` | `63` | `(6, 3)` | `0.068` | `0.147` | `0.933` |
+| June 5 SG-DQN 39 standard | `10.342` | `+3.952` | `12.459` | `6.479` | `0` | `0.1875` | `0.001006` | `39` | `38` | `(6, 3)` | `0.240` | `0.101` | `0.760` |
+| June 4 SG-dueling 87 mismatch | `6.354` | `-0.037` | `4.915` | `-8.914` | `43` | `0.2142` | `0.001448` | `87` | `69` | `(6, 3)` | `0.283` | `0.116` | `0.717` |
+| June 5 SG-dueling Aspen-6 legacy 87 standard | `10.383` | `+3.993` | `9.374` | `-8.642` | `5` | `0.1956` | `0.000857` | `87` | `57` | `(6, 3)` | `0.443` | `0.085` | `0.558` |
+| Stable dueling `20260511` | `9.084` | `+2.693` | `7.360` | `-11.836` | `10` | `0.1966` | `0.001587` | `87` | `73` | `(6, 3)` | `0.678` | `0.074` | `NA` |
+
+![June 5 reward curves](figures/distillation_sg_dqn_stability_reward_20260605/fig_june5_reward_curves.png)
+
+![June 5 reward stability](figures/distillation_sg_dqn_stability_reward_20260605/fig_june5_reward_vs_stability.png)
+
+![June 5 negative episodes](figures/distillation_sg_dqn_stability_reward_20260605/fig_june5_tail_reward_negative_episodes.png)
+
+### Interpretation
+
+The reduced-grid standard SG-DQN run is slightly below the June 4 SG-DQN run in tail reward, `10.34` versus `11.06`, but it is more stable in the important handover sense. Its worst post-warm episode is positive, `6.48`, and it has zero negative post-warm episodes. It also gives the best T85 MAE in this comparison, `0.1875`, which is better than OF-MPC's `0.1921`. The reduced grid therefore looks like a stability-improving ablation, not necessarily a maximum-reward ablation.
+
+The Aspen-6 legacy-reward SG-dueling run is a major recovery relative to the June 4 SG-dueling run. Under the current reward, tail reward moves from `6.35` to `10.38`, negative post-warm episodes fall from `43` to `5`, and T85 MAE improves from `0.2142` to `0.1956`. The executed tail schedule also becomes more concentrated: `(6, 3)` rises from `28.3%` to `44.3%`, and the switch fraction falls from `0.116` to `0.085`.
+
+This supports the stability hypothesis, but the mechanism should be stated carefully. Across the five RL reference trajectories in this June 5 analysis, tail reward has a very strong negative correlation with T85 MAE, about `-0.945`, and with the number of negative post-warm episodes, about `-0.974`. Its correlation with raw horizon concentration metrics is weaker: unique tail-pair count is about `-0.490`, default-pair fraction is about `-0.220`, and switch fraction is about `+0.102`. Therefore reward is directly tied to closed-loop stability and T85 protection. Horizon concentration helps when it prevents poor switching, but concentration alone is not sufficient.
+
+### Top Tail Pairs
+
+![June 5 top tail pairs](figures/distillation_sg_dqn_stability_reward_20260605/fig_june5_top_tail_pairs.png)
+
+The reduced-grid SG-DQN run mainly uses `(6, 3)` and `(8, 4)`, with tail fractions `24.0%` and `23.4%`. This is useful because `(8, 4)` is close to the reduced-grid center and was not part of the earlier manual whitelist. The Aspen-6 legacy dueling run mainly uses `(6, 3)`, `(10, 6)`, and `(9, 9)`, with tail fractions `44.3%`, `19.3%`, and `12.8%`.
+
+These pairs suggest that the next candidate recipe discussion should include medium-control candidates such as `(8, 4)`, `(10, 6)`, and `(9, 9)`, not only the earlier mined low-control pairs `(8, 2)` and `(11, 2)`. Starting `Nc` at `3` is therefore acceptable for the current stability-focused ablation.
+
+### Updated June 5 Recommendation
+
+Keep the reduced `Np = 6..11`, `Nc = 3..11` grid for the main standard SG-DQN stability run. It sacrifices about `0.72` tail reward relative to the June 4 `87`-action SG-DQN result, but it removes negative post-warm episodes and improves T85 MAE. That is a good trade for a distillation handover experiment.
+
+Do not interpret the Aspen-6 legacy-reward SG-dueling run as a clean proof that dueling DQN is fixed, because it changes multiple factors at once: Aspen preset, standard state, legacy reward, and the inherited `87`-action grid. It is still important evidence that a stable, default-heavy schedule can recover strong reward even for the dueling architecture.
+
+The next fair SG-dueling test should isolate one factor at a time. The cleanest follow-up would be standard-state SG-dueling with the current reward and the reduced `Np = 6..11`, `Nc = 3..11` grid, while keeping the Aspen-6 legacy-reward runner unchanged as a separate diagnostic check.

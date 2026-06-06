@@ -42,8 +42,10 @@ def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
     assert "mismatch" in configured["compare_prefix_override"]
     assert "critic_warm5" in configured["result_prefix_override"]
     assert "critic_warm5" in configured["compare_prefix_override"]
-    assert "margin1" in configured["result_prefix_override"]
-    assert "margin1" in configured["compare_prefix_override"]
+    assert "margin05" in configured["result_prefix_override"]
+    assert "margin05" in configured["compare_prefix_override"]
+    assert "paramnoise" in configured["result_prefix_override"]
+    assert "paramnoise" in configured["compare_prefix_override"]
     assert configured["warm_start_override"] == 10
     assert configured["post_warm_start_action_freeze_subepisodes"] == 5
     assert configured["post_warm_start_actor_freeze_subepisodes"] == 5
@@ -62,6 +64,12 @@ def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
     assert ramp_cfg["enabled"] is False
     assert ramp_cfg["diagnostic_release_gate_only"] is False
 
+    td3_cfg = configured["td3_agent"]
+    assert td3_cfg["exploration_mode"] == "param_noise"
+    assert td3_cfg["param_noise_std_start"] == 0.10
+    assert td3_cfg["param_noise_std_end"] == 0.02
+    assert td3_cfg["param_noise_resample_interval"] == 4
+
     safety_cfg = configured["residual_safety"]
     assert safety_cfg["enabled"] is True
     assert safety_cfg["fallback_to_zero_on_nonfinite"] is True
@@ -72,7 +80,7 @@ def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
     assert safety_cfg["shadow_direction_risk"]["enabled"] is False
 
     gate_cfg = configured["supervisor_gate"]
-    assert gate_cfg["advantage_margin"] == 1.0
+    assert gate_cfg["advantage_margin"] == 0.5
     assert gate_cfg["score_uncertainty_weight"] == 0.5
     assert gate_cfg["score_supervisor_action_weight"] == 0.05
     assert gate_cfg["score_previous_action_weight"] == 0.01

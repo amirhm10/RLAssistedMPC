@@ -8,7 +8,7 @@ diagnostics, and early-release guards.
 Training process:
 - During the 10 warm-start episodes, the executed residual is zero, so the plant
   follows OF-MPC.
-- During the next 3 episodes, the runner still executes the supervisor action
+- During the next 5 episodes, the runner still executes the supervisor action
   while replay is collected and critic updates occur.
 - After that critic-only window, the actor may train and the gate chooses the
   policy action only when its conservative critic score beats the zero-residual
@@ -35,13 +35,13 @@ def configure_sg_td3_residual_critic_warm(nb: dict) -> dict:
     nb["disturbance_profile"] = "fluctuation"
     nb["state_mode"] = "mismatch"
     nb["warm_start_override"] = 10
-    nb["post_warm_start_action_freeze_subepisodes"] = 3
-    nb["post_warm_start_actor_freeze_subepisodes"] = 3
+    nb["post_warm_start_action_freeze_subepisodes"] = 5
+    nb["post_warm_start_actor_freeze_subepisodes"] = 5
     nb["result_prefix_override"] = (
-        "distillation_residual_sg_td3_critic_warm3_manual_off_disturb_fluctuation_mismatch_no_rho"
+        "distillation_residual_sg_td3_critic_warm5_margin1_manual_off_disturb_fluctuation_mismatch_no_rho"
     )
     nb["compare_prefix_override"] = (
-        "distillation_compare_residual_sg_td3_critic_warm3_manual_off_disturb_fluctuation_mismatch"
+        "distillation_compare_residual_sg_td3_critic_warm5_margin1_manual_off_disturb_fluctuation_mismatch"
     )
 
     nb["residual_authority_enabled"] = False
@@ -85,7 +85,7 @@ def configure_sg_td3_residual_critic_warm(nb: dict) -> dict:
     nb["residual_safety"] = safety_cfg
 
     gate_cfg = deepcopy(nb.get("supervisor_gate", {}))
-    gate_cfg["advantage_margin"] = 0.5
+    gate_cfg["advantage_margin"] = 1.0
     gate_cfg["score_uncertainty_weight"] = 0.5
     gate_cfg["score_supervisor_action_weight"] = 0.05
     gate_cfg["score_previous_action_weight"] = 0.01
@@ -104,7 +104,7 @@ def main() -> dict:
         init_globals={
             "NB_CONFIGURE": configure_sg_td3_residual_critic_warm,
             "NOTEBOOK_SOURCE_OVERRIDE": THIS_RUNNER,
-            "RUN_SUMMARY_TITLE_OVERRIDE": "Distillation Residual SG-TD3 Critic-Warm-3 Manual-Off run summary",
+            "RUN_SUMMARY_TITLE_OVERRIDE": "Distillation Residual SG-TD3 Critic-Warm-5 Margin-1 Manual-Off run summary",
         },
     )
     globals().update(

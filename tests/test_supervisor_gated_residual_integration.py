@@ -40,9 +40,13 @@ def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
     assert configured["state_mode"] == "mismatch"
     assert "mismatch" in configured["result_prefix_override"]
     assert "mismatch" in configured["compare_prefix_override"]
+    assert "critic_warm5" in configured["result_prefix_override"]
+    assert "critic_warm5" in configured["compare_prefix_override"]
+    assert "margin1" in configured["result_prefix_override"]
+    assert "margin1" in configured["compare_prefix_override"]
     assert configured["warm_start_override"] == 10
-    assert configured["post_warm_start_action_freeze_subepisodes"] == 3
-    assert configured["post_warm_start_actor_freeze_subepisodes"] == 3
+    assert configured["post_warm_start_action_freeze_subepisodes"] == 5
+    assert configured["post_warm_start_actor_freeze_subepisodes"] == 5
     assert configured["residual_authority_enabled"] is False
     assert configured["authority_use_rho"] is False
     assert configured["use_rho_authority"] is False
@@ -68,7 +72,7 @@ def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
     assert safety_cfg["shadow_direction_risk"]["enabled"] is False
 
     gate_cfg = configured["supervisor_gate"]
-    assert gate_cfg["advantage_margin"] == 0.5
+    assert gate_cfg["advantage_margin"] == 1.0
     assert gate_cfg["score_uncertainty_weight"] == 0.5
     assert gate_cfg["score_supervisor_action_weight"] == 0.05
     assert gate_cfg["score_previous_action_weight"] == 0.01
@@ -96,6 +100,10 @@ def test_distillation_sg_td3_weights_and_markov_use_mismatch_state():
         assert configured["state_mode"] == "mismatch"
         assert "mismatch" in configured["result_prefix_override"]
         assert "mismatch" in configured["compare_prefix_override"]
+        assert "critic_warm5" in configured["result_prefix_override"]
+        assert "critic_warm5" in configured["compare_prefix_override"]
+        assert configured["post_warm_start_action_freeze_subepisodes"] == 5
+        assert configured["post_warm_start_actor_freeze_subepisodes"] == 5
 
     assert markov["markov_supervisor_mode"] == "ls_else_mpc"
     assert markov["markov_live_safety_mode"] == "shadow_only"

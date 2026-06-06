@@ -77,6 +77,8 @@ def test_wrapper_configs_set_sg_defaults_and_disable_old_safety():
         assert configured["state_mode"] == "mismatch"
         assert "mismatch" in configured["result_prefix_override"]
         assert "mismatch" in configured["compare_prefix_override"]
+        assert "critic_warm5" in configured["result_prefix_override"]
+        assert "critic_warm5" in configured["compare_prefix_override"]
         assert "np6_11_nc3_11" in configured["result_prefix_override"]
         assert "np6_11_nc3_11" in configured["compare_prefix_override"]
         assert configured["controller"]["predict_grid"] == list(range(6, 12))
@@ -88,7 +90,7 @@ def test_wrapper_configs_set_sg_defaults_and_disable_old_safety():
             )
         ) == 39
         assert configured["warm_start_override"] == 10
-        assert configured["post_warm_start_action_freeze_subepisodes"] == 3
+        assert configured["post_warm_start_action_freeze_subepisodes"] == 5
         assert configured["supervisor_gate"]["advantage_margin"] == 0.0
         assert configured["supervisor_gate"]["default_to_supervisor"] is True
         assert configured["supervisor_gate"]["min_train_steps_before_policy_gate"] == 0

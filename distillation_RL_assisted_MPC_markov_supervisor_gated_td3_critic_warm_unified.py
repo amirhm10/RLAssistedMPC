@@ -2,7 +2,7 @@
 
 This entrypoint mirrors the polymer Markov SG-TD3 critic-warm ablation for the
 Aspen C2 splitter case. It executes the dynamic LS-or-MPC Markov supervisor
-during warm start and a 5-subepisode critic-only window, then lets SG-TD3 choose
+during warm start and a 3-subepisode critic-only window, then lets SG-TD3 choose
 between the actor and the same supervisor action. Live Markov safety layers are
 disabled, while their shadow diagnostics remain logged in the result bundle.
 """
@@ -30,15 +30,15 @@ def configure_sg_td3_markov_critic_warm(nb: dict) -> dict:
     nb["disturbance_profile"] = "fluctuation"
     nb["state_mode"] = "mismatch"
     nb["warm_start_override"] = 10
-    nb["post_warm_start_action_freeze_subepisodes"] = 5
-    nb["post_warm_start_actor_freeze_subepisodes"] = 5
+    nb["post_warm_start_action_freeze_subepisodes"] = 3
+    nb["post_warm_start_actor_freeze_subepisodes"] = 3
     nb["markov_supervisor_mode"] = "ls_else_mpc"
     nb["markov_live_safety_mode"] = "shadow_only"
     nb["result_prefix_override"] = (
-        "distillation_markov_sg_td3_critic_warm5_ls_else_mpc_shadow_disturb_fluctuation_mismatch_paramnoise"
+        "distillation_markov_sg_td3_critic_warm3_margin05_softparamnoise_ls_else_mpc_shadow_disturb_fluctuation_mismatch"
     )
     nb["compare_prefix_override"] = (
-        "distillation_compare_markov_sg_td3_critic_warm5_ls_else_mpc_shadow_disturb_fluctuation_mismatch_paramnoise"
+        "distillation_compare_markov_sg_td3_critic_warm3_margin05_softparamnoise_ls_else_mpc_shadow_disturb_fluctuation_mismatch"
     )
 
     profiles = deepcopy(nb.get("run_profiles", {}))
@@ -110,13 +110,13 @@ def configure_sg_td3_markov_critic_warm(nb: dict) -> dict:
 
     td3_cfg = deepcopy(nb.get("td3_agent", {}))
     td3_cfg["exploration_mode"] = "param_noise"
-    td3_cfg["param_noise_std_start"] = 0.2
+    td3_cfg["param_noise_std_start"] = 0.10
     td3_cfg["param_noise_std_end"] = 0.02
     td3_cfg["param_noise_resample_interval"] = 4
     nb["td3_agent"] = td3_cfg
 
     gate_cfg = deepcopy(nb.get("supervisor_gate", {}))
-    gate_cfg["advantage_margin"] = 0.0
+    gate_cfg["advantage_margin"] = 0.5
     gate_cfg["score_uncertainty_weight"] = 0.5
     gate_cfg["score_supervisor_action_weight"] = 0.02
     gate_cfg["score_previous_action_weight"] = 0.01
@@ -135,7 +135,7 @@ def main() -> dict:
         init_globals={
             "NB_CONFIGURE": configure_sg_td3_markov_critic_warm,
             "NOTEBOOK_SOURCE_OVERRIDE": THIS_RUNNER,
-            "RUN_SUMMARY_TITLE_OVERRIDE": "Distillation Markov SG-TD3 Critic-Warm-5 LS-or-MPC run summary",
+            "RUN_SUMMARY_TITLE_OVERRIDE": "Distillation Markov SG-TD3 Critic-Warm-3 Margin-0.5 Soft-Param-Noise LS-or-MPC run summary",
         },
     )
     globals().update(

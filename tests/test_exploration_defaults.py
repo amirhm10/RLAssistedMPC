@@ -47,6 +47,26 @@ def test_distillation_td3_style_defaults_use_gaussian_noise():
         assert nb["td3_agent"]["exploration_mode"] == "gaussian"
 
 
+def test_distillation_agent_defaults_use_40k_replay_buffer():
+    families = (
+        "horizon_standard",
+        "horizon_dueling",
+        "matrix",
+        "structured_matrix",
+        "markov",
+        "weights",
+        "residual",
+        "reidentification",
+        "combined",
+    )
+    agent_keys = ("agent", "td3_agent", "sac_agent", "td7_agent")
+    for family in families:
+        nb = get_distillation_notebook_defaults(family)
+        for agent_key in agent_keys:
+            if agent_key in nb:
+                assert nb[agent_key]["buffer_size"] == 40_000
+
+
 def test_dueling_dqn_constructor_default_is_epsilon():
     agent = DuelingDQNAgent(
         state_dim=3,
@@ -64,6 +84,7 @@ def run_direct():
     test_distillation_discrete_defaults_use_epsilon_greedy()
     test_polymer_td3_style_defaults_use_gaussian_noise()
     test_distillation_td3_style_defaults_use_gaussian_noise()
+    test_distillation_agent_defaults_use_40k_replay_buffer()
     test_dueling_dqn_constructor_default_is_epsilon()
     print("exploration default tests passed")
 

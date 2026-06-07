@@ -56,7 +56,7 @@ def _copy_replay_defaults():
         #   the effective recent window as min(buffer_size, mult * set_points_len)
         # - replay_recent_window: explicit override; None keeps the derived value
         # - replay_alpha / replay_beta_*: standard PER priority and IS-weight controls
-        "buffer_size": 150_000,
+        "buffer_size": 40_000,
         "replay_frac_per": 0.5,
         "replay_frac_recent": 0.2,
         "replay_recent_window_mult": 5,
@@ -72,7 +72,7 @@ def _copy_active_replay_defaults():
     defaults = _copy_replay_defaults()
     defaults.update(
         {
-            "buffer_size": 150_000,
+            "buffer_size": 40_000,
             "replay_frac_per": 0.4,
             "replay_frac_recent": 0.3,
             "replay_recent_window_mult": 10,

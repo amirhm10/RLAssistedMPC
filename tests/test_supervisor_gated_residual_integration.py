@@ -108,15 +108,28 @@ def test_distillation_sg_td3_weights_and_markov_use_mismatch_state():
         assert configured["state_mode"] == "mismatch"
         assert "mismatch" in configured["result_prefix_override"]
         assert "mismatch" in configured["compare_prefix_override"]
-        assert "critic_warm5" in configured["result_prefix_override"]
-        assert "critic_warm5" in configured["compare_prefix_override"]
-        assert configured["post_warm_start_action_freeze_subepisodes"] == 5
-        assert configured["post_warm_start_actor_freeze_subepisodes"] == 5
+
+    assert "critic_warm5" in weights["result_prefix_override"]
+    assert "critic_warm5" in weights["compare_prefix_override"]
+    assert weights["post_warm_start_action_freeze_subepisodes"] == 5
+    assert weights["post_warm_start_actor_freeze_subepisodes"] == 5
+
+    assert "critic_warm3" in markov["result_prefix_override"]
+    assert "critic_warm3" in markov["compare_prefix_override"]
+    assert "margin05" in markov["result_prefix_override"]
+    assert "margin05" in markov["compare_prefix_override"]
+    assert "softparamnoise" in markov["result_prefix_override"]
+    assert "softparamnoise" in markov["compare_prefix_override"]
+    assert markov["post_warm_start_action_freeze_subepisodes"] == 3
+    assert markov["post_warm_start_actor_freeze_subepisodes"] == 3
 
     assert markov["markov_supervisor_mode"] == "ls_else_mpc"
     assert markov["markov_live_safety_mode"] == "shadow_only"
     assert markov["td3_agent"]["exploration_mode"] == "param_noise"
-    assert "paramnoise" in markov["result_prefix_override"]
+    assert markov["td3_agent"]["param_noise_std_start"] == 0.10
+    assert markov["td3_agent"]["param_noise_std_end"] == 0.02
+    assert markov["td3_agent"]["param_noise_resample_interval"] == 4
+    assert markov["supervisor_gate"]["advantage_margin"] == 0.5
 
 
 def test_polymer_sg_td3_critic_warm_wrappers_use_standard_state():

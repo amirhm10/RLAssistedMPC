@@ -40,15 +40,15 @@ def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
     assert configured["state_mode"] == "mismatch"
     assert "mismatch" in configured["result_prefix_override"]
     assert "mismatch" in configured["compare_prefix_override"]
-    assert "critic_warm5" in configured["result_prefix_override"]
-    assert "critic_warm5" in configured["compare_prefix_override"]
+    assert "critic_warm3" in configured["result_prefix_override"]
+    assert "critic_warm3" in configured["compare_prefix_override"]
     assert "margin05" in configured["result_prefix_override"]
     assert "margin05" in configured["compare_prefix_override"]
     assert "paramnoise" in configured["result_prefix_override"]
     assert "paramnoise" in configured["compare_prefix_override"]
     assert configured["warm_start_override"] == 10
-    assert configured["post_warm_start_action_freeze_subepisodes"] == 5
-    assert configured["post_warm_start_actor_freeze_subepisodes"] == 5
+    assert configured["post_warm_start_action_freeze_subepisodes"] == 3
+    assert configured["post_warm_start_actor_freeze_subepisodes"] == 3
     assert configured["residual_authority_enabled"] is False
     assert configured["authority_use_rho"] is False
     assert configured["use_rho_authority"] is False
@@ -109,10 +109,10 @@ def test_distillation_sg_td3_weights_and_markov_use_mismatch_state():
         assert "mismatch" in configured["result_prefix_override"]
         assert "mismatch" in configured["compare_prefix_override"]
 
-    assert "critic_warm5" in weights["result_prefix_override"]
-    assert "critic_warm5" in weights["compare_prefix_override"]
-    assert weights["post_warm_start_action_freeze_subepisodes"] == 5
-    assert weights["post_warm_start_actor_freeze_subepisodes"] == 5
+    assert "critic_warm3" in weights["result_prefix_override"]
+    assert "critic_warm3" in weights["compare_prefix_override"]
+    assert weights["post_warm_start_action_freeze_subepisodes"] == 3
+    assert weights["post_warm_start_actor_freeze_subepisodes"] == 3
 
     assert "critic_warm3" in markov["result_prefix_override"]
     assert "critic_warm3" in markov["compare_prefix_override"]

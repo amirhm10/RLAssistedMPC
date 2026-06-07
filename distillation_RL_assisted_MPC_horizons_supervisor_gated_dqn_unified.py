@@ -40,12 +40,12 @@ def configure_sg_dqn_horizon_critic_warm(nb: dict) -> dict:
     nb["disturbance_profile"] = "fluctuation"
     nb["state_mode"] = "mismatch"
     nb["warm_start_override"] = 10
-    nb["post_warm_start_action_freeze_subepisodes"] = 5
+    nb["post_warm_start_action_freeze_subepisodes"] = 3
     nb["result_prefix_override"] = (
-        "distillation_horizon_sg_dqn_critic_warm5_default_ofmpc_eps02_002_disturb_fluctuation_mismatch_np6_11_nc3_11"
+        "distillation_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_mismatch_np6_11_nc3_11"
     )
     nb["compare_prefix_override"] = (
-        "distillation_compare_horizon_sg_dqn_critic_warm5_default_ofmpc_eps02_002_disturb_fluctuation_mismatch_np6_11_nc3_11"
+        "distillation_compare_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_mismatch_np6_11_nc3_11"
     )
 
     ctrl_cfg = deepcopy(nb.get("controller", {}))
@@ -82,7 +82,7 @@ def main() -> dict:
         init_globals={
             "NB_CONFIGURE": configure_sg_dqn_horizon_critic_warm,
             "NOTEBOOK_SOURCE_OVERRIDE": THIS_RUNNER,
-            "RUN_SUMMARY_TITLE_OVERRIDE": "Distillation Horizon SG-DQN Critic-Warm-5 OF-MPC run summary",
+            "RUN_SUMMARY_TITLE_OVERRIDE": "Distillation Horizon SG-DQN Critic-Warm-3 OF-MPC run summary",
             "HORIZON_AGENT_CLASS_OVERRIDE": SupervisorGatedDQNAgent,
         },
     )

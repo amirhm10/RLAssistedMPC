@@ -1,0 +1,97 @@
+key,label,window,rank,Np,Nc,count,fraction
+horizon_current,Horizon SG-DQN replay40k,tail,1,6,3,3692,0.4615
+horizon_current,Horizon SG-DQN replay40k,tail,2,9,5,256,0.032
+horizon_current,Horizon SG-DQN replay40k,tail,3,6,4,224,0.028
+horizon_current,Horizon SG-DQN replay40k,tail,4,11,3,200,0.025
+horizon_current,Horizon SG-DQN replay40k,tail,5,6,6,188,0.0235
+horizon_current,Horizon SG-DQN replay40k,tail,6,11,5,168,0.021
+horizon_current,Horizon SG-DQN replay40k,tail,7,11,6,160,0.02
+horizon_current,Horizon SG-DQN replay40k,tail,8,11,4,148,0.0185
+horizon_current,Horizon SG-DQN replay40k,tail,9,11,11,140,0.0175
+horizon_current,Horizon SG-DQN replay40k,tail,10,8,6,140,0.0175
+horizon_current,Horizon SG-DQN replay40k,tail,11,6,5,140,0.0175
+horizon_current,Horizon SG-DQN replay40k,tail,12,7,7,124,0.0155
+horizon_current,Horizon SG-DQN replay40k,first_live,1,6,3,6257,0.782125
+horizon_current,Horizon SG-DQN replay40k,first_live,2,8,6,208,0.026
+horizon_current,Horizon SG-DQN replay40k,first_live,3,8,8,140,0.0175
+horizon_current,Horizon SG-DQN replay40k,first_live,4,8,4,132,0.0165
+horizon_current,Horizon SG-DQN replay40k,first_live,5,6,4,124,0.0155
+horizon_current,Horizon SG-DQN replay40k,first_live,6,7,6,84,0.0105
+horizon_current,Horizon SG-DQN replay40k,first_live,7,6,5,72,0.009
+horizon_current,Horizon SG-DQN replay40k,first_live,8,10,9,72,0.009
+horizon_current,Horizon SG-DQN replay40k,first_live,9,10,3,60,0.0075
+horizon_current,Horizon SG-DQN replay40k,first_live,10,7,4,56,0.007
+horizon_current,Horizon SG-DQN replay40k,first_live,11,10,6,48,0.006
+horizon_current,Horizon SG-DQN replay40k,first_live,12,11,4,44,0.0055
+horizon_previous,Horizon SG-DQN June 6,tail,1,6,4,1152,0.144
+horizon_previous,Horizon SG-DQN June 6,tail,2,6,6,1048,0.131
+horizon_previous,Horizon SG-DQN June 6,tail,3,6,3,1000,0.125
+horizon_previous,Horizon SG-DQN June 6,tail,4,8,6,564,0.0705
+horizon_previous,Horizon SG-DQN June 6,tail,5,6,5,340,0.0425
+horizon_previous,Horizon SG-DQN June 6,tail,6,7,4,288,0.036
+horizon_previous,Horizon SG-DQN June 6,tail,7,11,4,184,0.023
+horizon_previous,Horizon SG-DQN June 6,tail,8,10,8,184,0.023
+horizon_previous,Horizon SG-DQN June 6,tail,9,11,3,180,0.0225
+horizon_previous,Horizon SG-DQN June 6,tail,10,10,3,176,0.022
+horizon_previous,Horizon SG-DQN June 6,tail,11,9,4,176,0.022
+horizon_previous,Horizon SG-DQN June 6,tail,12,10,4,152,0.019
+horizon_previous,Horizon SG-DQN June 6,first_live,1,6,3,6185,0.773125
+horizon_previous,Horizon SG-DQN June 6,first_live,2,6,4,156,0.0195
+horizon_previous,Horizon SG-DQN June 6,first_live,3,9,3,140,0.0175
+horizon_previous,Horizon SG-DQN June 6,first_live,4,9,6,124,0.0155
+horizon_previous,Horizon SG-DQN June 6,first_live,5,10,7,100,0.0125
+horizon_previous,Horizon SG-DQN June 6,first_live,6,9,5,88,0.011
+horizon_previous,Horizon SG-DQN June 6,first_live,7,6,5,80,0.01
+horizon_previous,Horizon SG-DQN June 6,first_live,8,8,6,76,0.0095
+horizon_previous,Horizon SG-DQN June 6,first_live,9,11,10,68,0.0085
+horizon_previous,Horizon SG-DQN June 6,first_live,10,9,9,68,0.0085
+horizon_previous,Horizon SG-DQN June 6,first_live,11,11,6,68,0.0085
+horizon_previous,Horizon SG-DQN June 6,first_live,12,10,8,68,0.0085
+dueling_current,Dueling SG-DQN replay40k,tail,1,6,3,3588,0.4485
+dueling_current,Dueling SG-DQN replay40k,tail,2,8,7,2076,0.2595
+dueling_current,Dueling SG-DQN replay40k,tail,3,10,3,640,0.08
+dueling_current,Dueling SG-DQN replay40k,tail,4,10,5,180,0.0225
+dueling_current,Dueling SG-DQN replay40k,tail,5,11,3,168,0.021
+dueling_current,Dueling SG-DQN replay40k,tail,6,6,4,148,0.0185
+dueling_current,Dueling SG-DQN replay40k,tail,7,6,6,120,0.015
+dueling_current,Dueling SG-DQN replay40k,tail,8,6,5,116,0.0145
+dueling_current,Dueling SG-DQN replay40k,tail,9,7,6,112,0.014
+dueling_current,Dueling SG-DQN replay40k,tail,10,11,11,88,0.011
+dueling_current,Dueling SG-DQN replay40k,tail,11,11,9,60,0.0075
+dueling_current,Dueling SG-DQN replay40k,tail,12,7,4,60,0.0075
+dueling_current,Dueling SG-DQN replay40k,first_live,1,6,3,5265,0.658125
+dueling_current,Dueling SG-DQN replay40k,first_live,2,10,5,796,0.0995
+dueling_current,Dueling SG-DQN replay40k,first_live,3,6,4,224,0.028
+dueling_current,Dueling SG-DQN replay40k,first_live,4,8,7,152,0.019
+dueling_current,Dueling SG-DQN replay40k,first_live,5,7,3,152,0.019
+dueling_current,Dueling SG-DQN replay40k,first_live,6,6,6,148,0.0185
+dueling_current,Dueling SG-DQN replay40k,first_live,7,11,9,120,0.015
+dueling_current,Dueling SG-DQN replay40k,first_live,8,10,3,112,0.014
+dueling_current,Dueling SG-DQN replay40k,first_live,9,7,7,104,0.013
+dueling_current,Dueling SG-DQN replay40k,first_live,10,7,6,96,0.012
+dueling_current,Dueling SG-DQN replay40k,first_live,11,9,7,64,0.008
+dueling_current,Dueling SG-DQN replay40k,first_live,12,10,4,60,0.0075
+dueling_wide,Dueling SG-DQN June 4 wide,tail,1,6,3,2264,0.283
+dueling_wide,Dueling SG-DQN June 4 wide,tail,2,11,11,1520,0.19
+dueling_wide,Dueling SG-DQN June 4 wide,tail,3,12,9,620,0.0775
+dueling_wide,Dueling SG-DQN June 4 wide,tail,4,4,2,464,0.058
+dueling_wide,Dueling SG-DQN June 4 wide,tail,5,9,6,436,0.0545
+dueling_wide,Dueling SG-DQN June 4 wide,tail,6,12,4,372,0.0465
+dueling_wide,Dueling SG-DQN June 4 wide,tail,7,6,2,368,0.046
+dueling_wide,Dueling SG-DQN June 4 wide,tail,8,10,2,236,0.0295
+dueling_wide,Dueling SG-DQN June 4 wide,tail,9,14,2,160,0.02
+dueling_wide,Dueling SG-DQN June 4 wide,tail,10,4,3,140,0.0175
+dueling_wide,Dueling SG-DQN June 4 wide,tail,11,7,6,112,0.014
+dueling_wide,Dueling SG-DQN June 4 wide,tail,12,4,4,108,0.0135
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,1,6,3,4897,0.612125
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,2,11,3,440,0.055
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,3,4,2,360,0.045
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,4,12,9,268,0.0335
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,5,11,11,232,0.029
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,6,7,2,184,0.023
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,7,4,3,160,0.02
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,8,13,9,120,0.015
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,9,9,6,100,0.0125
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,10,13,12,92,0.0115
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,11,7,6,92,0.0115
+dueling_wide,Dueling SG-DQN June 4 wide,first_live,12,11,6,64,0.008

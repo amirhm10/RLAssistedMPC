@@ -32,6 +32,9 @@ if NB_CONFIGURE is not None:
 # Main notebook controls.
 # Edit these values for a one-off run, or edit systems/polymer/notebook_params.py
 # if you want the repo-wide defaults to change for every polymer horizon notebook.
+AGENT_KIND = str(NB.get("agent_kind", "dqn")).strip().lower()
+if AGENT_KIND not in {"dqn", "sg_dqn"}:
+    raise ValueError("Polymer horizon runner supports only AGENT_KIND 'dqn' or 'sg_dqn'.")
 RUN_MODE = NB["run_mode"]  # "nominal" | "disturb"
 STATE_MODE = NB["state_mode"]  # "standard" | "mismatch"
 STYLE_PROFILE = NB["style_profile"]  # "hybrid" | "paper" | "debug"
@@ -60,7 +63,9 @@ REPO_ROOT, DATA_DIR, RESULT_DIR = prepare_polymer_notebook_env(
 )
 os.chdir(REPO_ROOT)
 
-RUN_PROFILE = NB["run_profiles"][RUN_MODE]
+RUN_PROFILE = NB["run_profiles"].get((AGENT_KIND, RUN_MODE), NB["run_profiles"].get(RUN_MODE))
+if RUN_PROFILE is None:
+    raise KeyError(f"No run profile configured for {(AGENT_KIND, RUN_MODE)!r}.")
 
 # A full grouped summary is printed later once the runtime configuration is fully resolved.
 
@@ -72,7 +77,10 @@ import numpy as np
 import torch
 
 from DQN.dqn_agent import DQNAgent
-HORIZON_AGENT_CLASS = globals().get("HORIZON_AGENT_CLASS_OVERRIDE", DQNAgent)
+from DQN.supervisor_gated_dqn_agent import SupervisorGatedDQNAgent
+
+_DEFAULT_HORIZON_AGENT_CLASS = SupervisorGatedDQNAgent if AGENT_KIND == "sg_dqn" else DQNAgent
+HORIZON_AGENT_CLASS = globals().get("HORIZON_AGENT_CLASS_OVERRIDE", _DEFAULT_HORIZON_AGENT_CLASS)
 from Simulation.system_functions import PolymerCSTR
 from systems.polymer import (
     HORIZON_CONTROL_GRID,
@@ -305,7 +313,7 @@ print_grouped_notebook_summary(
         "Run setup": {"Run mode": RUN_MODE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "q_warm_release_subepisodes": POST_WARM_START_ACTION_FREEZE_SUBEPISODES, "test_cycle": TEST_CYCLE, "decision_interval": DECISION_INTERVAL, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START},
         "System / controller": {"delta_t_hours": delta_t, "predict_h": predict_h, "cont_h": cont_h, "predict_grid": PREDICT_GRID, "control_grid": CONTROL_GRID, "observer_poles": poles.tolist()},
         "Reward": reward_params,
-        "Agent": {"algorithm": "sg_dqn" if str(NB.get("agent_kind", "")).lower() == "sg_dqn" else "ddqn", "agent_kind": NB.get("agent_kind", "dqn"), "hidden_layers": AGENT_CFG["hidden_layers"], "buffer_size": BUFFER_SIZE, "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": EXPLORATION_MODE, "loss_type": LOSS_TYPE, "supervisor_gate": AGENT_CFG.get("supervisor_gate")},
+        "Agent": {"algorithm": "sg_dqn" if AGENT_KIND == "sg_dqn" else "ddqn", "agent_kind": AGENT_KIND, "hidden_layers": AGENT_CFG["hidden_layers"], "buffer_size": BUFFER_SIZE, "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": EXPLORATION_MODE, "loss_type": LOSS_TYPE, "supervisor_gate": AGENT_CFG.get("supervisor_gate")},
         "Replay": REPLAY_SETTINGS,
         "Safety": {"horizon_safety_enabled": bool(HORIZON_SAFETY_CFG.get("enabled", False)), "release_filter_enabled": bool(HORIZON_SAFETY_CFG.get("release_filter", {}).get("enabled", False)), "reward_probation_enabled": bool(HORIZON_SAFETY_CFG.get("reward_probation", {}).get("enabled", False)), "shadow_default_mpc_enabled": bool(HORIZON_SAFETY_CFG.get("shadow_default_mpc", {}).get("enabled", False))},
         "Mismatch": {"clip": MISMATCH_CLIP, "innovation_scale_mode": INNOVATION_SCALE_MODE, "tracking_scale_mode": TRACKING_SCALE_MODE, "tracking_eta_tol": TRACKING_ETA_TOL, "tracking_scale_floor_mode": TRACKING_SCALE_FLOOR_MODE},
@@ -321,8 +329,8 @@ print_grouped_notebook_summary(
 horizon_cfg = {
     "mode": RUN_MODE,
     "state_mode": STATE_MODE,
-    "algorithm": "sg_dqn" if str(NB.get("agent_kind", "")).lower() == "sg_dqn" else "ddqn",
-    "agent_kind": NB.get("agent_kind", "dqn"),
+    "algorithm": "sg_dqn" if AGENT_KIND == "sg_dqn" else "ddqn",
+    "agent_kind": AGENT_KIND,
         "mismatch_clip": MISMATCH_CLIP,
     "innovation_scale_mode": INNOVATION_SCALE_MODE,
     "innovation_scale_ref": INNOVATION_SCALE_REF,

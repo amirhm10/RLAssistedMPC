@@ -158,64 +158,48 @@ def test_wrapper_modules_reference_sg_agent_classes():
     assert dueling.SupervisorGatedDuelingDQNAgent is SupervisorGatedDuelingDQNAgent
 
 
-def test_polymer_wrapper_configs_set_sg_defaults_and_disable_old_safety():
-    from RL_assisted_MPC_horizons_supervisor_gated_dqn_unified import (
-        configure_sg_dqn_horizon_critic_warm,
-    )
-    from RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_unified import (
-        configure_sg_dueling_dqn_horizon_critic_warm,
-    )
+def test_polymer_horizon_defaults_use_simple_sg_dqn_mismatch():
+    configured = get_polymer_notebook_defaults("horizon_standard")
 
-    standard = configure_sg_dqn_horizon_critic_warm(get_polymer_notebook_defaults("horizon_standard"))
-    dueling = configure_sg_dueling_dqn_horizon_critic_warm(get_polymer_notebook_defaults("horizon_dueling"))
+    assert configured["agent_kind"] == "sg_dqn"
+    assert configured["run_mode"] == "disturb"
+    assert configured["state_mode"] == "mismatch"
+    assert ("dqn", "disturb") in configured["run_profiles"]
+    assert ("sg_dqn", "disturb") in configured["run_profiles"]
+    assert configured["episode_defaults"]["warm_start"] == 10
+    assert configured["post_warm_start_action_freeze_subepisodes"] == 3
+    assert configured["controller"]["predict_h"] == 9
+    assert configured["controller"]["cont_h"] == 3
+    assert configured["supervisor_gate"]["advantage_margin"] == 0.0
+    assert configured["supervisor_gate"]["default_to_supervisor"] is True
+    assert configured["supervisor_gate"]["min_train_steps_before_policy_gate"] == 0
+    assert configured["agent"]["supervisor_gate"] == configured["supervisor_gate"]
+    assert configured["agent"]["exploration_mode"] == "epsilon"
+    assert configured["agent"]["eps_start"] == 0.2
+    assert configured["agent"]["eps_end"] == 0.02
+    assert configured["agent"]["eps_decay_steps"] == 38_000
+    assert configured["agent"]["n_step"] == 1
+    assert configured["agent"]["multistep_mode"] == "one_step"
 
-    assert standard["agent_kind"] == "sg_dqn"
-    assert dueling["agent_kind"] == "sg_dueling_dqn"
-    for configured in (standard, dueling):
-        assert configured["run_mode"] == "disturb"
-        assert configured["state_mode"] == "standard"
-        assert configured["warm_start_override"] == 10
-        assert configured["post_warm_start_action_freeze_subepisodes"] == 3
-        assert "standard" in configured["result_prefix_override"]
-        assert "standard" in configured["compare_prefix_override"]
-        assert configured["controller"]["predict_h"] == 9
-        assert configured["controller"]["cont_h"] == 3
-        assert configured["supervisor_gate"]["advantage_margin"] == 0.0
-        assert configured["supervisor_gate"]["default_to_supervisor"] is True
-        assert configured["supervisor_gate"]["min_train_steps_before_policy_gate"] == 0
-        assert configured["agent"]["supervisor_gate"] == configured["supervisor_gate"]
-        assert configured["agent"]["exploration_mode"] == "epsilon"
-        assert configured["agent"]["eps_start"] == 0.2
-        assert configured["agent"]["eps_end"] == 0.02
-        assert configured["agent"]["eps_decay_steps"] == 38_000
-        safety = configured["horizon_safety"]
-        assert safety["enabled"] is False
-        assert safety["release_filter"]["enabled"] is False
-        assert safety["reward_probation"]["enabled"] is False
-        assert safety["shadow_default_mpc"]["enabled"] is False
+    safety = configured["horizon_safety"]
+    assert safety["enabled"] is False
+    assert safety["release_filter"]["enabled"] is False
+    assert safety["reward_probation"]["enabled"] is False
+    assert safety["shadow_default_mpc"]["enabled"] is False
 
-    assert standard["agent"]["multistep_mode"] == "one_step"
-    assert dueling["agent"]["multistep_mode"] == "n_step"
+    profile = configured["run_profiles"][("sg_dqn", "disturb")]
+    assert "sg_dqn" in profile["result_prefix"]
+    assert "mismatch" in profile["result_prefix"]
+    assert "critic_warm3" in profile["result_prefix"]
 
 
-def test_polymer_wrapper_modules_reference_sg_agent_classes():
-    import RL_assisted_MPC_horizons_supervisor_gated_dqn_unified as standard
-    import RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_unified as dueling
-
-    assert standard.SupervisorGatedDQNAgent is SupervisorGatedDQNAgent
-    assert dueling.SupervisorGatedDuelingDQNAgent is SupervisorGatedDuelingDQNAgent
-
-
-def test_polymer_exported_scripts_expose_wrapper_hooks_without_execution():
+def test_polymer_exported_script_selects_sg_agent_without_wrapper():
     standard_source = (ROOT / "RL_assisted_MPC_horizons_unified.py").read_text(encoding="utf-8")
-    dueling_source = (ROOT / "RL_assisted_MPC_horizons_dueling_unified.py").read_text(encoding="utf-8")
 
-    for source in (standard_source, dueling_source):
-        assert "NB_CONFIGURE" in source
-        assert "NOTEBOOK_SOURCE_OVERRIDE" in source
-        assert "RUN_SUMMARY_TITLE_OVERRIDE" in source
-        assert "HORIZON_AGENT_CLASS_OVERRIDE" in source
-        assert "supervisor_gate_config" in source
+    assert "SupervisorGatedDQNAgent" in standard_source
+    assert "AGENT_KIND not in" in standard_source
+    assert "sg_dqn" in standard_source
+    assert "supervisor_gate_config" in standard_source
 
 
 def test_sg_horizon_helper_tie_defaults_to_supervisor():
@@ -331,9 +315,8 @@ def run_direct():
     test_wrapper_configs_set_sg_defaults_and_disable_old_safety()
     test_distillation_dueling_aspen6_legacy_reward_wrapper_config()
     test_wrapper_modules_reference_sg_agent_classes()
-    test_polymer_wrapper_configs_set_sg_defaults_and_disable_old_safety()
-    test_polymer_wrapper_modules_reference_sg_agent_classes()
-    test_polymer_exported_scripts_expose_wrapper_hooks_without_execution()
+    test_polymer_horizon_defaults_use_simple_sg_dqn_mismatch()
+    test_polymer_exported_script_selects_sg_agent_without_wrapper()
     test_sg_horizon_helper_tie_defaults_to_supervisor()
     test_sg_horizon_helper_selects_policy_when_q_advantage_is_positive()
     test_held_interval_is_logged_as_held()

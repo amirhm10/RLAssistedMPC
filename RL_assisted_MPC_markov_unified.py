@@ -25,7 +25,9 @@ if NB_CONFIGURE is not None:
     if configured_nb is not None:
         NB = configured_nb
 
-AGENT_KIND = NB["agent_kind"]
+AGENT_KIND = str(NB["agent_kind"]).strip().lower()
+if AGENT_KIND not in {"td3", "sg_td3"}:
+    raise ValueError("Polymer Markov runner supports only AGENT_KIND 'td3' or 'sg_td3'.")
 RUN_MODE = NB["run_mode"]
 STATE_MODE = str(NB.get("state_mode", "mismatch")).strip().lower()
 STYLE_PROFILE = NB["style_profile"]
@@ -149,7 +151,7 @@ gain_drift_max = float(CTRL["gain_drift_max"])
 nominal_cost_relative_tol = float(CTRL["nominal_cost_relative_tol"])
 nominal_cost_absolute_tol = float(CTRL["nominal_cost_absolute_tol"])
 nominal_solver_mode = str(CTRL.get("nominal_solver_mode", "state_space_shared"))
-agent_seed = SAC_CFG.get("seed") if AGENT_KIND == "sg_sac" else TD3_CFG.get("seed")
+agent_seed = TD3_CFG.get("seed")
 mismatch_clip = float(CTRL["mismatch_clip"])
 base_state_norm_mode = str(CTRL["base_state_norm_mode"])
 base_state_running_norm_clip = float(CTRL["base_state_running_norm_clip"])
@@ -245,7 +247,7 @@ print_grouped_notebook_summary(
             "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START,
         },
         "Behavioral cloning": BEHAVIORAL_CLONING,
-        "Supervisor gate": SUPERVISOR_GATE_CFG if AGENT_KIND in {"sg_td3", "sg_sac"} else None,
+        "Supervisor gate": SUPERVISOR_GATE_CFG if AGENT_KIND == "sg_td3" else None,
         "Reward": reward_params,
         "Debug": {
             "debug_validate_lifted": debug_validate_lifted,
@@ -361,7 +363,7 @@ out_dir_rl = plot_markov_correction_results(
         "save_pdf": SAVE_PDF,
         "style_profile": STYLE_PROFILE,
         "save_agent_checkpoint": rl_save_agent_checkpoint,
-        "agent_checkpoint_prefix": "sg_sac_markov_agent" if AGENT_KIND == "sg_sac" else "td3_markov_agent",
+        "agent_checkpoint_prefix": "sg_td3_markov_agent" if AGENT_KIND == "sg_td3" else "td3_markov_agent",
         "s_pred_min": s_pred_min,
     },
 )

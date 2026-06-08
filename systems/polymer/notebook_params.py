@@ -467,13 +467,14 @@ POLYMER_BASELINE_DEFAULTS = {
 }
 
 POLYMER_HORIZON_STANDARD_DEFAULTS = {
+    "agent_kind": "sg_dqn",
     "run_mode": "disturb",  # Options: "nominal" | "disturb"
     "state_mode": "mismatch",  # Options: "standard" | "mismatch"
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": {
-        "nominal": {
+        ("dqn", "nominal"): {
             "use_disturbance": False,
             "result_prefix": "horizon_nominal_unified",
             "compare_prefix": "nominal_compare_horizon_unified",
@@ -481,10 +482,26 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
             "compare_start_episode": 1,
             "compare_mode": "nominal",
         },
-        "disturb": {
+        ("dqn", "disturb"): {
             "use_disturbance": True,
             "result_prefix": "horizon_disturb_unified",
             "compare_prefix": "disturb_compare_horizon_unified",
+            "plot_start_episode": 5,
+            "compare_start_episode": 2,
+            "compare_mode": "disturb",
+        },
+        ("sg_dqn", "nominal"): {
+            "use_disturbance": False,
+            "result_prefix": "horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_nominal_mismatch",
+            "compare_prefix": "nominal_compare_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_mismatch",
+            "plot_start_episode": 5,
+            "compare_start_episode": 1,
+            "compare_mode": "nominal",
+        },
+        ("sg_dqn", "disturb"): {
+            "use_disturbance": True,
+            "result_prefix": "horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_mismatch",
+            "compare_prefix": "disturb_compare_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_mismatch",
             "plot_start_episode": 5,
             "compare_start_episode": 2,
             "compare_mode": "disturb",
@@ -495,6 +512,13 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
         "set_points_len": 400,
         "warm_start": 10,
         "test_cycle": [False, False, False, False, False],
+    },
+    "post_warm_start_action_freeze_subepisodes": 3,
+    "horizon_safety": {
+        "enabled": False,
+        "reward_probation": {"enabled": False},
+        "release_filter": {"enabled": False},
+        "shadow_default_mpc": {"enabled": False},
     },
     "controller": {
         "predict_grid": list(HORIZON_PREDICT_GRID),
@@ -535,10 +559,21 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
         "target_combine": "q1",  # Retained for compatibility; the cleaned DDQN path ignores alternate combines.
         "exploration_mode": "epsilon",  # Options: "epsilon" | "noisy"
         "loss_type": "huber",  # Options: "huber" | "mse"
-        "eps_start": 0.3,
-        "eps_end": 0.01,
+        "eps_start": 0.2,
+        "eps_end": 0.02,
         "eps_decay_rate": 0.99999,
         "eps_decay_mode": "exp",  # Options: "linear" | "exp" | "cosine"
+        "eps_decay_steps": 38_000,
+        "supervisor_gate": {
+            "advantage_margin": 0.0,
+            "default_to_supervisor": True,
+            "min_train_steps_before_policy_gate": 0,
+        },
+    },
+    "supervisor_gate": {
+        "advantage_margin": 0.0,
+        "default_to_supervisor": True,
+        "min_train_steps_before_policy_gate": 0,
     },
     "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
@@ -734,7 +769,7 @@ POLYMER_MATRIX_DEFAULTS = {
 }
 
 POLYMER_MARKOV_DEFAULTS = {
-    "agent_kind": "td3",
+    "agent_kind": "sg_td3",
     "run_mode": "disturb",
     "state_mode": "mismatch",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
@@ -756,29 +791,15 @@ POLYMER_MARKOV_DEFAULTS = {
             "compare_start_episode": 2,
         },
         ("sg_td3", "nominal"): {
-            "result_prefix": "sg_td3_markov_critic_warm3_nominal",
-            "compare_prefix": "nominal_compare_sg_td3_markov_critic_warm3",
+            "result_prefix": "sg_td3_markov_critic_warm3_ls_else_mpc_shadow_nominal_mismatch",
+            "compare_prefix": "nominal_compare_sg_td3_markov_critic_warm3_ls_else_mpc_shadow_mismatch",
             "compare_mode": "nominal",
             "plot_start_episode": 2,
             "compare_start_episode": 2,
         },
         ("sg_td3", "disturb"): {
-            "result_prefix": "sg_td3_markov_critic_warm3_disturb",
-            "compare_prefix": "disturb_compare_sg_td3_markov_critic_warm3",
-            "compare_mode": "disturb",
-            "plot_start_episode": 2,
-            "compare_start_episode": 2,
-        },
-        ("sg_sac", "nominal"): {
-            "result_prefix": "sg_sac_markov_critic_warm3_nominal",
-            "compare_prefix": "nominal_compare_sg_sac_markov_critic_warm3",
-            "compare_mode": "nominal",
-            "plot_start_episode": 2,
-            "compare_start_episode": 2,
-        },
-        ("sg_sac", "disturb"): {
-            "result_prefix": "sg_sac_markov_critic_warm3_disturb",
-            "compare_prefix": "disturb_compare_sg_sac_markov_critic_warm3",
+            "result_prefix": "sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb_mismatch",
+            "compare_prefix": "disturb_compare_sg_td3_markov_critic_warm3_ls_else_mpc_shadow_mismatch",
             "compare_mode": "disturb",
             "plot_start_episode": 2,
             "compare_start_episode": 2,
@@ -788,7 +809,7 @@ POLYMER_MARKOV_DEFAULTS = {
     "post_warm_start_action_freeze_subepisodes": 3,
     "post_warm_start_actor_freeze_subepisodes": 3,
     "markov_supervisor_mode": "ls_else_mpc",
-    "markov_live_safety_mode": "default",
+    "markov_live_safety_mode": "shadow_only",
     # TD3-priority Markov releases through runner-level fallback caps rather
     # than post-warm-start LS imitation.
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
@@ -796,6 +817,13 @@ POLYMER_MARKOV_DEFAULTS = {
         target_mode="ls_action",
         lambda_bc_start=0.2,
         active_subepisodes=0,
+        release_gate={"enabled": False, "diagnostic_only": False},
+        handoff={
+            "enabled": False,
+            "start_authority": 1.0,
+            "end_authority": 1.0,
+            "active_subepisodes": 0,
+        },
         tail_anchor={
             "enabled": False,
             "weight": 0.03,
@@ -837,13 +865,23 @@ POLYMER_MARKOV_DEFAULTS = {
         "run_adaptive_ls": True,
         "run_live_corrected_mpc": True,
         "run_rl_proposal": True,
-        "rl_fallback_to_ls": True,
-        # Keep the original guarded execution order in the unified notebook:
-        # TD3 proposal -> LS fallback -> nominal fallback.
+        "rl_fallback_to_ls": False,
+        # Active SG runs execute the gate decision directly after the protected
+        # critic window; the older Markov fallbacks are retained as shadow
+        # diagnostics below.
         "force_td3_execute": False,
+        "force_td3_respects_warm_start": True,
         "rl_store_executed_action_in_replay": True,
-        "td3_priority_fallback": _copy_td3_priority_fallback_defaults(enabled=True),
-        "z_safety": _copy_markov_z_safety_defaults(enabled=True),
+        "td3_priority_fallback": {"enabled": False},
+        "td3_authority_ramp": {"enabled": False},
+        "z_safety": {"enabled": False},
+        "markov_shadow_safety": {
+            "enabled": True,
+            "compute_ls_candidate": False,
+            "z_safety": _copy_markov_z_safety_defaults(enabled=True),
+            "td3_priority_fallback": _copy_td3_priority_fallback_defaults(enabled=True),
+            "bc_handoff": {"enabled": False},
+        },
         "rl_save_agent_checkpoint": True,
         "debug_validate_lifted": False,
         "debug_run_shadow_ls": False,
@@ -1048,7 +1086,7 @@ POLYMER_REIDENTIFICATION_DEFAULTS = {
 }
 
 POLYMER_WEIGHT_DEFAULTS = {
-    "agent_kind": "td3",
+    "agent_kind": "sg_td3",
     "run_mode": "disturb",
     "state_mode": "mismatch",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
@@ -1057,14 +1095,34 @@ POLYMER_WEIGHT_DEFAULTS = {
     "run_profiles": {
         ("td3", "nominal"): {"result_prefix": "td3_weights_nominal", "compare_prefix": "nominal_compare_td3_weights", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
         ("td3", "disturb"): {"result_prefix": "td3_weights_disturb", "compare_prefix": "disturb_compare_td3_weights", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sac", "nominal"): {"result_prefix": "sac_weights_nominal", "compare_prefix": "nominal_compare_sac_weights", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sac", "disturb"): {"result_prefix": "sac_weights_disturb", "compare_prefix": "disturb_compare_sac_weights", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sg_sac", "nominal"): {"result_prefix": "sg_sac_weights_critic_warm3_nominal", "compare_prefix": "nominal_compare_sg_sac_weights_critic_warm3", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sg_sac", "disturb"): {"result_prefix": "sg_sac_weights_critic_warm3_disturb", "compare_prefix": "disturb_compare_sg_sac_weights_critic_warm3", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("sg_td3", "nominal"): {"result_prefix": "sg_td3_weights_critic_warm3_conservative_nominal_mismatch", "compare_prefix": "nominal_compare_sg_td3_weights_critic_warm3_conservative_mismatch", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("sg_td3", "disturb"): {"result_prefix": "sg_td3_weights_critic_warm3_conservative_disturb_mismatch", "compare_prefix": "disturb_compare_sg_td3_weights_critic_warm3_conservative_mismatch", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
     "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
-    "post_warm_start_action_freeze_subepisodes": 5,
-    "post_warm_start_actor_freeze_subepisodes": 5,
+    "post_warm_start_action_freeze_subepisodes": 3,
+    "post_warm_start_actor_freeze_subepisodes": 3,
+    "behavioral_cloning": _copy_behavioral_cloning_defaults(
+        enabled=False,
+        target_mode="nominal_only",
+        lambda_bc_start=0.0,
+        active_subepisodes=0,
+        handoff={
+            "enabled": False,
+            "start_authority": 1.0,
+            "end_authority": 1.0,
+            "active_subepisodes": 0,
+        },
+        release_gate={"enabled": False, "diagnostic_only": False},
+        tail_anchor={"enabled": False},
+    ),
+    "td3_authority_ramp": {"enabled": False, "diagnostic_release_gate_only": False},
+    "weight_safety": {
+        "enabled": True,
+        "fallback_to_identity_on_nonfinite": True,
+        "fallback_to_identity_on_solve_failure": False,
+        "reward_probation": {"enabled": False},
+        "shadow_identity_mpc": {"enabled": False, "diagnostic_stride": 5},
+    },
     "controller": {
         "predict_h": 9,
         "cont_h": 3,
@@ -1137,12 +1195,26 @@ POLYMER_WEIGHT_DEFAULTS = {
         "actor_q_mode": "min",
         "loss_type": "huber",
     },
+    "supervisor_gate": {
+        "score_uncertainty_weight": 0.5,
+        "score_previous_action_weight": 0.01,
+        "score_supervisor_action_weight": 0.05,
+        "advantage_margin": 0.5,
+        "default_to_supervisor": True,
+        "actor_q_mode": "mean",
+        "supervisor_bc_weight": 0.0,
+        "supervisor_bc_temperature": 1.0,
+        "smooth_action_weight": 0.0,
+        "detach_supervisor_weight": True,
+        "enable_supervisor_actor_loss": False,
+        "min_train_steps_before_policy_gate": 0,
+    },
     "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
 }
 
 POLYMER_RESIDUAL_DEFAULTS = {
-    "agent_kind": "td3",
+    "agent_kind": "sg_td3",
     "run_mode": "disturb",
     "state_mode": "mismatch",  # Options: "standard" | "mismatch". The latter feeds the authority error to the agent and normalizes it in the same way as the state features.
     **_copy_residual_authority_defaults(),
@@ -1150,53 +1222,49 @@ POLYMER_RESIDUAL_DEFAULTS = {
     "append_rho_to_state": False,
     "authority_use_rho": False,
     "use_rho_authority": False,  # Legacy alias kept for notebook compatibility.
+    "residual_zero_deadband_enabled": False,
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": {
         ("td3", "nominal"): {"result_prefix": "td3_residual_nominal", "compare_prefix": "nominal_compare_td3_residual", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
         ("td3", "disturb"): {"result_prefix": "td3_residual_disturb", "compare_prefix": "disturb_compare_td3_residual", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("td7", "nominal"): {"result_prefix": "td7_residual_nominal", "compare_prefix": "nominal_compare_td7_residual", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("td7", "disturb"): {"result_prefix": "td7_residual_disturb", "compare_prefix": "disturb_compare_td7_residual", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sg_td3", "nominal"): {"result_prefix": "sg_td3_residual_nominal", "compare_prefix": "nominal_compare_sg_td3_residual", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sg_td3", "disturb"): {"result_prefix": "sg_td3_residual_disturb", "compare_prefix": "disturb_compare_sg_td3_residual", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sac", "nominal"): {"result_prefix": "sac_residual_nominal", "compare_prefix": "nominal_compare_sac_residual", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sac", "disturb"): {"result_prefix": "sac_residual_disturb", "compare_prefix": "disturb_compare_sac_residual", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sg_sac", "nominal"): {"result_prefix": "sg_sac_residual_critic_warm3_nominal", "compare_prefix": "nominal_compare_sg_sac_residual_critic_warm3", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sg_sac", "disturb"): {"result_prefix": "sg_sac_residual_critic_warm3_disturb", "compare_prefix": "disturb_compare_sg_sac_residual_critic_warm3", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("sg_td3", "nominal"): {"result_prefix": "sg_td3_residual_critic_warm3_conservative_nominal_mismatch", "compare_prefix": "nominal_compare_sg_td3_residual_critic_warm3_conservative_mismatch", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("sg_td3", "disturb"): {"result_prefix": "sg_td3_residual_critic_warm3_conservative_disturb_mismatch", "compare_prefix": "disturb_compare_sg_td3_residual_critic_warm3_conservative_mismatch", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
     "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
-    "post_warm_start_action_freeze_subepisodes": 0,
-    "post_warm_start_actor_freeze_subepisodes": 0,
+    "post_warm_start_action_freeze_subepisodes": 3,
+    "post_warm_start_actor_freeze_subepisodes": 3,
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
-        enabled=True,
+        enabled=False,
         target_mode="nominal_only",
-        lambda_bc_start=1.0,
-        lambda_bc_end=0.05,
+        lambda_bc_start=0.0,
+        lambda_bc_end=0.0,
         decay_mode="exp",
-        active_subepisodes=10,
-        start_after_warm_start=False,
+        active_subepisodes=0,
+        start_after_warm_start=True,
         action_gap_tolerance=1e-6,
         release_gate={
-            "enabled": True,
-            "diagnostic_only": True,
+            "enabled": False,
+            "diagnostic_only": False,
             "window_subepisodes": 1,
             "mean_action_gap_max": 0.25,
             "max_coordinate_gap_max": 0.20,
             "min_window_fraction": 1.0,
         },
         handoff={
-            "enabled": True,
+            "enabled": False,
             "mode": "raw_action_blend",
-            "start_authority": 0.1,
+            "start_authority": 1.0,
             "end_authority": 1.0,
-            "active_subepisodes": 10,
+            "active_subepisodes": 0,
             "start_after_warm_start": True,
         },
+        tail_anchor={"enabled": False},
     ),
     "td3_authority_ramp": {
         **_copy_td3_authority_ramp_defaults("residual"),
-        "enabled": True,
+        "enabled": False,
         "diagnostic_release_gate_only": False,
     },
     "residual_safety": {
@@ -1210,16 +1278,16 @@ POLYMER_RESIDUAL_DEFAULTS = {
         },
         "fallback_to_zero_on_nonfinite": True,
         "shadow_rho_authority": {
-            "enabled": True,
+            "enabled": False,
         },
         "shadow_residual_deadband": {
-            "enabled": True,
+            "enabled": False,
         },
         "shadow_direction_risk": {
-            "enabled": True,
+            "enabled": False,
         },
         "early_release_guard": {
-            "enabled": True,
+            "enabled": False,
             "post_warm_subepisodes": 20,
             "objective_relative_tolerance": 0.05,
             "objective_absolute_tolerance": 1e-8,
@@ -1271,18 +1339,18 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "param_noise_resample_interval": 4,
     },
     "supervisor_gate": {
-        "score_uncertainty_weight": 0.0,
-        "score_previous_action_weight": 0.0,
-        "score_supervisor_action_weight": 0.0,
-        "advantage_margin": 0.0,
+        "score_uncertainty_weight": 0.5,
+        "score_previous_action_weight": 0.01,
+        "score_supervisor_action_weight": 0.05,
+        "advantage_margin": 0.5,
         "default_to_supervisor": True,
         "actor_q_mode": "mean",
-        "supervisor_bc_weight": 0.01,
+        "supervisor_bc_weight": 0.0,
         "supervisor_bc_temperature": 1.0,
         "smooth_action_weight": 0.0,
         "detach_supervisor_weight": True,
-        "enable_supervisor_actor_loss": True,
-        "min_train_steps_before_policy_gate": 500,
+        "enable_supervisor_actor_loss": False,
+        "min_train_steps_before_policy_gate": 0,
     },
     "td7_agent": _copy_td7_agent_defaults(),
     "sac_agent": {

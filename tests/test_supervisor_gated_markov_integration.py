@@ -10,12 +10,6 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from RL_assisted_MPC_markov_supervisor_gated_td3_critic_warm_unified import (
-    configure_sg_td3_markov_critic_warm,
-)
-from RL_assisted_MPC_markov_supervisor_gated_td3_critic_warm_standard_standard_unified import (
-    configure_sg_td3_markov_critic_warm_standard_standard,
-)
 from TD3Agent.supervisor_gated_agent import SupervisorGatedTD3Agent
 from TD3Agent.supervisor_replay_buffer import SOURCE_POLICY
 from systems.polymer import get_polymer_notebook_defaults
@@ -30,38 +24,47 @@ from utils.markov_runner import (
 
 def test_polymer_markov_sg_td3_profile_available():
     nb = get_polymer_notebook_defaults("markov")
+    assert nb["agent_kind"] == "sg_td3"
+    assert nb["run_mode"] == "disturb"
+    assert nb["state_mode"] == "mismatch"
     assert ("sg_td3", "disturb") in nb["run_profiles"]
     assert ("sg_td3", "nominal") in nb["run_profiles"]
+    assert ("sg_sac", "disturb") not in nb["run_profiles"]
     assert nb["markov_supervisor_mode"] == "ls_else_mpc"
     assert "supervisor_gate" in nb
 
 
-def test_polymer_sg_td3_markov_critic_warm_config_shadow_only():
-    configured = configure_sg_td3_markov_critic_warm(get_polymer_notebook_defaults("markov"))
+def test_polymer_sg_td3_markov_defaults_shadow_only():
+    configured = get_polymer_notebook_defaults("markov")
     ctrl = configured["controller"]
     bc = configured["behavioral_cloning"]
 
     assert configured["agent_kind"] == "sg_td3"
     assert configured["run_mode"] == "disturb"
-    assert configured["state_mode"] == "standard"
-    assert configured["warm_start_override"] == 10
+    assert configured["state_mode"] == "mismatch"
+    assert configured["episode_defaults"]["warm_start"] == 10
     assert configured["post_warm_start_action_freeze_subepisodes"] == 3
     assert configured["post_warm_start_actor_freeze_subepisodes"] == 3
     assert configured["markov_supervisor_mode"] == "ls_else_mpc"
     assert configured["markov_live_safety_mode"] == "shadow_only"
-    assert "standard" in configured["result_prefix_override"]
-    assert "standard" in configured["compare_prefix_override"]
+    assert "mismatch" in configured["run_profiles"][("sg_td3", "disturb")]["result_prefix"]
     assert bc["enabled"] is False
     assert bc["handoff"]["enabled"] is False
     assert ctrl["z_safety"]["enabled"] is False
     assert ctrl["td3_priority_fallback"]["enabled"] is False
     assert ctrl["td3_authority_ramp"]["enabled"] is False
     assert ctrl["rl_fallback_to_ls"] is False
+    assert ctrl["force_td3_respects_warm_start"] is True
     assert ctrl["markov_shadow_safety"]["enabled"] is True
+    assert ctrl["markov_shadow_safety"]["compute_ls_candidate"] is False
+    assert configured["supervisor_gate"]["advantage_margin"] == 0.0
+    assert configured["supervisor_gate"]["score_uncertainty_weight"] == 0.5
+    assert configured["supervisor_gate"]["score_supervisor_action_weight"] == 0.02
+    assert configured["supervisor_gate"]["score_previous_action_weight"] == 0.01
 
 
 def test_make_td3_markov_agent_returns_supervisor_gated_agent():
-    configured = configure_sg_td3_markov_critic_warm(get_polymer_notebook_defaults("markov"))
+    configured = get_polymer_notebook_defaults("markov")
     agent = make_td3_markov_agent(configured, state_dim=12, action_dim=4, set_points_len=20)
     assert isinstance(agent, SupervisorGatedTD3Agent)
 
@@ -117,15 +120,12 @@ def test_markov_base_only_standard_state_dimension_excludes_markov_features():
     assert mismatch_base_only_dim == standard_base_only_dim + 2 * 2
 
 
-def test_polymer_sg_td3_markov_standard_standard_config_base_only():
-    configured = configure_sg_td3_markov_critic_warm_standard_standard(get_polymer_notebook_defaults("markov"))
+def test_polymer_markov_simple_runner_is_td3_only():
+    source = (ROOT / "RL_assisted_MPC_markov_unified.py").read_text(encoding="utf-8")
 
-    assert configured["agent_kind"] == "sg_td3"
-    assert configured["state_mode"] == "standard"
-    assert configured["markov_agent_state_features"] == "base_only"
-    assert "standard_standard" in configured["result_prefix_override"]
-    assert "standard_standard" in configured["compare_prefix_override"]
-    assert configured["run_profiles"][("sg_td3", "disturb")]["result_prefix"].endswith("standard_standard")
+    assert "AGENT_KIND not in" in source
+    assert "sg_td3" in source
+    assert "sg_sac" not in source
 
 
 def test_standard_markov_mode_still_computes_observer_innovation():
@@ -164,7 +164,7 @@ def test_resolve_markov_supervisor_action_ls_else_mpc():
 
 
 def test_supervisor_gated_markov_replay_metadata_roundtrip():
-    configured = configure_sg_td3_markov_critic_warm(get_polymer_notebook_defaults("markov"))
+    configured = get_polymer_notebook_defaults("markov")
     agent = make_td3_markov_agent(configured, state_dim=6, action_dim=4, set_points_len=20)
     state = np.zeros(6, dtype=np.float32)
     next_state = np.ones(6, dtype=np.float32) * 0.1
@@ -194,11 +194,11 @@ def test_supervisor_gated_markov_replay_metadata_roundtrip():
 
 def run_direct():
     test_polymer_markov_sg_td3_profile_available()
-    test_polymer_sg_td3_markov_critic_warm_config_shadow_only()
+    test_polymer_sg_td3_markov_defaults_shadow_only()
     test_make_td3_markov_agent_returns_supervisor_gated_agent()
     test_markov_standard_state_dimension_excludes_mismatch_features()
     test_markov_base_only_standard_state_dimension_excludes_markov_features()
-    test_polymer_sg_td3_markov_standard_standard_config_base_only()
+    test_polymer_markov_simple_runner_is_td3_only()
     test_standard_markov_mode_still_computes_observer_innovation()
     test_resolve_markov_supervisor_action_ls_else_mpc()
     test_supervisor_gated_markov_replay_metadata_roundtrip()

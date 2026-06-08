@@ -8,13 +8,50 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 
-def test_polymer_residual_sg_td3_profile_available():
+def test_polymer_weights_and_residual_sg_td3_defaults():
     from systems.polymer import get_polymer_notebook_defaults
 
-    nb = get_polymer_notebook_defaults("residual")
-    assert ("sg_td3", "disturb") in nb["run_profiles"]
-    assert ("sg_td3", "nominal") in nb["run_profiles"]
-    assert "supervisor_gate" in nb
+    for family in ("weights", "residual"):
+        nb = get_polymer_notebook_defaults(family)
+        assert nb["agent_kind"] == "sg_td3"
+        assert nb["run_mode"] == "disturb"
+        assert nb["state_mode"] == "mismatch"
+        assert ("td3", "disturb") in nb["run_profiles"]
+        assert ("sg_td3", "disturb") in nb["run_profiles"]
+        assert ("sg_sac", "disturb") not in nb["run_profiles"]
+        assert ("td7", "disturb") not in nb["run_profiles"]
+        assert nb["episode_defaults"]["warm_start"] == 10
+        assert nb["post_warm_start_action_freeze_subepisodes"] == 3
+        assert nb["post_warm_start_actor_freeze_subepisodes"] == 3
+        gate_cfg = nb["supervisor_gate"]
+        assert gate_cfg["advantage_margin"] == 0.5
+        assert gate_cfg["score_uncertainty_weight"] == 0.5
+        assert gate_cfg["score_supervisor_action_weight"] == 0.05
+        assert gate_cfg["score_previous_action_weight"] == 0.01
+        assert gate_cfg["supervisor_bc_weight"] == 0.0
+        assert gate_cfg["enable_supervisor_actor_loss"] is False
+        assert gate_cfg["min_train_steps_before_policy_gate"] == 0
+
+    weights = get_polymer_notebook_defaults("weights")
+    assert weights["behavioral_cloning"]["enabled"] is False
+    assert weights["behavioral_cloning"]["handoff"]["enabled"] is False
+    assert weights["weight_safety"]["enabled"] is True
+    assert weights["weight_safety"]["fallback_to_identity_on_nonfinite"] is True
+    assert weights["weight_safety"]["fallback_to_identity_on_solve_failure"] is False
+
+    residual = get_polymer_notebook_defaults("residual")
+    assert residual["residual_authority_enabled"] is False
+    assert residual["authority_use_rho"] is False
+    assert residual["append_rho_to_state"] is False
+    assert residual["residual_zero_deadband_enabled"] is False
+    assert residual["behavioral_cloning"]["enabled"] is False
+    assert residual["behavioral_cloning"]["handoff"]["enabled"] is False
+    assert residual["td3_authority_ramp"]["enabled"] is False
+    assert residual["residual_safety"]["fallback_to_zero_on_nonfinite"] is True
+    assert residual["residual_safety"]["early_release_guard"]["enabled"] is False
+    assert residual["residual_safety"]["shadow_rho_authority"]["enabled"] is False
+    assert residual["residual_safety"]["shadow_residual_deadband"]["enabled"] is False
+    assert residual["residual_safety"]["shadow_direction_risk"]["enabled"] is False
 
 
 def test_distillation_residual_sg_td3_profile_available():
@@ -132,25 +169,16 @@ def test_distillation_sg_td3_weights_and_markov_use_mismatch_state():
     assert markov["supervisor_gate"]["advantage_margin"] == 0.5
 
 
-def test_polymer_sg_td3_critic_warm_wrappers_use_standard_state():
-    from RL_assisted_MPC_residual_supervisor_gated_td3_critic_warm_unified import (
-        configure_critic_warm_start,
-    )
-    from RL_assisted_MPC_weights_supervisor_gated_td3_critic_warm_unified import (
-        configure_sg_td3_weights_critic_warm,
-    )
-    from systems.polymer import get_polymer_notebook_defaults
+def test_polymer_weights_and_residual_simple_runners_are_td3_only():
+    weights_source = (ROOT / "RL_assisted_MPC_weights_unified.py").read_text(encoding="utf-8")
+    residual_source = (ROOT / "RL_assisted_MPC_residual_unified.py").read_text(encoding="utf-8")
 
-    residual = configure_critic_warm_start(get_polymer_notebook_defaults("residual"))
-    weights = configure_sg_td3_weights_critic_warm(get_polymer_notebook_defaults("weights"))
-
-    for configured in (residual, weights):
-        assert configured["agent_kind"] == "sg_td3"
-        assert configured["run_mode"] == "disturb"
-        assert configured["state_mode"] == "standard"
-        assert configured["warm_start_override"] == 10
-        assert "standard" in configured["result_prefix_override"]
-        assert "standard" in configured["compare_prefix_override"]
+    for source in (weights_source, residual_source):
+        assert "SupervisorGatedTD3Agent" in source
+        assert "AGENT_KIND not in" in source
+        assert "sg_td3" in source
+        assert "sg_sac" not in source
+        assert "SupervisorGatedSACAgent" not in source
 
 
 def test_residual_runner_imports_with_supervisor_gated_branch():
@@ -160,11 +188,11 @@ def test_residual_runner_imports_with_supervisor_gated_branch():
 
 
 def run_direct():
-    test_polymer_residual_sg_td3_profile_available()
+    test_polymer_weights_and_residual_sg_td3_defaults()
     test_distillation_residual_sg_td3_profile_available()
     test_distillation_sg_td3_critic_warm_config_manual_layers_off()
     test_distillation_sg_td3_weights_and_markov_use_mismatch_state()
-    test_polymer_sg_td3_critic_warm_wrappers_use_standard_state()
+    test_polymer_weights_and_residual_simple_runners_are_td3_only()
     test_residual_runner_imports_with_supervisor_gated_branch()
     print("supervisor_gated_residual_integration tests passed")
 

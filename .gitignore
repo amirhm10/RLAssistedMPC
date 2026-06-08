@@ -24,3 +24,6 @@ __pycache__/
 # Generated report figures and analysis assets should stay local.
 report/figures/*
 !report/figures/.gitkeep
+
+# Local manuscript drafts and generated paper assets.
+Paper/

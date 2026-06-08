@@ -51,6 +51,7 @@ def test_polymer_sg_td3_markov_defaults_shadow_only():
     assert bc["enabled"] is False
     assert bc["handoff"]["enabled"] is False
     assert ctrl["z_safety"]["enabled"] is False
+    assert ctrl["z_bound"] == 0.10
     assert ctrl["td3_priority_fallback"]["enabled"] is False
     assert ctrl["td3_authority_ramp"]["enabled"] is False
     assert ctrl["rl_fallback_to_ls"] is False

@@ -20,4 +20,4 @@ from .data_io import (
     resolve_polymer_result_dir,
 )
 from .labels import POLYMER_SYSTEM_METADATA
-from .notebook_params import get_polymer_notebook_defaults
+from .notebook_params import get_polymer_notebook_defaults, resolve_polymer_combined_agent_kinds

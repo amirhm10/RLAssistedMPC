@@ -1388,6 +1388,7 @@ POLYMER_RESIDUAL_DEFAULTS = {
 
 POLYMER_COMBINED_DEFAULTS = {
     "run_mode": "disturb",
+    "combined_agent_mode": "sg",  # Options: "sg" | "plain"; active combined runs do not mix these.
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
@@ -1395,29 +1396,37 @@ POLYMER_COMBINED_DEFAULTS = {
     #   True -> instantiate that agent block
     #   False -> leave it out of the combined supervisor
     "enable_horizon": True,
-    "horizon_agent_kind": "dqn",
+    "horizon_agent_kind": "sg_dqn",
     "horizon_state_mode": "mismatch",
     "enable_markov": True,
-    "markov_agent_kind": "td3",
+    "markov_agent_kind": "sg_td3",
     "markov_state_mode": "mismatch",
     "enable_matrix": False,
     "matrix_agent_kind": "td3",
     "matrix_state_mode": "mismatch",
     "enable_weights": True,
-    "weights_agent_kind": "td3",
+    "weights_agent_kind": "sg_td3",
     "weights_state_mode": "mismatch",
     "enable_residual": True,
-    "residual_agent_kind": "td3",
+    "residual_agent_kind": "sg_td3",
     "residual_state_mode": "mismatch",
     **_copy_residual_authority_defaults(),
-    "use_rho_authority": True,  # Legacy alias kept for notebook compatibility.
+    "residual_authority_enabled": False,
+    "append_rho_to_state": False,
+    "authority_use_rho": False,
+    "use_rho_authority": False,  # Legacy alias kept for notebook compatibility.
+    "residual_zero_deadband_enabled": False,
     "run_profiles": {
         "nominal": {"result_prefix_template": "combined_nominal_{suffix}", "compare_prefix_template": "nominal_compare_combined_{suffix}", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
         "disturb": {"result_prefix_template": "combined_disturb_{suffix}", "compare_prefix_template": "disturb_compare_combined_{suffix}", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
     "episode_defaults": deepcopy(POLYMER_HORIZON_STANDARD_DEFAULTS["episode_defaults"]),
-    "td3_post_warm_start_action_freeze_subepisodes": 5,
-    "td3_post_warm_start_actor_freeze_subepisodes": 5,
+    "horizon_post_warm_start_action_freeze_subepisodes": POLYMER_HORIZON_STANDARD_DEFAULTS["post_warm_start_action_freeze_subepisodes"],
+    "td3_post_warm_start_action_freeze_subepisodes": 3,
+    "td3_post_warm_start_actor_freeze_subepisodes": 3,
+    "horizon_safety": deepcopy(POLYMER_HORIZON_STANDARD_DEFAULTS["horizon_safety"]),
+    "weight_safety": deepcopy(POLYMER_WEIGHT_DEFAULTS["weight_safety"]),
+    "residual_safety": deepcopy(POLYMER_RESIDUAL_DEFAULTS["residual_safety"]),
     "controller": {
         "decision_interval": 4,
         "predict_grid": list(HORIZON_PREDICT_GRID),
@@ -1444,6 +1453,7 @@ POLYMER_COMBINED_DEFAULTS = {
         "rl_store_executed_action_in_replay": POLYMER_MARKOV_DEFAULTS["controller"]["rl_store_executed_action_in_replay"],
         "td3_priority_fallback": deepcopy(POLYMER_MARKOV_DEFAULTS["controller"]["td3_priority_fallback"]),
         "z_safety": deepcopy(POLYMER_MARKOV_DEFAULTS["controller"]["z_safety"]),
+        "markov_shadow_safety": deepcopy(POLYMER_MARKOV_DEFAULTS["controller"]["markov_shadow_safety"]),
         "model_low": _polymer_matrix_multiplier_bounds()[0],
         "model_high": _polymer_matrix_multiplier_bounds()[1],
         "weights_low": POLYMER_WEIGHT_DEFAULTS["controller"]["low_coef"].copy(),
@@ -1463,17 +1473,15 @@ POLYMER_COMBINED_DEFAULTS = {
         "ha_change": 0.85,
     },
     "horizon_agent": deepcopy(POLYMER_HORIZON_STANDARD_DEFAULTS["agent"]),
-    "horizon_dueling_agent": deepcopy(POLYMER_HORIZON_DUELING_DEFAULTS["agent"]),
     "markov_td3_agent": deepcopy(POLYMER_MARKOV_DEFAULTS["td3_agent"]),
-    "matrix_td3_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
-    "matrix_sac_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["sac_agent"]),
     "weights_td3_agent": deepcopy(POLYMER_WEIGHT_DEFAULTS["td3_agent"]),
-    "weights_sac_agent": deepcopy(POLYMER_WEIGHT_DEFAULTS["sac_agent"]),
     "residual_td3_agent": deepcopy(POLYMER_RESIDUAL_DEFAULTS["td3_agent"]),
-    "residual_sac_agent": deepcopy(POLYMER_RESIDUAL_DEFAULTS["sac_agent"]),
+    "horizon_supervisor_gate": deepcopy(POLYMER_HORIZON_STANDARD_DEFAULTS["supervisor_gate"]),
+    "markov_supervisor_gate": deepcopy(POLYMER_MARKOV_DEFAULTS["supervisor_gate"]),
+    "weights_supervisor_gate": deepcopy(POLYMER_WEIGHT_DEFAULTS["supervisor_gate"]),
+    "residual_supervisor_gate": deepcopy(POLYMER_RESIDUAL_DEFAULTS["supervisor_gate"]),
     # Backward-compatible aliases for older notebook cells.
-    "td3_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
-    "sac_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["sac_agent"]),
+    "td3_agent": deepcopy(POLYMER_WEIGHT_DEFAULTS["td3_agent"]),
     "reward": _copy_reward_defaults(),
     "system_setup": deepcopy(POLYMER_SYSTEM_SETUP),
 }
@@ -1503,6 +1511,26 @@ POLYMER_NOTEBOOK_DEFAULTS = {
     "combined": POLYMER_COMBINED_DEFAULTS,
     "poles_experiment": POLYMER_POLES_EXPERIMENT_DEFAULTS,
 }
+
+
+def resolve_polymer_combined_agent_kinds(combined_agent_mode: str) -> dict:
+    """Return the active combined runner agent kinds for an SG/plain mode."""
+    mode = str(combined_agent_mode).strip().lower()
+    if mode == "sg":
+        return {
+            "horizon_agent_kind": "sg_dqn",
+            "markov_agent_kind": "sg_td3",
+            "weights_agent_kind": "sg_td3",
+            "residual_agent_kind": "sg_td3",
+        }
+    if mode == "plain":
+        return {
+            "horizon_agent_kind": "dqn",
+            "markov_agent_kind": "td3",
+            "weights_agent_kind": "td3",
+            "residual_agent_kind": "td3",
+        }
+    raise ValueError("combined_agent_mode must be 'sg' or 'plain'.")
 
 
 def get_polymer_notebook_defaults(family: str) -> dict:

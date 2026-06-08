@@ -8,6 +8,12 @@ from DQN.supervisor_gated_dqn_agent import (
     SOURCE_SUPERVISOR,
     SOURCE_WARM_START,
 )
+from TD3Agent.supervisor_replay_buffer import (
+    SOURCE_FALLBACK as CONTINUOUS_SOURCE_FALLBACK,
+    SOURCE_HELD as CONTINUOUS_SOURCE_HELD,
+    SOURCE_SUPERVISOR as CONTINUOUS_SOURCE_SUPERVISOR,
+    SOURCE_WARM_START as CONTINUOUS_SOURCE_WARM_START,
+)
 from utils.phase1_hidden_release import (
     ACTION_SOURCE_HELD_INTERVAL,
     ACTION_SOURCE_PHASE1_HIDDEN_BASELINE,
@@ -51,6 +57,30 @@ class ContinuousStepDecision:
     last_action_test: bool | None
     decision_taken: int
     policy_action: np.ndarray | None
+    source: int
+    phase1_hidden_active: bool
+    nonfinite_fallback_used: bool = False
+
+
+@dataclass
+class SupervisorGatedContinuousStepDecision:
+    action: np.ndarray
+    last_action: np.ndarray | None
+    last_action_test: bool | None
+    decision_taken: int
+    policy_action: np.ndarray
+    supervisor_action: np.ndarray
+    previous_action: np.ndarray
+    selected_source: int
+    score_policy: float
+    score_supervisor: float
+    advantage_policy_supervisor: float
+    q1_policy: float
+    q2_policy: float
+    q1_supervisor: float
+    q2_supervisor: float
+    q_gap_policy: float
+    q_gap_supervisor: float
     source: int
     phase1_hidden_active: bool
     nonfinite_fallback_used: bool = False
@@ -397,6 +427,197 @@ def select_continuous_action(
     )
 
 
+def _nan_sg_continuous_decision(
+    *,
+    action,
+    last_action,
+    last_action_test,
+    decision_taken: int,
+    policy_action,
+    supervisor_action,
+    previous_action,
+    selected_source: int,
+    source: int,
+    phase1_hidden_active: bool,
+    nonfinite_fallback_used: bool = False,
+) -> SupervisorGatedContinuousStepDecision:
+    return SupervisorGatedContinuousStepDecision(
+        action=np.asarray(action, float).reshape(-1),
+        last_action=None if last_action is None else np.asarray(last_action, float).reshape(-1),
+        last_action_test=last_action_test,
+        decision_taken=int(decision_taken),
+        policy_action=np.asarray(policy_action, float).reshape(-1),
+        supervisor_action=np.asarray(supervisor_action, float).reshape(-1),
+        previous_action=np.asarray(previous_action, float).reshape(-1),
+        selected_source=int(selected_source),
+        score_policy=float("nan"),
+        score_supervisor=float("nan"),
+        advantage_policy_supervisor=float("nan"),
+        q1_policy=float("nan"),
+        q2_policy=float("nan"),
+        q1_supervisor=float("nan"),
+        q2_supervisor=float("nan"),
+        q_gap_policy=float("nan"),
+        q_gap_supervisor=float("nan"),
+        source=int(source),
+        phase1_hidden_active=bool(phase1_hidden_active),
+        nonfinite_fallback_used=bool(nonfinite_fallback_used),
+    )
+
+
+def select_supervisor_gated_continuous_action(
+    *,
+    agent,
+    state,
+    step: int,
+    warm_start_step: int,
+    decision_interval: int = 1,
+    last_action=None,
+    last_action_test: bool | None = None,
+    first_live_action_step: int | None = None,
+    test: bool,
+    baseline_action,
+    supervisor_action=None,
+    previous_action=None,
+    phase1=None,
+    action_dim: int | None = None,
+    nonfinite_fallback: bool = False,
+) -> SupervisorGatedContinuousStepDecision:
+    """Select a continuous action with an SG-TD3 gate against a supervisor."""
+    baseline = np.asarray(baseline_action, float).reshape(-1)
+    supervisor = (
+        baseline.copy()
+        if supervisor_action is None
+        else np.asarray(supervisor_action, float).reshape(-1)
+    )
+    if supervisor.size != baseline.size:
+        raise ValueError(
+            f"supervisor_action has size {supervisor.size}, expected {baseline.size}."
+        )
+    hidden_active = bool(
+        phase1 is not None
+        and phase1.get("enabled", False)
+        and bool(phase1["hidden_window_active_log"][step])
+    )
+    decision_interval = int(max(1, decision_interval))
+    first_live = (
+        int(first_live_action_step)
+        if first_live_action_step is not None
+        else int(phase1.get("first_live_action_step", int(warm_start_step) + 1))
+        if phase1 is not None
+        else int(warm_start_step) + 1
+    )
+    last = None if last_action is None else np.asarray(last_action, float).reshape(-1)
+    held_action_available = (
+        last is not None
+        and last.size == supervisor.size
+        and np.all(np.isfinite(last))
+        and last_action_test is not None
+        and bool(last_action_test) == bool(test)
+    )
+    if previous_action is not None:
+        previous = np.asarray(previous_action, float).reshape(-1)
+    elif held_action_available:
+        previous = last.copy()
+    else:
+        previous = supervisor.copy()
+    if previous.size != supervisor.size or not np.all(np.isfinite(previous)):
+        previous = supervisor.copy()
+
+    step = int(step)
+    warm_start_step = int(warm_start_step)
+    if step <= warm_start_step:
+        return _nan_sg_continuous_decision(
+            action=supervisor,
+            last_action=None,
+            last_action_test=None,
+            decision_taken=0,
+            policy_action=supervisor,
+            supervisor_action=supervisor,
+            previous_action=previous,
+            selected_source=CONTINUOUS_SOURCE_WARM_START,
+            source=ACTION_SOURCE_WARM_START_BASELINE,
+            phase1_hidden_active=False,
+        )
+
+    live_offset = max(0, step - first_live)
+    should_decide = (live_offset % decision_interval == 0) or not held_action_available
+    if hidden_active or should_decide:
+        sg_decision = agent.select_action_with_supervisor(
+            np.asarray(state, np.float32),
+            supervisor_action=supervisor,
+            previous_action=previous,
+            explore=not bool(test),
+            test=bool(test),
+        )
+        if hidden_active:
+            action = supervisor.copy()
+            last_next = None
+            last_action_test_next = None
+            decision_taken = 0
+            selected_source = CONTINUOUS_SOURCE_SUPERVISOR
+            source = ACTION_SOURCE_PHASE1_HIDDEN_BASELINE
+        else:
+            action = np.asarray(sg_decision.action, float).reshape(-1)
+            last_next = action.copy()
+            last_action_test_next = bool(test)
+            decision_taken = 1
+            selected_source = int(sg_decision.selected_source)
+            source = ACTION_SOURCE_POLICY_EVAL_LIVE if test else ACTION_SOURCE_POLICY_TRAIN_LIVE
+        nonfinite_fallback_used = False
+        if nonfinite_fallback and (
+            action.size != supervisor.size or not np.all(np.isfinite(action))
+        ):
+            action = supervisor.copy()
+            last_next = None
+            last_action_test_next = None
+            decision_taken = 0
+            selected_source = CONTINUOUS_SOURCE_FALLBACK
+            nonfinite_fallback_used = True
+        if action_dim is not None and action.size != int(action_dim):
+            raise ValueError(
+                f"Continuous action has size {action.size}, expected {int(action_dim)}."
+            )
+        return SupervisorGatedContinuousStepDecision(
+            action=np.asarray(action, float).reshape(-1),
+            last_action=None if last_next is None else np.asarray(last_next, float).reshape(-1),
+            last_action_test=last_action_test_next,
+            decision_taken=int(decision_taken),
+            policy_action=np.asarray(sg_decision.policy_action, float).reshape(-1),
+            supervisor_action=np.asarray(sg_decision.supervisor_action, float).reshape(-1),
+            previous_action=previous,
+            selected_source=selected_source,
+            score_policy=float(sg_decision.score_policy),
+            score_supervisor=float(sg_decision.score_supervisor),
+            advantage_policy_supervisor=float(sg_decision.advantage_policy_supervisor),
+            q1_policy=float(sg_decision.q1_policy),
+            q2_policy=float(sg_decision.q2_policy),
+            q1_supervisor=float(sg_decision.q1_supervisor),
+            q2_supervisor=float(sg_decision.q2_supervisor),
+            q_gap_policy=float(sg_decision.q_gap_policy),
+            q_gap_supervisor=float(sg_decision.q_gap_supervisor),
+            source=int(source),
+            phase1_hidden_active=hidden_active,
+            nonfinite_fallback_used=nonfinite_fallback_used,
+        )
+
+    action = last.copy()
+    if action_dim is not None and action.size != int(action_dim):
+        raise ValueError(f"Continuous action has size {action.size}, expected {int(action_dim)}.")
+    return _nan_sg_continuous_decision(
+        action=action,
+        last_action=last,
+        last_action_test=last_action_test,
+        decision_taken=0,
+        policy_action=action,
+        supervisor_action=supervisor,
+        previous_action=previous,
+        selected_source=CONTINUOUS_SOURCE_HELD,
+        source=ACTION_SOURCE_HELD_INTERVAL,
+        phase1_hidden_active=False,
+    )
+
+
 def replay_train_continuous_agent(
     *,
     agent,
@@ -422,6 +643,49 @@ def replay_train_continuous_agent(
             float(reward),
             np.asarray(next_state, np.float32),
             float(done),
+        )
+        pushed = True
+        if step >= train_start_step:
+            train_meta = agent.train_step(bc_context=bc_context)
+            trained = True
+            if phase1_train_traces is not None:
+                record_phase1_train_step(phase1_train_traces, step, train_meta)
+    return {"pushed": pushed, "trained": trained, "train_meta": train_meta}
+
+
+def replay_train_supervisor_gated_continuous_agent(
+    *,
+    agent,
+    state,
+    action,
+    reward: float,
+    next_state,
+    done: float,
+    step: int,
+    test: bool,
+    train_start_step: int,
+    decision: SupervisorGatedContinuousStepDecision,
+    phase1_train_traces=None,
+    bc_context=None,
+) -> dict:
+    """Push/train an SG-TD3 agent using executed-action supervised replay."""
+    pushed = False
+    trained = False
+    train_meta = None
+    if not test:
+        agent.push_supervised(
+            np.asarray(state, np.float32),
+            np.asarray(action, np.float32),
+            float(reward),
+            np.asarray(next_state, np.float32),
+            float(done),
+            policy_action=np.asarray(decision.policy_action, np.float32),
+            supervisor_action=np.asarray(decision.supervisor_action, np.float32),
+            previous_action=np.asarray(decision.previous_action, np.float32),
+            selected_source=int(decision.selected_source),
+            score_policy=float(decision.score_policy),
+            score_supervisor=float(decision.score_supervisor),
+            advantage_policy_supervisor=float(decision.advantage_policy_supervisor),
         )
         pushed = True
         if step >= train_start_step:

@@ -7,8 +7,12 @@ from Simulation.mpc import MpcSolverGeneral
 from utils.agent_step_runtime import (
     replay_train_continuous_agent,
     replay_train_horizon_agent,
+    replay_train_supervisor_gated_continuous_agent,
+    replay_train_supervisor_gated_horizon_agent,
     select_continuous_action,
     select_horizon_action,
+    select_supervisor_gated_continuous_action,
+    select_supervisor_gated_horizon_action,
 )
 from utils.helpers import (
     action_to_horizons,
@@ -80,6 +84,10 @@ def _map_from_bounds(value, low, high):
 
 def _normalize_state_mode(cfg, default="standard"):
     return str(cfg.get("state_mode", default)).lower()
+
+
+def _is_sg_td3_agent_kind(agent_kind):
+    return str(agent_kind).strip().lower() == "sg_td3"
 
 
 def _maybe_get_agent(agents, name, enabled):
@@ -345,14 +353,22 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     horizon_agent_kind = str(
         horizon_cfg.get("agent_kind", combined_cfg.get("horizon_agent_kind", "dqn"))
     ).lower()
-    if horizon_agent_kind not in {"dqn", "dueling_dqn"}:
-        raise ValueError("horizon agent_kind must be 'dqn' or 'dueling_dqn'.")
+    if horizon_agent_kind not in {"dqn", "sg_dqn"}:
+        raise ValueError("horizon agent_kind must be 'dqn' or 'sg_dqn'.")
     markov_agent_kind = str(markov_cfg.get("agent_kind", "td3")).lower()
-    if markov_enabled and markov_agent_kind != "td3":
-        raise ValueError("markov agent_kind must be 'td3' in the combined Markov supervisor.")
+    if markov_enabled and markov_agent_kind not in {"td3", "sg_td3"}:
+        raise ValueError("markov agent_kind must be 'td3' or 'sg_td3' in the combined Markov supervisor.")
     matrix_agent_kind = str(matrix_cfg.get("agent_kind", "td3")).lower()
     weight_agent_kind = str(weight_cfg.get("agent_kind", "td3")).lower()
     residual_agent_kind = str(residual_cfg.get("agent_kind", "td3")).lower()
+    if weight_enabled and weight_agent_kind not in {"td3", "sg_td3"}:
+        raise ValueError("weight agent_kind must be 'td3' or 'sg_td3'.")
+    if residual_enabled and residual_agent_kind not in {"td3", "sg_td3"}:
+        raise ValueError("residual agent_kind must be 'td3' or 'sg_td3'.")
+    horizon_sg_enabled = horizon_agent_kind == "sg_dqn"
+    markov_sg_enabled = _is_sg_td3_agent_kind(markov_agent_kind)
+    weight_sg_enabled = _is_sg_td3_agent_kind(weight_agent_kind)
+    residual_sg_enabled = _is_sg_td3_agent_kind(residual_agent_kind)
     markov_state_mode = _normalize_state_mode(markov_cfg, "mismatch")
     matrix_state_mode = _normalize_state_mode(matrix_cfg)
     weight_state_mode = _normalize_state_mode(weight_cfg)
@@ -461,9 +477,13 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
 
     td3_phase1_action_freeze_subepisodes = int(combined_cfg.get("td3_post_warm_start_action_freeze_subepisodes", 0))
     td3_phase1_actor_freeze_subepisodes = int(combined_cfg.get("td3_post_warm_start_actor_freeze_subepisodes", 0))
+    horizon_action_freeze_steps = int(
+        max(0, int(horizon_cfg.get("post_warm_start_action_freeze_subepisodes", 0)))
+        * int(time_in_sub_episodes)
+    )
 
     markov_phase1 = None
-    if markov_enabled and markov_agent is not None and markov_agent_kind == "td3":
+    if markov_enabled and markov_agent is not None and markov_agent_kind in {"td3", "sg_td3"}:
         markov_phase1 = build_phase1_schedule(
             agent_kind=markov_agent_kind,
             warm_start_step=warm_start_step,
@@ -499,7 +519,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         matrix_agent.actor_freeze = int(matrix_phase1["effective_actor_freeze"])
 
     weight_phase1 = None
-    if weight_enabled and weight_agent is not None and weight_agent_kind == "td3":
+    if weight_enabled and weight_agent is not None and weight_agent_kind in {"td3", "sg_td3"}:
         weight_phase1 = build_phase1_schedule(
             agent_kind=weight_agent_kind,
             warm_start_step=warm_start_step,
@@ -517,7 +537,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         weight_agent.actor_freeze = int(weight_phase1["effective_actor_freeze"])
 
     residual_phase1 = None
-    if residual_enabled and residual_agent is not None and residual_agent_kind == "td3":
+    if residual_enabled and residual_agent is not None and residual_agent_kind in {"td3", "sg_td3"}:
         residual_phase1 = build_phase1_schedule(
             agent_kind=residual_agent_kind,
             warm_start_step=warm_start_step,
@@ -569,6 +589,15 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     horizon_trace = np.zeros((nFE, 2), dtype=int)
     horizon_action_trace = np.zeros(nFE, dtype=int)
     horizon_decision_log = np.zeros(nFE, dtype=int)
+    horizon_sg_policy_action_log = np.full(nFE, -1, dtype=int) if horizon_sg_enabled else None
+    horizon_sg_supervisor_action_log = np.full(nFE, -1, dtype=int) if horizon_sg_enabled else None
+    horizon_sg_previous_action_log = np.full(nFE, -1, dtype=int) if horizon_sg_enabled else None
+    horizon_sg_selected_source_log = np.zeros(nFE, dtype=int) if horizon_sg_enabled else None
+    horizon_sg_score_policy_log = np.full(nFE, np.nan, dtype=float) if horizon_sg_enabled else None
+    horizon_sg_score_supervisor_log = np.full(nFE, np.nan, dtype=float) if horizon_sg_enabled else None
+    horizon_sg_advantage_log = np.full(nFE, np.nan, dtype=float) if horizon_sg_enabled else None
+    horizon_sg_q_policy_log = np.full(nFE, np.nan, dtype=float) if horizon_sg_enabled else None
+    horizon_sg_q_supervisor_log = np.full(nFE, np.nan, dtype=float) if horizon_sg_enabled else None
 
     markov_z_log = np.zeros((nFE, markov_z_dim), dtype=float)
     markov_z_proposed_log = np.zeros((nFE, markov_z_dim), dtype=float)
@@ -621,6 +650,19 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         np.zeros((nFE, markov_z_dim), dtype=float) if markov_phase1 is not None else None
     )
     markov_phase1_train_traces = init_phase1_train_traces() if markov_phase1 is not None else None
+    markov_sg_policy_action_raw_log = (
+        np.zeros((nFE, markov_z_dim), dtype=float) if markov_sg_enabled else None
+    )
+    markov_sg_supervisor_action_raw_log = (
+        np.zeros((nFE, markov_z_dim), dtype=float) if markov_sg_enabled else None
+    )
+    markov_sg_previous_action_raw_log = (
+        np.zeros((nFE, markov_z_dim), dtype=float) if markov_sg_enabled else None
+    )
+    markov_sg_selected_source_log = np.zeros(nFE, dtype=int) if markov_sg_enabled else None
+    markov_sg_score_policy_log = np.full(nFE, np.nan, dtype=float) if markov_sg_enabled else None
+    markov_sg_score_supervisor_log = np.full(nFE, np.nan, dtype=float) if markov_sg_enabled else None
+    markov_sg_advantage_log = np.full(nFE, np.nan, dtype=float) if markov_sg_enabled else None
 
     matrix_alpha_log = np.ones(nFE, dtype=float)
     matrix_delta_log = np.ones((nFE, n_inputs), dtype=float)
@@ -649,6 +691,19 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     weight_policy_action_raw_log = np.zeros((nFE, weight_baseline_raw.size), dtype=float) if weight_phase1 is not None else None
     weight_executed_action_raw_log = np.zeros((nFE, weight_baseline_raw.size), dtype=float) if weight_phase1 is not None else None
     weight_phase1_train_traces = init_phase1_train_traces() if weight_phase1 is not None else None
+    weight_sg_policy_action_raw_log = (
+        np.zeros((nFE, weight_baseline_raw.size), dtype=float) if weight_sg_enabled else None
+    )
+    weight_sg_supervisor_action_raw_log = (
+        np.zeros((nFE, weight_baseline_raw.size), dtype=float) if weight_sg_enabled else None
+    )
+    weight_sg_previous_action_raw_log = (
+        np.zeros((nFE, weight_baseline_raw.size), dtype=float) if weight_sg_enabled else None
+    )
+    weight_sg_selected_source_log = np.zeros(nFE, dtype=int) if weight_sg_enabled else None
+    weight_sg_score_policy_log = np.full(nFE, np.nan, dtype=float) if weight_sg_enabled else None
+    weight_sg_score_supervisor_log = np.full(nFE, np.nan, dtype=float) if weight_sg_enabled else None
+    weight_sg_advantage_log = np.full(nFE, np.nan, dtype=float) if weight_sg_enabled else None
 
     a_res_raw_log = np.zeros((nFE, n_inputs), dtype=float)
     a_res_exec_log = np.zeros((nFE, n_inputs), dtype=float)
@@ -659,6 +714,19 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     residual_policy_action_raw_log = np.zeros((nFE, residual_baseline_raw.size), dtype=float) if residual_phase1 is not None else None
     residual_executed_action_raw_log = np.zeros((nFE, residual_baseline_raw.size), dtype=float) if residual_phase1 is not None else None
     residual_phase1_train_traces = init_phase1_train_traces() if residual_phase1 is not None else None
+    residual_sg_policy_action_raw_log = (
+        np.zeros((nFE, residual_baseline_raw.size), dtype=float) if residual_sg_enabled else None
+    )
+    residual_sg_supervisor_action_raw_log = (
+        np.zeros((nFE, residual_baseline_raw.size), dtype=float) if residual_sg_enabled else None
+    )
+    residual_sg_previous_action_raw_log = (
+        np.zeros((nFE, residual_baseline_raw.size), dtype=float) if residual_sg_enabled else None
+    )
+    residual_sg_selected_source_log = np.zeros(nFE, dtype=int) if residual_sg_enabled else None
+    residual_sg_score_policy_log = np.full(nFE, np.nan, dtype=float) if residual_sg_enabled else None
+    residual_sg_score_supervisor_log = np.full(nFE, np.nan, dtype=float) if residual_sg_enabled else None
+    residual_sg_advantage_log = np.full(nFE, np.nan, dtype=float) if residual_sg_enabled else None
     rho_log = np.zeros(nFE, dtype=float) if residual_state_mode == "mismatch" else None
     rho_raw_log = np.zeros(nFE, dtype=float) if residual_state_mode == "mismatch" else None
     rho_eff_log = np.zeros(nFE, dtype=float) if residual_state_mode == "mismatch" else None
@@ -830,16 +898,40 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             current_states["residual"], current_state_debugs["residual"] = build_agent_state("residual", residual_state_mode)
 
         if horizon_enabled:
-            horizon_decision = select_horizon_action(
-                agent=horizon_agent,
-                state=current_states["horizon"],
-                step=i,
-                warm_start_step=warm_start_step,
-                decision_interval=decision_interval,
-                default_action=horizon_baseline_idx,
-                last_action=last_horizon_idx,
-                test=test,
-            )
+            if horizon_sg_enabled:
+                horizon_decision = select_supervisor_gated_horizon_action(
+                    agent=horizon_agent,
+                    state=current_states["horizon"],
+                    step=i,
+                    warm_start_step=warm_start_step,
+                    decision_interval=decision_interval,
+                    default_action=horizon_baseline_idx,
+                    supervisor_action=horizon_baseline_idx,
+                    last_action=last_horizon_idx,
+                    test=test,
+                    post_warm_action_freeze_steps=horizon_action_freeze_steps,
+                )
+                horizon_sg_policy_action_log[i] = int(horizon_decision.policy_action)
+                horizon_sg_supervisor_action_log[i] = int(horizon_decision.supervisor_action)
+                horizon_sg_previous_action_log[i] = int(horizon_decision.previous_action)
+                horizon_sg_selected_source_log[i] = int(horizon_decision.selected_source)
+                horizon_sg_score_policy_log[i] = float(horizon_decision.score_policy)
+                horizon_sg_score_supervisor_log[i] = float(horizon_decision.score_supervisor)
+                horizon_sg_advantage_log[i] = float(horizon_decision.advantage_policy_supervisor)
+                horizon_sg_q_policy_log[i] = float(horizon_decision.q_policy)
+                horizon_sg_q_supervisor_log[i] = float(horizon_decision.q_supervisor)
+            else:
+                horizon_decision = select_horizon_action(
+                    agent=horizon_agent,
+                    state=current_states["horizon"],
+                    step=i,
+                    warm_start_step=warm_start_step,
+                    decision_interval=decision_interval,
+                    default_action=horizon_baseline_idx,
+                    last_action=last_horizon_idx,
+                    test=test,
+                    post_warm_action_freeze_steps=horizon_action_freeze_steps,
+                )
             h_idx = int(horizon_decision.action)
             last_horizon_idx = horizon_decision.last_action
             horizon_decision_log[i] = int(horizon_decision.decision_taken)
@@ -927,16 +1019,36 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         ) / max(np.linalg.norm(B_base[:n_phys, :], ord="fro"), 1e-12)
 
         if weight_enabled:
-            weight_action_decision = select_continuous_action(
-                agent=weight_agent,
-                state=current_states["weights"],
-                step=i,
-                warm_start_step=warm_start_step,
-                test=test,
-                baseline_action=weight_baseline_raw,
-                phase1=weight_phase1,
-                action_dim=4,
-            )
+            if weight_sg_enabled:
+                weight_action_decision = select_supervisor_gated_continuous_action(
+                    agent=weight_agent,
+                    state=current_states["weights"],
+                    step=i,
+                    warm_start_step=warm_start_step,
+                    test=test,
+                    baseline_action=weight_baseline_raw,
+                    supervisor_action=weight_baseline_raw,
+                    phase1=weight_phase1,
+                    action_dim=4,
+                )
+                weight_sg_policy_action_raw_log[i, :] = weight_action_decision.policy_action
+                weight_sg_supervisor_action_raw_log[i, :] = weight_action_decision.supervisor_action
+                weight_sg_previous_action_raw_log[i, :] = weight_action_decision.previous_action
+                weight_sg_selected_source_log[i] = int(weight_action_decision.selected_source)
+                weight_sg_score_policy_log[i] = float(weight_action_decision.score_policy)
+                weight_sg_score_supervisor_log[i] = float(weight_action_decision.score_supervisor)
+                weight_sg_advantage_log[i] = float(weight_action_decision.advantage_policy_supervisor)
+            else:
+                weight_action_decision = select_continuous_action(
+                    agent=weight_agent,
+                    state=current_states["weights"],
+                    step=i,
+                    warm_start_step=warm_start_step,
+                    test=test,
+                    baseline_action=weight_baseline_raw,
+                    phase1=weight_phase1,
+                    action_dim=4,
+                )
             weight_raw = weight_action_decision.action
             weight_policy_raw = weight_action_decision.policy_action
             current_weight_source = int(weight_action_decision.source)
@@ -1183,18 +1295,33 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                         f"Combined Markov transition at step {pending_markov_transition['step']} "
                         "has no reward before replay flush."
                     )
-                replay_result = replay_train_continuous_agent(
-                    agent=markov_agent,
-                    state=pending_markov_transition["state"],
-                    action=pending_markov_transition["action"],
-                    reward=pending_markov_transition["reward"],
-                    next_state=markov_state,
-                    done=0.0,
-                    step=pending_markov_transition["step"],
-                    test=pending_markov_transition["test"],
-                    train_start_step=warm_start_step,
-                    phase1_train_traces=markov_phase1_train_traces if markov_phase1 is not None else None,
-                )
+                if markov_sg_enabled and pending_markov_transition.get("decision") is not None:
+                    replay_result = replay_train_supervisor_gated_continuous_agent(
+                        agent=markov_agent,
+                        state=pending_markov_transition["state"],
+                        action=pending_markov_transition["action"],
+                        reward=pending_markov_transition["reward"],
+                        next_state=markov_state,
+                        done=0.0,
+                        step=pending_markov_transition["step"],
+                        test=pending_markov_transition["test"],
+                        train_start_step=warm_start_step,
+                        decision=pending_markov_transition["decision"],
+                        phase1_train_traces=markov_phase1_train_traces if markov_phase1 is not None else None,
+                    )
+                else:
+                    replay_result = replay_train_continuous_agent(
+                        agent=markov_agent,
+                        state=pending_markov_transition["state"],
+                        action=pending_markov_transition["action"],
+                        reward=pending_markov_transition["reward"],
+                        next_state=markov_state,
+                        done=0.0,
+                        step=pending_markov_transition["step"],
+                        test=pending_markov_transition["test"],
+                        train_start_step=warm_start_step,
+                        phase1_train_traces=markov_phase1_train_traces if markov_phase1 is not None else None,
+                    )
                 train_meta = replay_result.get("train_meta")
                 markov_replay_pushed_log[pending_markov_transition["step"]] = int(
                     bool(replay_result.get("pushed", False))
@@ -1209,20 +1336,44 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
 
             if bool(markov_cfg.get("run_rl_proposal", True)) and markov_agent is not None:
                 baseline_raw = z_to_raw_action(z_ls_safe, markov_z_bound)
-                markov_decision = select_continuous_action(
-                    agent=markov_agent,
-                    state=markov_state,
-                    step=i,
-                    warm_start_step=warm_start_step,
-                    decision_interval=int(markov_cfg.get("decision_interval", 1)),
-                    last_action=last_markov_raw_action,
-                    last_action_test=last_markov_action_test,
-                    test=test,
-                    baseline_action=baseline_raw,
-                    phase1=markov_phase1,
-                    action_dim=markov_z_dim,
-                    nonfinite_fallback=True,
-                )
+                if markov_sg_enabled:
+                    markov_decision = select_supervisor_gated_continuous_action(
+                        agent=markov_agent,
+                        state=markov_state,
+                        step=i,
+                        warm_start_step=warm_start_step,
+                        decision_interval=int(markov_cfg.get("decision_interval", 1)),
+                        last_action=last_markov_raw_action,
+                        last_action_test=last_markov_action_test,
+                        test=test,
+                        baseline_action=baseline_raw,
+                        supervisor_action=baseline_raw,
+                        phase1=markov_phase1,
+                        action_dim=markov_z_dim,
+                        nonfinite_fallback=True,
+                    )
+                    markov_sg_policy_action_raw_log[i, :] = markov_decision.policy_action
+                    markov_sg_supervisor_action_raw_log[i, :] = markov_decision.supervisor_action
+                    markov_sg_previous_action_raw_log[i, :] = markov_decision.previous_action
+                    markov_sg_selected_source_log[i] = int(markov_decision.selected_source)
+                    markov_sg_score_policy_log[i] = float(markov_decision.score_policy)
+                    markov_sg_score_supervisor_log[i] = float(markov_decision.score_supervisor)
+                    markov_sg_advantage_log[i] = float(markov_decision.advantage_policy_supervisor)
+                else:
+                    markov_decision = select_continuous_action(
+                        agent=markov_agent,
+                        state=markov_state,
+                        step=i,
+                        warm_start_step=warm_start_step,
+                        decision_interval=int(markov_cfg.get("decision_interval", 1)),
+                        last_action=last_markov_raw_action,
+                        last_action_test=last_markov_action_test,
+                        test=test,
+                        baseline_action=baseline_raw,
+                        phase1=markov_phase1,
+                        action_dim=markov_z_dim,
+                        nonfinite_fallback=True,
+                    )
                 raw_actor_requested = np.asarray(markov_decision.action, float).reshape(-1)
                 raw_requested = raw_actor_requested.copy()
                 markov_policy_source_log[i] = int(markov_decision.source)
@@ -1370,6 +1521,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     "reward": None,
                     "step": i,
                     "test": False,
+                    "decision": markov_decision if markov_sg_enabled else None,
                 }
             sol = sol0
             sol.x = np.asarray(U_exec, float)
@@ -1399,16 +1551,36 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         u_base_scaled[i, :] = u_base
 
         if residual_enabled:
-            residual_action_decision = select_continuous_action(
-                agent=residual_agent,
-                state=current_states["residual"],
-                step=i,
-                warm_start_step=warm_start_step,
-                test=test,
-                baseline_action=residual_baseline_raw,
-                phase1=residual_phase1,
-                action_dim=n_inputs,
-            )
+            if residual_sg_enabled:
+                residual_action_decision = select_supervisor_gated_continuous_action(
+                    agent=residual_agent,
+                    state=current_states["residual"],
+                    step=i,
+                    warm_start_step=warm_start_step,
+                    test=test,
+                    baseline_action=residual_baseline_raw,
+                    supervisor_action=residual_baseline_raw,
+                    phase1=residual_phase1,
+                    action_dim=n_inputs,
+                )
+                residual_sg_policy_action_raw_log[i, :] = residual_action_decision.policy_action
+                residual_sg_supervisor_action_raw_log[i, :] = residual_action_decision.supervisor_action
+                residual_sg_previous_action_raw_log[i, :] = residual_action_decision.previous_action
+                residual_sg_selected_source_log[i] = int(residual_action_decision.selected_source)
+                residual_sg_score_policy_log[i] = float(residual_action_decision.score_policy)
+                residual_sg_score_supervisor_log[i] = float(residual_action_decision.score_supervisor)
+                residual_sg_advantage_log[i] = float(residual_action_decision.advantage_policy_supervisor)
+            else:
+                residual_action_decision = select_continuous_action(
+                    agent=residual_agent,
+                    state=current_states["residual"],
+                    step=i,
+                    warm_start_step=warm_start_step,
+                    test=test,
+                    baseline_action=residual_baseline_raw,
+                    phase1=residual_phase1,
+                    action_dim=n_inputs,
+                )
             residual_raw_action = residual_action_decision.action
             residual_policy_raw = residual_action_decision.policy_action
             current_residual_source = int(residual_action_decision.source)
@@ -1551,18 +1723,33 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         if not test:
             if horizon_enabled:
                 next_state = build_next_state("horizon", horizon_state_mode)
-                replay_train_horizon_agent(
-                    agent=horizon_agent,
-                    state=current_states["horizon"],
-                    action=h_idx,
-                    reward=reward,
-                    next_state=next_state,
-                    done=0.0,
-                    step=i,
-                    test=False,
-                    replay_start_step=time_in_sub_episodes,
-                    train_start_step=warm_start_step,
-                )
+                if horizon_sg_enabled:
+                    replay_train_supervisor_gated_horizon_agent(
+                        agent=horizon_agent,
+                        state=current_states["horizon"],
+                        action=h_idx,
+                        reward=reward,
+                        next_state=next_state,
+                        done=0.0,
+                        step=i,
+                        test=False,
+                        replay_start_step=time_in_sub_episodes,
+                        train_start_step=warm_start_step,
+                        decision=horizon_decision,
+                    )
+                else:
+                    replay_train_horizon_agent(
+                        agent=horizon_agent,
+                        state=current_states["horizon"],
+                        action=h_idx,
+                        reward=reward,
+                        next_state=next_state,
+                        done=0.0,
+                        step=i,
+                        test=False,
+                        replay_start_step=time_in_sub_episodes,
+                        train_start_step=warm_start_step,
+                    )
 
             if matrix_enabled:
                 next_state = build_next_state("matrix", matrix_state_mode)
@@ -1581,33 +1768,63 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
 
             if weight_enabled:
                 next_state = build_next_state("weights", weight_state_mode)
-                replay_train_continuous_agent(
-                    agent=weight_agent,
-                    state=current_states["weights"],
-                    action=weight_raw,
-                    reward=reward,
-                    next_state=next_state,
-                    done=0.0,
-                    step=i,
-                    test=False,
-                    train_start_step=warm_start_step,
-                    phase1_train_traces=weight_phase1_train_traces if weight_phase1 is not None else None,
-                )
+                if weight_sg_enabled:
+                    replay_train_supervisor_gated_continuous_agent(
+                        agent=weight_agent,
+                        state=current_states["weights"],
+                        action=weight_raw,
+                        reward=reward,
+                        next_state=next_state,
+                        done=0.0,
+                        step=i,
+                        test=False,
+                        train_start_step=warm_start_step,
+                        decision=weight_action_decision,
+                        phase1_train_traces=weight_phase1_train_traces if weight_phase1 is not None else None,
+                    )
+                else:
+                    replay_train_continuous_agent(
+                        agent=weight_agent,
+                        state=current_states["weights"],
+                        action=weight_raw,
+                        reward=reward,
+                        next_state=next_state,
+                        done=0.0,
+                        step=i,
+                        test=False,
+                        train_start_step=warm_start_step,
+                        phase1_train_traces=weight_phase1_train_traces if weight_phase1 is not None else None,
+                    )
 
             if residual_enabled:
                 next_state = build_next_state("residual", residual_state_mode)
-                replay_train_continuous_agent(
-                    agent=residual_agent,
-                    state=current_states["residual"],
-                    action=residual_projection["a_exec"],
-                    reward=reward,
-                    next_state=next_state,
-                    done=0.0,
-                    step=i,
-                    test=False,
-                    train_start_step=warm_start_step,
-                    phase1_train_traces=residual_phase1_train_traces if residual_phase1 is not None else None,
-                )
+                if residual_sg_enabled:
+                    replay_train_supervisor_gated_continuous_agent(
+                        agent=residual_agent,
+                        state=current_states["residual"],
+                        action=residual_projection["a_exec"],
+                        reward=reward,
+                        next_state=next_state,
+                        done=0.0,
+                        step=i,
+                        test=False,
+                        train_start_step=warm_start_step,
+                        decision=residual_action_decision,
+                        phase1_train_traces=residual_phase1_train_traces if residual_phase1 is not None else None,
+                    )
+                else:
+                    replay_train_continuous_agent(
+                        agent=residual_agent,
+                        state=current_states["residual"],
+                        action=residual_projection["a_exec"],
+                        reward=reward,
+                        next_state=next_state,
+                        done=0.0,
+                        step=i,
+                        test=False,
+                        train_start_step=warm_start_step,
+                        phase1_train_traces=residual_phase1_train_traces if residual_phase1 is not None else None,
+                    )
 
         if i in sub_episodes_changes_dict:
             subepisode_avg_reward = float(np.mean(rewards[max(0, i - time_in_sub_episodes + 1) : i + 1]))
@@ -1716,7 +1933,17 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "horizon_decision_log": horizon_decision_log,
         "horizon_state_mode": horizon_state_mode,
         "horizon_agent_kind": horizon_agent_kind,
+        "horizon_sg_policy_action_log": horizon_sg_policy_action_log,
+        "horizon_sg_supervisor_action_log": horizon_sg_supervisor_action_log,
+        "horizon_sg_previous_action_log": horizon_sg_previous_action_log,
+        "horizon_sg_selected_source_log": horizon_sg_selected_source_log,
+        "horizon_sg_score_policy_log": horizon_sg_score_policy_log,
+        "horizon_sg_score_supervisor_log": horizon_sg_score_supervisor_log,
+        "horizon_sg_advantage_log": horizon_sg_advantage_log,
+        "horizon_sg_q_policy_log": horizon_sg_q_policy_log,
+        "horizon_sg_q_supervisor_log": horizon_sg_q_supervisor_log,
         "horizon_recipes": horizon_recipes if horizon_enabled else None,
+        "combined_agent_mode": combined_cfg.get("combined_agent_mode"),
         "markov_basis_family": markov_cfg.get("basis_family", "io_pair_gain"),
         "markov_basis_labels": list(markov_basis_labels),
         "markov_state_dim": int(markov_state.size) if markov_enabled and "markov" in current_states else None,
@@ -1754,6 +1981,13 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "markov_td3_probation_active_log": markov_td3_probation_active_log,
         "markov_td3_probation_trigger_log": markov_td3_probation_trigger_log,
         "markov_td3_probation_trigger_count": int(markov_probation_trigger_count),
+        "markov_sg_policy_action_raw_log": markov_sg_policy_action_raw_log,
+        "markov_sg_supervisor_action_raw_log": markov_sg_supervisor_action_raw_log,
+        "markov_sg_previous_action_raw_log": markov_sg_previous_action_raw_log,
+        "markov_sg_selected_source_log": markov_sg_selected_source_log,
+        "markov_sg_score_policy_log": markov_sg_score_policy_log,
+        "markov_sg_score_supervisor_log": markov_sg_score_supervisor_log,
+        "markov_sg_advantage_log": markov_sg_advantage_log,
         "markov_td3_source_fraction": float(np.mean(markov_action_source_log == 2)) if markov_enabled else 0.0,
         "markov_ls_fallback_source_fraction": float(np.mean(markov_action_source_log == 3)) if markov_enabled else 0.0,
         "markov_nominal_fallback_source_fraction": float(np.mean(markov_action_source_log == 4)) if markov_enabled else 0.0,
@@ -1801,6 +2035,13 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "weight_state_mode": weight_state_mode,
         "weight_low_coef": weights_low,
         "weight_high_coef": weights_high,
+        "weight_sg_policy_action_raw_log": weight_sg_policy_action_raw_log,
+        "weight_sg_supervisor_action_raw_log": weight_sg_supervisor_action_raw_log,
+        "weight_sg_previous_action_raw_log": weight_sg_previous_action_raw_log,
+        "weight_sg_selected_source_log": weight_sg_selected_source_log,
+        "weight_sg_score_policy_log": weight_sg_score_policy_log,
+        "weight_sg_score_supervisor_log": weight_sg_score_supervisor_log,
+        "weight_sg_advantage_log": weight_sg_advantage_log,
         "a_res_raw_log": a_res_raw_log,
         "a_res_exec_log": a_res_exec_log,
         "delta_u_res_raw_log": delta_u_res_raw_log,
@@ -1812,6 +2053,13 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "residual_state_mode": residual_state_mode,
         "residual_low_coef": residual_low,
         "residual_high_coef": residual_high,
+        "residual_sg_policy_action_raw_log": residual_sg_policy_action_raw_log,
+        "residual_sg_supervisor_action_raw_log": residual_sg_supervisor_action_raw_log,
+        "residual_sg_previous_action_raw_log": residual_sg_previous_action_raw_log,
+        "residual_sg_selected_source_log": residual_sg_selected_source_log,
+        "residual_sg_score_policy_log": residual_sg_score_policy_log,
+        "residual_sg_score_supervisor_log": residual_sg_score_supervisor_log,
+        "residual_sg_advantage_log": residual_sg_advantage_log,
         "authority_use_rho": authority_use_rho,
         "use_rho_authority": authority_use_rho,
         "append_rho_to_state": append_rho_to_state,

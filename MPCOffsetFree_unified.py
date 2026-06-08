@@ -22,8 +22,7 @@ NB = get_polymer_notebook_defaults("baseline")
 # Main notebook controls.
 # Edit the values below for a one-off run, or edit systems/polymer/notebook_params.py
 # if you want the repo-wide defaults to change for every polymer notebook.
-# RUN_MODE = NB["run_mode"]  # "nominal" | "disturb"
-RUN_MODE = "nominal"
+RUN_MODE = NB["run_mode"]  # "nominal" | "disturb"
 STYLE_PROFILE = NB["style_profile"]  # "hybrid" | "paper" | "debug"
 SAVE_PDF = NB["save_pdf"]  # False -> PNG only, True -> PNG + PDF
 
@@ -38,6 +37,7 @@ BASELINE_SAVE_PATH_OVERRIDE = NB["baseline_save_path_override"]
 # Optional run-size overrides. Leave as None to use the mode defaults from the shared parameter file.
 N_TESTS_OVERRIDE = NB["n_tests_override"]
 SET_POINTS_LEN_OVERRIDE = NB["set_points_len_override"]
+WARM_START_OVERRIDE = NB["warm_start_override"]
 TEST_CYCLE_OVERRIDE = NB["test_cycle_override"]
 PLOT_START_EPISODE_OVERRIDE = NB["plot_start_episode_override"]
 
@@ -113,8 +113,7 @@ data_max = system_data["data_max"]
 min_max_dict = system_data["min_max_dict"]
 
 inputs_number = int(B_aug.shape[1])
-# y_sp_scenario_phys = SYS["rl_setpoints_phys"].copy()
-y_sp_scenario_phys = np.array([[2., 326.0], [3.4, 321.0]], dtype=float)
+y_sp_scenario_phys = SYS["rl_setpoints_phys"].copy()
 y_sp_scenario = apply_min_max(y_sp_scenario_phys, data_min[inputs_number:], data_max[inputs_number:]) - apply_min_max(
     steady_states["y_ss"], data_min[inputs_number:], data_max[inputs_number:]
 )
@@ -130,7 +129,7 @@ REWARD_CFG = NB["reward"]
 
 n_tests = RUN_PROFILE["n_tests"] if N_TESTS_OVERRIDE is None else int(N_TESTS_OVERRIDE)
 set_points_len = RUN_PROFILE["set_points_len"] if SET_POINTS_LEN_OVERRIDE is None else int(SET_POINTS_LEN_OVERRIDE)
-warm_start = RUN_PROFILE.get("warm_start", 0)
+warm_start = RUN_PROFILE.get("warm_start", 0) if WARM_START_OVERRIDE is None else int(WARM_START_OVERRIDE)
 TEST_CYCLE = list(RUN_PROFILE["test_cycle"]) if TEST_CYCLE_OVERRIDE is None else list(TEST_CYCLE_OVERRIDE)
 PLOT_START_EPISODE = RUN_PROFILE.get("plot_start_episode", 1) if PLOT_START_EPISODE_OVERRIDE is None else int(PLOT_START_EPISODE_OVERRIDE)
 RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or RUN_PROFILE["result_prefix"]

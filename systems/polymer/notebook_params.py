@@ -410,6 +410,7 @@ POLYMER_BASELINE_DEFAULTS = {
     # Baseline notebooks only expose these overrides.
     "n_tests_override": None,
     "set_points_len_override": None,
+    "warm_start_override": None,
     "test_cycle_override": None,
     "plot_start_episode_override": None,
     "run_profiles": {
@@ -438,7 +439,7 @@ POLYMER_BASELINE_DEFAULTS = {
             "plot_start_episode": 2,
             "n_tests": 200,
             "set_points_len": 400,
-            "warm_start": 0,
+            "warm_start": 10,
             "test_cycle": [False, False, False, False, False],
             "nominal_qi": 108.0,
             "nominal_qs": 459.0,

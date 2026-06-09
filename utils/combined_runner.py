@@ -97,6 +97,12 @@ def _projection_is_finite(projection):
     return True
 
 
+def _float_or_nan(value):
+    if value is None:
+        return float("nan")
+    return float(value)
+
+
 def _sg_source_summary(source_window):
     sources = np.asarray(source_window, int).reshape(-1)
     if sources.size == 0:
@@ -1759,9 +1765,9 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                 residual_zero_deadband_enabled=False,
             )
         if rho_log is not None:
-            rho_log[i] = float(residual_projection["rho"])
-            rho_raw_log[i] = float(residual_projection["rho_raw"])
-            rho_eff_log[i] = float(residual_projection["rho_eff"])
+            rho_log[i] = _float_or_nan(residual_projection["rho"])
+            rho_raw_log[i] = _float_or_nan(residual_projection["rho_raw"])
+            rho_eff_log[i] = _float_or_nan(residual_projection["rho_eff"])
         deadband_active_log[i] = int(residual_projection["deadband_active"])
         projection_active_log[i] = int(residual_projection["projection_active"])
         projection_due_to_deadband_log[i] = int(residual_projection["projection_due_to_deadband"])

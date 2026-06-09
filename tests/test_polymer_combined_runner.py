@@ -16,7 +16,9 @@ from utils.agent_step_runtime import (
     replay_train_supervisor_gated_continuous_agent,
     select_supervisor_gated_continuous_action,
 )
+from utils.combined_runner import _float_or_nan
 from utils.phase1_hidden_release import ACTION_SOURCE_PHASE1_HIDDEN_BASELINE
+from utils.residual_authority import project_residual_action
 
 
 def test_polymer_combined_defaults_use_all_sg_mismatch_mode():
@@ -187,12 +189,32 @@ def test_sg_continuous_replay_helper_pushes_supervised_metadata():
     assert int(kwargs["selected_source"]) == SOURCE_POLICY
 
 
+def test_combined_residual_rho_logging_handles_authority_disabled_projection():
+    projection = project_residual_action(
+        action_raw=np.zeros(2, dtype=np.float32),
+        low_coef=np.asarray([-0.2, -0.2], dtype=np.float32),
+        high_coef=np.asarray([0.2, 0.2], dtype=np.float32),
+        u_base=np.asarray([0.5, 0.5], dtype=np.float32),
+        scaled_current_input=np.asarray([0.5, 0.5], dtype=np.float32),
+        u_min_scaled_abs=np.zeros(2, dtype=np.float32),
+        u_max_scaled_abs=np.ones(2, dtype=np.float32),
+        apply_authority=False,
+        authority_use_rho=False,
+    )
+
+    assert projection["rho"] is None
+    assert np.isnan(_float_or_nan(projection["rho"]))
+    assert np.isnan(_float_or_nan(projection["rho_raw"]))
+    assert np.isnan(_float_or_nan(projection["rho_eff"]))
+
+
 def run_direct():
     test_polymer_combined_defaults_use_all_sg_mismatch_mode()
     test_polymer_combined_plain_mode_resolves_all_plain_agents()
     test_polymer_combined_root_runner_is_active_sg_plain_only()
     test_sg_continuous_hidden_window_executes_supervisor_and_records_policy()
     test_sg_continuous_replay_helper_pushes_supervised_metadata()
+    test_combined_residual_rho_logging_handles_authority_disabled_projection()
     print("polymer combined runner tests passed")
 
 

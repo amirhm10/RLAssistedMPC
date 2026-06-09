@@ -50,6 +50,13 @@ def _copy_reward_defaults():
     return {k: deepcopy(v) for k, v in _RL_REWARD_DEFAULTS.items()}
 
 
+def _distillation_disabled_matrix_bounds(n_inputs: int):
+    low = np.full(1 + int(n_inputs), DISTILLATION_MATRIX_ALPHA_DEFAULT_LOW, dtype=float)
+    high = np.full(1 + int(n_inputs), DISTILLATION_MATRIX_ALPHA_DEFAULT_HIGH, dtype=float)
+    high[0] = min(high[0], DISTILLATION_MATRIX_ALPHA_UPPER_CAP)
+    return low, high
+
+
 def _copy_replay_defaults():
     return {
         # Replay buffer controls:
@@ -1481,6 +1488,7 @@ def _build_active_combined_defaults() -> dict:
     residual_ctrl = DISTILLATION_RESIDUAL_DEFAULTS["controller"]
     resolved = resolve_distillation_combined_agent_kinds("sg")
     n_inputs = int(np.asarray(DISTILLATION_SYSTEM_SETUP["ss_inputs"], float).size)
+    model_low, model_high = _distillation_disabled_matrix_bounds(n_inputs)
 
     return {
         "run_mode": "disturb",
@@ -1549,8 +1557,8 @@ def _build_active_combined_defaults() -> dict:
             "rl_store_executed_action_in_replay": markov_ctrl["rl_store_executed_action_in_replay"],
             "td3_priority_fallback": deepcopy(markov_ctrl["td3_priority_fallback"]),
             "markov_shadow_safety": deepcopy(markov_ctrl["markov_shadow_safety"]),
-            "model_low": np.ones(1 + n_inputs, dtype=float),
-            "model_high": np.ones(1 + n_inputs, dtype=float),
+            "model_low": model_low,
+            "model_high": model_high,
             "weights_low": weights_ctrl["low_coef"].copy(),
             "weights_high": weights_ctrl["high_coef"].copy(),
             "residual_low": residual_ctrl["low_coef"].copy(),

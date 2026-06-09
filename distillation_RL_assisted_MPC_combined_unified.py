@@ -165,6 +165,19 @@ def validate_standalone_parity(nb: dict) -> None:
         _assert_equal_config(key, nb[key], residual_nb[key])
 
 
+def validate_disabled_matrix_bounds(nb: dict) -> None:
+    ctrl = nb["controller"]
+    n_inputs = int(np.asarray(nb["system_setup"]["ss_inputs"], float).size)
+    model_low = np.asarray(ctrl["model_low"], float).reshape(-1)
+    model_high = np.asarray(ctrl["model_high"], float).reshape(-1)
+    if model_low.size != 1 + n_inputs or model_high.size != 1 + n_inputs:
+        raise ValueError("Disabled matrix bounds must have length 1 + n_inputs.")
+    if np.any(model_high <= model_low):
+        raise ValueError("Disabled matrix bounds must have high strictly greater than low.")
+    if np.any(model_low >= 1.0) or np.any(model_high <= 1.0):
+        raise ValueError("Disabled matrix bounds must strictly bracket the nominal multiplier 1.0.")
+
+
 def make_continuous_agent(agent_kind, state_dim, action_dim, td3_cfg, device, set_points_len, supervisor_gate=None):
     if agent_kind not in {"td3", "sg_td3"}:
         raise ValueError("Continuous combined agent kind must be 'td3' or 'sg_td3'.")
@@ -272,6 +285,7 @@ RESIDUAL_ZERO_TRACKING_RAW_THRESHOLD = NB["residual_zero_tracking_raw_threshold"
 RESIDUAL_ZERO_INNOVATION_RAW_THRESHOLD = NB["residual_zero_innovation_raw_threshold"]
 
 validate_standalone_parity(NB)
+validate_disabled_matrix_bounds(NB)
 
 ASPEN_PRESET = NB["aspen_preset"]
 ASPEN_PATH_OVERRIDE = NB["aspen_path_override"]

@@ -13,6 +13,7 @@ from systems.distillation import (
     get_distillation_notebook_defaults,
     resolve_distillation_combined_agent_kinds,
 )
+from utils.multiplier_mapping import map_centered_bounds_to_action
 
 
 def _assert_equal(actual, expected):
@@ -126,6 +127,16 @@ def test_distillation_combined_defaults_use_active_sg_standalone_parity():
     _assert_equal(ctrl["weights_high"], weights["controller"]["high_coef"])
     _assert_equal(ctrl["residual_low"], residual["controller"]["low_coef"])
     _assert_equal(ctrl["residual_high"], residual["controller"]["high_coef"])
+    assert np.all(ctrl["model_high"] > ctrl["model_low"])
+    assert np.all(ctrl["model_low"] < 1.0)
+    assert np.all(ctrl["model_high"] > 1.0)
+    model_baseline_raw = map_centered_bounds_to_action(
+        np.ones_like(ctrl["model_low"]),
+        ctrl["model_low"],
+        ctrl["model_high"],
+        nominal=1.0,
+    )
+    np.testing.assert_allclose(model_baseline_raw, np.zeros_like(model_baseline_raw))
 
     assert nb["residual_authority_enabled"] is False
     assert nb["append_rho_to_state"] is False
@@ -183,6 +194,7 @@ def test_distillation_combined_root_runner_is_active_sg_plain_only():
     assert "distillation_system_stepper" in source
     assert "build_distillation_disturbance_schedule" in source
     assert "validate_standalone_parity" in source
+    assert "validate_disabled_matrix_bounds" in source
     assert "legacy matrix branch disabled" in source
     assert "residual rho authority disabled" in source
     assert "SupervisorGatedDQNAgent" in source

@@ -16,6 +16,7 @@ Reactivated `distillation_RL_assisted_MPC_combined_unified.py` as an active dist
 - Instantiated only DQN, SG-DQN, TD3, and SG-TD3 agents in the active combined runner.
 - Added simple future result prefixes such as `distillation_combined_sg_disturb_fluctuation`.
 - Removed the stale pre-reactivation combined default block so only the standalone-derived defaults define active combined behavior.
+- Fixed the disabled matrix placeholder bounds to strictly bracket nominal multiplier 1.0, because the shared combined runtime maps the matrix baseline action even when the matrix agent is disabled.
 
 ## Verification
 

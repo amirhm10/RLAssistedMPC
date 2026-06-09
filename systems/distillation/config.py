@@ -83,6 +83,12 @@ DISTILLATION_HORIZON_RUN_PROFILES = {
     ("disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
 }
 
+DISTILLATION_ACTIVE_HORIZON_RUN_PROFILES = {
+    (agent_kind, run_mode, profile): dict(settings)
+    for agent_kind in ("dqn", "sg_dqn")
+    for (run_mode, profile), settings in DISTILLATION_HORIZON_RUN_PROFILES.items()
+}
+
 DISTILLATION_MATRIX_RUN_PROFILES = {
     ("td3", "nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("td3", "disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
@@ -98,6 +104,12 @@ DISTILLATION_MARKOV_RUN_PROFILES = {
     ("td3", "disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
 }
 
+DISTILLATION_ACTIVE_MARKOV_RUN_PROFILES = {
+    (agent_kind, run_mode, profile): dict(settings)
+    for agent_kind in ("td3", "sg_td3")
+    for (_, run_mode, profile), settings in DISTILLATION_MARKOV_RUN_PROFILES.items()
+}
+
 DISTILLATION_WEIGHT_RUN_PROFILES = {
     ("td3", "nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("td3", "disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
@@ -108,6 +120,12 @@ DISTILLATION_WEIGHT_RUN_PROFILES = {
     ("sac", "nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("sac", "disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("sac", "disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+}
+
+DISTILLATION_ACTIVE_WEIGHT_RUN_PROFILES = {
+    key: dict(settings)
+    for key, settings in DISTILLATION_WEIGHT_RUN_PROFILES.items()
+    if key[0] in {"td3", "sg_td3"}
 }
 
 DISTILLATION_RESIDUAL_RUN_PROFILES = {
@@ -124,6 +142,12 @@ DISTILLATION_RESIDUAL_RUN_PROFILES = {
     ("sac", "nominal", "none"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("sac", "disturb", "ramp"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
     ("sac", "disturb", "fluctuation"): {"n_tests": 200, "set_points_len": 200, "warm_start": 10, "test_cycle": [False, False, False, False, False], "plot_start_episode": 2, "compare_start_episode": 2},
+}
+
+DISTILLATION_ACTIVE_RESIDUAL_RUN_PROFILES = {
+    key: dict(settings)
+    for key, settings in DISTILLATION_RESIDUAL_RUN_PROFILES.items()
+    if key[0] in {"td3", "sg_td3"}
 }
 
 DISTILLATION_REIDENTIFICATION_RUN_PROFILES = {

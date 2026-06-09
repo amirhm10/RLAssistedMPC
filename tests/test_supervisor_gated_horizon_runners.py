@@ -16,14 +16,12 @@ from DQN.supervisor_gated_dqn_agent import (
     SOURCE_SUPERVISOR,
     SupervisorGatedDQNAgent,
 )
-from DuelingDQN.supervisor_gated_dueling_dqn_agent import SupervisorGatedDuelingDQNAgent
-from systems.distillation import get_distillation_notebook_defaults
+from systems.distillation import get_distillation_notebook_defaults, resolve_distillation_agent_kind
 from systems.polymer import get_polymer_notebook_defaults
 from utils.agent_step_runtime import (
     replay_train_supervisor_gated_horizon_agent,
     select_supervisor_gated_horizon_action,
 )
-from utils.helpers import build_horizon_recipes
 from utils.phase1_hidden_release import ACTION_SOURCE_HELD_INTERVAL
 
 
@@ -58,104 +56,38 @@ def set_dqn_q_values(agent, values):
             layer.bias.copy_(values_t)
 
 
-def test_wrapper_configs_set_sg_defaults_and_disable_old_safety():
-    from distillation_RL_assisted_MPC_horizons_supervisor_gated_dqn_unified import (
-        configure_sg_dqn_horizon_critic_warm,
-    )
-    from distillation_RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_unified import (
-        configure_sg_dueling_dqn_horizon_critic_warm,
-    )
+def test_distillation_horizon_defaults_use_simple_sg_dqn_mode():
+    configured = get_distillation_notebook_defaults("horizon_standard")
 
-    standard = configure_sg_dqn_horizon_critic_warm(get_distillation_notebook_defaults("horizon_standard"))
-    dueling = configure_sg_dueling_dqn_horizon_critic_warm(get_distillation_notebook_defaults("horizon_dueling"))
-
-    assert standard["agent_kind"] == "sg_dqn"
-    assert dueling["agent_kind"] == "sg_dueling_dqn"
-    for configured in (standard, dueling):
-        assert configured["run_mode"] == "disturb"
-        assert configured["disturbance_profile"] == "fluctuation"
-        assert configured["state_mode"] == "mismatch"
-        assert "mismatch" in configured["result_prefix_override"]
-        assert "mismatch" in configured["compare_prefix_override"]
-        assert "critic_warm3" in configured["result_prefix_override"]
-        assert "critic_warm3" in configured["compare_prefix_override"]
-        assert "np6_11_nc3_11" in configured["result_prefix_override"]
-        assert "np6_11_nc3_11" in configured["compare_prefix_override"]
-        assert configured["controller"]["predict_grid"] == list(range(6, 12))
-        assert configured["controller"]["control_grid"] == list(range(3, 12))
-        assert len(
-            build_horizon_recipes(
-                configured["controller"]["predict_grid"],
-                configured["controller"]["control_grid"],
-            )
-        ) == 39
-        assert configured["warm_start_override"] == 10
-        assert configured["post_warm_start_action_freeze_subepisodes"] == 3
-        assert configured["supervisor_gate"]["advantage_margin"] == 0.0
-        assert configured["supervisor_gate"]["default_to_supervisor"] is True
-        assert configured["supervisor_gate"]["min_train_steps_before_policy_gate"] == 0
-        assert configured["agent"]["supervisor_gate"] == configured["supervisor_gate"]
-        assert configured["agent"]["exploration_mode"] == "epsilon"
-        assert configured["agent"]["eps_start"] == 0.2
-        assert configured["agent"]["eps_end"] == 0.02
-        assert configured["agent"]["eps_decay_steps"] == 18_600
-        safety = configured["horizon_safety"]
-        assert safety["enabled"] is False
-        assert safety["release_filter"]["enabled"] is False
-        assert safety["reward_probation"]["enabled"] is False
-        assert safety["shadow_default_mpc"]["enabled"] is False
-
-
-def test_distillation_dueling_aspen6_legacy_reward_wrapper_config():
-    from distillation_RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_aspen6_legacy_reward_unified import (
-        configure_sg_dueling_dqn_horizon_aspen6_legacy_reward,
-    )
-
-    configured = configure_sg_dueling_dqn_horizon_aspen6_legacy_reward(
-        get_distillation_notebook_defaults("horizon_dueling")
-    )
-
-    assert configured["agent_kind"] == "sg_dueling_dqn"
+    assert configured["agent_mode"] == "sg"
+    assert configured["agent_kind"] == "sg_dqn"
     assert configured["run_mode"] == "disturb"
     assert configured["disturbance_profile"] == "fluctuation"
     assert configured["state_mode"] == "mismatch"
-    assert configured["aspen_preset"] == 6
-    assert "aspen6_legacyreward" in configured["result_prefix_override"]
-    assert "aspen6_legacyreward" in configured["compare_prefix_override"]
-    assert "mismatch" in configured["result_prefix_override"]
-    assert "mismatch" in configured["compare_prefix_override"]
-    assert "np6_11_nc3_11" not in configured["result_prefix_override"]
-    assert "np6_11_nc3_11" not in configured["compare_prefix_override"]
-    assert configured["controller"]["predict_grid"] == list(range(4, 15))
-    assert configured["controller"]["control_grid"] == list(range(2, 14))
-    assert len(
-        build_horizon_recipes(
-            configured["controller"]["predict_grid"],
-            configured["controller"]["control_grid"],
-        )
-    ) == 87
-
-    reward = configured["reward"]
-    np.testing.assert_allclose(reward["k_rel"], np.asarray([0.3, 0.02]))
-    np.testing.assert_allclose(reward["band_floor_phys"], np.asarray([0.003, 0.3]))
-    np.testing.assert_allclose(reward["Q_diag"], np.asarray([3.7e4, 1.5e3]))
-    np.testing.assert_allclose(reward["R_diag"], np.asarray([2.5e3, 2.5e3]))
-    assert reward["beta"] == 7.0
-    assert reward["reward_scale"] == 1.0
-
-    safety = configured["horizon_safety"]
-    assert safety["enabled"] is False
-    assert safety["release_filter"]["enabled"] is False
-    assert safety["reward_probation"]["enabled"] is False
-    assert safety["shadow_default_mpc"]["enabled"] is False
+    assert ("dqn", "disturb", "fluctuation") in configured["run_profiles"]
+    assert ("sg_dqn", "disturb", "fluctuation") in configured["run_profiles"]
+    assert configured["post_warm_start_action_freeze_subepisodes"] == 3
+    assert configured["controller"]["predict_grid"] == list(range(6, 12))
+    assert configured["controller"]["control_grid"] == list(range(3, 12))
+    assert configured["supervisor_gate"]["advantage_margin"] == 0.0
+    assert configured["agent"]["supervisor_gate"] == configured["supervisor_gate"]
 
 
-def test_wrapper_modules_reference_sg_agent_classes():
-    import distillation_RL_assisted_MPC_horizons_supervisor_gated_dqn_unified as standard
-    import distillation_RL_assisted_MPC_horizons_supervisor_gated_dueling_dqn_unified as dueling
+def test_distillation_horizon_plain_mode_resolves_to_dqn():
+    assert resolve_distillation_agent_kind("horizon", "sg") == "sg_dqn"
+    assert resolve_distillation_agent_kind("horizon_standard", "plain") == "dqn"
+    assert resolve_distillation_agent_kind("horizon", "without-sg") == "dqn"
 
-    assert standard.SupervisorGatedDQNAgent is SupervisorGatedDQNAgent
-    assert dueling.SupervisorGatedDuelingDQNAgent is SupervisorGatedDuelingDQNAgent
+
+def test_distillation_horizon_root_runner_selects_sg_agent_without_wrapper():
+    source = (ROOT / "distillation_RL_assisted_MPC_horizons_unified.py").read_text(encoding="utf-8")
+
+    assert "SupervisorGatedDQNAgent" in source
+    assert "resolve_distillation_agent_kind" in source
+    assert "AGENT_MODE" in source
+    assert "sg_dqn" in source
+    assert "dueling" not in source.lower()
+    assert "HORIZON_AGENT_CLASS_OVERRIDE" in source
 
 
 def test_polymer_horizon_defaults_use_simple_sg_dqn_mismatch():
@@ -312,9 +244,9 @@ def test_supervised_replay_helper_pushes_final_executed_action():
 
 
 def run_direct():
-    test_wrapper_configs_set_sg_defaults_and_disable_old_safety()
-    test_distillation_dueling_aspen6_legacy_reward_wrapper_config()
-    test_wrapper_modules_reference_sg_agent_classes()
+    test_distillation_horizon_defaults_use_simple_sg_dqn_mode()
+    test_distillation_horizon_plain_mode_resolves_to_dqn()
+    test_distillation_horizon_root_runner_selects_sg_agent_without_wrapper()
     test_polymer_horizon_defaults_use_simple_sg_dqn_mismatch()
     test_polymer_exported_script_selects_sg_agent_without_wrapper()
     test_sg_horizon_helper_tie_defaults_to_supervisor()

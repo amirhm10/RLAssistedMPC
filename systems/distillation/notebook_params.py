@@ -6,6 +6,10 @@ import numpy as np
 
 from .config import (
     DELTA_T_HOURS,
+    DISTILLATION_ACTIVE_HORIZON_RUN_PROFILES,
+    DISTILLATION_ACTIVE_MARKOV_RUN_PROFILES,
+    DISTILLATION_ACTIVE_RESIDUAL_RUN_PROFILES,
+    DISTILLATION_ACTIVE_WEIGHT_RUN_PROFILES,
     DISTILLATION_BASELINE_RUN_PROFILES,
     DISTILLATION_COMBINED_RUN_PROFILES,
     DISTILLATION_COMBINED_SETPOINTS_PHYS,
@@ -1358,18 +1362,159 @@ DISTILLATION_COMBINED_DEFAULTS = {
     "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
 }
 
+def resolve_distillation_agent_kind(family: str, agent_mode: str) -> str:
+    """Return the active distillation agent kind for an SG/plain mode."""
+    family_key = str(family).strip().lower()
+    mode = str(agent_mode).strip().lower().replace("-", "_")
+    if mode in {"without_sg", "no_sg"}:
+        mode = "plain"
+    if mode not in {"sg", "plain"}:
+        raise ValueError("agent_mode must be 'sg' or 'plain'.")
+
+    if family_key in {"horizon", "horizon_standard"}:
+        return "sg_dqn" if mode == "sg" else "dqn"
+    if family_key in {"markov", "weights", "residual"}:
+        return "sg_td3" if mode == "sg" else "td3"
+    raise ValueError("family must be one of 'horizon', 'markov', 'weights', or 'residual'.")
+
+
+def _disable_behavioral_cloning(nb: dict) -> None:
+    bc_cfg = deepcopy(nb.get("behavioral_cloning", {}))
+    bc_cfg["enabled"] = False
+    for key in ("release_gate", "handoff", "tail_anchor"):
+        if not isinstance(bc_cfg.get(key), dict):
+            bc_cfg[key] = {}
+    bc_cfg["release_gate"]["enabled"] = False
+    bc_cfg["release_gate"]["diagnostic_only"] = False
+    bc_cfg["handoff"]["enabled"] = False
+    bc_cfg["handoff"]["start_authority"] = 1.0
+    bc_cfg["handoff"]["end_authority"] = 1.0
+    bc_cfg["handoff"]["active_subepisodes"] = 0
+    bc_cfg["tail_anchor"]["enabled"] = False
+    nb["behavioral_cloning"] = bc_cfg
+
+
+def _apply_active_runner_defaults() -> None:
+    horizon_gate = {
+        "advantage_margin": 0.0,
+        "default_to_supervisor": True,
+        "min_train_steps_before_policy_gate": 0,
+    }
+    DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent_mode"] = "sg"
+    DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent_kind"] = "sg_dqn"
+    DISTILLATION_HORIZON_STANDARD_DEFAULTS["run_profiles"] = deepcopy(DISTILLATION_ACTIVE_HORIZON_RUN_PROFILES)
+    DISTILLATION_HORIZON_STANDARD_DEFAULTS["supervisor_gate"] = deepcopy(horizon_gate)
+    DISTILLATION_HORIZON_STANDARD_DEFAULTS["post_warm_start_action_freeze_subepisodes"] = 3
+    DISTILLATION_HORIZON_STANDARD_DEFAULTS["controller"]["predict_grid"] = list(range(6, 12))
+    DISTILLATION_HORIZON_STANDARD_DEFAULTS["controller"]["control_grid"] = list(range(3, 12))
+    DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent"]["eps_decay_steps"] = 18_600
+    DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent"]["supervisor_gate"] = deepcopy(horizon_gate)
+
+    DISTILLATION_MARKOV_DEFAULTS["agent_mode"] = "sg"
+    DISTILLATION_MARKOV_DEFAULTS["agent_kind"] = "sg_td3"
+    DISTILLATION_MARKOV_DEFAULTS["state_mode"] = "mismatch"
+    DISTILLATION_MARKOV_DEFAULTS["run_profiles"] = deepcopy(DISTILLATION_ACTIVE_MARKOV_RUN_PROFILES)
+    DISTILLATION_MARKOV_DEFAULTS["post_warm_start_action_freeze_subepisodes"] = 3
+    DISTILLATION_MARKOV_DEFAULTS["post_warm_start_actor_freeze_subepisodes"] = 3
+    DISTILLATION_MARKOV_DEFAULTS["markov_supervisor_mode"] = "ls_else_mpc"
+    DISTILLATION_MARKOV_DEFAULTS["markov_live_safety_mode"] = "shadow_only"
+    active_bc_handoff = deepcopy(DISTILLATION_MARKOV_DEFAULTS.get("behavioral_cloning", {}).get("handoff", {}))
+    _disable_behavioral_cloning(DISTILLATION_MARKOV_DEFAULTS)
+    markov_ctrl = DISTILLATION_MARKOV_DEFAULTS["controller"]
+    active_z_safety = deepcopy(markov_ctrl.get("z_safety", {}))
+    active_priority = deepcopy(markov_ctrl.get("td3_priority_fallback", {}))
+    markov_ctrl["rl_fallback_to_ls"] = False
+    markov_ctrl["force_td3_respects_warm_start"] = True
+    markov_ctrl["markov_supervisor_mode"] = "ls_else_mpc"
+    markov_ctrl["markov_live_safety_mode"] = "shadow_only"
+    markov_ctrl["z_bound"] = 0.05
+    markov_ctrl["z_safety"] = {"enabled": False}
+    markov_ctrl["td3_priority_fallback"] = {"enabled": False}
+    markov_ctrl["td3_authority_ramp"] = {"enabled": False}
+    markov_ctrl["markov_shadow_safety"] = {
+        "enabled": True,
+        "compute_ls_candidate": False,
+        "z_safety": active_z_safety,
+        "td3_priority_fallback": active_priority,
+        "bc_handoff": active_bc_handoff,
+    }
+    markov_td3 = DISTILLATION_MARKOV_DEFAULTS["td3_agent"]
+    markov_td3["exploration_mode"] = "param_noise"
+    markov_td3["param_noise_std_start"] = 0.10
+    markov_td3["param_noise_std_end"] = 0.02
+    markov_td3["param_noise_resample_interval"] = 4
+    DISTILLATION_MARKOV_DEFAULTS["supervisor_gate"] = {
+        "score_uncertainty_weight": 0.5,
+        "score_previous_action_weight": 0.01,
+        "score_supervisor_action_weight": 0.02,
+        "advantage_margin": 0.5,
+        "default_to_supervisor": True,
+        "actor_q_mode": "mean",
+        "supervisor_bc_weight": 0.0,
+        "supervisor_bc_temperature": 1.0,
+        "smooth_action_weight": 0.0,
+        "detach_supervisor_weight": True,
+        "enable_supervisor_actor_loss": False,
+        "min_train_steps_before_policy_gate": 0,
+    }
+
+    DISTILLATION_WEIGHT_DEFAULTS["agent_mode"] = "sg"
+    DISTILLATION_WEIGHT_DEFAULTS["agent_kind"] = "sg_td3"
+    DISTILLATION_WEIGHT_DEFAULTS["run_profiles"] = deepcopy(DISTILLATION_ACTIVE_WEIGHT_RUN_PROFILES)
+    DISTILLATION_WEIGHT_DEFAULTS["post_warm_start_action_freeze_subepisodes"] = 3
+    DISTILLATION_WEIGHT_DEFAULTS["post_warm_start_actor_freeze_subepisodes"] = 3
+    _disable_behavioral_cloning(DISTILLATION_WEIGHT_DEFAULTS)
+    DISTILLATION_WEIGHT_DEFAULTS["td3_authority_ramp"]["enabled"] = False
+    DISTILLATION_WEIGHT_DEFAULTS["td3_authority_ramp"]["diagnostic_release_gate_only"] = False
+    DISTILLATION_WEIGHT_DEFAULTS["weight_safety"]["fallback_to_identity_on_solve_failure"] = False
+    DISTILLATION_WEIGHT_DEFAULTS["weight_safety"]["reward_probation"]["enabled"] = False
+    DISTILLATION_WEIGHT_DEFAULTS["weight_safety"]["shadow_identity_mpc"]["enabled"] = False
+    weight_td3 = DISTILLATION_WEIGHT_DEFAULTS["td3_agent"]
+    weight_td3["exploration_mode"] = "gaussian"
+    weight_td3["std_start"] = 0.15
+    weight_td3["std_end"] = 0.03
+    DISTILLATION_WEIGHT_DEFAULTS["supervisor_gate"]["advantage_margin"] = 0.0
+    DISTILLATION_WEIGHT_DEFAULTS["supervisor_gate"]["score_supervisor_action_weight"] = 0.01
+    DISTILLATION_WEIGHT_DEFAULTS["supervisor_gate"]["enable_supervisor_actor_loss"] = False
+
+    DISTILLATION_RESIDUAL_DEFAULTS["agent_mode"] = "sg"
+    DISTILLATION_RESIDUAL_DEFAULTS["agent_kind"] = "sg_td3"
+    DISTILLATION_RESIDUAL_DEFAULTS["run_profiles"] = deepcopy(DISTILLATION_ACTIVE_RESIDUAL_RUN_PROFILES)
+    DISTILLATION_RESIDUAL_DEFAULTS["post_warm_start_action_freeze_subepisodes"] = 3
+    DISTILLATION_RESIDUAL_DEFAULTS["post_warm_start_actor_freeze_subepisodes"] = 3
+    DISTILLATION_RESIDUAL_DEFAULTS["residual_authority_enabled"] = False
+    DISTILLATION_RESIDUAL_DEFAULTS["authority_use_rho"] = False
+    DISTILLATION_RESIDUAL_DEFAULTS["use_rho_authority"] = False
+    DISTILLATION_RESIDUAL_DEFAULTS["append_rho_to_state"] = False
+    DISTILLATION_RESIDUAL_DEFAULTS["residual_zero_deadband_enabled"] = False
+    _disable_behavioral_cloning(DISTILLATION_RESIDUAL_DEFAULTS)
+    DISTILLATION_RESIDUAL_DEFAULTS["td3_authority_ramp"]["enabled"] = False
+    DISTILLATION_RESIDUAL_DEFAULTS["td3_authority_ramp"]["diagnostic_release_gate_only"] = False
+    residual_td3 = DISTILLATION_RESIDUAL_DEFAULTS["td3_agent"]
+    residual_td3["exploration_mode"] = "param_noise"
+    residual_td3["param_noise_std_start"] = 0.10
+    residual_td3["param_noise_std_end"] = 0.02
+    residual_td3["param_noise_resample_interval"] = 4
+    residual_safety = DISTILLATION_RESIDUAL_DEFAULTS["residual_safety"]
+    residual_safety["fallback_to_zero_on_nonfinite"] = True
+    residual_safety["reward_probation"]["enabled"] = False
+    for key in ("shadow_rho_authority", "shadow_residual_deadband", "shadow_direction_risk", "early_release_guard"):
+        residual_safety[key]["enabled"] = False
+    DISTILLATION_RESIDUAL_DEFAULTS["supervisor_gate"]["advantage_margin"] = 0.5
+    DISTILLATION_RESIDUAL_DEFAULTS["supervisor_gate"]["score_supervisor_action_weight"] = 0.05
+    DISTILLATION_RESIDUAL_DEFAULTS["supervisor_gate"]["enable_supervisor_actor_loss"] = False
+
+
+_apply_active_runner_defaults()
+
+
 DISTILLATION_NOTEBOOK_DEFAULTS = {
     "system_identification": DISTILLATION_SYSTEM_IDENTIFICATION_DEFAULTS,
     "baseline": DISTILLATION_BASELINE_DEFAULTS,
     "horizon_standard": DISTILLATION_HORIZON_STANDARD_DEFAULTS,
-    "horizon_dueling": DISTILLATION_HORIZON_DUELING_DEFAULTS,
-    "matrix": DISTILLATION_MATRIX_DEFAULTS,
     "markov": DISTILLATION_MARKOV_DEFAULTS,
-    "structured_matrix": DISTILLATION_STRUCTURED_MATRIX_DEFAULTS,
     "weights": DISTILLATION_WEIGHT_DEFAULTS,
     "residual": DISTILLATION_RESIDUAL_DEFAULTS,
-    "reidentification": DISTILLATION_REIDENTIFICATION_DEFAULTS,
-    "combined": DISTILLATION_COMBINED_DEFAULTS,
 }
 
 
@@ -1392,4 +1537,5 @@ __all__ = [
     "DISTILLATION_DEFAULT_GAMMA",
     "DISTILLATION_NOTEBOOK_DEFAULTS",
     "get_distillation_notebook_defaults",
+    "resolve_distillation_agent_kind",
 ]

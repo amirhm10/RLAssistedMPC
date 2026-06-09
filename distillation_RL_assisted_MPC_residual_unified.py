@@ -15,12 +15,10 @@ import os
 import numpy as np
 import torch
 
-from SACAgent.sac_agent import SACAgent
-from SACAgent.supervisor_gated_sac_agent import SupervisorGatedSACAgent
 from Simulation.mpc import MpcSolverGeneral
 from TD3Agent.agent import TD3Agent
 from TD3Agent.supervisor_gated_agent import SupervisorGatedTD3Agent, SupervisorGateConfig
-from systems.distillation import DISTILLATION_SYSTEM_METADATA, get_distillation_notebook_defaults
+from systems.distillation import DISTILLATION_SYSTEM_METADATA, get_distillation_notebook_defaults, resolve_distillation_agent_kind
 from systems.distillation.data_io import canonical_baseline_path, load_distillation_system_data
 from systems.distillation.plant import build_distillation_system, distillation_system_stepper
 from systems.distillation.scenarios import build_distillation_disturbance_schedule
@@ -45,9 +43,13 @@ if NB_CONFIGURE is not None:
     configured_nb = NB_CONFIGURE(NB)
     if configured_nb is not None:
         NB = configured_nb
-AGENT_KIND = NB["agent_kind"]
-# AGENT_KIND = "sac"
-TD3_LIKE_AGENT = AGENT_KIND in {"td3", "sg_td3"}
+AGENT_MODE = str(NB.get("agent_mode", "sg")).strip().lower().replace("-", "_")
+if AGENT_MODE in {"without_sg", "no_sg"}:
+    AGENT_MODE = "plain"
+AGENT_KIND = resolve_distillation_agent_kind("residual", AGENT_MODE)
+NB["agent_kind"] = AGENT_KIND
+if AGENT_KIND not in {"td3", "sg_td3"}:
+    raise ValueError("Distillation residual runner supports only AGENT_MODE 'plain' or 'sg'.")
 RUN_MODE = NB["run_mode"]
 DISTURBANCE_PROFILE = NB["disturbance_profile"]
 STATE_MODE = NB["state_mode"]
@@ -112,8 +114,8 @@ data_max = system_data["data_max"]
 min_max_dict = system_data["min_max_dict"]
 inputs_number = int(B_aug.shape[1])
 y_sp_scenario = apply_min_max(y_sp_scenario_phys, data_min[inputs_number:], data_max[inputs_number:]) - apply_min_max(steady_states["y_ss"], data_min[inputs_number:], data_max[inputs_number:])
-RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or f"distillation_residual_{AGENT_KIND}_{RUN_MODE}_{DISTURBANCE_PROFILE}_{STATE_MODE}_{'rho' if USE_RHO_AUTHORITY else 'no_rho'}_unified"
-COMPARE_PREFIX = COMPARE_PREFIX_OVERRIDE or f"distillation_compare_residual_{AGENT_KIND}_{RUN_MODE}_{DISTURBANCE_PROFILE}"
+RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or f"distillation_residual_{AGENT_MODE}_{RUN_MODE}_{DISTURBANCE_PROFILE}"
+COMPARE_PREFIX = COMPARE_PREFIX_OVERRIDE or f"distillation_compare_residual_{AGENT_MODE}_{RUN_MODE}_{DISTURBANCE_PROFILE}"
 BASELINE_MPC_PATH = Path(BASELINE_MPC_PATH_OVERRIDE).expanduser() if BASELINE_MPC_PATH_OVERRIDE else canonical_baseline_path(REPO_ROOT, RUN_MODE, DISTURBANCE_PROFILE, data_override=DISTILLATION_DATA_DIR_OVERRIDE)
 n_tests = int(RUN_PROFILE["n_tests"] if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
 set_points_len = int(RUN_PROFILE["set_points_len"] if SET_POINTS_LEN_OVERRIDE is None else SET_POINTS_LEN_OVERRIDE)
@@ -132,7 +134,6 @@ DISTURBANCE_SCHEDULE = build_distillation_disturbance_schedule(RUN_MODE, DISTURB
 # Run-profile, controller, reward, and agent setup.
 CTRL = NB["controller"]
 TD3_CFG = NB["td3_agent"]
-SAC_CFG = NB["sac_agent"]
 GATE_CFG = dict(NB.get("supervisor_gate", {}))
 REWARD_CFG = NB["reward"]
 poles = SYS["observer_poles"].copy()
@@ -180,34 +181,20 @@ TD3_REPLAY_ALPHA = float(TD3_CFG["replay_alpha"])
 TD3_REPLAY_BETA_START = float(TD3_CFG["replay_beta_start"])
 TD3_REPLAY_BETA_END = float(TD3_CFG["replay_beta_end"])
 TD3_REPLAY_BETA_STEPS = int(TD3_CFG["replay_beta_steps"])
-SAC_BUFFER_SIZE = int(SAC_CFG["buffer_size"])
-SAC_REPLAY_FRAC_PER = float(SAC_CFG["replay_frac_per"])
-SAC_REPLAY_FRAC_RECENT = float(SAC_CFG["replay_frac_recent"])
-SAC_REPLAY_RECENT_WINDOW_MULT = int(SAC_CFG["replay_recent_window_mult"])
-SAC_REPLAY_RECENT_WINDOW = int(SAC_CFG["replay_recent_window"]) if SAC_CFG["replay_recent_window"] is not None else min(SAC_BUFFER_SIZE, SAC_REPLAY_RECENT_WINDOW_MULT * set_points_len)
-SAC_REPLAY_ALPHA = float(SAC_CFG["replay_alpha"])
-SAC_REPLAY_BETA_START = float(SAC_CFG["replay_beta_start"])
-SAC_REPLAY_BETA_END = float(SAC_CFG["replay_beta_end"])
-SAC_REPLAY_BETA_STEPS = int(SAC_CFG["replay_beta_steps"])
-SAC_LOSS_TYPE = SAC_CFG["loss_type"]
-SAC_N_STEP = int(SAC_CFG["n_step"])
-SAC_MULTISTEP_MODE = SAC_CFG["multistep_mode"]
-SAC_LAMBDA_VALUE = float(SAC_CFG["lambda_value"])
-N_STEP = TD3_N_STEP if TD3_LIKE_AGENT else SAC_N_STEP
-MULTISTEP_MODE = TD3_MULTISTEP_MODE if TD3_LIKE_AGENT else SAC_MULTISTEP_MODE
-LAMBDA_VALUE = TD3_LAMBDA_VALUE if TD3_LIKE_AGENT else SAC_LAMBDA_VALUE
+N_STEP = TD3_N_STEP
+MULTISTEP_MODE = TD3_MULTISTEP_MODE
+LAMBDA_VALUE = TD3_LAMBDA_VALUE
 USE_SHIFTED_MPC_WARM_START = CTRL["use_shifted_mpc_warm_start"]
-ACTIVE_BUFFER_SIZE = TD3_BUFFER_SIZE if TD3_LIKE_AGENT else SAC_BUFFER_SIZE
 ACTIVE_REPLAY_SETTINGS = {
-    "buffer_size": ACTIVE_BUFFER_SIZE,
-    "replay_frac_per": TD3_REPLAY_FRAC_PER if TD3_LIKE_AGENT else SAC_REPLAY_FRAC_PER,
-    "replay_frac_recent": TD3_REPLAY_FRAC_RECENT if TD3_LIKE_AGENT else SAC_REPLAY_FRAC_RECENT,
-    "replay_recent_window_mult": TD3_REPLAY_RECENT_WINDOW_MULT if TD3_LIKE_AGENT else SAC_REPLAY_RECENT_WINDOW_MULT,
-    "replay_recent_window": TD3_REPLAY_RECENT_WINDOW if TD3_LIKE_AGENT else SAC_REPLAY_RECENT_WINDOW,
-    "replay_alpha": TD3_REPLAY_ALPHA if TD3_LIKE_AGENT else SAC_REPLAY_ALPHA,
-    "replay_beta_start": TD3_REPLAY_BETA_START if TD3_LIKE_AGENT else SAC_REPLAY_BETA_START,
-    "replay_beta_end": TD3_REPLAY_BETA_END if TD3_LIKE_AGENT else SAC_REPLAY_BETA_END,
-    "replay_beta_steps": TD3_REPLAY_BETA_STEPS if TD3_LIKE_AGENT else SAC_REPLAY_BETA_STEPS,
+    "buffer_size": TD3_BUFFER_SIZE,
+    "replay_frac_per": TD3_REPLAY_FRAC_PER,
+    "replay_frac_recent": TD3_REPLAY_FRAC_RECENT,
+    "replay_recent_window_mult": TD3_REPLAY_RECENT_WINDOW_MULT,
+    "replay_recent_window": TD3_REPLAY_RECENT_WINDOW,
+    "replay_alpha": TD3_REPLAY_ALPHA,
+    "replay_beta_start": TD3_REPLAY_BETA_START,
+    "replay_beta_end": TD3_REPLAY_BETA_END,
+    "replay_beta_steps": TD3_REPLAY_BETA_STEPS,
 }
 # Reward setup.
 reward_params, reward_fn = make_reward_fn_relative_QR(data_min, data_max, N_INPUTS, **REWARD_CFG)
@@ -256,46 +243,6 @@ td3_agent_kwargs = {
     "multistep_mode": TD3_MULTISTEP_MODE,
     "lambda_value": TD3_LAMBDA_VALUE,
 }
-target_entropy = -ACTION_DIM if SAC_CFG["target_entropy"] == "auto_negative_action_dim" else SAC_CFG["target_entropy"]
-sac_agent_kwargs = {
-    "state_dim": STATE_DIM,
-    "action_dim": ACTION_DIM,
-    "actor_hidden": list(SAC_CFG["actor_hidden"]),
-    "critic_hidden": list(SAC_CFG["critic_hidden"]),
-    "gamma": SAC_CFG["gamma"],
-    "actor_lr": SAC_CFG["actor_lr"],
-    "critic_lr": SAC_CFG["critic_lr"],
-    "alpha_lr": SAC_CFG["alpha_lr"],
-    "batch_size": SAC_CFG["batch_size"],
-    "grad_clip_norm": SAC_CFG["grad_clip_norm"],
-    "init_alpha": SAC_CFG["init_alpha"],
-    "learn_alpha": SAC_CFG["learn_alpha"],
-    "target_entropy": target_entropy,
-    "alpha_freeze": SAC_CFG.get("alpha_freeze", SAC_CFG["actor_freeze"]),
-    "target_update": SAC_CFG["target_update"],
-    "tau": SAC_CFG["tau"],
-    "hard_update_interval": SAC_CFG["hard_update_interval"],
-    "actor_q_mode": SAC_CFG.get("actor_q_mode", "min"),
-    "activation": SAC_CFG["activation"],
-    "use_layernorm": SAC_CFG["use_layernorm"],
-    "dropout": SAC_CFG["dropout"],
-    "max_action": SAC_CFG["max_action"],
-    "buffer_size": SAC_BUFFER_SIZE,
-    "replay_frac_per": SAC_REPLAY_FRAC_PER,
-    "replay_frac_recent": SAC_REPLAY_FRAC_RECENT,
-    "replay_recent_window": SAC_REPLAY_RECENT_WINDOW,
-    "replay_alpha": SAC_REPLAY_ALPHA,
-    "replay_beta_start": SAC_REPLAY_BETA_START,
-    "replay_beta_end": SAC_REPLAY_BETA_END,
-    "replay_beta_steps": SAC_REPLAY_BETA_STEPS,
-    "device": DEVICE,
-    "use_adamw": SAC_CFG["use_adamw"],
-    "actor_freeze": SAC_CFG["actor_freeze"],
-    "loss_type": SAC_LOSS_TYPE,
-    "n_step": SAC_N_STEP,
-    "multistep_mode": SAC_MULTISTEP_MODE,
-    "lambda_value": SAC_LAMBDA_VALUE,
-}
 if AGENT_KIND == "td3":
     residual_agent = TD3Agent(**td3_agent_kwargs)
 elif AGENT_KIND == "sg_td3":
@@ -303,15 +250,8 @@ elif AGENT_KIND == "sg_td3":
         **td3_agent_kwargs,
         supervisor_gate_config=SupervisorGateConfig(**GATE_CFG),
     )
-elif AGENT_KIND == "sac":
-    residual_agent = SACAgent(**sac_agent_kwargs)
-elif AGENT_KIND == "sg_sac":
-    residual_agent = SupervisorGatedSACAgent(
-        **sac_agent_kwargs,
-        supervisor_gate_config=dict(GATE_CFG),
-    )
 else:
-    raise ValueError("AGENT_KIND must be 'td3', 'sg_td3', 'sac', or 'sg_sac'.")
+    raise ValueError("AGENT_KIND must be 'td3' or 'sg_td3'.")
 
 REPLAY_SETTINGS = ACTIVE_REPLAY_SETTINGS
 
@@ -323,10 +263,10 @@ print_grouped_notebook_summary(
     RUN_SUMMARY_TITLE,
     {
         "Paths": {"Repo root": REPO_ROOT, "Data dir": DATA_DIR, "Results dir": RESULT_DIR, "Aspen source": ASPEN_SOURCE, "Dyn path": DYN_PATH, "Snaps path": SNAPS_PATH, "Baseline MPC": BASELINE_MPC_PATH},
-        "Run setup": {"Agent kind": AGENT_KIND, "Run mode": RUN_MODE, "Disturbance profile": DISTURBANCE_PROFILE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "test_cycle": TEST_CYCLE, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START, "use_rho_authority": USE_RHO_AUTHORITY},
+        "Run setup": {"Agent mode": AGENT_MODE, "Agent kind": AGENT_KIND, "Run mode": RUN_MODE, "Disturbance profile": DISTURBANCE_PROFILE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "test_cycle": TEST_CYCLE, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START, "use_rho_authority": USE_RHO_AUTHORITY},
         "System / controller": {"delta_t_hours": SYS["delta_t_hours"], "predict_h": predict_h, "cont_h": cont_h, "Q penalties": [Q1_penalty, Q2_penalty], "R penalties": [R1_penalty, R2_penalty], "observer_poles": poles.tolist()},
         "Reward": reward_params,
-        "Agent": {"supervisor": "zero residual correction gated by SG critics" if AGENT_KIND in {"sg_td3", "sg_sac"} else "residual correction", "buffer_size": (TD3_CFG if TD3_LIKE_AGENT else SAC_CFG)["buffer_size"], "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": TD3_EXPLORATION_MODE if TD3_LIKE_AGENT else "policy_stochastic", "loss_type": TD3_LOSS_TYPE if TD3_LIKE_AGENT else SAC_LOSS_TYPE, "supervisor_gate": GATE_CFG if AGENT_KIND in {"sg_td3", "sg_sac"} else None},
+        "Agent": {"supervisor": "zero residual correction gated by SG critics" if AGENT_KIND == "sg_td3" else "residual correction", "buffer_size": TD3_CFG["buffer_size"], "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": TD3_EXPLORATION_MODE, "loss_type": TD3_LOSS_TYPE, "supervisor_gate": GATE_CFG if AGENT_KIND == "sg_td3" else None},
         "Replay": REPLAY_SETTINGS,
         "Mismatch": {"clip": MISMATCH_CLIP, "innovation_scale_mode": INNOVATION_SCALE_MODE, "tracking_scale_mode": TRACKING_SCALE_MODE, "tracking_eta_tol": TRACKING_ETA_TOL, "tracking_scale_floor_mode": TRACKING_SCALE_FLOOR_MODE},
         "Residual authority": {"enabled": RESIDUAL_AUTHORITY_ENABLED, "use_rho": USE_RHO_AUTHORITY, "append_rho_to_state": APPEND_RHO_TO_STATE, "rho_floor": AUTHORITY_RHO_FLOOR, "rho_power": AUTHORITY_RHO_POWER},

@@ -13,7 +13,8 @@ from pathlib import Path
 import os
 
 from DQN.dqn_agent import DQNAgent
-from systems.distillation import get_distillation_notebook_defaults
+from DQN.supervisor_gated_dqn_agent import SupervisorGatedDQNAgent
+from systems.distillation import get_distillation_notebook_defaults, resolve_distillation_agent_kind
 from systems.distillation.data_io import canonical_baseline_path, load_distillation_system_data
 from systems.distillation.labels import DISTILLATION_SYSTEM_METADATA
 from systems.distillation.plant import build_distillation_system, distillation_system_stepper
@@ -31,7 +32,6 @@ import torch
 NB = get_distillation_notebook_defaults("horizon_standard")
 NOTEBOOK_SOURCE = globals().get("NOTEBOOK_SOURCE_OVERRIDE", "distillation_RL_assisted_MPC_horizons_unified.ipynb")
 RUN_SUMMARY_TITLE = globals().get("RUN_SUMMARY_TITLE_OVERRIDE", "Distillation Horizon Supervisor run summary")
-HORIZON_AGENT_CLASS = globals().get("HORIZON_AGENT_CLASS_OVERRIDE", DQNAgent)
 NB_CONFIGURE = globals().get("NB_CONFIGURE")
 if NB_CONFIGURE is not None:
     configured_nb = NB_CONFIGURE(NB)
@@ -40,6 +40,13 @@ if NB_CONFIGURE is not None:
     NB = configured_nb
 
 # Main notebook controls.
+AGENT_MODE = str(NB.get("agent_mode", "sg")).strip().lower().replace("-", "_")
+if AGENT_MODE in {"without_sg", "no_sg"}:
+    AGENT_MODE = "plain"
+AGENT_KIND = resolve_distillation_agent_kind("horizon", AGENT_MODE)
+NB["agent_kind"] = AGENT_KIND
+_DEFAULT_HORIZON_AGENT_CLASS = SupervisorGatedDQNAgent if AGENT_KIND == "sg_dqn" else DQNAgent
+HORIZON_AGENT_CLASS = globals().get("HORIZON_AGENT_CLASS_OVERRIDE", _DEFAULT_HORIZON_AGENT_CLASS)
 RUN_MODE = NB["run_mode"]  # "nominal" | "disturb"
 DISTURBANCE_PROFILE = NB["disturbance_profile"]  # "none" | "ramp" | "fluctuation"
 STATE_MODE = NB["state_mode"]  # "standard" | "mismatch"
@@ -81,7 +88,7 @@ os.chdir(REPO_ROOT)
 # --- Cell 4 (code) ---
 # Build the plant, load the canonical data bundle, and prepare the supervisory setpoint scenario.
 SYS = NB["system_setup"]
-RUN_PROFILE = NB["run_profiles"][(RUN_MODE, DISTURBANCE_PROFILE)]
+RUN_PROFILE = NB["run_profiles"][(AGENT_KIND, RUN_MODE, DISTURBANCE_PROFILE)]
 nominal_conditions = SYS["nominal_conditions"].copy()
 ss_inputs = SYS["ss_inputs"].copy()
 u_min = SYS["input_bounds"]["u_min"].copy()
@@ -99,8 +106,8 @@ data_max = system_data["data_max"]
 min_max_dict = system_data["min_max_dict"]
 inputs_number = int(B_aug.shape[1])
 y_sp_scenario = apply_min_max(y_sp_scenario_phys, data_min[inputs_number:], data_max[inputs_number:]) - apply_min_max(steady_states["y_ss"], data_min[inputs_number:], data_max[inputs_number:])
-RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or f"distillation_horizon_{RUN_MODE}_{DISTURBANCE_PROFILE}_{STATE_MODE}_unified"
-COMPARE_PREFIX = COMPARE_PREFIX_OVERRIDE or f"distillation_compare_horizon_{RUN_MODE}_{DISTURBANCE_PROFILE}_{STATE_MODE}"
+RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or f"distillation_horizon_{AGENT_MODE}_{RUN_MODE}_{DISTURBANCE_PROFILE}"
+COMPARE_PREFIX = COMPARE_PREFIX_OVERRIDE or f"distillation_compare_horizon_{AGENT_MODE}_{RUN_MODE}_{DISTURBANCE_PROFILE}"
 BASELINE_MPC_PATH = Path(BASELINE_MPC_PATH_OVERRIDE).expanduser() if BASELINE_MPC_PATH_OVERRIDE else canonical_baseline_path(REPO_ROOT, RUN_MODE, DISTURBANCE_PROFILE, data_override=DISTILLATION_DATA_DIR_OVERRIDE)
 EPISODE_CFG = NB["episode_defaults"]
 n_tests = int(RUN_PROFILE.get("n_tests", EPISODE_CFG["n_tests"]) if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
@@ -199,10 +206,10 @@ print_grouped_notebook_summary(
     RUN_SUMMARY_TITLE,
     {
         "Paths": {"Repo root": REPO_ROOT, "Data dir": DATA_DIR, "Results dir": RESULT_DIR, "Aspen source": ASPEN_SOURCE, "Dyn path": DYN_PATH, "Snaps path": SNAPS_PATH, "Baseline MPC": BASELINE_MPC_PATH},
-        "Run setup": {"Run mode": RUN_MODE, "Disturbance profile": DISTURBANCE_PROFILE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "q_warm_release_subepisodes": POST_WARM_START_ACTION_FREEZE_SUBEPISODES, "test_cycle": TEST_CYCLE, "decision_interval": DECISION_INTERVAL, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START},
+        "Run setup": {"Agent mode": AGENT_MODE, "Agent kind": AGENT_KIND, "Run mode": RUN_MODE, "Disturbance profile": DISTURBANCE_PROFILE, "State mode": STATE_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "q_warm_release_subepisodes": POST_WARM_START_ACTION_FREEZE_SUBEPISODES, "test_cycle": TEST_CYCLE, "decision_interval": DECISION_INTERVAL, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START},
         "System / controller": {"delta_t_hours": SYS["delta_t_hours"], "predict_h": predict_h, "cont_h": cont_h, "predict_grid": PREDICT_GRID, "control_grid": CONTROL_GRID, "observer_poles": poles.tolist(), "setpoints_phys": y_sp_scenario_phys.tolist()},
         "Reward": reward_params,
-        "Agent": {"algorithm": "ddqn", "agent_kind": NB.get("agent_kind", "dqn"), "hidden_layers": AGENT_CFG["hidden_layers"], "buffer_size": BUFFER_SIZE, "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": EXPLORATION_MODE, "noisy_sigma_init": AGENT_CFG["noisy_sigma_init"], "loss_type": LOSS_TYPE, "supervisor_gate": AGENT_CFG.get("supervisor_gate")},
+        "Agent": {"algorithm": AGENT_KIND, "agent_kind": AGENT_KIND, "hidden_layers": AGENT_CFG["hidden_layers"], "buffer_size": BUFFER_SIZE, "n_step": N_STEP, "multistep_mode": MULTISTEP_MODE, "lambda_value": LAMBDA_VALUE, "exploration_mode": EXPLORATION_MODE, "noisy_sigma_init": AGENT_CFG["noisy_sigma_init"], "loss_type": LOSS_TYPE, "supervisor_gate": AGENT_CFG.get("supervisor_gate")},
         "Replay": REPLAY_SETTINGS,
         "Safety": {"horizon_safety_enabled": bool(HORIZON_SAFETY_CFG.get("enabled", False)), "release_filter_enabled": bool(HORIZON_SAFETY_CFG.get("release_filter", {}).get("enabled", False)), "reward_probation_enabled": bool(HORIZON_SAFETY_CFG.get("reward_probation", {}).get("enabled", False)), "shadow_default_mpc_enabled": bool(HORIZON_SAFETY_CFG.get("shadow_default_mpc", {}).get("enabled", False))},
         "Mismatch": {"clip": MISMATCH_CLIP, "innovation_scale_mode": INNOVATION_SCALE_MODE, "tracking_scale_mode": TRACKING_SCALE_MODE, "tracking_eta_tol": TRACKING_ETA_TOL, "tracking_scale_floor_mode": TRACKING_SCALE_FLOOR_MODE},
@@ -218,8 +225,8 @@ print_grouped_notebook_summary(
 horizon_cfg = {
     "mode": RUN_MODE,
     "state_mode": STATE_MODE,
-    "algorithm": "sg_dqn" if str(NB.get("agent_kind", "")).lower() == "sg_dqn" else "ddqn",
-    "agent_kind": NB.get("agent_kind", "dqn"),
+    "algorithm": AGENT_KIND,
+    "agent_kind": AGENT_KIND,
         "mismatch_clip": MISMATCH_CLIP,
     "innovation_scale_mode": INNOVATION_SCALE_MODE,
     "innovation_scale_ref": INNOVATION_SCALE_REF,

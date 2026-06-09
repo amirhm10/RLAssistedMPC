@@ -58,6 +58,8 @@ def test_distillation_residual_sg_td3_profile_available():
     from systems.distillation import get_distillation_notebook_defaults
 
     nb = get_distillation_notebook_defaults("residual")
+    assert nb["agent_mode"] == "sg"
+    assert nb["agent_kind"] == "sg_td3"
     assert ("sg_td3", "nominal", "none") in nb["run_profiles"]
     assert ("sg_td3", "disturb", "ramp") in nb["run_profiles"]
     assert ("sg_td3", "disturb", "fluctuation") in nb["run_profiles"]
@@ -65,25 +67,14 @@ def test_distillation_residual_sg_td3_profile_available():
 
 
 def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
-    from distillation_RL_assisted_MPC_residual_supervisor_gated_td3_critic_warm_unified import (
-        configure_sg_td3_residual_critic_warm,
-    )
     from systems.distillation import get_distillation_notebook_defaults
 
-    configured = configure_sg_td3_residual_critic_warm(get_distillation_notebook_defaults("residual"))
+    configured = get_distillation_notebook_defaults("residual")
+    assert configured["agent_mode"] == "sg"
     assert configured["agent_kind"] == "sg_td3"
     assert configured["run_mode"] == "disturb"
     assert configured["disturbance_profile"] == "fluctuation"
     assert configured["state_mode"] == "mismatch"
-    assert "mismatch" in configured["result_prefix_override"]
-    assert "mismatch" in configured["compare_prefix_override"]
-    assert "critic_warm3" in configured["result_prefix_override"]
-    assert "critic_warm3" in configured["compare_prefix_override"]
-    assert "margin05" in configured["result_prefix_override"]
-    assert "margin05" in configured["compare_prefix_override"]
-    assert "paramnoise" in configured["result_prefix_override"]
-    assert "paramnoise" in configured["compare_prefix_override"]
-    assert configured["warm_start_override"] == 10
     assert configured["post_warm_start_action_freeze_subepisodes"] == 3
     assert configured["post_warm_start_actor_freeze_subepisodes"] == 3
     assert configured["residual_authority_enabled"] is False
@@ -127,36 +118,25 @@ def test_distillation_sg_td3_critic_warm_config_manual_layers_off():
 
 
 def test_distillation_sg_td3_weights_and_markov_use_mismatch_state():
-    from distillation_RL_assisted_MPC_markov_supervisor_gated_td3_critic_warm_unified import (
-        configure_sg_td3_markov_critic_warm,
-    )
-    from distillation_RL_assisted_MPC_weights_supervisor_gated_td3_critic_warm_unified import (
-        configure_sg_td3_weights_critic_warm,
-    )
     from systems.distillation import get_distillation_notebook_defaults
 
-    weights = configure_sg_td3_weights_critic_warm(get_distillation_notebook_defaults("weights"))
-    markov = configure_sg_td3_markov_critic_warm(get_distillation_notebook_defaults("markov"))
+    weights = get_distillation_notebook_defaults("weights")
+    markov = get_distillation_notebook_defaults("markov")
 
     for configured in (weights, markov):
+        assert configured["agent_mode"] == "sg"
         assert configured["agent_kind"] == "sg_td3"
         assert configured["run_mode"] == "disturb"
         assert configured["disturbance_profile"] == "fluctuation"
         assert configured["state_mode"] == "mismatch"
-        assert "mismatch" in configured["result_prefix_override"]
-        assert "mismatch" in configured["compare_prefix_override"]
 
-    assert "critic_warm3" in weights["result_prefix_override"]
-    assert "critic_warm3" in weights["compare_prefix_override"]
     assert weights["post_warm_start_action_freeze_subepisodes"] == 3
     assert weights["post_warm_start_actor_freeze_subepisodes"] == 3
+    assert weights["td3_authority_ramp"]["enabled"] is False
+    assert weights["td3_agent"]["exploration_mode"] == "gaussian"
+    assert weights["td3_agent"]["std_start"] == 0.15
+    assert weights["td3_agent"]["std_end"] == 0.03
 
-    assert "critic_warm3" in markov["result_prefix_override"]
-    assert "critic_warm3" in markov["compare_prefix_override"]
-    assert "margin05" in markov["result_prefix_override"]
-    assert "margin05" in markov["compare_prefix_override"]
-    assert "softparamnoise" in markov["result_prefix_override"]
-    assert "softparamnoise" in markov["compare_prefix_override"]
     assert markov["post_warm_start_action_freeze_subepisodes"] == 3
     assert markov["post_warm_start_actor_freeze_subepisodes"] == 3
 

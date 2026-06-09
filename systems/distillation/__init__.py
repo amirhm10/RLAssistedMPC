@@ -1,5 +1,9 @@
 from .config import (
     DELTA_T_HOURS,
+    DISTILLATION_ACTIVE_HORIZON_RUN_PROFILES,
+    DISTILLATION_ACTIVE_MARKOV_RUN_PROFILES,
+    DISTILLATION_ACTIVE_RESIDUAL_RUN_PROFILES,
+    DISTILLATION_ACTIVE_WEIGHT_RUN_PROFILES,
     DISTILLATION_BASELINE_RUN_PROFILES,
     DISTILLATION_COMBINED_RUN_PROFILES,
     DISTILLATION_INPUT_BOUNDS,
@@ -26,7 +30,7 @@ from .data_io import (
     resolve_distillation_result_dir,
 )
 from .labels import DISTILLATION_SYSTEM_METADATA
-from .notebook_params import get_distillation_notebook_defaults
+from .notebook_params import get_distillation_notebook_defaults, resolve_distillation_agent_kind
 from .plant import DistillationColumnAspen, build_distillation_system, distillation_system_stepper
 from .scenarios import (
     build_distillation_disturbance_schedule,

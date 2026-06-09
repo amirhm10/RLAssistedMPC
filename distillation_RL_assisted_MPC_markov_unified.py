@@ -12,7 +12,7 @@ import os
 import numpy as np
 
 from Simulation.mpc import MpcSolverGeneral
-from systems.distillation import DISTILLATION_SYSTEM_METADATA, get_distillation_notebook_defaults
+from systems.distillation import DISTILLATION_SYSTEM_METADATA, get_distillation_notebook_defaults, resolve_distillation_agent_kind
 from systems.distillation.data_io import canonical_baseline_path, load_distillation_system_data
 from systems.distillation.plant import build_distillation_system, distillation_system_stepper
 from systems.distillation.scenarios import build_distillation_disturbance_schedule
@@ -34,7 +34,11 @@ if NB_CONFIGURE is not None:
     if configured_nb is not None:
         NB = configured_nb
 
-AGENT_KIND = NB["agent_kind"]
+AGENT_MODE = str(NB.get("agent_mode", "sg")).strip().lower().replace("-", "_")
+if AGENT_MODE in {"without_sg", "no_sg"}:
+    AGENT_MODE = "plain"
+AGENT_KIND = resolve_distillation_agent_kind("markov", AGENT_MODE)
+NB["agent_kind"] = AGENT_KIND
 RUN_MODE = NB["run_mode"]
 DISTURBANCE_PROFILE = NB["disturbance_profile"]
 STATE_MODE = str(NB.get("state_mode", "mismatch")).strip().lower()
@@ -74,8 +78,8 @@ REPO_ROOT, DATA_DIR, RESULT_DIR, DISTURBANCE_PROFILE, DYN_PATH, SNAPS_PATH, ASPE
     results_dir_override=DISTILLATION_RESULTS_DIR_OVERRIDE,
 )
 os.chdir(REPO_ROOT)
-if AGENT_KIND not in {"td3", "sg_td3", "sg_sac"}:
-    raise ValueError("Distillation Markov supports TD3, SG-TD3, and SG-SAC only.")
+if AGENT_KIND not in {"td3", "sg_td3"}:
+    raise ValueError("Distillation Markov supports only AGENT_MODE 'plain' or 'sg'.")
 
 # --- Cell 2 (code) ---
 SYS = NB["system_setup"]
@@ -120,8 +124,8 @@ y_sp_scenario = apply_min_max(y_sp_scenario_phys, data_min[inputs_number:], data
     steady_states["y_ss"], data_min[inputs_number:], data_max[inputs_number:]
 )
 
-RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or f"distillation_markov_{AGENT_KIND}_{RUN_MODE}_{DISTURBANCE_PROFILE}_unified"
-COMPARE_PREFIX = COMPARE_PREFIX_OVERRIDE or f"distillation_compare_markov_{AGENT_KIND}_{RUN_MODE}_{DISTURBANCE_PROFILE}"
+RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or f"distillation_markov_{AGENT_MODE}_{RUN_MODE}_{DISTURBANCE_PROFILE}"
+COMPARE_PREFIX = COMPARE_PREFIX_OVERRIDE or f"distillation_compare_markov_{AGENT_MODE}_{RUN_MODE}_{DISTURBANCE_PROFILE}"
 BASELINE_MPC_PATH = Path(BASELINE_MPC_PATH_OVERRIDE).expanduser() if BASELINE_MPC_PATH_OVERRIDE else canonical_baseline_path(
     REPO_ROOT,
     RUN_MODE,
@@ -138,7 +142,6 @@ def close_markov_system(system):
 EPISODE_CFG = RUN_PROFILE
 CTRL = NB["controller"]
 TD3_CFG = NB["td3_agent"]
-SAC_CFG = NB["sac_agent"]
 REWARD_CFG = NB["reward"]
 BEHAVIORAL_CLONING = dict(NB.get("behavioral_cloning", {}))
 SUPERVISOR_GATE_CFG = dict(NB.get("supervisor_gate", {}))
@@ -180,7 +183,6 @@ nominal_cost_relative_tol = float(CTRL["nominal_cost_relative_tol"])
 nominal_cost_absolute_tol = float(CTRL["nominal_cost_absolute_tol"])
 nominal_solver_mode = str(CTRL.get("nominal_solver_mode", "state_space_shared"))
 td3_seed = TD3_CFG.get("seed")
-sac_seed = SAC_CFG.get("seed")
 run_adaptive_ls = bool(CTRL["run_adaptive_ls"])
 run_live_corrected_mpc = bool(CTRL["run_live_corrected_mpc"])
 run_rl_proposal = bool(CTRL["run_rl_proposal"])
@@ -219,10 +221,10 @@ print_grouped_notebook_summary(
         },
         "Run setup": {
             "Agent kind": AGENT_KIND,
+            "Agent mode": AGENT_MODE,
             "Run mode": RUN_MODE,
             "Disturbance profile": DISTURBANCE_PROFILE,
             "TD3 seed": td3_seed,
-            "SAC seed": sac_seed,
             "n_tests": n_tests,
             "set_points_len": set_points_len,
             "warm_start": warm_start,
@@ -255,7 +257,7 @@ print_grouped_notebook_summary(
             "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START,
         },
         "Behavioral cloning": BEHAVIORAL_CLONING,
-        "Supervisor gate": SUPERVISOR_GATE_CFG if AGENT_KIND in {"sg_td3", "sg_sac"} else None,
+        "Supervisor gate": SUPERVISOR_GATE_CFG if AGENT_KIND == "sg_td3" else None,
         "Markov shadow safety": CTRL.get("markov_shadow_safety", {}),
         "Reward": reward_params,
         "Debug": {
@@ -322,7 +324,6 @@ markov_cfg = {
     "behavioral_cloning": BEHAVIORAL_CLONING,
     "supervisor_gate": SUPERVISOR_GATE_CFG,
     "td3_agent": TD3_CFG,
-    "sac_agent": SAC_CFG,
     "max_steps": MAX_STEPS_OVERRIDE,
 }
 

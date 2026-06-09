@@ -49,6 +49,7 @@ def test_polymer_combined_defaults_use_all_sg_mismatch_mode():
     assert nb["weights_supervisor_gate"]["advantage_margin"] == 0.5
     assert nb["residual_supervisor_gate"]["advantage_margin"] == 0.5
     assert nb["append_rho_to_state"] is False
+    assert nb["residual_authority_enabled"] is False
     assert nb["authority_use_rho"] is False
     assert nb["residual_zero_deadband_enabled"] is False
 
@@ -68,6 +69,7 @@ def test_polymer_combined_root_runner_is_active_sg_plain_only():
     assert "resolve_polymer_combined_agent_kinds" in source
     assert "SupervisorGatedDQNAgent" in source
     assert "SupervisorGatedTD3Agent" in source
+    assert "residual_authority_enabled" in source
     assert "SACAgent" not in source
     assert "DuelingDQN" not in source
     assert "TD7" not in source

@@ -4,6 +4,10 @@ import numpy as np
 import scipy.optimize as spo
 
 from Simulation.mpc import MpcSolverGeneral
+from TD3Agent.supervisor_replay_buffer import (
+    SOURCE_POLICY as SG_SOURCE_POLICY,
+    SOURCE_SUPERVISOR as SG_SOURCE_SUPERVISOR,
+)
 from utils.agent_step_runtime import (
     replay_train_continuous_agent,
     replay_train_horizon_agent,
@@ -428,6 +432,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             n_inputs=n_inputs,
         ),
     }
+    residual_authority_enabled = bool(residual_cfg.get("residual_authority_enabled", False))
     authority_use_rho = bool(residual_cfg.get("authority_use_rho", residual_cfg.get("use_rho_authority", True)))
     use_shifted_mpc_warm_start = bool(combined_cfg.get("use_shifted_mpc_warm_start", False))
     recalculate_observer_on_matrix_change_requested = bool(
@@ -1600,7 +1605,11 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             scaled_current_input=scaled_current_input,
             u_min_scaled_abs=u_min_scaled_abs,
             u_max_scaled_abs=u_max_scaled_abs,
-            apply_authority=(residual_enabled and residual_state_mode == "mismatch"),
+            apply_authority=bool(
+                residual_enabled
+                and residual_state_mode == "mismatch"
+                and residual_authority_enabled
+            ),
             authority_use_rho=authority_use_rho,
             tracking_error_feat=None if not residual_enabled else current_state_debugs["residual"]["tracking_error"],
             tracking_error_raw=None if not residual_enabled else current_state_debugs["residual"]["tracking_error_raw"],
@@ -1830,6 +1839,25 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             subepisode_avg_reward = float(np.mean(rewards[max(0, i - time_in_sub_episodes + 1) : i + 1]))
             avg_rewards.append(subepisode_avg_reward)
             subepisode_idx = int(sub_episodes_changes_dict[i])
+            window_start = max(0, i - time_in_sub_episodes + 1)
+            weight_window = weight_log[window_start : i + 1, :]
+            residual_window = delta_u_res_exec_log[window_start : i + 1, :]
+            avg_weight_window = np.mean(weight_window, axis=0) if weight_enabled else "off"
+            avg_residual_window = np.mean(residual_window, axis=0) if residual_enabled else "off"
+            weight_sg_source_summary = "off"
+            if weight_sg_enabled and weight_sg_selected_source_log is not None:
+                source_window = weight_sg_selected_source_log[window_start : i + 1]
+                weight_sg_source_summary = (
+                    f"policy={int(np.sum(source_window == SG_SOURCE_POLICY))},"
+                    f"supervisor={int(np.sum(source_window == SG_SOURCE_SUPERVISOR))}"
+                )
+            residual_sg_source_summary = "off"
+            if residual_sg_enabled and residual_sg_selected_source_log is not None:
+                source_window = residual_sg_selected_source_log[window_start : i + 1]
+                residual_sg_source_summary = (
+                    f"policy={int(np.sum(source_window == SG_SOURCE_POLICY))},"
+                    f"supervisor={int(np.sum(source_window == SG_SOURCE_SUPERVISOR))}"
+                )
             if markov_enabled:
                 if subepisode_idx <= markov_warm_subepisodes:
                     markov_warm_reference_rewards.append(subepisode_avg_reward)
@@ -1874,10 +1902,14 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                 markov_z_log[i, :] if markov_enabled else "off",
                 "| alpha:",
                 matrix_alpha_log[i] if matrix_enabled else "off",
-                "| weights:",
-                weight_log[i, :],
-                "| residual:",
-                delta_u_res_exec_log[i, :],
+                "| avg weights:",
+                avg_weight_window,
+                "| w sg src:",
+                weight_sg_source_summary,
+                "| avg residual:",
+                avg_residual_window,
+                "| r sg src:",
+                residual_sg_source_summary,
             )
 
     disturbance_profile = disturbance_profile_from_schedule(
@@ -2051,6 +2083,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "residual_decision_log": residual_decision_log,
         "residual_agent_kind": residual_agent_kind,
         "residual_state_mode": residual_state_mode,
+        "residual_authority_enabled": bool(residual_authority_enabled),
         "residual_low_coef": residual_low,
         "residual_high_coef": residual_high,
         "residual_sg_policy_action_raw_log": residual_sg_policy_action_raw_log,

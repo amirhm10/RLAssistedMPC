@@ -71,6 +71,7 @@ if ENABLE_MATRIX:
     raise ValueError("The active polymer combined runner keeps the legacy matrix branch disabled.")
 
 USE_RHO_AUTHORITY = bool(NB["authority_use_rho"])
+RESIDUAL_AUTHORITY_ENABLED = bool(NB["residual_authority_enabled"])
 APPEND_RHO_TO_STATE = bool(NB["append_rho_to_state"])
 AUTHORITY_BETA_RES = NB["authority_beta_res"]
 AUTHORITY_DU0_RES = NB["authority_du0_res"]
@@ -614,6 +615,7 @@ combined_cfg = {
         "agent_kind": RESIDUAL_AGENT_KIND,
         "state_mode": RESIDUAL_STATE_MODE,
         **MISMATCH_COMMON,
+        "residual_authority_enabled": RESIDUAL_AUTHORITY_ENABLED,
         "authority_use_rho": USE_RHO_AUTHORITY,
         "use_rho_authority": USE_RHO_AUTHORITY,
         "append_rho_to_state": APPEND_RHO_TO_STATE,

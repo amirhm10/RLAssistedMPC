@@ -51,14 +51,14 @@ def test_polymer_sg_td3_markov_defaults_shadow_only():
     assert bc["enabled"] is False
     assert bc["handoff"]["enabled"] is False
     assert ctrl["z_safety"]["enabled"] is False
-    assert ctrl["z_bound"] == 0.50
+    assert ctrl["z_bound"] == 0.70
     assert ctrl["td3_priority_fallback"]["enabled"] is False
     assert ctrl["td3_authority_ramp"]["enabled"] is False
     assert ctrl["rl_fallback_to_ls"] is False
     assert ctrl["force_td3_respects_warm_start"] is True
     assert ctrl["markov_shadow_safety"]["enabled"] is True
     assert ctrl["markov_shadow_safety"]["compute_ls_candidate"] is False
-    assert configured["supervisor_gate"]["advantage_margin"] == 0.0
+    assert configured["supervisor_gate"]["advantage_margin"] == 1.0
     assert configured["supervisor_gate"]["score_uncertainty_weight"] == 0.5
     assert configured["supervisor_gate"]["score_supervisor_action_weight"] == 0.02
     assert configured["supervisor_gate"]["score_previous_action_weight"] == 0.01

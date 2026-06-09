@@ -55,8 +55,17 @@ def test_distillation_agent_defaults_use_40k_replay_buffer():
         "markov",
         "weights",
         "residual",
+        "combined",
     )
-    agent_keys = ("agent", "td3_agent", "sac_agent")
+    agent_keys = (
+        "agent",
+        "td3_agent",
+        "sac_agent",
+        "horizon_agent",
+        "markov_td3_agent",
+        "weights_td3_agent",
+        "residual_td3_agent",
+    )
     for family in families:
         nb = get_distillation_notebook_defaults(family)
         for agent_key in agent_keys:

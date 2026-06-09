@@ -1291,77 +1291,6 @@ DISTILLATION_REIDENTIFICATION_DEFAULTS = {
     "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
 }
 
-DISTILLATION_COMBINED_DEFAULTS = {
-    "run_mode": "disturb",
-    "disturbance_profile": "fluctuation",
-    **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
-    **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
-    **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
-    **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
-    "enable_horizon": True,
-    "horizon_agent_kind": "dqn",
-    "horizon_state_mode": "mismatch",
-    "enable_matrix": True,
-    "matrix_agent_kind": "td3",
-    "matrix_state_mode": "mismatch",
-    "enable_weights": True,
-    "weights_agent_kind": "td3",
-    "weights_state_mode": "mismatch",
-    "enable_residual": True,
-    "residual_agent_kind": "td3",
-    "residual_state_mode": "mismatch",
-    **_copy_residual_authority_defaults(action_dim=2),
-    "use_rho_authority": True,
-    "run_profiles": deepcopy(DISTILLATION_COMBINED_RUN_PROFILES),
-    "td3_post_warm_start_action_freeze_subepisodes": 5,
-    "td3_post_warm_start_actor_freeze_subepisodes": 5,
-    "controller": {
-        "decision_interval": DISTILLATION_HORIZON_STANDARD_DEFAULTS["controller"]["decision_interval"],
-        "predict_grid": list(HORIZON_PREDICT_GRID),
-        "control_grid": list(HORIZON_CONTROL_GRID),
-        "predict_h": 6,
-        "cont_h": 3,
-        "Q1_penalty": 1.0,
-        "Q2_penalty": 1.0,
-        "R1_penalty": 1.0,
-        "R2_penalty": 1.0,
-        "model_low_by_agent": {
-            key: np.asarray(value["low"], float).copy() for key, value in MATRIX_MULTIPLIER_BOUNDS.items()
-        },
-        "model_high_by_agent": {
-            key: np.asarray(value["high"], float).copy() for key, value in MATRIX_MULTIPLIER_BOUNDS.items()
-        },
-        "weights_low": np.asarray(WEIGHT_MULTIPLIER_BOUNDS["low"], float).copy(),
-        "weights_high": np.asarray(WEIGHT_MULTIPLIER_BOUNDS["high"], float).copy(),
-        "residual_low": np.asarray(RESIDUAL_BOUNDS["low"], float).copy(),
-        "residual_high": np.asarray(RESIDUAL_BOUNDS["high"], float).copy(),
-        "offline_multiplier_diagnostics": deepcopy(DISTILLATION_MATRIX_DEFAULTS["controller"]["offline_multiplier_diagnostics"]),
-        "release_protected_advisory_caps": deepcopy(DISTILLATION_MATRIX_DEFAULTS["controller"]["release_protected_advisory_caps"]),
-        "mpc_acceptance_fallback": deepcopy(DISTILLATION_MATRIX_DEFAULTS["controller"]["mpc_acceptance_fallback"]),
-        **_copy_mismatch_defaults(),
-        "use_shifted_mpc_warm_start": False,
-        "nominal_qi": 0.0,
-        "nominal_qs": 0.0,
-        "nominal_ha": 0.0,
-        "qi_change": 1.0,
-        "qs_change": 1.0,
-        "ha_change": 1.0,
-    },
-    "horizon_agent": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent"]),
-    "horizon_dueling_agent": deepcopy(DISTILLATION_HORIZON_DUELING_DEFAULTS["agent"]),
-    "matrix_td3_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["td3_agent"]),
-    "matrix_sac_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["sac_agent"]),
-    "weights_td3_agent": deepcopy(DISTILLATION_WEIGHT_DEFAULTS["td3_agent"]),
-    "weights_sac_agent": deepcopy(DISTILLATION_WEIGHT_DEFAULTS["sac_agent"]),
-    "residual_td3_agent": deepcopy(DISTILLATION_RESIDUAL_DEFAULTS["td3_agent"]),
-    "residual_sac_agent": deepcopy(DISTILLATION_RESIDUAL_DEFAULTS["sac_agent"]),
-    # Backward-compatible aliases for older notebook cells.
-    "td3_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["td3_agent"]),
-    "sac_agent": deepcopy(DISTILLATION_MATRIX_DEFAULTS["sac_agent"]),
-    "reward": _copy_reward_defaults(),
-    "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
-}
-
 def resolve_distillation_agent_kind(family: str, agent_mode: str) -> str:
     """Return the active distillation agent kind for an SG/plain mode."""
     family_key = str(family).strip().lower()
@@ -1376,6 +1305,28 @@ def resolve_distillation_agent_kind(family: str, agent_mode: str) -> str:
     if family_key in {"markov", "weights", "residual"}:
         return "sg_td3" if mode == "sg" else "td3"
     raise ValueError("family must be one of 'horizon', 'markov', 'weights', or 'residual'.")
+
+
+def resolve_distillation_combined_agent_kinds(combined_agent_mode: str) -> dict:
+    """Return the active combined runner agent kinds for an SG/plain mode."""
+    mode = str(combined_agent_mode).strip().lower().replace("-", "_")
+    if mode in {"without_sg", "no_sg"}:
+        mode = "plain"
+    if mode == "sg":
+        return {
+            "horizon_agent_kind": "sg_dqn",
+            "markov_agent_kind": "sg_td3",
+            "weights_agent_kind": "sg_td3",
+            "residual_agent_kind": "sg_td3",
+        }
+    if mode == "plain":
+        return {
+            "horizon_agent_kind": "dqn",
+            "markov_agent_kind": "td3",
+            "weights_agent_kind": "td3",
+            "residual_agent_kind": "td3",
+        }
+    raise ValueError("combined_agent_mode must be 'sg' or 'plain'.")
 
 
 def _disable_behavioral_cloning(nb: dict) -> None:
@@ -1508,6 +1459,127 @@ def _apply_active_runner_defaults() -> None:
 _apply_active_runner_defaults()
 
 
+def _copy_active_combined_run_profiles() -> dict:
+    profiles = {}
+    for (run_mode, profile), settings in DISTILLATION_COMBINED_RUN_PROFILES.items():
+        combined_settings = dict(settings)
+        combined_settings.update(
+            {
+                "result_prefix_template": f"distillation_combined_{{mode}}_{run_mode}_{profile}",
+                "compare_prefix_template": f"distillation_compare_combined_{{mode}}_{run_mode}_{profile}",
+                "compare_mode": run_mode,
+            }
+        )
+        profiles[(run_mode, profile)] = combined_settings
+    return profiles
+
+
+def _build_active_combined_defaults() -> dict:
+    horizon_ctrl = DISTILLATION_HORIZON_STANDARD_DEFAULTS["controller"]
+    markov_ctrl = DISTILLATION_MARKOV_DEFAULTS["controller"]
+    weights_ctrl = DISTILLATION_WEIGHT_DEFAULTS["controller"]
+    residual_ctrl = DISTILLATION_RESIDUAL_DEFAULTS["controller"]
+    resolved = resolve_distillation_combined_agent_kinds("sg")
+    n_inputs = int(np.asarray(DISTILLATION_SYSTEM_SETUP["ss_inputs"], float).size)
+
+    return {
+        "run_mode": "disturb",
+        "disturbance_profile": "fluctuation",
+        "combined_agent_mode": "sg",
+        **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
+        **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
+        **deepcopy(DISTILLATION_ASPEN_DEFAULTS),
+        **deepcopy(DISTILLATION_COMMON_OVERRIDE_DEFAULTS),
+        "enable_horizon": True,
+        "horizon_agent_kind": resolved["horizon_agent_kind"],
+        "horizon_state_mode": DISTILLATION_HORIZON_STANDARD_DEFAULTS["state_mode"],
+        "enable_markov": True,
+        "markov_agent_kind": resolved["markov_agent_kind"],
+        "markov_state_mode": DISTILLATION_MARKOV_DEFAULTS["state_mode"],
+        "enable_matrix": False,
+        "matrix_agent_kind": "td3",
+        "matrix_state_mode": "mismatch",
+        "enable_weights": True,
+        "weights_agent_kind": resolved["weights_agent_kind"],
+        "weights_state_mode": DISTILLATION_WEIGHT_DEFAULTS["state_mode"],
+        "enable_residual": True,
+        "residual_agent_kind": resolved["residual_agent_kind"],
+        "residual_state_mode": DISTILLATION_RESIDUAL_DEFAULTS["state_mode"],
+        **_copy_residual_authority_defaults(action_dim=n_inputs),
+        "residual_authority_enabled": DISTILLATION_RESIDUAL_DEFAULTS["residual_authority_enabled"],
+        "append_rho_to_state": DISTILLATION_RESIDUAL_DEFAULTS["append_rho_to_state"],
+        "authority_use_rho": DISTILLATION_RESIDUAL_DEFAULTS["authority_use_rho"],
+        "use_rho_authority": DISTILLATION_RESIDUAL_DEFAULTS["use_rho_authority"],
+        "residual_zero_deadband_enabled": DISTILLATION_RESIDUAL_DEFAULTS["residual_zero_deadband_enabled"],
+        "run_profiles": _copy_active_combined_run_profiles(),
+        "episode_defaults": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["episode_defaults"]),
+        "horizon_post_warm_start_action_freeze_subepisodes": DISTILLATION_HORIZON_STANDARD_DEFAULTS[
+            "post_warm_start_action_freeze_subepisodes"
+        ],
+        "td3_post_warm_start_action_freeze_subepisodes": 3,
+        "td3_post_warm_start_actor_freeze_subepisodes": 3,
+        "horizon_safety": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["horizon_safety"]),
+        "weight_safety": deepcopy(DISTILLATION_WEIGHT_DEFAULTS["weight_safety"]),
+        "residual_safety": deepcopy(DISTILLATION_RESIDUAL_DEFAULTS["residual_safety"]),
+        "controller": {
+            "decision_interval": horizon_ctrl["decision_interval"],
+            "predict_grid": list(horizon_ctrl["predict_grid"]),
+            "control_grid": list(horizon_ctrl["control_grid"]),
+            "predict_h": horizon_ctrl["predict_h"],
+            "cont_h": horizon_ctrl["cont_h"],
+            "Q1_penalty": horizon_ctrl["Q1_penalty"],
+            "Q2_penalty": horizon_ctrl["Q2_penalty"],
+            "R1_penalty": horizon_ctrl["R1_penalty"],
+            "R2_penalty": horizon_ctrl["R2_penalty"],
+            "basis_family": markov_ctrl["basis_family"],
+            "z_bound": markov_ctrl["z_bound"],
+            "z_safety": deepcopy(markov_ctrl["z_safety"]),
+            "prediction_window": markov_ctrl["prediction_window"],
+            "lambda_z": markov_ctrl["lambda_z"],
+            "s_pred_min": markov_ctrl["s_pred_min"],
+            "gain_drift_max": markov_ctrl["gain_drift_max"],
+            "nominal_cost_relative_tol": markov_ctrl["nominal_cost_relative_tol"],
+            "nominal_cost_absolute_tol": markov_ctrl["nominal_cost_absolute_tol"],
+            "run_adaptive_ls": markov_ctrl["run_adaptive_ls"],
+            "run_live_corrected_mpc": markov_ctrl["run_live_corrected_mpc"],
+            "run_rl_proposal": markov_ctrl["run_rl_proposal"],
+            "rl_fallback_to_ls": markov_ctrl["rl_fallback_to_ls"],
+            "force_td3_execute": markov_ctrl["force_td3_execute"],
+            "force_td3_respects_warm_start": markov_ctrl.get("force_td3_respects_warm_start", False),
+            "rl_store_executed_action_in_replay": markov_ctrl["rl_store_executed_action_in_replay"],
+            "td3_priority_fallback": deepcopy(markov_ctrl["td3_priority_fallback"]),
+            "markov_shadow_safety": deepcopy(markov_ctrl["markov_shadow_safety"]),
+            "model_low": np.ones(1 + n_inputs, dtype=float),
+            "model_high": np.ones(1 + n_inputs, dtype=float),
+            "weights_low": weights_ctrl["low_coef"].copy(),
+            "weights_high": weights_ctrl["high_coef"].copy(),
+            "residual_low": residual_ctrl["low_coef"].copy(),
+            "residual_high": residual_ctrl["high_coef"].copy(),
+            **_copy_mismatch_defaults(),
+            "use_shifted_mpc_warm_start": False,
+            "nominal_qi": 0.0,
+            "nominal_qs": 0.0,
+            "nominal_ha": 0.0,
+            "qi_change": 1.0,
+            "qs_change": 1.0,
+            "ha_change": 1.0,
+        },
+        "horizon_agent": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent"]),
+        "markov_td3_agent": deepcopy(DISTILLATION_MARKOV_DEFAULTS["td3_agent"]),
+        "weights_td3_agent": deepcopy(DISTILLATION_WEIGHT_DEFAULTS["td3_agent"]),
+        "residual_td3_agent": deepcopy(DISTILLATION_RESIDUAL_DEFAULTS["td3_agent"]),
+        "horizon_supervisor_gate": deepcopy(DISTILLATION_HORIZON_STANDARD_DEFAULTS["supervisor_gate"]),
+        "markov_supervisor_gate": deepcopy(DISTILLATION_MARKOV_DEFAULTS["supervisor_gate"]),
+        "weights_supervisor_gate": deepcopy(DISTILLATION_WEIGHT_DEFAULTS["supervisor_gate"]),
+        "residual_supervisor_gate": deepcopy(DISTILLATION_RESIDUAL_DEFAULTS["supervisor_gate"]),
+        "reward": _copy_reward_defaults(),
+        "system_setup": deepcopy(DISTILLATION_SYSTEM_SETUP),
+    }
+
+
+DISTILLATION_COMBINED_DEFAULTS = _build_active_combined_defaults()
+
+
 DISTILLATION_NOTEBOOK_DEFAULTS = {
     "system_identification": DISTILLATION_SYSTEM_IDENTIFICATION_DEFAULTS,
     "baseline": DISTILLATION_BASELINE_DEFAULTS,
@@ -1515,6 +1587,7 @@ DISTILLATION_NOTEBOOK_DEFAULTS = {
     "markov": DISTILLATION_MARKOV_DEFAULTS,
     "weights": DISTILLATION_WEIGHT_DEFAULTS,
     "residual": DISTILLATION_RESIDUAL_DEFAULTS,
+    "combined": DISTILLATION_COMBINED_DEFAULTS,
 }
 
 
@@ -1538,4 +1611,5 @@ __all__ = [
     "DISTILLATION_NOTEBOOK_DEFAULTS",
     "get_distillation_notebook_defaults",
     "resolve_distillation_agent_kind",
+    "resolve_distillation_combined_agent_kinds",
 ]

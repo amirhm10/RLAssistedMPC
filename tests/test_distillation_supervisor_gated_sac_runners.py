@@ -12,7 +12,7 @@ from systems.distillation import get_distillation_notebook_defaults, resolve_dis
 from systems.distillation.notebook_params import DISTILLATION_NOTEBOOK_DEFAULTS
 
 
-ACTIVE_DISTILLATION_RL_FAMILIES = ("horizon_standard", "markov", "weights", "residual")
+ACTIVE_DISTILLATION_RL_FAMILIES = ("horizon_standard", "markov", "weights", "residual", "combined")
 CONTINUOUS_FAMILIES = ("markov", "weights", "residual")
 
 
@@ -51,13 +51,13 @@ def test_distillation_active_default_table_excludes_archived_families():
         "markov",
         "weights",
         "residual",
+        "combined",
     }
     for archived_family in (
         "horizon_dueling",
         "matrix",
         "structured_matrix",
         "reidentification",
-        "combined",
     ):
         try:
             get_distillation_notebook_defaults(archived_family)

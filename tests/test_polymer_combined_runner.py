@@ -23,6 +23,7 @@ from utils.residual_authority import project_residual_action
 
 def test_polymer_combined_defaults_use_all_sg_mismatch_mode():
     nb = get_polymer_notebook_defaults("combined")
+    markov_nb = get_polymer_notebook_defaults("markov")
 
     assert nb["combined_agent_mode"] == "sg"
     assert nb["run_mode"] == "disturb"
@@ -50,6 +51,8 @@ def test_polymer_combined_defaults_use_all_sg_mismatch_mode():
     assert nb["markov_supervisor_gate"]["advantage_margin"] == 0.0
     assert nb["weights_supervisor_gate"]["advantage_margin"] == 0.5
     assert nb["residual_supervisor_gate"]["advantage_margin"] == 0.5
+    assert nb["controller"]["z_bound"] == markov_nb["controller"]["z_bound"] == 0.20
+    assert nb["controller"]["z_safety"]["enabled"] is False
     assert nb["weight_safety"]["fallback_to_identity_on_nonfinite"] is True
     assert nb["residual_safety"]["fallback_to_zero_on_nonfinite"] is True
     assert nb["append_rho_to_state"] is False

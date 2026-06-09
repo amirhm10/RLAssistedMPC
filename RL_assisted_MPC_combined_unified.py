@@ -608,6 +608,7 @@ combined_cfg = {
         **MISMATCH_COMMON,
         "low_coef": WEIGHTS_LOW,
         "high_coef": WEIGHTS_HIGH,
+        "weight_safety": dict(NB.get("weight_safety", {})),
         "supervisor_gate": WEIGHTS_GATE_CFG,
     },
     "residual_cfg": {
@@ -631,6 +632,7 @@ combined_cfg = {
         "residual_zero_innovation_raw_threshold": RESIDUAL_ZERO_INNOVATION_RAW_THRESHOLD,
         "low_coef": RESIDUAL_LOW,
         "high_coef": RESIDUAL_HIGH,
+        "residual_safety": dict(NB.get("residual_safety", {})),
         "supervisor_gate": RESIDUAL_GATE_CFG,
     },
 }

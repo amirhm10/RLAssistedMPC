@@ -5,8 +5,11 @@ import scipy.optimize as spo
 
 from Simulation.mpc import MpcSolverGeneral
 from TD3Agent.supervisor_replay_buffer import (
+    SOURCE_FALLBACK as SG_SOURCE_FALLBACK,
+    SOURCE_HELD as SG_SOURCE_HELD,
     SOURCE_POLICY as SG_SOURCE_POLICY,
     SOURCE_SUPERVISOR as SG_SOURCE_SUPERVISOR,
+    SOURCE_WARM_START as SG_SOURCE_WARM_START,
 )
 from utils.agent_step_runtime import (
     replay_train_continuous_agent,
@@ -84,6 +87,27 @@ def _map_from_bounds(value, low, high):
     low = np.asarray(low, float)
     high = np.asarray(high, float)
     return 2.0 * (value - low) / (high - low) - 1.0
+
+
+def _projection_is_finite(projection):
+    for key in ("a_exec", "delta_u_res_exec", "u_applied_scaled_abs"):
+        value = projection.get(key)
+        if value is None or not np.all(np.isfinite(value)):
+            return False
+    return True
+
+
+def _sg_source_summary(source_window):
+    sources = np.asarray(source_window, int).reshape(-1)
+    if sources.size == 0:
+        return "none"
+    return (
+        f"policy={int(np.sum(sources == SG_SOURCE_POLICY))},"
+        f"supervisor={int(np.sum(sources == SG_SOURCE_SUPERVISOR))},"
+        f"warm={int(np.sum(sources == SG_SOURCE_WARM_START))},"
+        f"held={int(np.sum(sources == SG_SOURCE_HELD))},"
+        f"fallback={int(np.sum(sources == SG_SOURCE_FALLBACK))}"
+    )
 
 
 def _normalize_state_mode(cfg, default="standard"):
@@ -246,6 +270,16 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     matrix_enabled = bool(matrix_cfg.get("enabled", False))
     weight_enabled = bool(weight_cfg.get("enabled", False))
     residual_enabled = bool(residual_cfg.get("enabled", False))
+    weight_safety_cfg = dict(weight_cfg.get("weight_safety", {}) or {})
+    weight_safety_enabled = bool(weight_safety_cfg.get("enabled", False))
+    fallback_to_identity_on_nonfinite = bool(
+        weight_safety_enabled and weight_safety_cfg.get("fallback_to_identity_on_nonfinite", False)
+    )
+    residual_safety_cfg = dict(residual_cfg.get("residual_safety", {}) or {})
+    residual_safety_enabled = bool(residual_safety_cfg.get("enabled", False))
+    fallback_to_zero_on_nonfinite = bool(
+        residual_safety_enabled and residual_safety_cfg.get("fallback_to_zero_on_nonfinite", False)
+    )
     if markov_enabled and matrix_enabled:
         raise ValueError("Enable either the Markov model supervisor or the matrix supervisor, not both.")
     if not any((horizon_enabled, markov_enabled, matrix_enabled, weight_enabled, residual_enabled)):
@@ -1035,6 +1069,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     supervisor_action=weight_baseline_raw,
                     phase1=weight_phase1,
                     action_dim=4,
+                    nonfinite_fallback=fallback_to_identity_on_nonfinite,
                 )
                 weight_sg_policy_action_raw_log[i, :] = weight_action_decision.policy_action
                 weight_sg_supervisor_action_raw_log[i, :] = weight_action_decision.supervisor_action
@@ -1053,6 +1088,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     baseline_action=weight_baseline_raw,
                     phase1=weight_phase1,
                     action_dim=4,
+                    nonfinite_fallback=fallback_to_identity_on_nonfinite,
                 )
             weight_raw = weight_action_decision.action
             weight_policy_raw = weight_action_decision.policy_action
@@ -1065,6 +1101,15 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         weight_raw = np.asarray(weight_raw, float).reshape(-1)
         if weight_raw.size != 4:
             raise ValueError("Weights action must contain 4 elements for [Q1, Q2, R1, R2].")
+        weight_mult = _map_to_bounds(weight_raw, weights_low, weights_high)
+        if (
+            not np.all(np.isfinite(weight_mult))
+            or np.any(weight_mult < weights_low - 1.0e-9)
+            or np.any(weight_mult > weights_high + 1.0e-9)
+        ):
+            weight_raw = weight_baseline_raw.copy()
+            weight_mult = np.ones(4, dtype=float)
+        weight_log[i, :] = weight_mult
         if weight_phase1 is not None:
             weight_policy_action_raw_log[i, :] = np.asarray(
                 weight_policy_raw if weight_policy_raw is not None else weight_baseline_raw,
@@ -1072,8 +1117,6 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             ).reshape(-1)
             weight_executed_action_raw_log[i, :] = np.asarray(weight_raw, float).reshape(-1)
             weight_phase1_action_source_log[i] = int(current_weight_source)
-        weight_mult = _map_to_bounds(weight_raw, weights_low, weights_high)
-        weight_log[i, :] = weight_mult
         Q_now = np.array([q_base[0] * weight_mult[0], q_base[1] * weight_mult[1]], dtype=float)
         R_now = np.array([r_base[0] * weight_mult[2], r_base[1] * weight_mult[3]], dtype=float)
 
@@ -1347,7 +1390,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                         state=markov_state,
                         step=i,
                         warm_start_step=warm_start_step,
-                        decision_interval=int(markov_cfg.get("decision_interval", 1)),
+                        decision_interval=1,
                         last_action=last_markov_raw_action,
                         last_action_test=last_markov_action_test,
                         test=test,
@@ -1379,8 +1422,13 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                         action_dim=markov_z_dim,
                         nonfinite_fallback=True,
                     )
-                raw_actor_requested = np.asarray(markov_decision.action, float).reshape(-1)
-                raw_requested = raw_actor_requested.copy()
+                raw_actor_requested = np.asarray(
+                    markov_decision.policy_action
+                    if markov_sg_enabled and markov_decision.policy_action is not None
+                    else markov_decision.action,
+                    float,
+                ).reshape(-1)
+                raw_requested = np.asarray(markov_decision.action, float).reshape(-1)
                 markov_policy_source_log[i] = int(markov_decision.source)
                 markov_decision_log[i] = int(markov_decision.decision_taken)
                 last_markov_action_test = markov_decision.last_action_test
@@ -1454,7 +1502,77 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                             and requested_eval["drift"] <= float(markov_cfg["gain_drift_max"])
                             and requested_eval["cost_guard_pass"]
                         )
-                    if requested_accepted and i > warm_start_step:
+                    if markov_sg_enabled:
+                        selected_source = int(markov_decision.selected_source)
+                        supervisor_is_ls = bool(ls_accepted and ls_eval is not None)
+                        if supervisor_is_ls:
+                            supervisor_U = ls_eval["U"]
+                            supervisor_z = z_ls
+                            supervisor_raw = z_to_raw_action(z_ls, markov_z_bound)
+                            supervisor_score = ls_score
+                            supervisor_eval = ls_eval
+                            supervisor_drift = ls_drift
+                        else:
+                            supervisor_U = U0.copy()
+                            supervisor_z = np.zeros(markov_z_dim, dtype=float)
+                            supervisor_raw = np.zeros(markov_z_dim, dtype=float)
+                            supervisor_score = dict(default_score)
+                            supervisor_eval = {
+                                "U": U0.copy(),
+                                "J": float(J0),
+                                "sol": sol0,
+                                "drift": 0.0,
+                                "nominal_cost": float(J0),
+                                "reference_nominal_cost": float(J0),
+                                "cost_margin": 0.0,
+                                "cost_guard_pass": True,
+                            }
+                            supervisor_drift = 0.0
+
+                        if i <= warm_start_step:
+                            if supervisor_is_ls:
+                                U_exec = supervisor_U
+                                z_exec = supervisor_z
+                                raw_executed = supervisor_raw
+                                executed_score = supervisor_score
+                                executed_eval = supervisor_eval
+                                executed_drift = supervisor_drift
+                                markov_source = 1
+                                markov_fallback = False
+                                markov_accepted = True
+                            else:
+                                markov_source = 0
+                        elif selected_source == SG_SOURCE_POLICY and requested_accepted:
+                            U_exec = requested_eval["U"]
+                            z_exec = z_requested
+                            raw_executed = raw_requested
+                            executed_score = requested_score
+                            executed_eval = requested_eval
+                            executed_drift = requested_drift
+                            markov_source = 2
+                            markov_fallback = False
+                            markov_accepted = True
+                        elif selected_source in {SG_SOURCE_POLICY, SG_SOURCE_FALLBACK}:
+                            U_exec = supervisor_U
+                            z_exec = supervisor_z
+                            raw_executed = supervisor_raw
+                            executed_score = supervisor_score
+                            executed_eval = supervisor_eval
+                            executed_drift = supervisor_drift
+                            markov_source = 8
+                            markov_fallback = True
+                            markov_accepted = supervisor_is_ls
+                        else:
+                            U_exec = supervisor_U
+                            z_exec = supervisor_z
+                            raw_executed = supervisor_raw
+                            executed_score = supervisor_score
+                            executed_eval = supervisor_eval
+                            executed_drift = supervisor_drift
+                            markov_source = 6 if supervisor_is_ls else 7
+                            markov_fallback = False
+                            markov_accepted = supervisor_is_ls
+                    elif requested_accepted and i > warm_start_step:
                         U_exec = requested_eval["U"]
                         z_exec = z_requested
                         raw_executed = raw_requested
@@ -1567,6 +1685,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     supervisor_action=residual_baseline_raw,
                     phase1=residual_phase1,
                     action_dim=n_inputs,
+                    nonfinite_fallback=fallback_to_zero_on_nonfinite,
                 )
                 residual_sg_policy_action_raw_log[i, :] = residual_action_decision.policy_action
                 residual_sg_supervisor_action_raw_log[i, :] = residual_action_decision.supervisor_action
@@ -1585,6 +1704,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     baseline_action=residual_baseline_raw,
                     phase1=residual_phase1,
                     action_dim=n_inputs,
+                    nonfinite_fallback=fallback_to_zero_on_nonfinite,
                 )
             residual_raw_action = residual_action_decision.action
             residual_policy_raw = residual_action_decision.policy_action
@@ -1624,6 +1744,20 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             residual_zero_tracking_raw_threshold=residual_zero_tracking_raw_threshold,
             residual_zero_innovation_raw_threshold=residual_zero_innovation_raw_threshold,
         )
+        if fallback_to_zero_on_nonfinite and not _projection_is_finite(residual_projection):
+            residual_raw_action = residual_baseline_raw.copy()
+            residual_projection = project_residual_action(
+                action_raw=residual_raw_action,
+                low_coef=residual_low,
+                high_coef=residual_high,
+                u_base=u_base,
+                scaled_current_input=scaled_current_input,
+                u_min_scaled_abs=u_min_scaled_abs,
+                u_max_scaled_abs=u_max_scaled_abs,
+                apply_authority=False,
+                authority_use_rho=False,
+                residual_zero_deadband_enabled=False,
+            )
         if rho_log is not None:
             rho_log[i] = float(residual_projection["rho"])
             rho_raw_log[i] = float(residual_projection["rho_raw"])
@@ -1840,23 +1974,43 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
             avg_rewards.append(subepisode_avg_reward)
             subepisode_idx = int(sub_episodes_changes_dict[i])
             window_start = max(0, i - time_in_sub_episodes + 1)
+            horizon_sg_source_summary = "off"
+            if horizon_sg_enabled and horizon_sg_selected_source_log is not None:
+                horizon_sg_source_summary = _sg_source_summary(
+                    horizon_sg_selected_source_log[window_start : i + 1]
+                )
+            avg_markov_z_window = (
+                np.mean(markov_z_log[window_start : i + 1, :], axis=0) if markov_enabled else "off"
+            )
+            markov_sg_source_summary = "off"
+            if markov_sg_enabled and markov_sg_selected_source_log is not None:
+                markov_sg_source_summary = _sg_source_summary(
+                    markov_sg_selected_source_log[window_start : i + 1]
+                )
+            markov_exec_source_summary = "off"
+            if markov_enabled:
+                markov_sources = markov_action_source_log[window_start : i + 1]
+                markov_exec_source_summary = (
+                    f"td3={int(np.sum(markov_sources == 2))},"
+                    f"sg_ls={int(np.sum(markov_sources == 6))},"
+                    f"sg_mpc={int(np.sum(markov_sources == 7))},"
+                    f"solver_fb={int(np.sum(markov_sources == 8))},"
+                    f"ls_fb={int(np.sum(markov_sources == 3))},"
+                    f"nom_fb={int(np.sum(markov_sources == 4))}"
+                )
             weight_window = weight_log[window_start : i + 1, :]
             residual_window = delta_u_res_exec_log[window_start : i + 1, :]
             avg_weight_window = np.mean(weight_window, axis=0) if weight_enabled else "off"
             avg_residual_window = np.mean(residual_window, axis=0) if residual_enabled else "off"
             weight_sg_source_summary = "off"
             if weight_sg_enabled and weight_sg_selected_source_log is not None:
-                source_window = weight_sg_selected_source_log[window_start : i + 1]
-                weight_sg_source_summary = (
-                    f"policy={int(np.sum(source_window == SG_SOURCE_POLICY))},"
-                    f"supervisor={int(np.sum(source_window == SG_SOURCE_SUPERVISOR))}"
+                weight_sg_source_summary = _sg_source_summary(
+                    weight_sg_selected_source_log[window_start : i + 1]
                 )
             residual_sg_source_summary = "off"
             if residual_sg_enabled and residual_sg_selected_source_log is not None:
-                source_window = residual_sg_selected_source_log[window_start : i + 1]
-                residual_sg_source_summary = (
-                    f"policy={int(np.sum(source_window == SG_SOURCE_POLICY))},"
-                    f"supervisor={int(np.sum(source_window == SG_SOURCE_SUPERVISOR))}"
+                residual_sg_source_summary = _sg_source_summary(
+                    residual_sg_selected_source_log[window_start : i + 1]
                 )
             if markov_enabled:
                 if subepisode_idx <= markov_warm_subepisodes:
@@ -1896,10 +2050,14 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                 avg_rewards[-1],
                 "| Hp,Hc:",
                 tuple(horizon_trace[i, :]),
-                "| markov source:",
-                int(markov_action_source_log[i]) if markov_enabled else "off",
-                "| z:",
-                markov_z_log[i, :] if markov_enabled else "off",
+                "| h sg src:",
+                horizon_sg_source_summary,
+                "| avg z:",
+                avg_markov_z_window,
+                "| m exec src:",
+                markov_exec_source_summary,
+                "| m sg src:",
+                markov_sg_source_summary,
                 "| alpha:",
                 matrix_alpha_log[i] if matrix_enabled else "off",
                 "| avg weights:",
@@ -2023,6 +2181,9 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "markov_td3_source_fraction": float(np.mean(markov_action_source_log == 2)) if markov_enabled else 0.0,
         "markov_ls_fallback_source_fraction": float(np.mean(markov_action_source_log == 3)) if markov_enabled else 0.0,
         "markov_nominal_fallback_source_fraction": float(np.mean(markov_action_source_log == 4)) if markov_enabled else 0.0,
+        "markov_sg_ls_supervisor_source_fraction": float(np.mean(markov_action_source_log == 6)) if markov_enabled else 0.0,
+        "markov_sg_mpc_supervisor_source_fraction": float(np.mean(markov_action_source_log == 7)) if markov_enabled else 0.0,
+        "markov_sg_solver_fallback_source_fraction": float(np.mean(markov_action_source_log == 8)) if markov_enabled else 0.0,
         "markov_td3_source_fraction_post_warm": (
             float(np.mean(markov_source_post_warm == 2)) if markov_post_warm_count else 0.0
         ),
@@ -2067,6 +2228,9 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "weight_state_mode": weight_state_mode,
         "weight_low_coef": weights_low,
         "weight_high_coef": weights_high,
+        "weight_safety": dict(weight_safety_cfg),
+        "weight_safety_enabled": bool(weight_safety_enabled),
+        "weight_fallback_to_identity_on_nonfinite": bool(fallback_to_identity_on_nonfinite),
         "weight_sg_policy_action_raw_log": weight_sg_policy_action_raw_log,
         "weight_sg_supervisor_action_raw_log": weight_sg_supervisor_action_raw_log,
         "weight_sg_previous_action_raw_log": weight_sg_previous_action_raw_log,
@@ -2086,6 +2250,9 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
         "residual_authority_enabled": bool(residual_authority_enabled),
         "residual_low_coef": residual_low,
         "residual_high_coef": residual_high,
+        "residual_safety": dict(residual_safety_cfg),
+        "residual_safety_enabled": bool(residual_safety_enabled),
+        "residual_fallback_to_zero_on_nonfinite": bool(fallback_to_zero_on_nonfinite),
         "residual_sg_policy_action_raw_log": residual_sg_policy_action_raw_log,
         "residual_sg_supervisor_action_raw_log": residual_sg_supervisor_action_raw_log,
         "residual_sg_previous_action_raw_log": residual_sg_previous_action_raw_log,

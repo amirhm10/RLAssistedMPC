@@ -48,6 +48,8 @@ def test_polymer_combined_defaults_use_all_sg_mismatch_mode():
     assert nb["markov_supervisor_gate"]["advantage_margin"] == 0.0
     assert nb["weights_supervisor_gate"]["advantage_margin"] == 0.5
     assert nb["residual_supervisor_gate"]["advantage_margin"] == 0.5
+    assert nb["weight_safety"]["fallback_to_identity_on_nonfinite"] is True
+    assert nb["residual_safety"]["fallback_to_zero_on_nonfinite"] is True
     assert nb["append_rho_to_state"] is False
     assert nb["residual_authority_enabled"] is False
     assert nb["authority_use_rho"] is False
@@ -69,11 +71,18 @@ def test_polymer_combined_root_runner_is_active_sg_plain_only():
     assert "resolve_polymer_combined_agent_kinds" in source
     assert "SupervisorGatedDQNAgent" in source
     assert "SupervisorGatedTD3Agent" in source
+    assert '"weight_safety": dict(NB.get("weight_safety", {}))' in source
+    assert '"residual_safety": dict(NB.get("residual_safety", {}))' in source
     assert "residual_authority_enabled" in source
     assert "SACAgent" not in source
     assert "DuelingDQN" not in source
     assert "TD7" not in source
     assert "legacy matrix branch disabled" in source
+
+    runtime_source = (ROOT / "utils" / "combined_runner.py").read_text(encoding="utf-8")
+    assert "decision_interval=1" in runtime_source
+    assert "SG_SOURCE_FALLBACK" in runtime_source
+    assert "markov_sg_solver_fallback_source_fraction" in runtime_source
 
 
 class _FakeSGContinuousAgent:

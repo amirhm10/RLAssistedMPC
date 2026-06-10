@@ -4049,6 +4049,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
     compare_mode = str(plot_cfg.get("compare_mode", bundle.get("run_mode", "nominal"))).lower()
     compare_prefix = plot_cfg.get("compare_prefix", "baseline_compare")
     out_dir = create_output_dir(directory, prefix_name)
+    save_bundle_pickle(out_dir, build_storage_bundle(bundle, start_episode))
 
     active_agents = dict(bundle.get("active_agents", {}))
     y_line_full = bundle["y_line_full"]

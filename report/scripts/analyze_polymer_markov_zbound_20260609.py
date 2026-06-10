@@ -70,6 +70,7 @@ def window_stats(values: np.ndarray, sl: slice) -> tuple[float, float, float]:
 def summarize_run(z_bound: float, rl_path: Path, compare_path: Path | None) -> dict[str, object]:
     data = load_pickle(rl_path)
     compare = load_pickle(compare_path) if compare_path else {}
+    supervisor_gate = data.get("supervisor_gate", {})
 
     rewards_rl = np.asarray(compare.get("avg_rewards_rl", data.get("avg_rewards", [])), float).reshape(-1)
     rewards_mpc = np.asarray(compare.get("avg_rewards_mpc", []), float).reshape(-1)
@@ -102,6 +103,7 @@ def summarize_run(z_bound: float, rl_path: Path, compare_path: Path | None) -> d
         "episodes": int(rewards_rl.size),
         "steps_per_episode": steps_per_episode,
         "warm_episode": warm_episode,
+        "advantage_margin": float(supervisor_gate.get("advantage_margin", float("nan"))),
         "reward_mean_rl": float(np.nanmean(rewards_rl)),
         "reward_tail20_rl": float(np.nanmean(rewards_rl[episode_tail])),
         "reward_final_rl": float(rewards_rl[-1]),
@@ -251,7 +253,8 @@ def main() -> None:
     print()
     for row in rows:
         print(
-            f"z={row['z_bound']:.2f} tail_delta={row['reward_tail20_delta']:.4f} "
+            f"z={row['z_bound']:.2f} margin={row['advantage_margin']:.2f} "
+            f"tail_delta={row['reward_tail20_delta']:.4f} "
             f"tail_rl={row['reward_tail20_rl']:.4f} worst_post={row['reward_worst_postwarm_rl']:.4f} "
             f"tail_z_q95={row['z_norm_tail_q95']:.4f} policy_tail={row['sg_policy_tail_frac']:.4f} "
             f"shadow_tail={row['shadow_projection_tail_frac']:.4f}"

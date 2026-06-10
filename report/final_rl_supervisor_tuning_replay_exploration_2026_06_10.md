@@ -44,17 +44,22 @@ The recommendations below are conservative. They are meant for final project pol
 - `report/scripts/analyze_distillation_replay_state_ranges_20260610.py`
 - `report/figures/distillation_replay_state_ranges_20260610/distillation_replay_state_range_summary.csv`
 - `report/figures/distillation_replay_state_ranges_20260610/distillation_replay_state_feature_detail_tail20_steady.csv`
+- `report/scripts/analyze_final_combined_agent_attribution_20260610.py`
+- `report/figures/final_combined_agent_attribution_20260610/final_agent_attribution_summary.csv`
+- `report/figures/final_combined_agent_attribution_20260610/final_run_journal_table.csv`
+- `report/figures/final_combined_agent_attribution_20260610/final_logging_gap_table.csv`
+- `change-reports/2026-06-10_final_param_noise_ablation_defaults.md`
 
 ## Current Default Snapshot
 
 | Case | Family | Learning rate | Replay | Exploration | Gate margin |
 | --- | --- | --- | --- | --- | --- |
 | Polymer | horizon SG-DQN | `lr = 1e-4` | 150000, PER 0.5, recent 0.2 | epsilon `0.2 -> 0.02` | 0.0 |
-| Polymer | Markov SG-TD3 | actor `1e-4`, critic `1e-4` | 150000, PER 0.5, recent 0.2 | Gaussian `0.2 -> 0.02` | 0.0 |
+| Polymer | Markov SG-TD3 | actor `1e-4`, critic `1e-4` | 150000, PER 0.5, recent 0.2 | param-noise `0.10 -> 0.02` | 0.0 |
 | Polymer | weights SG-TD3 | actor `1e-4`, critic `1e-4` | 150000, PER 0.5, recent 0.2 | Gaussian `0.2 -> 0.02` | 0.5 |
-| Polymer | residual SG-TD3 | actor `1e-4`, critic `1e-4` | 150000, PER 0.5, recent 0.2 | Gaussian `0.2 -> 0.02` | 0.5 |
+| Polymer | residual SG-TD3 | actor `1e-4`, critic `1e-4` | 150000, PER 0.5, recent 0.2 | param-noise `0.10 -> 0.02` | 0.5 |
 | Distillation | horizon SG-DQN | `lr = 1e-4` | 40000, PER 0.4, recent 0.3 | epsilon `0.2 -> 0.02` | 0.0 |
-| Distillation | Markov SG-TD3 | actor `1e-4`, critic `1e-4` | 40000, PER 0.4, recent 0.3 | param-noise `0.10 -> 0.02` | 0.5 |
+| Distillation | Markov SG-TD3 | actor `1e-4`, critic `1e-4` | 40000, PER 0.4, recent 0.3 | param-noise `0.05 -> 0.02` | 0.5 |
 | Distillation | weights SG-TD3 | actor `1e-4`, critic `1e-4` | 40000, PER 0.4, recent 0.3 | Gaussian `0.15 -> 0.03` | 0.0 |
 | Distillation | residual SG-TD3 | actor `1e-4`, critic `1e-4` | 40000, PER 0.4, recent 0.3 | param-noise `0.10 -> 0.02` | 0.5 |
 
@@ -229,22 +234,113 @@ Final recommendation:
 
 For high-authority continuous distillation agents, yes, exploration should not start at `0.2`. The active defaults already moved in that direction:
 
-- Markov distillation uses parameter noise `0.10 -> 0.02`.
+- Markov distillation now uses parameter noise `0.05 -> 0.02`.
 - Residual distillation uses parameter noise `0.10 -> 0.02`.
 - Weights distillation uses Gaussian noise `0.15 -> 0.03`.
 - Horizon distillation uses epsilon `0.2 -> 0.02`, but horizon actions are lower authority because they choose MPC recipes rather than direct residual inputs.
+- Polymer Markov and residual now use parameter noise `0.10 -> 0.02`; polymer weights remains Gaussian `0.2 -> 0.02`.
 
-The stronger question is whether to reduce continuous distillation exploration from `0.10` or `0.15` down to `0.05`.
+The stronger question was whether to reduce continuous distillation exploration from `0.10` or `0.15` down to `0.05`. The final ablation default now applies that reduction to Markov only.
 
 Recommendation:
 
 - Distillation residual: keep `param_noise_std_start = 0.10` for the default, because the latest residual run is the best current evidence and had no negative post-warm episodes.
-- Distillation Markov: run one final safety ablation with `param_noise_std_start = 0.05`, `param_noise_std_end = 0.02` only if you want to prioritize removing the remaining negative post-warm episode over maximizing tail reward.
+- Distillation Markov: use the final safety ablation default `param_noise_std_start = 0.05`, `param_noise_std_end = 0.02`, then evaluate whether the negative post-warm episode disappears without a large tail-reward loss.
 - Distillation weights: keep `std_start = 0.15`, `std_end = 0.03` unless the combined run shows weight-induced oscillation. The weights action is filtered through MPC and has been stable.
 - Distillation horizon: keep `eps_start = 0.2`, `eps_end = 0.02`. Lowering epsilon to `0.05` would likely make the horizon policy collapse too early to the supervisor recipe.
-- Polymer continuous agents: keep `std_start = 0.2`, `std_end = 0.02` unless the new combined `z_bound = 0.7` run shows release instability. Polymer has tolerated wider action/range sweeps better than distillation.
+- Polymer Markov and residual: use final parameter noise `0.10 -> 0.02`. This keeps exploration temporally coherent while avoiding the stepwise actuator jitter of Gaussian action noise.
+- Polymer weights: keep Gaussian `0.2 -> 0.02`, because that action changes MPC penalties rather than directly changing input moves or model corrections.
 
-If only one final exploration polish is allowed, choose distillation Markov `param_noise_std_start = 0.05` as an ablation, not residual. Residual is currently the distillation winner.
+If only one final exploration polish is allowed, run the distillation Markov `param_noise_std_start = 0.05` ablation first. Residual remains the stronger distillation standalone family, but the Markov safety question is more targeted.
+
+## Question 5: How Can We Distinguish Each Agent's Success In Combined Runs?
+
+The most important distinction is diagnostic versus causal attribution.
+
+The current combined logs can say whether an agent was active, trusted by its gate, safe, and learning. They cannot by themselves prove that the closed-loop improvement was caused by that agent, because all active agents see the same plant trajectory and shared reward. True causal attribution requires controlled ablations.
+
+For a combined run with active agent set `A`, the clean leave-one-agent-out contribution is:
+
+$$ C_i = J(A) - J(A \setminus \{i\}), $$
+
+where `J` should be a fixed evaluation metric such as rescored tail reward, IAE, RMSE, or a safety-weighted score. If there are enough reruns, a Shapley-style appendix metric can average each agent's marginal contribution over many coalitions:
+
+$$ \phi_i = \sum_{S \subseteq A \setminus \{i\}} \frac{|S|!(|A|-|S|-1)!}{|A|!}\left[J(S \cup \{i\}) - J(S)\right]. $$
+
+For the current paper, the practical answer is to report two levels:
+
+| Level | What it supports | Metric examples |
+| --- | --- | --- |
+| Diagnostic attribution | Whether the agent behaved usefully inside one combined rollout | policy fraction, gate advantage, fallback fraction, action authority, safety burden, replay size |
+| Causal attribution | Whether the agent improves the closed loop | all-agents versus leave-one-out tail reward, IAE, RMSE, input movement, constraint violations |
+
+The polymer combined bundle is already rich enough for diagnostic attribution. The latest saved distillation combined folder is still missing `input_data.pkl`, so the same audit cannot yet be performed for distillation combined.
+
+| Plant | Agent | Tail policy frac | Final exec policy frac | Median tail advantage | Tail authority diagnostic | Tail safety burden | Replay rows | Interpretation |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| polymer | horizon | 0.208 | NA | 0.078 | 3.377 | NA | 150000 | Horizon is active in recipe selection; use recipe entropy and heatmaps rather than input authority. |
+| polymer | Markov | 0.529 | 0.137 | 0.006 | 0.457 | 0.000 | 150000 | The SG gate often prefers policy, but the final Markov execution source is lower; report both. |
+| polymer | weights | 0.046 | NA | -0.069 | 0.022 | NA | 150000 | Mostly identity-supervisor behavior; useful if it improves reward while staying low-authority. |
+| polymer | residual | 0.049 | NA | 0.0005 | 0.062 | 1.000 | 150000 | Low policy fraction and high projection burden mean residual is constrained; inspect raw versus executed residual before claiming it helped. |
+| distillation | combined agents | NA | NA | NA | NA | NA | NA | Missing combined `input_data.pkl`; no auditable attribution yet. |
+
+The agent-specific interpretation should be:
+
+- Horizon: report recipe distribution, tail recipe entropy, OF-MPC recipe fraction, and a tail heatmap over `(N_p,N_c)`.
+- Markov: report requested, executed, and LS `z`; prediction score; nominal cost margin; gain drift; final execution source; and projection/fallback fractions.
+- Weights: report distance from identity, separate movement of Q and R multipliers, and whether tracking improvement comes with increased input movement.
+- Residual: report raw versus executed residual, applied input versus MPC-base input, projection/deadband/saturation, and whether residuals are used during transients or only near steady state.
+
+The generated attribution artifacts are:
+
+- `report/figures/final_combined_agent_attribution_20260610/final_agent_attribution_summary.csv`
+- `report/figures/final_combined_agent_attribution_20260610/final_run_journal_table.csv`
+- `report/figures/final_combined_agent_attribution_20260610/final_logging_gap_table.csv`
+- `report/figures/final_combined_agent_attribution_20260610/fig_final_combined_source_fractions.png`
+- `report/figures/final_combined_agent_attribution_20260610/fig_final_combined_gate_advantages.png`
+- `report/figures/final_combined_agent_attribution_20260610/fig_final_combined_action_authority.png`
+- `report/figures/final_combined_agent_attribution_20260610/fig_final_tail_reward_delta_heatmap.png`
+
+The run table uses saved `avg_rewards` from each bundle, not a common rescoring pass. For final journal numbers, all methods should be rescored with one frozen reward/metric script before making ranking claims.
+
+## Question 6: What Should Be Logged And Plotted For The Journal Paper?
+
+For a journal paper, the evidence package should make three things transparent: closed-loop performance, safety envelope, and learning/attribution mechanism.
+
+Main tables:
+
+| Table | Purpose | Required columns |
+| --- | --- | --- |
+| Final run summary | Compare OF-MPC, horizon, Markov, weights, residual, and combined for both plants | tail reward, IAE, RMSE, max error, worst post-warm episode, negative post-warm count, input total variation |
+| Combined attribution | Explain which block did what | tail policy fraction, final execution fraction, median gate advantage, action authority, safety burden, replay rows |
+| Replay/state coverage | Show RL saw informative data | replay size, state dimension, median range, max range, unique fraction, steady-state low-error fraction |
+| Safety and constraints | Prove improvement did not come from unsafe inputs | saturation fraction, projection fraction, fallback fraction, solver failures, constraint violations |
+| Final config | Make the results reproducible | plant, disturbance profile, seed, run mode, horizons, replay settings, exploration schedule, gate margin, action bounds |
+
+Main figures:
+
+- Tracking and input overlays: OF-MPC, best standalone family, and combined on the same axes for each plant.
+- Reward histories with shaded warm-start, critic-only, and live-release windows.
+- Per-agent policy/source fraction over subepisodes for combined runs.
+- Horizon recipe heatmap over `(N_p,N_c)`.
+- Markov requested, executed, and LS `z` panels with bounds.
+- Weights multiplier panel showing Q and R movement around identity.
+- Residual raw versus executed residual and applied-input versus MPC-base input.
+- Replay state-range or PCA/range diagnostic, especially for steady-state-heavy distillation segments.
+- One summary heatmap across plant, method family, and normalized metric.
+
+Logging priorities before journal freeze:
+
+| Priority | Add or verify | Why it matters |
+| --- | --- | --- |
+| P0 | Always save `input_data.pkl` for distillation combined | Without this, combined attribution, replay, losses, and source fractions are not auditable. |
+| P0 | Save `episode_metrics.csv` for every run | Avoids re-parsing pickles and gives direct reward, IAE, RMSE, max error, input movement, saturation, and source fractions. |
+| P0 | Save `agent_attribution_summary.csv` for every combined run | Gives one table for horizon, Markov, weights, and residual behavior. |
+| P1 | Save reward component breakdowns | Prevents reward improvement from hiding tracking or move-suppression regressions. |
+| P1 | Save exact replay snapshots or compact replay audits for every active agent | Supports state-coverage and replay-bias claims. |
+| P1 | Save provenance fields | Include git commit, config snapshot, baseline path, disturbance profile, seed, timestamp, plant, and model identifiers. |
+
+The final paper should avoid using reward alone as the headline metric. A stronger table is a normalized scorecard with reward, tracking, input movement, safety, and attribution columns. Reward should still be reported, but IAE/RMSE/max error and input total variation are easier for control readers to interpret.
 
 ## Main Result Interpretation
 
@@ -252,8 +348,9 @@ The current settings are mostly where they should be for finalization:
 
 - Learning rates are conservative and should stay at `1e-4/1e-4`.
 - Separate replay buffers are correct and should stay.
-- Distillation continuous exploration should remain softer than polymer, but residual should not be changed away from its current winning setting without a paired ablation.
+- Distillation continuous exploration should remain softer than polymer, with the final Markov ablation now at `0.05 -> 0.02` and residual kept at `0.10 -> 0.02`.
 - Margin scheduling is useful as an idea, but only for carefully targeted release smoothing. A large margin contracted all the way to zero is too aggressive for final distillation defaults.
+- Combined-run attribution should be reported diagnostically unless leave-one-agent-out or coalition reruns are available.
 
 The strongest final distinction is between systems:
 
@@ -280,6 +377,16 @@ DQN introduced replay memory and target networks for value learning with neural 
 
 Parameter-space noise supports the use of parameter perturbations for temporally coherent exploration. This is especially relevant for distillation residual and Markov agents, where independent stepwise action noise can excite the column. Source: [Plappert et al., 2017](https://arxiv.org/abs/1706.01905).
 
+COMA motivates the distinction between shared reward and individual-agent credit by using a counterfactual baseline for multi-agent credit assignment. This supports treating current combined logs as diagnostic attribution and leave-one-agent-out reruns as causal attribution. Source: [Foerster et al., 2017](https://arxiv.org/abs/1705.08926).
+
+VDN and QMIX motivate value decomposition as a principled way to reason about cooperative agents under a shared team objective. The current project does not implement VDN or QMIX, but their framing supports reporting horizon, Markov, weights, and residual contributions separately rather than collapsing everything into one reward curve. Sources: [Sunehag et al., 2017](https://arxiv.org/abs/1706.05296), [Rashid et al., 2018](https://arxiv.org/abs/1803.11485).
+
+Shapley counterfactual credits provide a coalition-based way to assign multi-agent contribution. For this repo, Shapley-style analysis should be appendix material only if enough coalition reruns exist; otherwise use leave-one-agent-out metrics. Source: [Li et al., 2021](https://arxiv.org/abs/2106.00285).
+
+Empirical RL reporting papers emphasize that single-run curves are fragile and should be supported by explicit metrics, uncertainty, and reproducible evaluation choices. This supports adding final CSV metric tables and common rescoring scripts before journal submission. Sources: [Patterson et al., 2023](https://arxiv.org/abs/2304.01315), [Agarwal et al., 2021](https://arxiv.org/abs/2108.13264), [Colas et al., 2019](https://arxiv.org/abs/1904.06979).
+
+Safe RL with MPC literature supports the paper framing used here: RL proposes adaptation inside an MPC/safety envelope, while MPC or chance-constrained MPC provides the executable safety structure. Sources: [Koller et al., 2019](https://arxiv.org/abs/1906.12189), [Pfrommer et al., 2021](https://arxiv.org/abs/2112.13941).
+
 ## Recommended Next Experiments
 
 1. Polymer combined final Markov-range run  
@@ -289,10 +396,10 @@ Parameter-space noise supports the use of parameter perturbations for temporally
    Metrics: tail reward, worst post-warm reward, Markov source fraction, Markov projection fraction, weight/residual policy fractions.  
    Confirming result: tail reward remains near or better than the 20260609 combined run, without a new post-warm collapse.
 
-2. Distillation Markov exploration ablation  
-   Purpose: test whether softer parameter noise removes the remaining negative post-warm episode.  
+2. Distillation Markov final exploration run
+   Purpose: test whether the now-active softer parameter noise removes the remaining negative post-warm episode.
    File: `systems/distillation/notebook_params.py`.  
-   Change for ablation only: `markov_td3["param_noise_std_start"] = 0.05`, keep `param_noise_std_end = 0.02`.  
+   Change: no further code change required; current default is `param_noise_std_start = 0.05`, `param_noise_std_end = 0.02`.
    Metrics: negative post-warm episodes, worst post-warm reward, tail reward, T85 MAE, x24 MAE, tail policy fraction.  
    Confirming result: negative post-warm episodes drop to zero with less than about 10 percent tail reward loss.
 
@@ -317,6 +424,20 @@ Parameter-space noise supports the use of parameter perturbations for temporally
    Metrics: full-buffer feature ranges, tail-steady feature ranges, percent of rows with max transformed tracking below `0.05` and `0.10`.
    Confirming result: full buffers retain broad transient variation while steady-state rows remain interpretable as maintenance data.
 
+6. Combined leave-one-agent-out attribution
+   Purpose: separate diagnostic attribution from causal contribution.
+   File: combined runner configs for polymer and distillation.
+   Change: run all-agents, no-horizon, no-Markov, no-weights, and no-residual under identical seeds and disturbances.
+   Metrics: delta tail reward, delta IAE, delta RMSE, delta input total variation, and safety/fallback changes.
+   Confirming result: each claimed useful agent has a positive or interpretable marginal contribution rather than only a high source fraction.
+
+7. Journal rescoring and figure freeze
+   Purpose: make tables paper-safe instead of reward-version dependent.
+   File: new or extended report analysis script.
+   Change: rescore all final canonical bundles with one frozen metric helper and emit `episode_metrics.csv`, `agent_attribution_summary.csv`, and final figure panels.
+   Metrics: table completeness, zero missing required fields for final main-text runs, and reproducible figure paths.
+   Confirming result: final paper figures can be regenerated from saved bundles without launching Aspen or rerunning polymer simulations.
+
 ## Remaining Uncertainty
 
-The learning-rate conclusion is based on current defaults, saved loss traces, and result behavior, not a formal LR sweep. The replay recommendation is much stronger because the current agent-specific state/action spaces make separate buffers structurally appropriate. The state-range audit shows that full distillation replay buffers are not collapsed, but it does not prove optimal replay composition. The exact choice between continuous exploration starts of `0.10` and `0.05` remains an empirical tradeoff between early safety and final tail reward.
+The learning-rate conclusion is based on current defaults, saved loss traces, and result behavior, not a formal LR sweep. The replay recommendation is much stronger because the current agent-specific state/action spaces make separate buffers structurally appropriate. The state-range audit shows that full distillation replay buffers are not collapsed, but it does not prove optimal replay composition. The combined-agent attribution table is diagnostic rather than causal until leave-one-agent-out or coalition reruns are available. The exact choice between continuous exploration starts of `0.10` and `0.05` remains an empirical tradeoff between early safety and final tail reward.

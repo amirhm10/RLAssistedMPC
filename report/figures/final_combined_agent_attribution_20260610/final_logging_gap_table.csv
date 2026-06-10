@@ -1,0 +1,9 @@
+bundle_path,family,missing_item,plant,reason,role
+Polymer/Results/sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb_mismatch/20260610_075904/input_data.pkl,Markov,replay snapshot,polymer,replay snapshot not found in saved bundle,standalone
+Distillation/Results/distillation_markov_sg_disturb_fluctuation/20260609_223404/input_data.pkl,Markov,replay snapshot,distillation,replay snapshot not found in saved bundle,standalone
+,combined,input_data.pkl,distillation,missing input_data.pkl; searched=Distillation/Results/distillation_combined_sg_disturb_fluctuation; fallback=,combined
+,combined,avg_rewards,distillation,missing input_data.pkl; searched=Distillation/Results/distillation_combined_sg_disturb_fluctuation; fallback=,combined
+,combined,tracking errors,distillation,missing input_data.pkl; searched=Distillation/Results/distillation_combined_sg_disturb_fluctuation; fallback=,combined
+,combined,replay snapshot,distillation,missing input_data.pkl; searched=Distillation/Results/distillation_combined_sg_disturb_fluctuation; fallback=,combined
+,combined,SG source logs,distillation,missing input_data.pkl; searched=Distillation/Results/distillation_combined_sg_disturb_fluctuation; fallback=,combined
+,combined,config snapshot,distillation,missing input_data.pkl; searched=Distillation/Results/distillation_combined_sg_disturb_fluctuation; fallback=,combined

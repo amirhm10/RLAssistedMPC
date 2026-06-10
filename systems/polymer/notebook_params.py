@@ -890,6 +890,10 @@ POLYMER_MARKOV_DEFAULTS = {
     "td3_agent": {
         **deepcopy(POLYMER_MATRIX_DEFAULTS["td3_agent"]),
         "seed": 7,
+        "exploration_mode": "param_noise",
+        "param_noise_std_start": 0.10,
+        "param_noise_std_end": 0.02,
+        "param_noise_resample_interval": 4,
     },
     "sac_agent": deepcopy(POLYMER_MATRIX_DEFAULTS["sac_agent"]),
     "supervisor_gate": {
@@ -1335,7 +1339,9 @@ POLYMER_RESIDUAL_DEFAULTS = {
         "std_decay_rate": 0.99995,
         "std_decay_mode": "exp",
         "actor_freeze": 0,
-        "exploration_mode": "gaussian",
+        "exploration_mode": "param_noise",
+        "param_noise_std_start": 0.10,
+        "param_noise_std_end": 0.02,
         "loss_type": "huber",
         "param_noise_resample_interval": 4,
     },

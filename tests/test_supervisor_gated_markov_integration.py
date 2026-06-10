@@ -58,6 +58,9 @@ def test_polymer_sg_td3_markov_defaults_shadow_only():
     assert ctrl["force_td3_respects_warm_start"] is True
     assert ctrl["markov_shadow_safety"]["enabled"] is True
     assert ctrl["markov_shadow_safety"]["compute_ls_candidate"] is False
+    assert configured["td3_agent"]["exploration_mode"] == "param_noise"
+    assert configured["td3_agent"]["param_noise_std_start"] == 0.10
+    assert configured["td3_agent"]["param_noise_std_end"] == 0.02
     assert configured["supervisor_gate"]["advantage_margin"] == 0.0
     assert configured["supervisor_gate"]["score_uncertainty_weight"] == 0.5
     assert configured["supervisor_gate"]["score_supervisor_action_weight"] == 0.02

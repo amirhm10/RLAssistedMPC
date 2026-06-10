@@ -28,15 +28,19 @@ def test_distillation_discrete_defaults_use_epsilon_greedy():
     assert standard["agent"]["exploration_mode"] == "epsilon"
 
 
-def test_polymer_td3_style_defaults_use_gaussian_noise():
+def test_polymer_td3_style_defaults_use_intended_noise():
     matrix = get_polymer_notebook_defaults("matrix")
     markov = get_polymer_notebook_defaults("markov")
     structured = get_polymer_notebook_defaults("structured_matrix")
     weights = get_polymer_notebook_defaults("weights")
     residual = get_polymer_notebook_defaults("residual")
 
-    for nb in (matrix, markov, structured, weights, residual):
+    for nb in (matrix, structured, weights):
         assert nb["td3_agent"]["exploration_mode"] == "gaussian"
+    for nb in (markov, residual):
+        assert nb["td3_agent"]["exploration_mode"] == "param_noise"
+        assert nb["td3_agent"]["param_noise_std_start"] == 0.10
+        assert nb["td3_agent"]["param_noise_std_end"] == 0.02
 
 
 def test_distillation_active_td3_defaults_use_intended_noise():
@@ -45,8 +49,12 @@ def test_distillation_active_td3_defaults_use_intended_noise():
     residual = get_distillation_notebook_defaults("residual")
 
     assert markov["td3_agent"]["exploration_mode"] == "param_noise"
+    assert markov["td3_agent"]["param_noise_std_start"] == 0.05
+    assert markov["td3_agent"]["param_noise_std_end"] == 0.02
     assert weights["td3_agent"]["exploration_mode"] == "gaussian"
     assert residual["td3_agent"]["exploration_mode"] == "param_noise"
+    assert residual["td3_agent"]["param_noise_std_start"] == 0.10
+    assert residual["td3_agent"]["param_noise_std_end"] == 0.02
 
 
 def test_distillation_agent_defaults_use_40k_replay_buffer():
@@ -88,7 +96,7 @@ def test_dueling_dqn_constructor_default_is_epsilon():
 def run_direct():
     test_polymer_discrete_defaults_use_epsilon_greedy()
     test_distillation_discrete_defaults_use_epsilon_greedy()
-    test_polymer_td3_style_defaults_use_gaussian_noise()
+    test_polymer_td3_style_defaults_use_intended_noise()
     test_distillation_active_td3_defaults_use_intended_noise()
     test_distillation_agent_defaults_use_40k_replay_buffer()
     test_dueling_dqn_constructor_default_is_epsilon()

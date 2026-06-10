@@ -1398,7 +1398,7 @@ def _apply_active_runner_defaults() -> None:
     }
     markov_td3 = DISTILLATION_MARKOV_DEFAULTS["td3_agent"]
     markov_td3["exploration_mode"] = "param_noise"
-    markov_td3["param_noise_std_start"] = 0.10
+    markov_td3["param_noise_std_start"] = 0.05
     markov_td3["param_noise_std_end"] = 0.02
     markov_td3["param_noise_resample_interval"] = 4
     DISTILLATION_MARKOV_DEFAULTS["supervisor_gate"] = {

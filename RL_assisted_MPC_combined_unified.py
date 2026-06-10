@@ -180,6 +180,8 @@ def make_continuous_agent(agent_kind, state_dim, action_dim, td3_cfg, device, se
         actor_freeze=td3_cfg["actor_freeze"],
         exploration_mode=td3_cfg["exploration_mode"],
         loss_type=td3_cfg["loss_type"],
+        param_noise_std_start=td3_cfg.get("param_noise_std_start", td3_cfg["std_start"]),
+        param_noise_std_end=td3_cfg.get("param_noise_std_end", td3_cfg["std_end"]),
         param_noise_resample_interval=td3_cfg["param_noise_resample_interval"],
     )
     if agent_kind == "sg_td3":

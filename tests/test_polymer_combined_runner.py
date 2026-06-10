@@ -52,6 +52,12 @@ def test_polymer_combined_defaults_use_all_sg_mismatch_mode():
     assert nb["weights_supervisor_gate"]["advantage_margin"] == 0.5
     assert nb["residual_supervisor_gate"]["advantage_margin"] == 0.5
     assert nb["controller"]["z_bound"] == markov_nb["controller"]["z_bound"] == 0.70
+    assert nb["markov_td3_agent"]["exploration_mode"] == "param_noise"
+    assert nb["markov_td3_agent"]["param_noise_std_start"] == 0.10
+    assert nb["markov_td3_agent"]["param_noise_std_end"] == 0.02
+    assert nb["residual_td3_agent"]["exploration_mode"] == "param_noise"
+    assert nb["residual_td3_agent"]["param_noise_std_start"] == 0.10
+    assert nb["residual_td3_agent"]["param_noise_std_end"] == 0.02
     assert nb["controller"]["z_safety"]["enabled"] is False
     assert nb["weight_safety"]["fallback_to_identity_on_nonfinite"] is True
     assert nb["residual_safety"]["fallback_to_zero_on_nonfinite"] is True

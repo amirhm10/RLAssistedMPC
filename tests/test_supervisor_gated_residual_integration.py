@@ -47,6 +47,9 @@ def test_polymer_weights_and_residual_sg_td3_defaults():
     assert residual["behavioral_cloning"]["enabled"] is False
     assert residual["behavioral_cloning"]["handoff"]["enabled"] is False
     assert residual["td3_authority_ramp"]["enabled"] is False
+    assert residual["td3_agent"]["exploration_mode"] == "param_noise"
+    assert residual["td3_agent"]["param_noise_std_start"] == 0.10
+    assert residual["td3_agent"]["param_noise_std_end"] == 0.02
     assert residual["residual_safety"]["fallback_to_zero_on_nonfinite"] is True
     assert residual["residual_safety"]["early_release_guard"]["enabled"] is False
     assert residual["residual_safety"]["shadow_rho_authority"]["enabled"] is False
@@ -143,7 +146,7 @@ def test_distillation_sg_td3_weights_and_markov_use_mismatch_state():
     assert markov["markov_supervisor_mode"] == "ls_else_mpc"
     assert markov["markov_live_safety_mode"] == "shadow_only"
     assert markov["td3_agent"]["exploration_mode"] == "param_noise"
-    assert markov["td3_agent"]["param_noise_std_start"] == 0.10
+    assert markov["td3_agent"]["param_noise_std_start"] == 0.05
     assert markov["td3_agent"]["param_noise_std_end"] == 0.02
     assert markov["td3_agent"]["param_noise_resample_interval"] == 4
     assert markov["supervisor_gate"]["advantage_margin"] == 0.5

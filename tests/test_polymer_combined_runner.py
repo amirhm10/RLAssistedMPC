@@ -48,7 +48,7 @@ def test_polymer_combined_defaults_use_all_sg_mismatch_mode():
     assert nb["td3_post_warm_start_actor_freeze_subepisodes"] == 3
 
     assert nb["horizon_supervisor_gate"]["advantage_margin"] == 0.0
-    assert nb["markov_supervisor_gate"]["advantage_margin"] == 1.0
+    assert nb["markov_supervisor_gate"]["advantage_margin"] == 0.0
     assert nb["weights_supervisor_gate"]["advantage_margin"] == 0.5
     assert nb["residual_supervisor_gate"]["advantage_margin"] == 0.5
     assert nb["controller"]["z_bound"] == markov_nb["controller"]["z_bound"] == 0.70

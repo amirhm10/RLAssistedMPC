@@ -896,7 +896,7 @@ POLYMER_MARKOV_DEFAULTS = {
         "score_uncertainty_weight": 0.5,
         "score_previous_action_weight": 0.01,
         "score_supervisor_action_weight": 0.02,
-        "advantage_margin": 1.0,
+        "advantage_margin": 0.0,
         "default_to_supervisor": True,
         "actor_q_mode": "mean",
         "supervisor_bc_weight": 0.0,

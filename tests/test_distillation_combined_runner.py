@@ -197,6 +197,8 @@ def test_distillation_combined_root_runner_is_active_sg_plain_only():
     assert "validate_disabled_matrix_bounds" in source
     assert "legacy matrix branch disabled" in source
     assert "residual rho authority disabled" in source
+    assert 'result_bundle["disturbance_profile_name"] = DISTURBANCE_PROFILE' in source
+    assert 'result_bundle["disturbance_profile"] = DISTURBANCE_PROFILE' not in source
     assert "SupervisorGatedDQNAgent" in source
     assert "SupervisorGatedTD3Agent" in source
     assert "SACAgent" not in source

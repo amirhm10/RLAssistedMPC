@@ -137,6 +137,26 @@ def resolve_system_metadata(bundle=None, plot_cfg=None, n_outputs=None, n_inputs
 
 
 def disturbance_plot_items(disturbance_profile, disturbance_labels=None):
+    if disturbance_profile is None:
+        return []
+    if isinstance(disturbance_profile, str):
+        return []
+    if not hasattr(disturbance_profile, "items"):
+        disturbance_labels = list(disturbance_labels or [])
+        series = np.asarray(disturbance_profile, float)
+        if series.ndim == 1:
+            label = disturbance_labels[0] if disturbance_labels else "disturbance"
+            return [("disturbance", label, series)]
+        if series.ndim == 2:
+            return [
+                (
+                    f"disturbance_{idx + 1}",
+                    disturbance_labels[idx] if idx < len(disturbance_labels) else f"disturbance {idx + 1}",
+                    series[:, idx],
+                )
+                for idx in range(series.shape[1])
+            ]
+        return []
     if not disturbance_profile:
         return []
     label_lookup = {}

@@ -779,7 +779,7 @@ try:
     result_bundle = run_combined_supervisor(combined_cfg=combined_cfg, runtime_ctx=runtime_ctx)
     result_bundle["mpc_path_or_dir"] = BASELINE_MPC_PATH
     result_bundle["run_profile"] = RUN_PROFILE
-    result_bundle["disturbance_profile"] = DISTURBANCE_PROFILE
+    result_bundle["disturbance_profile_name"] = DISTURBANCE_PROFILE
 
     out_dir_rl = plot_combined_results(
         result_bundle=result_bundle,

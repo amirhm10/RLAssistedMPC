@@ -59,7 +59,7 @@ The recommendations below are conservative. They are meant for final project pol
 | Polymer | weights SG-TD3 | actor `1e-4`, critic `1e-4` | 150000, PER 0.5, recent 0.2 | Gaussian `0.2 -> 0.02` | 0.5 |
 | Polymer | residual SG-TD3 | actor `1e-4`, critic `1e-4` | 150000, PER 0.5, recent 0.2 | param-noise `0.10 -> 0.02` | 0.5 |
 | Distillation | horizon SG-DQN | `lr = 1e-4` | 40000, PER 0.4, recent 0.3 | epsilon `0.2 -> 0.02` | 0.0 |
-| Distillation | Markov SG-TD3 | actor `1e-4`, critic `1e-4` | 40000, PER 0.4, recent 0.3 | param-noise `0.05 -> 0.02` | 0.5 |
+| Distillation | Markov SG-TD3 | actor `1e-4`, critic `1e-4` | 40000, PER 0.4, recent 0.3 | param-noise `0.10 -> 0.02` | 0.5 |
 | Distillation | weights SG-TD3 | actor `1e-4`, critic `1e-4` | 40000, PER 0.4, recent 0.3 | Gaussian `0.15 -> 0.03` | 0.0 |
 | Distillation | residual SG-TD3 | actor `1e-4`, critic `1e-4` | 40000, PER 0.4, recent 0.3 | param-noise `0.10 -> 0.02` | 0.5 |
 
@@ -234,24 +234,24 @@ Final recommendation:
 
 For high-authority continuous distillation agents, yes, exploration should not start at `0.2`. The active defaults already moved in that direction:
 
-- Markov distillation now uses parameter noise `0.05 -> 0.02`.
+- Markov distillation is reverted to parameter noise `0.10 -> 0.02` after the `0.05 -> 0.02` handoff ablation produced worse early live-policy release behavior.
 - Residual distillation uses parameter noise `0.10 -> 0.02`.
 - Weights distillation uses Gaussian noise `0.15 -> 0.03`.
 - Horizon distillation uses epsilon `0.2 -> 0.02`, but horizon actions are lower authority because they choose MPC recipes rather than direct residual inputs.
 - Polymer Markov and residual now use parameter noise `0.10 -> 0.02`; polymer weights remains Gaussian `0.2 -> 0.02`.
 
-The stronger question was whether to reduce continuous distillation exploration from `0.10` or `0.15` down to `0.05`. The final ablation default now applies that reduction to Markov only.
+The stronger question was whether to reduce continuous distillation exploration from `0.10` or `0.15` down to `0.05`. The Markov `0.05 -> 0.02` ablation looked worse during handoff: the first meaningful policy-executed subepisodes had sharply negative rewards while the SG policy-execution fraction jumped from zero to about 23-30 percent. That makes `0.05` a failed safety ablation for Markov rather than the final default.
 
 Recommendation:
 
 - Distillation residual: keep `param_noise_std_start = 0.10` for the default, because the latest residual run is the best current evidence and had no negative post-warm episodes.
-- Distillation Markov: use the final safety ablation default `param_noise_std_start = 0.05`, `param_noise_std_end = 0.02`, then evaluate whether the negative post-warm episode disappears without a large tail-reward loss.
+- Distillation Markov: revert to `param_noise_std_start = 0.10`, `param_noise_std_end = 0.02`. The next safety polish should focus on handoff/release authority rather than further shrinking initial parameter noise.
 - Distillation weights: keep `std_start = 0.15`, `std_end = 0.03` unless the combined run shows weight-induced oscillation. The weights action is filtered through MPC and has been stable.
 - Distillation horizon: keep `eps_start = 0.2`, `eps_end = 0.02`. Lowering epsilon to `0.05` would likely make the horizon policy collapse too early to the supervisor recipe.
 - Polymer Markov and residual: use final parameter noise `0.10 -> 0.02`. This keeps exploration temporally coherent while avoiding the stepwise actuator jitter of Gaussian action noise.
 - Polymer weights: keep Gaussian `0.2 -> 0.02`, because that action changes MPC penalties rather than directly changing input moves or model corrections.
 
-If only one final exploration polish is allowed, run the distillation Markov `param_noise_std_start = 0.05` ablation first. Residual remains the stronger distillation standalone family, but the Markov safety question is more targeted.
+If only one final Markov polish is allowed, keep `0.10 -> 0.02` and inspect the handoff window: policy-executed fraction, requested versus executed `z`, gate advantage, and reward immediately after live release. Residual remains the stronger distillation standalone family.
 
 ## Question 5: How Can We Distinguish Each Agent's Success In Combined Runs?
 
@@ -348,7 +348,7 @@ The current settings are mostly where they should be for finalization:
 
 - Learning rates are conservative and should stay at `1e-4/1e-4`.
 - Separate replay buffers are correct and should stay.
-- Distillation continuous exploration should remain softer than polymer, with the final Markov ablation now at `0.05 -> 0.02` and residual kept at `0.10 -> 0.02`.
+- Distillation continuous exploration should remain softer than the original broad `0.2` setting, but Markov should stay at `0.10 -> 0.02`; the `0.05 -> 0.02` ablation worsened the observed handoff.
 - Margin scheduling is useful as an idea, but only for carefully targeted release smoothing. A large margin contracted all the way to zero is too aggressive for final distillation defaults.
 - Combined-run attribution should be reported diagnostically unless leave-one-agent-out or coalition reruns are available.
 
@@ -396,12 +396,12 @@ Safe RL with MPC literature supports the paper framing used here: RL proposes ad
    Metrics: tail reward, worst post-warm reward, Markov source fraction, Markov projection fraction, weight/residual policy fractions.  
    Confirming result: tail reward remains near or better than the 20260609 combined run, without a new post-warm collapse.
 
-2. Distillation Markov final exploration run
-   Purpose: test whether the now-active softer parameter noise removes the remaining negative post-warm episode.
+2. Distillation Markov handoff audit
+   Purpose: test whether reverting to `0.10 -> 0.02` restores the better handoff while preserving tail reward.
    File: `systems/distillation/notebook_params.py`.  
-   Change: no further code change required; current default is `param_noise_std_start = 0.05`, `param_noise_std_end = 0.02`.
-   Metrics: negative post-warm episodes, worst post-warm reward, tail reward, T85 MAE, x24 MAE, tail policy fraction.  
-   Confirming result: negative post-warm episodes drop to zero with less than about 10 percent tail reward loss.
+   Change: no further code change required; current default is `param_noise_std_start = 0.10`, `param_noise_std_end = 0.02`.
+   Metrics: negative post-warm episodes, worst post-warm reward, tail reward, T85 MAE, x24 MAE, tail policy fraction, first-live policy fraction, and requested/executed `z` during handoff.
+   Confirming result: the first live-policy release no longer produces a large negative reward dip, or the dip is clearly explained by gate/release diagnostics.
 
 3. Optional distillation margin schedule  
    Purpose: smooth Markov release without permanently blocking the actor.  
@@ -440,4 +440,4 @@ Safe RL with MPC literature supports the paper framing used here: RL proposes ad
 
 ## Remaining Uncertainty
 
-The learning-rate conclusion is based on current defaults, saved loss traces, and result behavior, not a formal LR sweep. The replay recommendation is much stronger because the current agent-specific state/action spaces make separate buffers structurally appropriate. The state-range audit shows that full distillation replay buffers are not collapsed, but it does not prove optimal replay composition. The combined-agent attribution table is diagnostic rather than causal until leave-one-agent-out or coalition reruns are available. The exact choice between continuous exploration starts of `0.10` and `0.05` remains an empirical tradeoff between early safety and final tail reward.
+The learning-rate conclusion is based on current defaults, saved loss traces, and result behavior, not a formal LR sweep. The replay recommendation is much stronger because the current agent-specific state/action spaces make separate buffers structurally appropriate. The state-range audit shows that full distillation replay buffers are not collapsed, but it does not prove optimal replay composition. The combined-agent attribution table is diagnostic rather than causal until leave-one-agent-out or coalition reruns are available. The latest Markov `0.05 -> 0.02` handoff trace suggests that reducing initial parameter noise can delay useful release and still produce a bad first live-policy window, so the safer default is back to `0.10 -> 0.02`.

@@ -38,6 +38,12 @@ The recommendations below are conservative. They are meant for final project pol
 - `Polymer/Results/combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho/20260609_155026/input_data.pkl`
 - `Distillation/Results/distillation_residual_sg_td3_critic_warm3_margin05_paramnoise_manual_off_disturb_fluctuation_mismatch_no_rho/20260608_183743/input_data.pkl`
 - `Distillation/Results/distillation_markov_sg_td3_critic_warm3_margin05_softparamnoise_ls_else_mpc_shadow_disturb_fluctuation_mismatch/20260608_194745/input_data.pkl`
+- `Distillation/Results/distillation_weights_sg_td3_critic_warm3_margin0_sup001_gauss015_003_manual_off_disturb_fluctuation_mismatch/20260608_181133/input_data.pkl`
+- `Distillation/Results/distillation_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_mismatch_np6_11_nc3_11/20260608_180237/input_data.pkl`
+- `Distillation/Results/distillation_dueling_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_mismatch_np6_11_nc3_11/20260608_180736/input_data.pkl`
+- `report/scripts/analyze_distillation_replay_state_ranges_20260610.py`
+- `report/figures/distillation_replay_state_ranges_20260610/distillation_replay_state_range_summary.csv`
+- `report/figures/distillation_replay_state_ranges_20260610/distillation_replay_state_feature_detail_tail20_steady.csv`
 
 ## Current Default Snapshot
 
@@ -157,6 +163,68 @@ Recommendation:
 - Keep polymer at 150000 transitions, PER 0.5, recent 0.2, recent window multiplier 5.
 - For fair combined diagnostics, save buffer sizes and replay snapshots consistently for all blocks. The latest distillation Markov report noted that Markov replay size was not saved in the same way as other bundles.
 
+## Question 3b: Are Distillation Replay States Too Narrow To Inform RL?
+
+Short answer: the full replay buffers are not too narrow, but the steady-state tail slices are narrow for weights, horizon, and dueling horizon. That is expected and not automatically bad. The steady data mostly teaches the actor and critic to maintain the safe near-setpoint behavior. The informative transient data is still present in the full replay snapshot.
+
+The latest distillation saved bundles give direct access to replay states for weights, residual, horizon, and dueling horizon through `replay_buffer_snapshot["states"]`. Each snapshot is `40000 x 15`, which is the full replay capacity. The 15 dimensions are:
+
+- 11 base RL state features from the augmented observer state, setpoint, and previous input.
+- 2 transformed innovation features.
+- 2 transformed tracking-error features.
+
+The mismatch features use the `signed_log` transform:
+
+$$ z_{\mathrm{mis}} = \mathrm{sign}(e_{\mathrm{raw}})\log(1+|e_{\mathrm{raw}}|). $$
+
+That means small transformed values really do indicate small band-normalized innovation or tracking error. For Markov, the latest standalone bundle does not save an exact replay snapshot, but it does save `rl_state_log` with shape `80000 x 25` and `rl_replay_pushed_log`; 99.5 percent of those logged Markov states were pushed. This is useful evidence, but it is not the exact replay-buffer export.
+
+The table below compares the full replay snapshot with the last 100 steps of each episode over the final 20 episodes. The latter is the most steady-state-heavy slice.
+
+| Run | Source | Segment | State dim | Median feature range | Max feature range | Rounded-3 unique frac | Max tracking < 0.05 | Max tracking < 0.10 | Policy source frac |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| weights | replay snapshot | all | 15 | 0.567 | 7.442 | 0.868 | 27.3% | 32.9% | 0.596 |
+| weights | replay snapshot | tail steady | 15 | 0.029 | 0.106 | 0.556 | 100.0% | 100.0% | 0.481 |
+| residual | replay snapshot | all | 15 | 0.546 | 7.052 | 0.915 | 42.6% | 60.7% | 0.386 |
+| residual | replay snapshot | tail steady | 15 | 0.074 | 0.905 | 0.999 | 50.8% | 83.5% | 0.349 |
+| Markov | state log | all | 25 | 0.787 | 6.000 | 0.871 | NA | NA | NA |
+| Markov | state log | tail steady | 25 | 0.015 | 0.737 | 0.906 | NA | NA | NA |
+| horizon | replay snapshot | all | 15 | 0.571 | 7.704 | 0.847 | 37.0% | 45.0% | 0.157 |
+| horizon | replay snapshot | tail steady | 15 | 0.029 | 0.292 | 0.794 | 91.4% | 98.2% | 0.211 |
+| dueling | replay snapshot | all | 15 | 0.574 | 7.795 | 0.867 | 34.8% | 45.8% | 0.127 |
+| dueling | replay snapshot | tail steady | 15 | 0.029 | 0.210 | 0.743 | 93.4% | 98.8% | 0.131 |
+
+Interpretation:
+
+- The full replay buffers are not collapsed. Full-buffer median feature ranges are about `0.55` to `0.57` for weights, residual, horizon, and dueling horizon, and rounded-to-0.001 unique-state fractions are about `0.85` to `0.91`.
+- The steady-state tail slice is narrow for weights, horizon, and dueling horizon. In that slice, more than `91%` of rows have both tracking features below `0.05` or nearly below it. This confirms your concern for the steady-state portion.
+- Residual is different. In the residual tail-steady slice, only `50.8%` of rows have max transformed tracking below `0.05`, and the T85 tracking feature has a wide tail range. This means residual still sees meaningful near-steady variation, especially in the temperature channel.
+- Markov's exact replay cannot be audited from the latest saved bundle, but its logged state stream is not globally collapsed. Its tail-steady median range is small, yet the rounded unique fraction is still about `0.906`, suggesting continuous variation remains in some Markov-specific features.
+
+For residual, the tail-steady feature detail shows why it is still informative:
+
+| Feature | Range | Std | q05 | Median | q95 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `u_reflux` | 0.108 | 0.030 | -0.277 | -0.234 | -0.187 |
+| `u_reboiler` | 0.012 | 0.003 | 0.064 | 0.068 | 0.072 |
+| `innov_x24` | 0.099 | 0.008 | -0.012 | -0.000 | 0.014 |
+| `innov_T85` | 0.131 | 0.012 | -0.019 | -0.000 | 0.018 |
+| `track_x24` | 0.122 | 0.013 | -0.012 | 0.007 | 0.030 |
+| `track_T85` | 0.905 | 0.076 | -0.146 | -0.021 | 0.096 |
+
+The replay concern is therefore not "there is no informative state." The better diagnosis is:
+
+- Whole-buffer replay still contains enough transient and off-setpoint information.
+- The final steady-state slice is low-error and low-innovation for the low-authority agents, so it mostly trains maintenance and safe non-intervention.
+- If the recent sampler overemphasizes only the last near-steady regime, it could slow learning about setpoint-change transients. The current hybrid sampler reduces that risk by mixing PER, recent-window samples, and uniform samples.
+
+Final recommendation:
+
+- Keep the current replay design.
+- Add a final diagnostic to future saved bundles: percent of replay rows with `max(abs(tracking_features)) < 0.05`, percent with `< 0.10`, and per-feature tail-steady ranges.
+- If a future distillation agent becomes too conservative or fails to learn transients, do not first enlarge exploration. First try phase-stratified replay, for example forcing a minimum fraction of minibatch samples from non-steady rows where `max(abs(tracking_features)) >= 0.05`.
+- Save exact replay snapshots for Markov and distillation combined. That is now the biggest evidence gap, not the state range of the saved residual/weights/horizon buffers.
+
 ## Question 4: Should Distillation Exploration Start At 0.05 Instead Of 0.2?
 
 For high-authority continuous distillation agents, yes, exploration should not start at `0.2`. The active defaults already moved in that direction:
@@ -197,6 +265,7 @@ The strongest final distinction is between systems:
 - The latest saved polymer combined run used `markov_z_bound = 0.2`, while the current standalone Markov default is `0.7`. A new combined run is needed before claiming combined evidence under the final Markov range.
 - The latest distillation combined output folder has no `input_data.pkl`, so the combined distillation run cannot be audited for replay, source fractions, or learning traces from saved data.
 - Some saved Markov bundles do not persist replay size/snapshot fields as consistently as weights and residual bundles.
+- The latest distillation Markov bundle does not save an exact replay buffer snapshot. It saves `rl_state_log`, which is useful but not equivalent to the exact replay export.
 - Loss magnitudes are not directly comparable between polymer and distillation because reward and Q scales differ. They should be used for instability screening, not as a cross-system performance metric.
 
 ## Literature Connections
@@ -241,6 +310,13 @@ Parameter-space noise supports the use of parameter perturbations for temporally
    Metrics: existence of replay/loss/source logs in the saved bundle.  
    Confirming result: the next combined folder can be loaded and audited like standalone residual/Markov.
 
+5. Add replay state-range diagnostics to final saved bundles
+   Purpose: confirm that RL is not learning only from near-identical steady-state rows.
+   File: plotting/save or analysis layer around `replay_buffer_snapshot`.
+   Change: save per-feature range, standard deviation, and phase fractions for all replay buffers.
+   Metrics: full-buffer feature ranges, tail-steady feature ranges, percent of rows with max transformed tracking below `0.05` and `0.10`.
+   Confirming result: full buffers retain broad transient variation while steady-state rows remain interpretable as maintenance data.
+
 ## Remaining Uncertainty
 
-The learning-rate conclusion is based on current defaults, saved loss traces, and result behavior, not a formal LR sweep. The replay recommendation is much stronger because the current agent-specific state/action spaces make separate buffers structurally appropriate. The exploration recommendation is strongest for avoiding `0.2` in high-authority distillation continuous agents, but the exact choice between `0.10` and `0.05` remains an empirical tradeoff between early safety and final tail reward.
+The learning-rate conclusion is based on current defaults, saved loss traces, and result behavior, not a formal LR sweep. The replay recommendation is much stronger because the current agent-specific state/action spaces make separate buffers structurally appropriate. The state-range audit shows that full distillation replay buffers are not collapsed, but it does not prove optimal replay composition. The exact choice between continuous exploration starts of `0.10` and `0.05` remains an empirical tradeoff between early safety and final tail reward.

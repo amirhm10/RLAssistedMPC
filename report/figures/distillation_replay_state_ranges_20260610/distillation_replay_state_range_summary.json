@@ -1,0 +1,47 @@
+{
+  "availability": {
+    "weights": {
+      "path": "Distillation\\Results\\distillation_weights_sg_td3_critic_warm3_margin0_sup001_gauss015_003_manual_off_disturb_fluctuation_mismatch\\20260608_181133\\input_data.pkl",
+      "source": "replay_buffer_snapshot",
+      "state_shape": [
+        40000,
+        15
+      ]
+    },
+    "residual": {
+      "path": "Distillation\\Results\\distillation_residual_sg_td3_critic_warm3_margin05_paramnoise_manual_off_disturb_fluctuation_mismatch_no_rho\\20260608_183743\\input_data.pkl",
+      "source": "replay_buffer_snapshot",
+      "state_shape": [
+        40000,
+        15
+      ]
+    },
+    "markov": {
+      "path": "Distillation\\Results\\distillation_markov_sg_td3_critic_warm3_margin05_softparamnoise_ls_else_mpc_shadow_disturb_fluctuation_mismatch\\20260608_194745\\input_data.pkl",
+      "source": "rl_state_log_not_exact_replay_snapshot",
+      "state_shape": [
+        80000,
+        25
+      ],
+      "pushed_fraction": 0.995
+    },
+    "horizon": {
+      "path": "Distillation\\Results\\distillation_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_mismatch_np6_11_nc3_11\\20260608_180237\\input_data.pkl",
+      "source": "replay_buffer_snapshot",
+      "state_shape": [
+        40000,
+        15
+      ]
+    },
+    "dueling": {
+      "path": "Distillation\\Results\\distillation_dueling_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_fluctuation_mismatch_np6_11_nc3_11\\20260608_180736\\input_data.pkl",
+      "source": "replay_buffer_snapshot",
+      "state_shape": [
+        40000,
+        15
+      ]
+    }
+  },
+  "summary_csv": "report\\figures\\distillation_replay_state_ranges_20260610\\distillation_replay_state_range_summary.csv",
+  "feature_detail_csv": "report\\figures\\distillation_replay_state_ranges_20260610\\distillation_replay_state_feature_detail_tail20_steady.csv"
+}

@@ -238,6 +238,19 @@ MARKOV_GATE_CFG = dict(NB.get("markov_supervisor_gate", {}))
 WEIGHTS_GATE_CFG = dict(NB.get("weights_supervisor_gate", {}))
 RESIDUAL_GATE_CFG = dict(NB.get("residual_supervisor_gate", {}))
 
+
+def _require_param_noise_for_combined_td3(name, td3_cfg):
+    mode = str(td3_cfg.get("exploration_mode", "")).strip().lower()
+    if mode != "param_noise":
+        raise ValueError(f"Combined {name} TD3 exploration must be param_noise, got {mode!r}.")
+    for key in ("param_noise_std_start", "param_noise_std_end", "param_noise_resample_interval"):
+        if key not in td3_cfg:
+            raise ValueError(f"Combined {name} TD3 config is missing {key}.")
+
+
+_require_param_noise_for_combined_td3("Markov", MARKOV_TD3_CFG)
+_require_param_noise_for_combined_td3("residual", RESIDUAL_TD3_CFG)
+
 n_tests = int(EPISODE_CFG["n_tests"] if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
 set_points_len = int(EPISODE_CFG["set_points_len"] if SET_POINTS_LEN_OVERRIDE is None else SET_POINTS_LEN_OVERRIDE)
 warm_start = int(EPISODE_CFG["warm_start"] if WARM_START_OVERRIDE is None else WARM_START_OVERRIDE)
@@ -532,6 +545,12 @@ combined_cfg = {
     "combined_agent_mode": COMBINED_AGENT_MODE,
     "horizon_agent_kind": HORIZON_AGENT_KIND,
     "notebook_source": "RL_assisted_MPC_combined_unified.py",
+    "agent_config_snapshot": {
+        "horizon_agent": dict(HORIZON_CFG),
+        "markov_td3_agent": dict(MARKOV_TD3_CFG),
+        "weights_td3_agent": dict(WEIGHTS_TD3_CFG),
+        "residual_td3_agent": dict(RESIDUAL_TD3_CFG),
+    },
     "decision_interval": DECISION_INTERVAL,
     "n_tests": n_tests,
     "set_points_len": set_points_len,

@@ -77,6 +77,7 @@ def _make_axes_bold(ax):
 
 
 def _save_fig(fig, out_dir, fname_base, save_pdf=False):
+    os.makedirs(_io_path(out_dir), exist_ok=True)
     png_path = os.path.join(out_dir, fname_base + ".png")
     pdf_path = os.path.join(out_dir, fname_base + ".pdf")
 
@@ -88,22 +89,37 @@ def _save_fig(fig, out_dir, fname_base, save_pdf=False):
 
     try:
         try:
-            fig.savefig(png_path, dpi=300, bbox_inches="tight")
+            fig.savefig(_io_path(png_path), dpi=300, bbox_inches="tight")
         except Exception as exc:
             if not _is_render_memory_error(exc):
                 raise
-            fig.savefig(png_path, dpi=180)
+            fig.savefig(_io_path(png_path), dpi=180)
 
         if save_pdf:
             try:
-                fig.savefig(pdf_path, bbox_inches="tight")
+                fig.savefig(_io_path(pdf_path), bbox_inches="tight")
             except Exception as exc:
                 if not _is_render_memory_error(exc):
                     raise
-                fig.savefig(pdf_path)
+                fig.savefig(_io_path(pdf_path))
     finally:
         plt.close(fig)
         gc.collect()
+
+
+def _io_path(path):
+    """Return a filesystem path suitable for Windows writes near MAX_PATH."""
+    path = os.fspath(path)
+    if os.name != "nt":
+        return path
+    abs_path = os.path.abspath(path)
+    if abs_path.startswith("\\\\?\\"):
+        return abs_path
+    if len(abs_path) < 240:
+        return path
+    if abs_path.startswith("\\\\"):
+        return "\\\\?\\UNC\\" + abs_path.lstrip("\\")
+    return "\\\\?\\" + abs_path
 
 
 def _default_system_metadata(n_outputs, n_inputs):
@@ -786,12 +802,13 @@ def build_storage_bundle(bundle, start_episode):
 def create_output_dir(directory, prefix_name):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_dir = os.path.join(directory, prefix_name, timestamp)
-    os.makedirs(out_dir, exist_ok=True)
+    os.makedirs(_io_path(out_dir), exist_ok=True)
     return out_dir
 
 
 def save_bundle_pickle(out_dir, stored_bundle):
-    with open(os.path.join(out_dir, "input_data.pkl"), "wb") as handle:
+    os.makedirs(_io_path(out_dir), exist_ok=True)
+    with open(_io_path(os.path.join(out_dir, "input_data.pkl")), "wb") as handle:
         pickle.dump(stored_bundle, handle)
 
 
@@ -831,18 +848,18 @@ def shade_test_regions(ax, spans, delta_t):
 
 
 def load_pickle(path):
-    if os.path.isdir(path):
+    if os.path.isdir(_io_path(path)):
         candidate = os.path.join(path, "input_data.pkl")
-        if os.path.exists(candidate):
-            with open(candidate, "rb") as handle:
+        if os.path.exists(_io_path(candidate)):
+            with open(_io_path(candidate), "rb") as handle:
                 return pickle.load(handle)
-        for name in sorted(os.listdir(path)):
+        for name in sorted(os.listdir(_io_path(path))):
             if name.endswith((".pickle", ".pkl")):
-                with open(os.path.join(path, name), "rb") as handle:
+                with open(_io_path(os.path.join(path, name)), "rb") as handle:
                     return pickle.load(handle)
         raise FileNotFoundError(f"No pickle files found in directory: {path}")
 
-    with open(path, "rb") as handle:
+    with open(_io_path(path), "rb") as handle:
         return pickle.load(handle)
 
 
@@ -2629,7 +2646,7 @@ def plot_markov_correction_results_core(result_bundle, plot_cfg):
         if key in bundle:
             stored_bundle[key] = bundle.get(key)
     save_bundle_pickle(out_dir, stored_bundle)
-    write_markov_stage_diagnostics_csv(stored_bundle, os.path.join(out_dir, "markov_stage_diagnostics.csv"))
+    write_markov_stage_diagnostics_csv(stored_bundle, _io_path(os.path.join(out_dir, "markov_stage_diagnostics.csv")))
     return out_dir
 
 
@@ -2752,8 +2769,8 @@ def plot_structured_matrix_results_core(result_bundle, plot_cfg):
         _save_fig(fig, out_dir, "fig_structured_matrix_episode_average_multipliers", save_pdf=save_pdf)
 
     stored_path = os.path.join(out_dir, "input_data.pkl")
-    if os.path.exists(stored_path):
-        with open(stored_path, "rb") as handle:
+    if os.path.exists(_io_path(stored_path)):
+        with open(_io_path(stored_path), "rb") as handle:
             stored_bundle = pickle.load(handle)
     else:
         stored_bundle = {}
@@ -3137,8 +3154,8 @@ def plot_reidentification_results_core(result_bundle, plot_cfg):
             _save_fig(fig, out_dir, "fig_reidentification_basis_singular_values", save_pdf=save_pdf)
 
     stored_path = os.path.join(out_dir, "input_data.pkl")
-    if os.path.exists(stored_path):
-        with open(stored_path, "rb") as handle:
+    if os.path.exists(_io_path(stored_path)):
+        with open(_io_path(stored_path), "rb") as handle:
             stored_bundle = pickle.load(handle)
     else:
         stored_bundle = {}

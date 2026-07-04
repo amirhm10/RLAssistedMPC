@@ -867,10 +867,10 @@ POLYMER_MARKOV_DEFAULTS = {
         "run_live_corrected_mpc": True,
         "run_rl_proposal": True,
         "rl_fallback_to_ls": False,
-        # Active SG runs execute the gate decision directly after the protected
-        # critic window; the older Markov fallbacks are retained as shadow
-        # diagnostics below.
-        "force_td3_execute": False,
+        # Plain no-SG Markov runs execute the TD3 correction directly after
+        # warm start. Legacy hard-gate fallbacks are retained only through the
+        # shadow diagnostics below.
+        "force_td3_execute": True,
         "force_td3_respects_warm_start": True,
         "rl_store_executed_action_in_replay": True,
         "td3_priority_fallback": {"enabled": False},

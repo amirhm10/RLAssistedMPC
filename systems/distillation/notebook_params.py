@@ -1382,6 +1382,7 @@ def _apply_active_runner_defaults() -> None:
     active_z_safety = deepcopy(markov_ctrl.get("z_safety", {}))
     active_priority = deepcopy(markov_ctrl.get("td3_priority_fallback", {}))
     markov_ctrl["rl_fallback_to_ls"] = False
+    markov_ctrl["force_td3_execute"] = True
     markov_ctrl["force_td3_respects_warm_start"] = True
     markov_ctrl["markov_supervisor_mode"] = "ls_else_mpc"
     markov_ctrl["markov_live_safety_mode"] = "shadow_only"

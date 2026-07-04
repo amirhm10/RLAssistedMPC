@@ -1358,8 +1358,8 @@ def _apply_active_runner_defaults() -> None:
         "default_to_supervisor": True,
         "min_train_steps_before_policy_gate": 0,
     }
-    DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent_mode"] = "sg"
-    DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent_kind"] = "sg_dqn"
+    DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent_mode"] = "plain"
+    DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent_kind"] = "dqn"
     DISTILLATION_HORIZON_STANDARD_DEFAULTS["run_profiles"] = deepcopy(DISTILLATION_ACTIVE_HORIZON_RUN_PROFILES)
     DISTILLATION_HORIZON_STANDARD_DEFAULTS["supervisor_gate"] = deepcopy(horizon_gate)
     DISTILLATION_HORIZON_STANDARD_DEFAULTS["post_warm_start_action_freeze_subepisodes"] = 3
@@ -1368,8 +1368,8 @@ def _apply_active_runner_defaults() -> None:
     DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent"]["eps_decay_steps"] = 18_600
     DISTILLATION_HORIZON_STANDARD_DEFAULTS["agent"]["supervisor_gate"] = deepcopy(horizon_gate)
 
-    DISTILLATION_MARKOV_DEFAULTS["agent_mode"] = "sg"
-    DISTILLATION_MARKOV_DEFAULTS["agent_kind"] = "sg_td3"
+    DISTILLATION_MARKOV_DEFAULTS["agent_mode"] = "plain"
+    DISTILLATION_MARKOV_DEFAULTS["agent_kind"] = "td3"
     DISTILLATION_MARKOV_DEFAULTS["state_mode"] = "mismatch"
     DISTILLATION_MARKOV_DEFAULTS["run_profiles"] = deepcopy(DISTILLATION_ACTIVE_MARKOV_RUN_PROFILES)
     DISTILLATION_MARKOV_DEFAULTS["post_warm_start_action_freeze_subepisodes"] = 3
@@ -1416,8 +1416,8 @@ def _apply_active_runner_defaults() -> None:
         "min_train_steps_before_policy_gate": 0,
     }
 
-    DISTILLATION_WEIGHT_DEFAULTS["agent_mode"] = "sg"
-    DISTILLATION_WEIGHT_DEFAULTS["agent_kind"] = "sg_td3"
+    DISTILLATION_WEIGHT_DEFAULTS["agent_mode"] = "plain"
+    DISTILLATION_WEIGHT_DEFAULTS["agent_kind"] = "td3"
     DISTILLATION_WEIGHT_DEFAULTS["run_profiles"] = deepcopy(DISTILLATION_ACTIVE_WEIGHT_RUN_PROFILES)
     DISTILLATION_WEIGHT_DEFAULTS["post_warm_start_action_freeze_subepisodes"] = 3
     DISTILLATION_WEIGHT_DEFAULTS["post_warm_start_actor_freeze_subepisodes"] = 3
@@ -1435,8 +1435,8 @@ def _apply_active_runner_defaults() -> None:
     DISTILLATION_WEIGHT_DEFAULTS["supervisor_gate"]["score_supervisor_action_weight"] = 0.01
     DISTILLATION_WEIGHT_DEFAULTS["supervisor_gate"]["enable_supervisor_actor_loss"] = False
 
-    DISTILLATION_RESIDUAL_DEFAULTS["agent_mode"] = "sg"
-    DISTILLATION_RESIDUAL_DEFAULTS["agent_kind"] = "sg_td3"
+    DISTILLATION_RESIDUAL_DEFAULTS["agent_mode"] = "plain"
+    DISTILLATION_RESIDUAL_DEFAULTS["agent_kind"] = "td3"
     DISTILLATION_RESIDUAL_DEFAULTS["run_profiles"] = deepcopy(DISTILLATION_ACTIVE_RESIDUAL_RUN_PROFILES)
     DISTILLATION_RESIDUAL_DEFAULTS["post_warm_start_action_freeze_subepisodes"] = 3
     DISTILLATION_RESIDUAL_DEFAULTS["post_warm_start_actor_freeze_subepisodes"] = 3
@@ -1486,14 +1486,14 @@ def _build_active_combined_defaults() -> dict:
     markov_ctrl = DISTILLATION_MARKOV_DEFAULTS["controller"]
     weights_ctrl = DISTILLATION_WEIGHT_DEFAULTS["controller"]
     residual_ctrl = DISTILLATION_RESIDUAL_DEFAULTS["controller"]
-    resolved = resolve_distillation_combined_agent_kinds("sg")
+    resolved = resolve_distillation_combined_agent_kinds("plain")
     n_inputs = int(np.asarray(DISTILLATION_SYSTEM_SETUP["ss_inputs"], float).size)
     model_low, model_high = _distillation_disabled_matrix_bounds(n_inputs)
 
     return {
         "run_mode": "disturb",
         "disturbance_profile": "fluctuation",
-        "combined_agent_mode": "sg",
+        "combined_agent_mode": "plain",
         **deepcopy(DISTILLATION_COMMON_DISPLAY_DEFAULTS),
         **deepcopy(DISTILLATION_COMMON_PATH_DEFAULTS),
         **deepcopy(DISTILLATION_ASPEN_DEFAULTS),

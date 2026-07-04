@@ -243,7 +243,7 @@ reward_params, reward_fn = make_reward_fn_relative_QR(data_min, data_max, n_inpu
 
 # Agent setup.
 agent_extra_kwargs = {}
-if AGENT_CFG.get("supervisor_gate") is not None:
+if AGENT_KIND == "sg_dqn" and AGENT_CFG.get("supervisor_gate") is not None:
     agent_extra_kwargs["supervisor_gate_config"] = AGENT_CFG["supervisor_gate"]
 dqn_agent = HORIZON_AGENT_CLASS(
     state_dim=STATE_DIM,

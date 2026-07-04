@@ -194,7 +194,7 @@ qs_change = CTRL["qs_change"]
 ha_change = CTRL["ha_change"]
 # Agent setup.
 agent_extra_kwargs = {}
-if AGENT_CFG.get("supervisor_gate") is not None:
+if AGENT_KIND == "sg_dqn" and AGENT_CFG.get("supervisor_gate") is not None:
     agent_extra_kwargs["supervisor_gate_config"] = AGENT_CFG["supervisor_gate"]
 dqn_agent = HORIZON_AGENT_CLASS(state_dim=STATE_DIM, action_dim=len(HORIZON_RECIPES), hidden_dim=list(AGENT_CFG["hidden_layers"]), gamma=AGENT_CFG["gamma"], n_step=N_STEP, multistep_mode=MULTISTEP_MODE, lambda_value=LAMBDA_VALUE, lr=AGENT_CFG["lr"], batch_size=AGENT_CFG["batch_size"], buffer_size=BUFFER_SIZE, replay_frac_per=REPLAY_FRAC_PER, replay_frac_recent=REPLAY_FRAC_RECENT, replay_recent_window=REPLAY_RECENT_WINDOW, replay_alpha=REPLAY_ALPHA, replay_beta_start=REPLAY_BETA_START, replay_beta_end=REPLAY_BETA_END, replay_beta_steps=REPLAY_BETA_STEPS, grad_clip_norm=AGENT_CFG["grad_clip_norm"], double_dqn=AGENT_CFG["double_dqn"], target_update=AGENT_CFG["target_update"], tau=AGENT_CFG["tau"], hard_update_interval=AGENT_CFG["hard_update_interval"], activation=AGENT_CFG["activation"], use_layer_norm=AGENT_CFG["use_layer_norm"], dropout=AGENT_CFG["dropout"], device=DEVICE, exploration_mode=EXPLORATION_MODE, loss_type=LOSS_TYPE, noisy_sigma_init=AGENT_CFG["noisy_sigma_init"], eps_start=AGENT_CFG["eps_start"], eps_end=AGENT_CFG["eps_end"], eps_decay_rate=AGENT_CFG["eps_decay_rate"], eps_decay_steps=EPS_DECAY_STEPS, eps_decay_mode=AGENT_CFG["eps_decay_mode"], target_combine=AGENT_CFG["target_combine"], **agent_extra_kwargs)
 

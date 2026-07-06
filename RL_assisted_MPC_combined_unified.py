@@ -608,6 +608,7 @@ combined_cfg = {
         "run_rl_proposal": bool(CTRL["run_rl_proposal"]),
         "rl_fallback_to_ls": bool(CTRL["rl_fallback_to_ls"]),
         "force_td3_execute": bool(CTRL["force_td3_execute"]),
+        "force_td3_respects_warm_start": bool(CTRL.get("force_td3_respects_warm_start", False)),
         "rl_store_executed_action_in_replay": bool(CTRL["rl_store_executed_action_in_replay"]),
         "td3_priority_fallback": dict(CTRL.get("td3_priority_fallback", {})),
         "markov_shadow_safety": dict(CTRL.get("markov_shadow_safety", {})),

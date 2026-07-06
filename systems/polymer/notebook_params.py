@@ -1457,6 +1457,10 @@ POLYMER_COMBINED_DEFAULTS = {
         "run_rl_proposal": POLYMER_MARKOV_DEFAULTS["controller"]["run_rl_proposal"],
         "rl_fallback_to_ls": POLYMER_MARKOV_DEFAULTS["controller"]["rl_fallback_to_ls"],
         "force_td3_execute": POLYMER_MARKOV_DEFAULTS["controller"]["force_td3_execute"],
+        "force_td3_respects_warm_start": POLYMER_MARKOV_DEFAULTS["controller"].get(
+            "force_td3_respects_warm_start",
+            False,
+        ),
         "rl_store_executed_action_in_replay": POLYMER_MARKOV_DEFAULTS["controller"]["rl_store_executed_action_in_replay"],
         "td3_priority_fallback": deepcopy(POLYMER_MARKOV_DEFAULTS["controller"]["td3_priority_fallback"]),
         "z_safety": deepcopy(POLYMER_MARKOV_DEFAULTS["controller"]["z_safety"]),

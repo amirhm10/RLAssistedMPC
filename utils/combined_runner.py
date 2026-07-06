@@ -1489,8 +1489,13 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                     )
                     requested_eval = evaluate_markov_candidate(z_requested)
                     requested_drift = float(requested_eval["drift"])
+                    requested_solve_success = bool(
+                        requested_eval is not None
+                        and requested_eval.get("sol") is not None
+                        and bool(getattr(requested_eval["sol"], "success", False))
+                    )
                     if bool(markov_cfg.get("force_td3_execute", False)):
-                        requested_accepted = True
+                        requested_accepted = requested_solve_success
                     elif _td3_priority_enabled(markov_cfg):
                         requested_accepted = _td3_priority_candidate_allowed(
                             markov_cfg,
@@ -1508,33 +1513,36 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                             and requested_eval["drift"] <= float(markov_cfg["gain_drift_max"])
                             and requested_eval["cost_guard_pass"]
                         )
+                    supervisor_is_ls = bool(ls_accepted and ls_eval is not None)
+                    if supervisor_is_ls:
+                        supervisor_U = ls_eval["U"]
+                        supervisor_z = z_ls
+                        supervisor_raw = z_to_raw_action(z_ls, markov_z_bound)
+                        supervisor_score = ls_score
+                        supervisor_eval = ls_eval
+                        supervisor_drift = ls_drift
+                    else:
+                        supervisor_U = U0.copy()
+                        supervisor_z = np.zeros(markov_z_dim, dtype=float)
+                        supervisor_raw = np.zeros(markov_z_dim, dtype=float)
+                        supervisor_score = dict(default_score)
+                        supervisor_eval = {
+                            "U": U0.copy(),
+                            "J": float(J0),
+                            "sol": sol0,
+                            "drift": 0.0,
+                            "nominal_cost": float(J0),
+                            "reference_nominal_cost": float(J0),
+                            "cost_margin": 0.0,
+                            "cost_guard_pass": True,
+                        }
+                        supervisor_drift = 0.0
+                    markov_forced_supervisor = bool(
+                        i <= warm_start_step
+                        or bool(getattr(markov_decision, "phase1_hidden_active", False))
+                    )
                     if markov_sg_enabled:
                         selected_source = int(markov_decision.selected_source)
-                        supervisor_is_ls = bool(ls_accepted and ls_eval is not None)
-                        if supervisor_is_ls:
-                            supervisor_U = ls_eval["U"]
-                            supervisor_z = z_ls
-                            supervisor_raw = z_to_raw_action(z_ls, markov_z_bound)
-                            supervisor_score = ls_score
-                            supervisor_eval = ls_eval
-                            supervisor_drift = ls_drift
-                        else:
-                            supervisor_U = U0.copy()
-                            supervisor_z = np.zeros(markov_z_dim, dtype=float)
-                            supervisor_raw = np.zeros(markov_z_dim, dtype=float)
-                            supervisor_score = dict(default_score)
-                            supervisor_eval = {
-                                "U": U0.copy(),
-                                "J": float(J0),
-                                "sol": sol0,
-                                "drift": 0.0,
-                                "nominal_cost": float(J0),
-                                "reference_nominal_cost": float(J0),
-                                "cost_margin": 0.0,
-                                "cost_guard_pass": True,
-                            }
-                            supervisor_drift = 0.0
-
                         if i <= warm_start_step:
                             if supervisor_is_ls:
                                 U_exec = supervisor_U
@@ -1578,6 +1586,24 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                             markov_source = 6 if supervisor_is_ls else 7
                             markov_fallback = False
                             markov_accepted = supervisor_is_ls
+                    elif markov_forced_supervisor:
+                        U_exec = supervisor_U
+                        z_exec = supervisor_z
+                        raw_executed = supervisor_raw
+                        executed_score = supervisor_score
+                        executed_eval = supervisor_eval
+                        executed_drift = supervisor_drift
+                        markov_source = (
+                            1
+                            if i <= warm_start_step and supervisor_is_ls
+                            else 0
+                            if i <= warm_start_step
+                            else 6
+                            if supervisor_is_ls
+                            else 7
+                        )
+                        markov_fallback = False
+                        markov_accepted = supervisor_is_ls
                     elif requested_accepted and i > warm_start_step:
                         U_exec = requested_eval["U"]
                         z_exec = z_requested
@@ -1588,6 +1614,20 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
                         markov_source = 2
                         markov_fallback = False
                         markov_accepted = True
+                    elif (
+                        bool(markov_cfg.get("force_td3_execute", False))
+                        and not requested_solve_success
+                        and i > warm_start_step
+                    ):
+                        U_exec = supervisor_U
+                        z_exec = supervisor_z
+                        raw_executed = supervisor_raw
+                        executed_score = supervisor_score
+                        executed_eval = supervisor_eval
+                        executed_drift = supervisor_drift
+                        markov_source = 8
+                        markov_fallback = True
+                        markov_accepted = supervisor_is_ls
                     elif bool(markov_cfg.get("rl_fallback_to_ls", True)) and ls_accepted and ls_eval is not None:
                         U_exec = ls_eval["U"]
                         z_exec = z_ls

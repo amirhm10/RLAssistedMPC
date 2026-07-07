@@ -8,6 +8,7 @@ Distillation/Results/*
 # Shared generated result folders.
 Result/
 Results/
+meeting/
 
 # Other generated result or temporary run folders.
 VanDeVusse/Results/*

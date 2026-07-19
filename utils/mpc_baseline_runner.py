@@ -13,6 +13,47 @@ from utils.helpers import (
 from utils.observer import compute_observer_gain
 
 
+def build_episode_setpoint_schedule(episode_setpoints, set_points_len):
+    """Expand per-episode setpoint targets into a step-by-step schedule."""
+
+    episode_setpoints = np.asarray(episode_setpoints, float)
+    if episode_setpoints.ndim != 3:
+        raise ValueError(
+            "episode_setpoints must have shape (n_episodes, n_setpoints, n_outputs)."
+        )
+    if any(size <= 0 for size in episode_setpoints.shape):
+        raise ValueError("episode_setpoints dimensions must all be positive.")
+    if not np.all(np.isfinite(episode_setpoints)):
+        raise ValueError("episode_setpoints must contain only finite values.")
+
+    set_points_len = int(set_points_len)
+    if set_points_len <= 0:
+        raise ValueError("set_points_len must be positive.")
+
+    return np.repeat(episode_setpoints, set_points_len, axis=1).reshape(
+        -1,
+        episode_setpoints.shape[2],
+    )
+
+
+def _resolve_setpoint_schedule(default_schedule, schedule_override):
+    """Validate an optional explicit schedule against the generated baseline shape."""
+
+    default_schedule = np.asarray(default_schedule, float)
+    if schedule_override is None:
+        return default_schedule, False
+
+    schedule_override = np.asarray(schedule_override, float)
+    if schedule_override.shape != default_schedule.shape:
+        raise ValueError(
+            "runtime_ctx['y_sp_schedule_override'] must have shape "
+            f"{default_schedule.shape}, received {schedule_override.shape}."
+        )
+    if not np.all(np.isfinite(schedule_override)):
+        raise ValueError("runtime_ctx['y_sp_schedule_override'] must contain only finite values.")
+    return schedule_override.copy(), True
+
+
 def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
     """
     Run the baseline offset-free MPC controller and return a normalized result bundle.
@@ -79,6 +120,10 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
         float(mpc_cfg["qi_change"]),
         float(mpc_cfg["qs_change"]),
         float(mpc_cfg["ha_change"]),
+    )
+    y_sp, setpoint_schedule_override_applied = _resolve_setpoint_schedule(
+        y_sp,
+        runtime_ctx.get("y_sp_schedule_override"),
     )
 
     disturbance_schedule = None
@@ -232,5 +277,6 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
         "mpc_horizons": (int(mpc_cfg["predict_h"]), int(mpc_cfg["cont_h"])),
         "use_shifted_mpc_warm_start": use_shifted_mpc_warm_start,
         "observer_update_mode": observer_update_mode,
+        "setpoint_schedule_override_applied": setpoint_schedule_override_applied,
         "input_saturation_summary": saturation_summary,
     }

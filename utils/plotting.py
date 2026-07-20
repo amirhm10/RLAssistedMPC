@@ -2561,6 +2561,8 @@ def compare_mpc_rl_from_dirs(
     n_inputs=2,
     save_pdf=False,
     style_profile="hybrid",
+    allow_missing_baseline=False,
+    expected_training_profile_name=None,
 ):
     del start_idx
     return compare_mpc_rl_from_dirs_core(
@@ -2574,6 +2576,8 @@ def compare_mpc_rl_from_dirs(
         n_inputs=n_inputs,
         save_pdf=save_pdf,
         style_profile=style_profile,
+        allow_missing_baseline=allow_missing_baseline,
+        expected_training_profile_name=expected_training_profile_name,
     )
 
 

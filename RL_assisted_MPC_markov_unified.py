@@ -9,7 +9,11 @@
 from pathlib import Path
 import os
 
-from systems.polymer import get_polymer_notebook_defaults
+from systems.polymer import (
+    canonical_polymer_training_profile,
+    default_polymer_profile_episode_count,
+    get_polymer_notebook_defaults,
+)
 from systems.polymer.data_io import canonical_baseline_path
 from utils.notebook_setup import prepare_polymer_notebook_env, print_grouped_notebook_summary
 
@@ -44,6 +48,7 @@ WARM_START_OVERRIDE = NB["warm_start_override"]
 TEST_CYCLE_OVERRIDE = NB["test_cycle_override"]
 PLOT_START_EPISODE_OVERRIDE = NB["plot_start_episode_override"]
 COMPARE_START_EPISODE_OVERRIDE = NB["compare_start_episode_override"]
+TRAINING_PROFILE_OVERRIDE = NB.get("training_profile_override")
 
 # Optional one-off notebook overrides.
 MAX_STEPS_OVERRIDE = None
@@ -110,6 +115,9 @@ y_sp_scenario = apply_min_max(y_sp_scenario_phys, data_min[n_inputs:], data_max[
 
 # --- Cell 4 (code) ---
 EPISODE_CFG = NB["episode_defaults"]
+TRAINING_PROFILE_NAME = canonical_polymer_training_profile(
+    TRAINING_PROFILE_OVERRIDE or EPISODE_CFG.get("profile_name", "legacy_gradual_200")
+)
 CTRL = NB["controller"]
 TD3_CFG = NB["td3_agent"]
 SAC_CFG = NB.get("sac_agent", {})
@@ -119,7 +127,12 @@ SUPERVISOR_GATE_CFG = dict(NB.get("supervisor_gate", {}))
 MARKOV_SUPERVISOR_MODE = str(NB.get("markov_supervisor_mode", CTRL.get("markov_supervisor_mode", "ls_else_mpc")))
 MARKOV_LIVE_SAFETY_MODE = str(NB.get("markov_live_safety_mode", CTRL.get("markov_live_safety_mode", "default")))
 
-n_tests = int(EPISODE_CFG["n_tests"] if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
+profile_default_n_tests = (
+    default_polymer_profile_episode_count(TRAINING_PROFILE_NAME)
+    if TRAINING_PROFILE_OVERRIDE is not None
+    else EPISODE_CFG["n_tests"]
+)
+n_tests = int(profile_default_n_tests if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
 set_points_len = int(EPISODE_CFG["set_points_len"] if SET_POINTS_LEN_OVERRIDE is None else SET_POINTS_LEN_OVERRIDE)
 warm_start = int(EPISODE_CFG["warm_start"] if WARM_START_OVERRIDE is None else WARM_START_OVERRIDE)
 TEST_CYCLE = list(EPISODE_CFG["test_cycle"] if TEST_CYCLE_OVERRIDE is None else TEST_CYCLE_OVERRIDE)
@@ -131,6 +144,7 @@ BASELINE_MPC_PATH = Path(BASELINE_MPC_PATH_OVERRIDE).expanduser() if BASELINE_MP
     REPO_ROOT,
     RUN_MODE,
     data_override=POLYMER_DATA_DIR_OVERRIDE,
+    training_profile_name=TRAINING_PROFILE_NAME,
 )
 
 poles = SYS["observer_poles"].copy()
@@ -259,6 +273,7 @@ print_grouped_notebook_summary(
 # --- Cell 5 (code) ---
 markov_cfg = {
     "agent_kind": AGENT_KIND,
+    "training_profile_name": TRAINING_PROFILE_NAME,
     "notebook_source": NOTEBOOK_SOURCE,
     "run_mode": RUN_MODE,
     "state_mode": STATE_MODE,
@@ -379,6 +394,8 @@ out_dir_cmp = compare_mpc_rl_from_dirs(
     n_inputs=n_inputs,
     save_pdf=SAVE_PDF,
     style_profile=STYLE_PROFILE,
+    allow_missing_baseline=True,
+    expected_training_profile_name=TRAINING_PROFILE_NAME,
 )
 
 print("RL result directory:", out_dir_rl)

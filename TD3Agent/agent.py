@@ -286,6 +286,8 @@ class TD3Agent(nn.Module):
             decay_rate=param_noise_decay_rate,
         )
         self.perturbed_actor = None
+        self._frozen_exploration_scale = None
+        self.exploration_frozen_at_agent_step = None
 
 
     # -------- interactions ------
@@ -306,7 +308,7 @@ class TD3Agent(nn.Module):
         self.last_param_noise_scale = 0.0
         if explore:
             if self.exploration_mode == "gaussian":
-                self._expl_sigma = self.expl_sched.value(self.steps)
+                self._expl_sigma = self.effective_exploration_schedule_value()
                 noise = np.random.randn(*action.shape) * self._expl_sigma
                 action = action + noise
                 self.last_exploration_value = float(np.mean(np.abs(noise)))
@@ -318,6 +320,28 @@ class TD3Agent(nn.Module):
         action = np.clip(action, -self.max_action, self.max_action)
         self._record_action_diagnostics(action, clean_action=clean_action if explore else None)
         return action
+
+    def effective_exploration_schedule_value(self, eval_mode: bool = False) -> float:
+        if bool(eval_mode):
+            return 0.0
+        if self._frozen_exploration_scale is not None:
+            return float(self._frozen_exploration_scale)
+        if self.exploration_mode == "gaussian":
+            return float(self.expl_sched.value(self.steps))
+        return float(self.param_noise_sched.value(self.steps))
+
+    def freeze_exploration(self) -> dict:
+        """Freeze Gaussian or parameter-noise annealing at the current agent step."""
+
+        if self._frozen_exploration_scale is None:
+            self._frozen_exploration_scale = float(self.effective_exploration_schedule_value())
+            self.exploration_frozen_at_agent_step = int(self.steps)
+        return {
+            "mode": str(self.exploration_mode),
+            "agent_step": int(self.steps),
+            "value": float(self._frozen_exploration_scale),
+            "annealing_frozen": True,
+        }
 
 
     def push(self, s, a, r, ns, done):
@@ -365,7 +389,7 @@ class TD3Agent(nn.Module):
             return
         self.perturbed_actor = copy.deepcopy(self.actor).to(self.device)
         self.perturbed_actor.eval()
-        sigma = float(self.param_noise_sched.value(self.steps))
+        sigma = float(self.effective_exploration_schedule_value())
         with torch.no_grad():
             for param in self.perturbed_actor.parameters():
                 param.add_(torch.randn_like(param) * sigma)

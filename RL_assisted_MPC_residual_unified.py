@@ -12,7 +12,11 @@
 from pathlib import Path
 import os
 
-from systems.polymer import get_polymer_notebook_defaults
+from systems.polymer import (
+    canonical_polymer_training_profile,
+    default_polymer_profile_episode_count,
+    get_polymer_notebook_defaults,
+)
 from systems.polymer.data_io import canonical_baseline_path
 from utils.notebook_setup import prepare_polymer_notebook_env, print_grouped_notebook_summary
 
@@ -61,6 +65,7 @@ WARM_START_OVERRIDE = NB["warm_start_override"]
 TEST_CYCLE_OVERRIDE = NB["test_cycle_override"]
 PLOT_START_EPISODE_OVERRIDE = NB["plot_start_episode_override"]
 COMPARE_START_EPISODE_OVERRIDE = NB["compare_start_episode_override"]
+TRAINING_PROFILE_OVERRIDE = NB.get("training_profile_override")
 REPO_ROOT, DATA_DIR, RESULT_DIR = prepare_polymer_notebook_env(data_dir_override=POLYMER_DATA_DIR_OVERRIDE, results_dir_override=POLYMER_RESULTS_DIR_OVERRIDE)
 os.chdir(REPO_ROOT)
 RUN_PROFILE = NB["run_profiles"][(AGENT_KIND, RUN_MODE)]
@@ -128,12 +133,20 @@ y_sp_scenario = apply_min_max(y_sp_scenario_phys, data_min[inputs_number:], data
 # --- Cell 8 (code) ---
 # Run-profile, controller, reward, and agent setup.
 EPISODE_CFG = NB["episode_defaults"]
+TRAINING_PROFILE_NAME = canonical_polymer_training_profile(
+    TRAINING_PROFILE_OVERRIDE or EPISODE_CFG.get("profile_name", "legacy_gradual_200")
+)
 CTRL = NB["controller"]
 TD3_CFG = NB["td3_agent"]
 GATE_CFG = dict(NB.get("supervisor_gate", {}))
 REWARD_CFG = NB["reward"]
 
-n_tests = int(EPISODE_CFG["n_tests"] if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
+profile_default_n_tests = (
+    default_polymer_profile_episode_count(TRAINING_PROFILE_NAME)
+    if TRAINING_PROFILE_OVERRIDE is not None
+    else EPISODE_CFG["n_tests"]
+)
+n_tests = int(profile_default_n_tests if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
 set_points_len = int(EPISODE_CFG["set_points_len"] if SET_POINTS_LEN_OVERRIDE is None else SET_POINTS_LEN_OVERRIDE)
 warm_start = int(EPISODE_CFG["warm_start"] if WARM_START_OVERRIDE is None else WARM_START_OVERRIDE)
 TEST_CYCLE = list(EPISODE_CFG["test_cycle"] if TEST_CYCLE_OVERRIDE is None else TEST_CYCLE_OVERRIDE)
@@ -141,7 +154,7 @@ PLOT_START_EPISODE = int(RUN_PROFILE["plot_start_episode"] if PLOT_START_EPISODE
 COMPARE_START_EPISODE = int(RUN_PROFILE["compare_start_episode"] if COMPARE_START_EPISODE_OVERRIDE is None else COMPARE_START_EPISODE_OVERRIDE)
 RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or RUN_PROFILE["result_prefix"]
 COMPARE_PREFIX = COMPARE_PREFIX_OVERRIDE or RUN_PROFILE["compare_prefix"]
-BASELINE_MPC_PATH = Path(BASELINE_MPC_PATH_OVERRIDE).expanduser() if BASELINE_MPC_PATH_OVERRIDE else canonical_baseline_path(REPO_ROOT, RUN_MODE, data_override=POLYMER_DATA_DIR_OVERRIDE)
+BASELINE_MPC_PATH = Path(BASELINE_MPC_PATH_OVERRIDE).expanduser() if BASELINE_MPC_PATH_OVERRIDE else canonical_baseline_path(REPO_ROOT, RUN_MODE, data_override=POLYMER_DATA_DIR_OVERRIDE, training_profile_name=TRAINING_PROFILE_NAME)
 N_INPUTS = int(B_aug.shape[1])
 N_OUTPUTS = int(C_aug.shape[0])
 STATE_DIM = get_rl_state_dim(A_aug.shape[0], N_OUTPUTS, N_INPUTS, STATE_MODE, append_rho_to_state=(STATE_MODE == "mismatch" and APPEND_RHO_TO_STATE))
@@ -249,6 +262,7 @@ print_grouped_notebook_summary(
 # Assemble the shared runner configuration and execute the rollout.
 residual_cfg = {
     "agent_kind": AGENT_KIND,
+    "training_profile_name": TRAINING_PROFILE_NAME,
     "run_mode": RUN_MODE,
     "state_mode": STATE_MODE,
         "mismatch_clip": MISMATCH_CLIP,
@@ -357,6 +371,8 @@ out_dir_cmp = compare_mpc_rl_from_dirs(
     prefix_name=COMPARE_PREFIX,
     compare_mode=RUN_PROFILE["compare_mode"],
     start_episode=COMPARE_START_EPISODE,
+    allow_missing_baseline=True,
+    expected_training_profile_name=TRAINING_PROFILE_NAME,
 )
 
 print("RL result directory:", out_dir_rl)

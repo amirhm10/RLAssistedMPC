@@ -63,11 +63,23 @@ def copy_legacy_polymer_data(repo_root, overwrite=False):
     return {"data_dir": data_dir, "result_dir": result_dir, "copied": copied}
 
 
-def canonical_baseline_path(repo_root, run_mode, data_override=None):
+def canonical_baseline_path(repo_root, run_mode, data_override=None, training_profile_name=None):
     run_mode = str(run_mode).lower()
     if run_mode not in {"nominal", "disturb"}:
         raise ValueError("run_mode must be 'nominal' or 'disturb'.")
-    filename = "mpc_results_nominal.pickle" if run_mode == "nominal" else "mpc_results_dist.pickle"
+    profile_name = str(training_profile_name or "").strip().lower()
+    robustness_aliases = {
+        "robustness",
+        "two_phase",
+        "two_phase_200_100",
+        "robustness_200_100",
+    }
+    if run_mode == "nominal":
+        filename = "mpc_results_nominal.pickle"
+    elif profile_name in robustness_aliases:
+        filename = "mpc_results_dist_robustness_200_100.pickle"
+    else:
+        filename = "mpc_results_dist.pickle"
     return resolve_polymer_data_dir(repo_root, override=data_override) / filename
 
 

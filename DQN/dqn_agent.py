@@ -206,6 +206,8 @@ class DQNAgent(nn.Module):
             mode=eps_decay_mode,
             decay_rate=eps_decay_rate,
         )
+        self._frozen_epsilon = None
+        self.exploration_frozen_at_agent_step = None
 
         self.loss_history = []
         self.exploration_trace = []
@@ -237,6 +239,28 @@ class DQNAgent(nn.Module):
             self.online.reset_noise()
             self.target.reset_noise()
 
+    def effective_exploration_schedule_value(self, eval_mode: bool = False) -> float:
+        if bool(eval_mode):
+            return 0.0
+        if self.exploration_mode == "epsilon":
+            if self._frozen_epsilon is not None:
+                return float(self._frozen_epsilon)
+            return float(self.eps_schedule.value(self.steps))
+        return float(mean_module_abs_sigma(self.online))
+
+    def freeze_exploration(self) -> dict:
+        """Freeze exploration annealing at the value reached by the current policy step."""
+
+        if self.exploration_mode == "epsilon" and self._frozen_epsilon is None:
+            self._frozen_epsilon = float(self.eps_schedule.value(self.steps))
+            self.exploration_frozen_at_agent_step = int(self.steps)
+        return {
+            "mode": str(self.exploration_mode),
+            "agent_step": int(self.steps),
+            "value": float(self.effective_exploration_schedule_value()),
+            "annealing_frozen": bool(self.exploration_mode == "epsilon"),
+        }
+
     @torch.no_grad()
     def _greedy_action(self, state: np.ndarray) -> int:
         state_tensor = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
@@ -251,7 +275,7 @@ class DQNAgent(nn.Module):
 
         if self.exploration_mode == "epsilon":
             self._set_eval_noise()
-            epsilon = float(self.eps_schedule.value(self.steps))
+            epsilon = float(self.effective_exploration_schedule_value())
             self.last_epsilon = epsilon
             self.last_exploration_value = epsilon
             state_tensor = torch.from_numpy(state).float().unsqueeze(0).to(self.device)

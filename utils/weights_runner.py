@@ -9,6 +9,7 @@ from TD3Agent.supervisor_replay_buffer import (
     SOURCE_SUPERVISOR,
     SOURCE_WARM_START,
 )
+from systems.polymer.scenarios import build_polymer_training_profile, polymer_profile_result_fields
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
 from utils.behavioral_cloning import (
     apply_bc_handoff_action,
@@ -29,7 +30,6 @@ from utils.helpers import (
     apply_min_max,
     build_polymer_disturbance_schedule,
     disturbance_profile_from_schedule,
-    generate_setpoints_training_rl_gradually,
     reverse_min_max,
     shift_control_sequence,
     step_system_with_disturbance,
@@ -41,6 +41,11 @@ from utils.phase1_hidden_release import (
     build_phase1_schedule,
     init_phase1_train_traces,
     record_phase1_train_step,
+)
+from utils.exploration_freeze import (
+    effective_agent_exploration_value,
+    exploration_freeze_result_fields,
+    maybe_freeze_agent_exploration,
 )
 from utils.replay_snapshot import attach_single_agent_replay_snapshot
 from utils.state_features import (
@@ -197,29 +202,33 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     action_dim = 4
     identity_action = _map_from_bounds(np.ones(4, dtype=float), low_coef, high_coef)
 
-    (
-        y_sp,
-        nFE,
-        sub_episodes_changes_dict,
-        time_in_sub_episodes,
-        test_train_dict,
-        warm_start_step,
-        qi,
-        qs,
-        ha,
-    ) = generate_setpoints_training_rl_gradually(
-        y_sp_scenario,
-        int(weight_cfg["n_tests"]),
-        int(weight_cfg["set_points_len"]),
-        int(weight_cfg["warm_start"]),
-        list(weight_cfg["test_cycle"]),
-        float(weight_cfg["nominal_qi"]),
-        float(weight_cfg["nominal_qs"]),
-        float(weight_cfg["nominal_ha"]),
-        float(weight_cfg["qi_change"]),
-        float(weight_cfg["qs_change"]),
-        float(weight_cfg["ha_change"]),
+    episode_bundle = build_polymer_training_profile(
+        profile_name=weight_cfg.get("training_profile_name"),
+        y_sp_scenario=y_sp_scenario,
+        n_tests=int(weight_cfg["n_tests"]),
+        set_points_len=int(weight_cfg["set_points_len"]),
+        warm_start=int(weight_cfg["warm_start"]),
+        test_cycle=list(weight_cfg["test_cycle"]),
+        nominal_qi=float(weight_cfg["nominal_qi"]),
+        nominal_qs=float(weight_cfg["nominal_qs"]),
+        nominal_ha=float(weight_cfg["nominal_ha"]),
+        qi_change=float(weight_cfg["qi_change"]),
+        qs_change=float(weight_cfg["qs_change"]),
+        ha_change=float(weight_cfg["ha_change"]),
+        steady_outputs=steady_states["y_ss"],
+        data_min=data_min,
+        data_max=data_max,
+        n_inputs=int(B_aug.shape[1]),
     )
+    y_sp = np.asarray(episode_bundle["y_sp"], float)
+    nFE = int(episode_bundle["nFE"])
+    sub_episodes_changes_dict = dict(episode_bundle["sub_episodes_changes_dict"])
+    time_in_sub_episodes = int(episode_bundle["time_in_sub_episodes"])
+    test_train_dict = dict(episode_bundle["test_train_dict"])
+    warm_start_step = int(episode_bundle["warm_start_step"])
+    qi = np.asarray(episode_bundle["qi"], float)
+    qs = np.asarray(episode_bundle["qs"], float)
+    ha = np.asarray(episode_bundle["ha"], float)
 
     disturbance_schedule = None
     if run_mode == "disturb":
@@ -353,10 +362,14 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     tracking_error_raw_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     tracking_scale_log = np.zeros((nFE, n_outputs)) if state_mode == "mismatch" else None
     test = False
+    effective_exploration_step_log = np.zeros(nFE, dtype=float)
+    exploration_freeze_step = episode_bundle.get("exploration_freeze_step")
 
     for i in range(nFE):
         if i in test_train_dict:
             test = bool(test_train_dict[i])
+        maybe_freeze_agent_exploration(agent, environment_step=i, freeze_step=exploration_freeze_step)
+        effective_exploration_step_log[i] = effective_agent_exploration_value(agent, test=test)
 
         scaled_current_input = apply_min_max(system.current_input, data_min[:n_inputs], data_max[:n_inputs])
         scaled_current_input_dev = scaled_current_input - ss_scaled_inputs
@@ -992,6 +1005,8 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
                 traces=phase1_train_traces,
             )
         )
+    result_bundle.update(polymer_profile_result_fields(episode_bundle))
+    result_bundle.update(exploration_freeze_result_fields(agent, effective_exploration_step_log))
 
     attach_single_agent_replay_snapshot(result_bundle, agent)
     return result_bundle

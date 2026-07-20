@@ -369,6 +369,15 @@ POLYMER_COMMON_OVERRIDE_DEFAULTS = {
     "test_cycle_override": None,
     "plot_start_episode_override": None,
     "compare_start_episode_override": None,
+    "training_profile_override": None,
+}
+
+POLYMER_ROBUSTNESS_EPISODE_DEFAULTS = {
+    "profile_name": "robustness_200_100",
+    "n_tests": 300,
+    "set_points_len": 400,
+    "warm_start": 10,
+    "test_cycle": [False, False, False, False, False],
 }
 
 POLYMER_SYSTEM_SETUP = {
@@ -413,6 +422,7 @@ POLYMER_BASELINE_DEFAULTS = {
     "warm_start_override": None,
     "test_cycle_override": None,
     "plot_start_episode_override": None,
+    "training_profile_override": None,
     "run_profiles": {
         # Run-profile keys:
         # - n_tests, set_points_len, test_cycle: episode schedule
@@ -435,9 +445,10 @@ POLYMER_BASELINE_DEFAULTS = {
         },
         "disturb": {
             "use_disturbance": True,
-            "result_prefix": "mpc_offsetfree_disturb_unified",
+            "result_prefix": "mpc_offsetfree_disturb_robustness_200_100",
             "plot_start_episode": 2,
-            "n_tests": 200,
+            "profile_name": "robustness_200_100",
+            "n_tests": 300,
             "set_points_len": 400,
             "warm_start": 10,
             "test_cycle": [False, False, False, False, False],
@@ -468,7 +479,7 @@ POLYMER_BASELINE_DEFAULTS = {
 }
 
 POLYMER_HORIZON_STANDARD_DEFAULTS = {
-    "agent_kind": "dqn",  # No-SG default. Use "sg_dqn" to restore the supervisor gate.
+    "agent_kind": "sg_dqn",  # Supervisor-gated robustness-study default.
     "run_mode": "disturb",  # Options: "nominal" | "disturb"
     "state_mode": "mismatch",  # Options: "standard" | "mismatch"
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
@@ -485,8 +496,8 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
         },
         ("dqn", "disturb"): {
             "use_disturbance": True,
-            "result_prefix": "horizon_disturb_unified",
-            "compare_prefix": "disturb_compare_horizon_unified",
+            "result_prefix": "horizon_disturb_unified_robustness_200_100",
+            "compare_prefix": "disturb_compare_horizon_unified_robustness_200_100",
             "plot_start_episode": 5,
             "compare_start_episode": 2,
             "compare_mode": "disturb",
@@ -501,19 +512,14 @@ POLYMER_HORIZON_STANDARD_DEFAULTS = {
         },
         ("sg_dqn", "disturb"): {
             "use_disturbance": True,
-            "result_prefix": "horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_mismatch",
-            "compare_prefix": "disturb_compare_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_mismatch",
+            "result_prefix": "horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_mismatch_robustness_200_100",
+            "compare_prefix": "disturb_compare_horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_mismatch_robustness_200_100",
             "plot_start_episode": 5,
             "compare_start_episode": 2,
             "compare_mode": "disturb",
         },
     },
-    "episode_defaults": {
-        "n_tests": 200,
-        "set_points_len": 400,
-        "warm_start": 10,
-        "test_cycle": [False, False, False, False, False],
-    },
+    "episode_defaults": deepcopy(POLYMER_ROBUSTNESS_EPISODE_DEFAULTS),
     "post_warm_start_action_freeze_subepisodes": 3,
     "horizon_safety": {
         "enabled": False,
@@ -770,7 +776,7 @@ POLYMER_MATRIX_DEFAULTS = {
 }
 
 POLYMER_MARKOV_DEFAULTS = {
-    "agent_kind": "td3",  # No-SG default. Use "sg_td3" to restore the supervisor gate.
+    "agent_kind": "sg_td3",  # Supervisor-gated robustness-study default.
     "run_mode": "disturb",
     "state_mode": "mismatch",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
@@ -785,8 +791,8 @@ POLYMER_MARKOV_DEFAULTS = {
             "compare_start_episode": 2,
         },
         ("td3", "disturb"): {
-            "result_prefix": "td3_markov_disturb",
-            "compare_prefix": "disturb_compare_td3_markov",
+            "result_prefix": "td3_markov_disturb_robustness_200_100",
+            "compare_prefix": "disturb_compare_td3_markov_robustness_200_100",
             "compare_mode": "disturb",
             "plot_start_episode": 2,
             "compare_start_episode": 2,
@@ -799,14 +805,14 @@ POLYMER_MARKOV_DEFAULTS = {
             "compare_start_episode": 2,
         },
         ("sg_td3", "disturb"): {
-            "result_prefix": "sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb_mismatch",
-            "compare_prefix": "disturb_compare_sg_td3_markov_critic_warm3_ls_else_mpc_shadow_mismatch",
+            "result_prefix": "sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb_mismatch_robustness_200_100",
+            "compare_prefix": "disturb_compare_sg_td3_markov_critic_warm3_ls_else_mpc_shadow_mismatch_robustness_200_100",
             "compare_mode": "disturb",
             "plot_start_episode": 2,
             "compare_start_episode": 2,
         },
     },
-    "episode_defaults": deepcopy(POLYMER_MATRIX_DEFAULTS["episode_defaults"]),
+    "episode_defaults": deepcopy(POLYMER_ROBUSTNESS_EPISODE_DEFAULTS),
     "post_warm_start_action_freeze_subepisodes": 3,
     "post_warm_start_actor_freeze_subepisodes": 3,
     "markov_supervisor_mode": "ls_else_mpc",
@@ -1091,7 +1097,7 @@ POLYMER_REIDENTIFICATION_DEFAULTS = {
 }
 
 POLYMER_WEIGHT_DEFAULTS = {
-    "agent_kind": "td3",  # No-SG default. Use "sg_td3" to restore the supervisor gate.
+    "agent_kind": "sg_td3",  # Supervisor-gated robustness-study default.
     "run_mode": "disturb",
     "state_mode": "mismatch",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
@@ -1099,11 +1105,11 @@ POLYMER_WEIGHT_DEFAULTS = {
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": {
         ("td3", "nominal"): {"result_prefix": "td3_weights_nominal", "compare_prefix": "nominal_compare_td3_weights", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("td3", "disturb"): {"result_prefix": "td3_weights_disturb", "compare_prefix": "disturb_compare_td3_weights", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("td3", "disturb"): {"result_prefix": "td3_weights_disturb_robustness_200_100", "compare_prefix": "disturb_compare_td3_weights_robustness_200_100", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
         ("sg_td3", "nominal"): {"result_prefix": "sg_td3_weights_critic_warm3_conservative_nominal_mismatch", "compare_prefix": "nominal_compare_sg_td3_weights_critic_warm3_conservative_mismatch", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sg_td3", "disturb"): {"result_prefix": "sg_td3_weights_critic_warm3_conservative_disturb_mismatch", "compare_prefix": "disturb_compare_sg_td3_weights_critic_warm3_conservative_mismatch", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("sg_td3", "disturb"): {"result_prefix": "sg_td3_weights_critic_warm3_conservative_disturb_mismatch_robustness_200_100", "compare_prefix": "disturb_compare_sg_td3_weights_critic_warm3_conservative_mismatch_robustness_200_100", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
-    "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
+    "episode_defaults": deepcopy(POLYMER_ROBUSTNESS_EPISODE_DEFAULTS),
     "post_warm_start_action_freeze_subepisodes": 3,
     "post_warm_start_actor_freeze_subepisodes": 3,
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
@@ -1219,7 +1225,7 @@ POLYMER_WEIGHT_DEFAULTS = {
 }
 
 POLYMER_RESIDUAL_DEFAULTS = {
-    "agent_kind": "td3",  # No-SG default. Use "sg_td3" to restore the supervisor gate.
+    "agent_kind": "sg_td3",  # Supervisor-gated robustness-study default.
     "run_mode": "disturb",
     "state_mode": "mismatch",  # Options: "standard" | "mismatch". The latter feeds the authority error to the agent and normalizes it in the same way as the state features.
     **_copy_residual_authority_defaults(),
@@ -1233,11 +1239,11 @@ POLYMER_RESIDUAL_DEFAULTS = {
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
     "run_profiles": {
         ("td3", "nominal"): {"result_prefix": "td3_residual_nominal", "compare_prefix": "nominal_compare_td3_residual", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("td3", "disturb"): {"result_prefix": "td3_residual_disturb", "compare_prefix": "disturb_compare_td3_residual", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("td3", "disturb"): {"result_prefix": "td3_residual_disturb_robustness_200_100", "compare_prefix": "disturb_compare_td3_residual_robustness_200_100", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
         ("sg_td3", "nominal"): {"result_prefix": "sg_td3_residual_critic_warm3_conservative_nominal_mismatch", "compare_prefix": "nominal_compare_sg_td3_residual_critic_warm3_conservative_mismatch", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        ("sg_td3", "disturb"): {"result_prefix": "sg_td3_residual_critic_warm3_conservative_disturb_mismatch", "compare_prefix": "disturb_compare_sg_td3_residual_critic_warm3_conservative_mismatch", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+        ("sg_td3", "disturb"): {"result_prefix": "sg_td3_residual_critic_warm3_conservative_disturb_mismatch_robustness_200_100", "compare_prefix": "disturb_compare_sg_td3_residual_critic_warm3_conservative_mismatch_robustness_200_100", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
-    "episode_defaults": {"n_tests": 200, "set_points_len": 400, "warm_start": 10, "test_cycle": [False, False, False, False, False]},
+    "episode_defaults": deepcopy(POLYMER_ROBUSTNESS_EPISODE_DEFAULTS),
     "post_warm_start_action_freeze_subepisodes": 3,
     "post_warm_start_actor_freeze_subepisodes": 3,
     "behavioral_cloning": _copy_behavioral_cloning_defaults(
@@ -1395,7 +1401,7 @@ POLYMER_RESIDUAL_DEFAULTS = {
 
 POLYMER_COMBINED_DEFAULTS = {
     "run_mode": "disturb",
-    "combined_agent_mode": "plain",  # No-SG default. Use "sg" to restore supervisor gates.
+    "combined_agent_mode": "sg",  # All-supervisor-gated robustness-study default.
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
@@ -1403,19 +1409,19 @@ POLYMER_COMBINED_DEFAULTS = {
     #   True -> instantiate that agent block
     #   False -> leave it out of the combined supervisor
     "enable_horizon": True,
-    "horizon_agent_kind": "dqn",
+    "horizon_agent_kind": "sg_dqn",
     "horizon_state_mode": "mismatch",
     "enable_markov": True,
-    "markov_agent_kind": "td3",
+    "markov_agent_kind": "sg_td3",
     "markov_state_mode": "mismatch",
     "enable_matrix": False,
     "matrix_agent_kind": "td3",
     "matrix_state_mode": "mismatch",
     "enable_weights": True,
-    "weights_agent_kind": "td3",
+    "weights_agent_kind": "sg_td3",
     "weights_state_mode": "mismatch",
     "enable_residual": True,
-    "residual_agent_kind": "td3",
+    "residual_agent_kind": "sg_td3",
     "residual_state_mode": "mismatch",
     **_copy_residual_authority_defaults(),
     "residual_authority_enabled": False,
@@ -1425,7 +1431,7 @@ POLYMER_COMBINED_DEFAULTS = {
     "residual_zero_deadband_enabled": False,
     "run_profiles": {
         "nominal": {"result_prefix_template": "combined_nominal_{suffix}", "compare_prefix_template": "nominal_compare_combined_{suffix}", "compare_mode": "nominal", "plot_start_episode": 2, "compare_start_episode": 2},
-        "disturb": {"result_prefix_template": "combined_disturb_{suffix}", "compare_prefix_template": "disturb_compare_combined_{suffix}", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
+        "disturb": {"result_prefix_template": "combined_disturb_{suffix}_robustness_200_100", "compare_prefix_template": "disturb_compare_combined_{suffix}_robustness_200_100", "compare_mode": "disturb", "plot_start_episode": 2, "compare_start_episode": 2},
     },
     "episode_defaults": deepcopy(POLYMER_HORIZON_STANDARD_DEFAULTS["episode_defaults"]),
     "horizon_post_warm_start_action_freeze_subepisodes": POLYMER_HORIZON_STANDARD_DEFAULTS["post_warm_start_action_freeze_subepisodes"],

@@ -14,6 +14,7 @@ from TD3Agent.supervisor_replay_buffer import (
     SOURCE_SUPERVISOR,
     SOURCE_WARM_START,
 )
+from systems.polymer.scenarios import build_polymer_training_profile, polymer_profile_result_fields
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
 from utils.behavioral_cloning import (
     apply_bc_handoff_action,
@@ -34,10 +35,14 @@ from utils.helpers import (
     apply_min_max,
     build_polymer_disturbance_schedule,
     disturbance_profile_from_schedule,
-    generate_setpoints_training_rl_gradually,
     reverse_min_max,
     shift_control_sequence,
     step_system_with_disturbance,
+)
+from utils.exploration_freeze import (
+    effective_agent_exploration_value,
+    exploration_freeze_result_fields,
+    maybe_freeze_agent_exploration,
 )
 from utils.multiplier_sensitivity import build_markov_matrix
 from utils.observer import compute_observer_gain
@@ -1244,29 +1249,33 @@ def build_runtime_context(markov_cfg, runtime_ctx):
 
     episode_bundle = runtime_ctx.get("episode_bundle")
     if episode_bundle is None:
-        (
-            y_sp,
-            nFE,
-            sub_episode_changes_dict,
-            time_in_sub_episodes,
-            test_train_dict,
-            warm_start_step,
-            qi,
-            qs,
-            ha,
-        ) = generate_setpoints_training_rl_gradually(
-            y_sp_scenario,
-            int(markov_cfg["n_tests"]),
-            int(markov_cfg["set_points_len"]),
-            int(markov_cfg["warm_start"]),
-            list(markov_cfg["test_cycle"]),
-            float(markov_cfg.get("nominal_qi", 0.0)),
-            float(markov_cfg.get("nominal_qs", 0.0)),
-            float(markov_cfg.get("nominal_ha", 0.0)),
-            float(markov_cfg.get("qi_change", 1.0)),
-            float(markov_cfg.get("qs_change", 1.0)),
-            float(markov_cfg.get("ha_change", 1.0)),
+        episode_bundle = build_polymer_training_profile(
+            profile_name=markov_cfg.get("training_profile_name"),
+            y_sp_scenario=y_sp_scenario,
+            n_tests=int(markov_cfg["n_tests"]),
+            set_points_len=int(markov_cfg["set_points_len"]),
+            warm_start=int(markov_cfg["warm_start"]),
+            test_cycle=list(markov_cfg["test_cycle"]),
+            nominal_qi=float(markov_cfg.get("nominal_qi", 0.0)),
+            nominal_qs=float(markov_cfg.get("nominal_qs", 0.0)),
+            nominal_ha=float(markov_cfg.get("nominal_ha", 0.0)),
+            qi_change=float(markov_cfg.get("qi_change", 1.0)),
+            qs_change=float(markov_cfg.get("qs_change", 1.0)),
+            ha_change=float(markov_cfg.get("ha_change", 1.0)),
+            steady_outputs=steady_states["y_ss"],
+            data_min=data_min,
+            data_max=data_max,
+            n_inputs=n_inputs,
         )
+        y_sp = np.asarray(episode_bundle["y_sp"], float)
+        nFE = int(episode_bundle["nFE"])
+        sub_episode_changes_dict = dict(episode_bundle["sub_episode_changes_dict"])
+        time_in_sub_episodes = int(episode_bundle["time_in_sub_episodes"])
+        test_train_dict = dict(episode_bundle["test_train_dict"])
+        warm_start_step = int(episode_bundle["warm_start_step"])
+        qi = np.asarray(episode_bundle["qi"], float)
+        qs = np.asarray(episode_bundle["qs"], float)
+        ha = np.asarray(episode_bundle["ha"], float)
     else:
         y_sp = np.asarray(episode_bundle["y_sp"], float)
         nFE = int(episode_bundle["nFE"])
@@ -1379,6 +1388,7 @@ def build_runtime_context(markov_cfg, runtime_ctx):
         "markov_agent_state_features": markov_agent_state_features,
         "poles": poles,
         "run_mode": str(markov_cfg["run_mode"]).lower(),
+        "episode_bundle": episode_bundle,
     }
 
 
@@ -1489,6 +1499,8 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
         rl_agent.actor_freeze = int(max(getattr(rl_agent, "actor_freeze", 0), freeze_train_steps))
         if _is_supervisor_gated_sac_markov(config):
             rl_agent.alpha_freeze = int(max(getattr(rl_agent, "alpha_freeze", 0), freeze_train_steps))
+    history["effective_exploration_step_log"] = np.zeros(nFE, dtype=float)
+    exploration_freeze_step = ctx.get("episode_bundle", {}).get("exploration_freeze_step")
 
     system = ctx.get("system")
     if system is None:
@@ -1632,6 +1644,16 @@ def run_single_closed_loop(config, ctx, m_blocks, basis_blocks, G0, Wy, *, use_m
             }
 
         for step in range(nFE):
+            test_step = bool(test_flags[step])
+            maybe_freeze_agent_exploration(
+                rl_agent,
+                environment_step=step,
+                freeze_step=exploration_freeze_step,
+            )
+            history["effective_exploration_step_log"][step] = effective_agent_exploration_value(
+                rl_agent,
+                test=test_step,
+            )
             scaled_current_input = apply_min_max(system.current_input, ctx["data_min"][:nu], ctx["data_max"][:nu])
             u_prev_dev = scaled_current_input - ctx["ss_scaled_inputs"]
             history["xhat_before"][step, :] = x_model
@@ -2889,6 +2911,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "observer_update_mode": ctx["observer_alignment"],
         "reward_params": ctx["reward_params"],
         "summary_metrics": summary_metrics,
+        "effective_exploration_step_log": history["effective_exploration_step_log"],
         "markov_base_state_norm_stats": history.get("_markov_state_norm_stats"),
         "markov_state_mode": ctx["markov_state_mode"],
         "markov_agent_state_features": ctx["markov_agent_state_features"],
@@ -3042,6 +3065,13 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         },
         "_rl_agent": history.get("_rl_agent"),
     }
+    result_bundle.update(polymer_profile_result_fields(ctx.get("episode_bundle", {})))
+    result_bundle.update(
+        exploration_freeze_result_fields(
+            history.get("_rl_agent"),
+            history["effective_exploration_step_log"],
+        )
+    )
     result_bundle.update(
         build_behavioral_cloning_bundle_fields(
             history.get("_behavioral_cloning_schedule", {}),

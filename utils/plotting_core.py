@@ -2,6 +2,7 @@ import collections
 import gc
 import os
 import pickle
+import warnings
 from datetime import datetime
 
 import matplotlib.pyplot as plt
@@ -886,6 +887,228 @@ def recompute_step_rewards(y_line_full, u_step, y_sp, steady_states, data_min, d
     return rewards, delta_y, delta_u
 
 
+def _robustness_window_summary(bundle):
+    if str(bundle.get("training_profile_name", "")) != "robustness_200_100":
+        return None
+    episode_steps = int(bundle["time_in_sub_episodes"])
+    nFE = int(bundle["nFE"])
+    n_inputs = int(bundle["n_inputs"])
+    y_sp_phys = ysp_scaled_dev_to_phys(
+        bundle["y_sp"],
+        bundle["steady_states"],
+        bundle["data_min"],
+        bundle["data_max"],
+        n_inputs,
+    )
+    y_measured = np.asarray(bundle["y_line_full"], float)[1 : nFE + 1, :]
+    tracking_error = y_measured - y_sp_phys[:nFE, :]
+    rewards = bundle.get("rewards_step")
+    rewards = None if rewards is None else np.asarray(rewards, float)[:nFE]
+    windows = {
+        "phase1_tail_episodes_191_200": (191, 200),
+        "phase2_entry_episodes_201_210": (201, 210),
+        "phase2_tail_episodes_291_300": (291, 300),
+    }
+    summary = {}
+    for name, (episode_start, episode_end) in windows.items():
+        start = (episode_start - 1) * episode_steps
+        stop = min(nFE, episode_end * episode_steps)
+        if start >= stop:
+            continue
+        item = {
+            "episode_start": int(episode_start),
+            "episode_end": int(episode_end),
+            "tracking_rmse_phys": np.sqrt(np.mean(tracking_error[start:stop, :] ** 2, axis=0)),
+        }
+        if rewards is not None and len(rewards) >= stop:
+            item["average_reward"] = float(np.mean(rewards[start:stop]))
+        summary[name] = item
+    return summary
+
+
+def _profile_plot_indices(n_steps, max_points=5000):
+    n_steps = int(n_steps)
+    if n_steps <= int(max_points):
+        return np.arange(n_steps, dtype=int)
+    stride = int(np.ceil(n_steps / float(max_points)))
+    idx = np.arange(0, n_steps, stride, dtype=int)
+    if idx[-1] != n_steps - 1:
+        idx = np.concatenate([idx, np.asarray([n_steps - 1], dtype=int)])
+    return idx
+
+
+def _plot_polymer_robustness_study(bundle, out_dir, prefix_name, save_pdf=False):
+    if str(bundle.get("training_profile_name", "")) != "robustness_200_100":
+        return
+    nFE = int(bundle["nFE"])
+    episode_steps = int(bundle["time_in_sub_episodes"])
+    if nFE <= 0 or episode_steps <= 0:
+        return
+    n_episodes = nFE // episode_steps
+    plot_steps = n_episodes * episode_steps
+    if n_episodes <= 0:
+        return
+    phase_episode = int(bundle.get("phase_switch_episode", 201))
+    phase_x = float(phase_episode)
+    idx = _profile_plot_indices(plot_steps)
+    episode_axis = np.arange(plot_steps, dtype=float) / float(episode_steps) + 1.0
+    n_inputs = int(bundle["n_inputs"])
+    n_outputs = int(bundle["n_outputs"])
+    metadata = resolve_system_metadata(bundle=bundle, plot_cfg={}, n_outputs=n_outputs, n_inputs=n_inputs)
+    y_sp_phys = ysp_scaled_dev_to_phys(
+        bundle["y_sp"],
+        bundle["steady_states"],
+        bundle["data_min"],
+        bundle["data_max"],
+        n_inputs,
+    )
+    y_steps = np.asarray(bundle["y_line_full"], float)[1 : plot_steps + 1, :]
+    y_sp_phys = y_sp_phys[:plot_steps, :]
+    u_steps = np.asarray(bundle["u_step_full"], float)[:plot_steps, :]
+
+    fig, axs = plt.subplots(
+        n_outputs + n_inputs,
+        1,
+        figsize=(9.2, 3.0 + 2.0 * max(1, n_outputs + n_inputs - 1)),
+        sharex=True,
+    )
+    axs = np.atleast_1d(axs)
+    for output_idx in range(n_outputs):
+        ax = axs[output_idx]
+        ax.plot(episode_axis[idx], y_steps[idx, output_idx], label="Output")
+        ax.plot(episode_axis[idx], y_sp_phys[idx, output_idx], linestyle=":", label="Setpoint")
+        ax.axvline(phase_x, color="black", linestyle="--", linewidth=1.5, label="Robustness phase" if output_idx == 0 else None)
+        ax.set_ylabel(metadata["output_labels"][output_idx])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    for input_idx in range(n_inputs):
+        ax = axs[n_outputs + input_idx]
+        ax.plot(episode_axis[idx], u_steps[idx, input_idx])
+        ax.axvline(phase_x, color="black", linestyle="--", linewidth=1.5)
+        ax.set_ylabel(metadata["input_labels"][input_idx])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        _make_axes_bold(ax)
+    axs[-1].set_xlabel("Episode #")
+    axs[0].legend(loc="best")
+    _save_fig(fig, out_dir, f"fig_{prefix_name}_robustness_outputs_inputs", save_pdf=save_pdf)
+
+    disturbance_items = disturbance_plot_items(
+        bundle.get("disturbance_profile"), metadata.get("disturbance_labels")
+    )
+    if disturbance_items:
+        fig, axs = plt.subplots(
+            len(disturbance_items),
+            1,
+            figsize=(9.0, 3.0 + 2.0 * max(1, len(disturbance_items) - 1)),
+            sharex=True,
+        )
+        axs = np.atleast_1d(axs)
+        for ax, (_, label, series) in zip(axs, disturbance_items):
+            values = np.asarray(series, float)[:plot_steps]
+            ax.plot(episode_axis[idx], values[idx])
+            ax.axvline(phase_x, color="black", linestyle="--", linewidth=1.5)
+            ax.set_ylabel(label)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Episode #")
+        _save_fig(fig, out_dir, f"fig_{prefix_name}_robustness_disturbances", save_pdf=save_pdf)
+
+    exploration_series = []
+    for key, label in (
+        ("effective_exploration_step_log", "Exploration"),
+        ("horizon_effective_exploration_step_log", "Horizon exploration"),
+        ("markov_effective_exploration_step_log", "Markov exploration"),
+        ("matrix_effective_exploration_step_log", "Matrix exploration"),
+        ("weight_effective_exploration_step_log", "Weight exploration"),
+        ("residual_effective_exploration_step_log", "Residual exploration"),
+    ):
+        values = bundle.get(key)
+        if values is not None and len(np.asarray(values).reshape(-1)) >= plot_steps:
+            episode_values = np.asarray(values, float)[:plot_steps].reshape(-1, episode_steps).mean(axis=1)
+            exploration_series.append((label, episode_values))
+    rewards = bundle.get("rewards_step")
+    avg_reward = None
+    if rewards is not None and len(np.asarray(rewards).reshape(-1)) >= plot_steps:
+        avg_reward = np.asarray(rewards, float)[:plot_steps].reshape(-1, episode_steps).mean(axis=1)
+    if exploration_series or avg_reward is not None:
+        n_rows = int(bool(avg_reward is not None)) + int(bool(exploration_series))
+        fig, axs = plt.subplots(n_rows, 1, figsize=(8.8, 3.2 + 2.4 * max(1, n_rows - 1)), sharex=True)
+        axs = np.atleast_1d(axs)
+        row = 0
+        episode_numbers = np.arange(1, n_episodes + 1)
+        if avg_reward is not None:
+            axs[row].plot(episode_numbers, avg_reward)
+            axs[row].axvline(phase_x, color="black", linestyle="--", linewidth=1.5)
+            axs[row].set_ylabel("Avg. Reward")
+            row += 1
+        if exploration_series:
+            for label, values in exploration_series:
+                axs[row].plot(episode_numbers, values, label=label)
+            axs[row].axvline(phase_x, color="black", linestyle="--", linewidth=1.5)
+            axs[row].set_ylabel("Exploration amplitude")
+            axs[row].legend(loc="best")
+        for ax in axs:
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+        axs[-1].set_xlabel("Episode #")
+        _save_fig(fig, out_dir, f"fig_{prefix_name}_robustness_reward_exploration", save_pdf=save_pdf)
+
+    focus_episodes = tuple(dict.fromkeys(ep for ep in (phase_episode, n_episodes) if 1 <= ep <= n_episodes))
+    if not focus_episodes:
+        bundle["robustness_window_summary"] = _robustness_window_summary(bundle)
+        return
+    fig, axs = plt.subplots(
+        len(focus_episodes),
+        n_outputs,
+        figsize=(5.0 * n_outputs, 3.4 * len(focus_episodes)),
+        squeeze=False,
+    )
+    within_episode = np.arange(episode_steps)
+    for row, episode in enumerate(focus_episodes):
+        start = (int(episode) - 1) * episode_steps
+        stop = start + episode_steps
+        for output_idx in range(n_outputs):
+            ax = axs[row, output_idx]
+            ax.plot(within_episode, y_steps[start:stop, output_idx], label="Output")
+            ax.plot(within_episode, y_sp_phys[start:stop, output_idx], linestyle=":", label="Setpoint")
+            ax.set_title(f"Episode {episode}")
+            ax.set_ylabel(metadata["output_labels"][output_idx])
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+    for ax in axs[-1, :]:
+        ax.set_xlabel("Step within episode")
+    axs[0, 0].legend(loc="best")
+    _save_fig(fig, out_dir, f"fig_{prefix_name}_robustness_entry_final_outputs", save_pdf=save_pdf)
+
+    fig, axs = plt.subplots(
+        len(focus_episodes),
+        n_inputs,
+        figsize=(5.0 * n_inputs, 3.4 * len(focus_episodes)),
+        squeeze=False,
+    )
+    for row, episode in enumerate(focus_episodes):
+        start = (int(episode) - 1) * episode_steps
+        stop = start + episode_steps
+        for input_idx in range(n_inputs):
+            ax = axs[row, input_idx]
+            ax.step(within_episode, u_steps[start:stop, input_idx], where="post")
+            ax.set_title(f"Episode {episode}")
+            ax.set_ylabel(metadata["input_labels"][input_idx])
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            _make_axes_bold(ax)
+    for ax in axs[-1, :]:
+        ax.set_xlabel("Step within episode")
+    _save_fig(fig, out_dir, f"fig_{prefix_name}_robustness_entry_final_inputs", save_pdf=save_pdf)
+
+    bundle["robustness_window_summary"] = _robustness_window_summary(bundle)
+
+
 def _plot_mismatch_diagnostics(bundle, out_dir, prefix, t_step, t_step_blk, start_step, W, s_last, last_steps, spans, delta_t, save_pdf):
     innovation_log = bundle.get("innovation_log")
     tracking_error_log = bundle.get("tracking_error_log")
@@ -1362,6 +1585,7 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
                 _make_axes_bold(ax)
             axs[-1].set_xlabel(time_label)
             _save_fig(fig, out_dir, "fig_mpc_disturbance_profile", save_pdf=save_pdf)
+    _plot_polymer_robustness_study(bundle, out_dir, "mpc", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     save_bundle_pickle(out_dir, stored_bundle)
     return out_dir
@@ -1737,6 +1961,7 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
         save_pdf=save_pdf,
     )
 
+    _plot_polymer_robustness_study(bundle, out_dir, "horizon", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     save_bundle_pickle(out_dir, stored_bundle)
     return out_dir
@@ -2585,6 +2810,7 @@ def plot_markov_correction_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
             _save_fig(fig, out_dir, "phase4_reward_compare", save_pdf=save_pdf)
 
+    _plot_polymer_robustness_study(bundle, out_dir, "markov", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(
         {
@@ -3577,6 +3803,7 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
     _plot_nstep_diagnostics(out_dir, "fig_weights_nstep_decomposition", bundle, save_pdf)
     _plot_phase1_release_window_single_agent(bundle, out_dir, time_label, save_pdf)
 
+    _plot_polymer_robustness_study(bundle, out_dir, "weights", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(
         {
@@ -4028,6 +4255,7 @@ def plot_residual_results_core(result_bundle, plot_cfg):
     _plot_nstep_diagnostics(out_dir, "fig_residual_nstep_decomposition", bundle, save_pdf)
     _plot_phase1_release_window_single_agent(bundle, out_dir, time_label, save_pdf)
 
+    _plot_polymer_robustness_study(bundle, out_dir, "residual", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(
         {
@@ -5005,6 +5233,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
         plot_training_diagnostics(prefix, label)
 
     _plot_phase1_release_window_combined(bundle, out_dir, time_label, save_pdf)
+    _plot_polymer_robustness_study(bundle, out_dir, "combined", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     save_bundle_pickle(out_dir, stored_bundle)
 
@@ -5038,10 +5267,87 @@ def compare_mpc_rl_from_dirs_core(
     n_inputs=2,
     save_pdf=False,
     style_profile="hybrid",
+    allow_missing_baseline=False,
+    expected_training_profile_name=None,
 ):
     _set_plot_style(style_profile=style_profile)
     rl_bundle = normalize_result_bundle(load_pickle(rl_dir))
-    mpc_data = load_pickle(mpc_path_or_dir)
+    try:
+        mpc_data = load_pickle(mpc_path_or_dir)
+    except FileNotFoundError:
+        if not bool(allow_missing_baseline):
+            raise
+        warnings.warn(
+            f"Baseline comparison skipped because no baseline bundle exists at {mpc_path_or_dir}. "
+            "Run MPCOffsetFree_unified.py with the matching training profile, then rerun plotting.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        return None
+
+    expected_profile = str(
+        expected_training_profile_name or rl_bundle.get("training_profile_name") or ""
+    ).strip()
+    baseline_profile = str(mpc_data.get("training_profile_name") or "").strip()
+    if expected_profile and baseline_profile != expected_profile:
+        message = (
+            "Baseline comparison profile mismatch: "
+            f"RL expects {expected_profile!r}, baseline contains {baseline_profile or 'unlabeled legacy profile'!r}."
+        )
+        if not bool(allow_missing_baseline):
+            raise ValueError(message)
+        warnings.warn(f"{message} Comparison skipped.", RuntimeWarning, stacklevel=2)
+        return None
+
+    schedule_mismatches = []
+    if expected_profile == "robustness_200_100":
+        for key in ("nFE", "time_in_sub_episodes", "phase_switch_step", "phase_switch_episode"):
+            rl_value = rl_bundle.get(key)
+            baseline_value = mpc_data.get(key)
+            if rl_value is None or baseline_value is None or int(rl_value) != int(baseline_value):
+                schedule_mismatches.append(f"{key}: RL={rl_value!r}, baseline={baseline_value!r}")
+
+        rl_setpoints = np.asarray(rl_bundle.get("y_sp"), float)
+        baseline_setpoints_raw = mpc_data.get("y_sp")
+        if baseline_setpoints_raw is None:
+            schedule_mismatches.append("baseline setpoint schedule is missing")
+        else:
+            baseline_setpoints = np.asarray(baseline_setpoints_raw, float)
+            if baseline_setpoints.shape != rl_setpoints.shape or not np.allclose(
+                baseline_setpoints,
+                rl_setpoints,
+                rtol=0.0,
+                atol=1.0e-12,
+            ):
+                schedule_mismatches.append("step-level setpoint schedules differ")
+
+        rl_disturbances = rl_bundle.get("disturbance_profile")
+        baseline_disturbances = mpc_data.get("disturbance_profile")
+        if not isinstance(rl_disturbances, dict) or not isinstance(baseline_disturbances, dict):
+            schedule_mismatches.append("named disturbance schedules are missing")
+        else:
+            for key in ("qi", "qs", "ha"):
+                rl_values = rl_disturbances.get(key)
+                baseline_values = baseline_disturbances.get(key)
+                if rl_values is None or baseline_values is None:
+                    schedule_mismatches.append(f"disturbance {key!r} is missing")
+                    continue
+                rl_values = np.asarray(rl_values, float)
+                baseline_values = np.asarray(baseline_values, float)
+                if baseline_values.shape != rl_values.shape or not np.allclose(
+                    baseline_values,
+                    rl_values,
+                    rtol=0.0,
+                    atol=1.0e-9,
+                ):
+                    schedule_mismatches.append(f"disturbance {key!r} schedules differ")
+
+    if schedule_mismatches:
+        message = "Baseline comparison schedule mismatch: " + "; ".join(schedule_mismatches)
+        if not bool(allow_missing_baseline):
+            raise ValueError(message)
+        warnings.warn(f"{message}. Comparison skipped.", RuntimeWarning, stacklevel=2)
+        return None
     mpc_bundle = normalize_external_bundle(mpc_data, rl_bundle)
 
     out_dir = create_output_dir(os.fspath(directory), prefix_name)

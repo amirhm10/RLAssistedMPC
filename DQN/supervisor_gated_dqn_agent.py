@@ -258,7 +258,7 @@ class DiscreteSupervisorGatedMixin:
 
         if self.exploration_mode == "epsilon":
             self._set_eval_noise()
-            epsilon = float(self.eps_schedule.value(self.steps))
+            epsilon = float(self.effective_exploration_schedule_value())
             self.last_epsilon = epsilon
             self.last_exploration_value = epsilon
             q_values = self.online(state_t)

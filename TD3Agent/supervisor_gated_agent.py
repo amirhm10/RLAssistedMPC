@@ -199,7 +199,7 @@ class SupervisorGatedTD3Agent(TD3Agent):
         self.last_param_noise_scale = 0.0
         if bool(explore) and not bool(test):
             if self.exploration_mode == "gaussian":
-                sigma = float(self.expl_sched.value(self.steps))
+                sigma = float(self.effective_exploration_schedule_value())
                 noise = np.random.randn(*policy_arr.shape) * sigma
                 policy_arr = policy_arr + noise
                 self.last_exploration_value = float(np.mean(np.abs(noise)))

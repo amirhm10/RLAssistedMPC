@@ -13,7 +13,11 @@ from pathlib import Path
 import os
 import pickle
 
-from systems.polymer import get_polymer_notebook_defaults
+from systems.polymer import (
+    canonical_polymer_training_profile,
+    default_polymer_profile_episode_count,
+    get_polymer_notebook_defaults,
+)
 from systems.polymer.data_io import canonical_baseline_path
 from utils.notebook_setup import prepare_polymer_notebook_env, print_grouped_notebook_summary
 
@@ -40,6 +44,7 @@ SET_POINTS_LEN_OVERRIDE = NB["set_points_len_override"]
 WARM_START_OVERRIDE = NB["warm_start_override"]
 TEST_CYCLE_OVERRIDE = NB["test_cycle_override"]
 PLOT_START_EPISODE_OVERRIDE = NB["plot_start_episode_override"]
+TRAINING_PROFILE_OVERRIDE = NB.get("training_profile_override")
 
 REPO_ROOT, DATA_DIR, RESULT_DIR = prepare_polymer_notebook_env(
     data_dir_override=POLYMER_DATA_DIR_OVERRIDE,
@@ -127,7 +132,15 @@ y_sp_scenario = apply_min_max(y_sp_scenario_phys, data_min[inputs_number:], data
 CTRL = NB["controller"]
 REWARD_CFG = NB["reward"]
 
-n_tests = RUN_PROFILE["n_tests"] if N_TESTS_OVERRIDE is None else int(N_TESTS_OVERRIDE)
+TRAINING_PROFILE_NAME = canonical_polymer_training_profile(
+    TRAINING_PROFILE_OVERRIDE or RUN_PROFILE.get("profile_name", "legacy_gradual_200")
+)
+profile_default_n_tests = (
+    default_polymer_profile_episode_count(TRAINING_PROFILE_NAME)
+    if TRAINING_PROFILE_OVERRIDE is not None
+    else RUN_PROFILE["n_tests"]
+)
+n_tests = profile_default_n_tests if N_TESTS_OVERRIDE is None else int(N_TESTS_OVERRIDE)
 set_points_len = RUN_PROFILE["set_points_len"] if SET_POINTS_LEN_OVERRIDE is None else int(SET_POINTS_LEN_OVERRIDE)
 warm_start = RUN_PROFILE.get("warm_start", 0) if WARM_START_OVERRIDE is None else int(WARM_START_OVERRIDE)
 TEST_CYCLE = list(RUN_PROFILE["test_cycle"]) if TEST_CYCLE_OVERRIDE is None else list(TEST_CYCLE_OVERRIDE)
@@ -137,6 +150,7 @@ BASELINE_SAVE_PATH = Path(BASELINE_SAVE_PATH_OVERRIDE).expanduser() if BASELINE_
     REPO_ROOT,
     RUN_MODE,
     data_override=POLYMER_DATA_DIR_OVERRIDE,
+    training_profile_name=TRAINING_PROFILE_NAME,
 )
 
 poles = SYS["observer_poles"].copy()
@@ -174,6 +188,7 @@ print_grouped_notebook_summary(
         "set_points_len": set_points_len,
         "warm_start": warm_start,
         "plot_start_episode": PLOT_START_EPISODE,
+        "training_profile_name": TRAINING_PROFILE_NAME,
         "baseline_save_path": BASELINE_SAVE_PATH,
         "Use shifted MPC warm start": USE_SHIFTED_MPC_WARM_START,
     },
@@ -187,7 +202,7 @@ print_grouped_notebook_summary(
     "Polymer baseline run summary",
     {
         "Paths": {"Repo root": REPO_ROOT, "Data dir": DATA_DIR, "Results dir": RESULT_DIR, "Baseline save path": BASELINE_SAVE_PATH},
-        "Run setup": {"Run mode": RUN_MODE, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "test_cycle": TEST_CYCLE, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START},
+        "Run setup": {"Run mode": RUN_MODE, "training_profile_name": TRAINING_PROFILE_NAME, "n_tests": n_tests, "set_points_len": set_points_len, "warm_start": warm_start, "test_cycle": TEST_CYCLE, "use_shifted_mpc_warm_start": USE_SHIFTED_MPC_WARM_START},
         "System / controller": {"delta_t_hours": delta_t, "predict_h": predict_h, "cont_h": cont_h, "observer_poles": poles.tolist(), "setpoints_phys": y_sp_scenario_phys.tolist()},
         "Reward": reward_params,
         "Plotting / export": {"style_profile": STYLE_PROFILE, "save_pdf": SAVE_PDF, "result_prefix": RESULT_PREFIX, "plot_start_episode": PLOT_START_EPISODE},
@@ -201,6 +216,7 @@ print_grouped_notebook_summary(
 # Assemble the shared runner configuration and execute the rollout.
 mpc_cfg = {
     "run_mode": RUN_MODE,
+    "training_profile_name": TRAINING_PROFILE_NAME,
     "n_tests": n_tests,
     "set_points_len": set_points_len,
     "warm_start": warm_start,
@@ -284,6 +300,25 @@ legacy_payload = {
     "data_min": result_bundle["data_min"],
     "data_max": result_bundle["data_max"],
 }
+for key in (
+    "training_profile_name",
+    "experiment_phase_windows",
+    "phase_switch_step",
+    "phase_switch_episode",
+    "exploration_freeze_step",
+    "exploration_freeze_settings",
+    "fouling_active",
+    "fouled_ha",
+    "phase2_learning_enabled",
+    "phase2_final_episode_evaluation_only",
+    "phase2_episode_status",
+    "phase1_setpoints_phys",
+    "phase2_setpoints_phys",
+    "phase1_disturbance_end",
+    "phase2_disturbance_end",
+):
+    if key in result_bundle:
+        legacy_payload[key] = result_bundle[key]
 
 with open(BASELINE_SAVE_PATH, "wb") as file:
     pickle.dump(legacy_payload, file)

@@ -21,3 +21,11 @@ from .data_io import (
 )
 from .labels import POLYMER_SYSTEM_METADATA
 from .notebook_params import get_polymer_notebook_defaults, resolve_polymer_combined_agent_kinds
+from .scenarios import (
+    POLYMER_LEGACY_TRAINING_PROFILE,
+    POLYMER_ROBUSTNESS_TRAINING_PROFILE,
+    build_polymer_training_profile,
+    canonical_polymer_training_profile,
+    default_polymer_profile_episode_count,
+    polymer_profile_result_fields,
+)

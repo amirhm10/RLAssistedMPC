@@ -13,6 +13,7 @@ from systems.polymer import get_polymer_notebook_defaults
 def test_polymer_baseline_disturb_profile_matches_active_rl_episode_schedule():
     baseline = get_polymer_notebook_defaults("baseline")
     horizon = get_polymer_notebook_defaults("horizon_standard")
+    markov = get_polymer_notebook_defaults("markov")
     weights = get_polymer_notebook_defaults("weights")
     residual = get_polymer_notebook_defaults("residual")
     combined = get_polymer_notebook_defaults("combined")
@@ -23,12 +24,14 @@ def test_polymer_baseline_disturb_profile_matches_active_rl_episode_schedule():
     assert baseline["run_mode"] == "disturb"
     assert baseline["warm_start_override"] is None
     assert disturb["use_disturbance"] is True
-    assert disturb["n_tests"] == expected_episode["n_tests"] == 200
+    assert disturb["profile_name"] == expected_episode["profile_name"] == "robustness_200_100"
+    assert disturb["n_tests"] == expected_episode["n_tests"] == 300
     assert disturb["set_points_len"] == expected_episode["set_points_len"] == 400
     assert disturb["warm_start"] == expected_episode["warm_start"] == 10
     assert disturb["test_cycle"] == expected_episode["test_cycle"]
 
-    for nb in (weights, residual, combined):
+    for nb in (markov, weights, residual, combined):
+        assert nb["episode_defaults"]["profile_name"] == disturb["profile_name"]
         assert nb["episode_defaults"]["n_tests"] == disturb["n_tests"]
         assert nb["episode_defaults"]["set_points_len"] == disturb["set_points_len"]
         assert nb["episode_defaults"]["warm_start"] == disturb["warm_start"]

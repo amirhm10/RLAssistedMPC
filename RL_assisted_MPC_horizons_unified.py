@@ -12,7 +12,11 @@
 from pathlib import Path
 import os
 
-from systems.polymer import get_polymer_notebook_defaults
+from systems.polymer import (
+    canonical_polymer_training_profile,
+    default_polymer_profile_episode_count,
+    get_polymer_notebook_defaults,
+)
 from systems.polymer.data_io import canonical_baseline_path
 from utils.notebook_setup import prepare_polymer_notebook_env, print_grouped_notebook_summary
 
@@ -56,6 +60,7 @@ WARM_START_OVERRIDE = NB["warm_start_override"]
 TEST_CYCLE_OVERRIDE = NB["test_cycle_override"]
 PLOT_START_EPISODE_OVERRIDE = NB["plot_start_episode_override"]
 COMPARE_START_EPISODE_OVERRIDE = NB["compare_start_episode_override"]
+TRAINING_PROFILE_OVERRIDE = NB.get("training_profile_override")
 
 REPO_ROOT, DATA_DIR, RESULT_DIR = prepare_polymer_notebook_env(
     data_dir_override=POLYMER_DATA_DIR_OVERRIDE,
@@ -158,8 +163,16 @@ CTRL = NB["controller"]
 AGENT_CFG = NB["agent"]
 REWARD_CFG = NB["reward"]
 EPISODE_CFG = NB["episode_defaults"]
+TRAINING_PROFILE_NAME = canonical_polymer_training_profile(
+    TRAINING_PROFILE_OVERRIDE or EPISODE_CFG.get("profile_name", "legacy_gradual_200")
+)
 
-n_tests = int(EPISODE_CFG["n_tests"] if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
+profile_default_n_tests = (
+    default_polymer_profile_episode_count(TRAINING_PROFILE_NAME)
+    if TRAINING_PROFILE_OVERRIDE is not None
+    else EPISODE_CFG["n_tests"]
+)
+n_tests = int(profile_default_n_tests if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
 set_points_len = int(EPISODE_CFG["set_points_len"] if SET_POINTS_LEN_OVERRIDE is None else SET_POINTS_LEN_OVERRIDE)
 warm_start = int(EPISODE_CFG["warm_start"] if WARM_START_OVERRIDE is None else WARM_START_OVERRIDE)
 TEST_CYCLE = list(EPISODE_CFG["test_cycle"] if TEST_CYCLE_OVERRIDE is None else TEST_CYCLE_OVERRIDE)
@@ -171,6 +184,7 @@ BASELINE_MPC_PATH = Path(BASELINE_MPC_PATH_OVERRIDE).expanduser() if BASELINE_MP
     REPO_ROOT,
     RUN_MODE,
     data_override=POLYMER_DATA_DIR_OVERRIDE,
+    training_profile_name=TRAINING_PROFILE_NAME,
 )
 
 poles = SYS["observer_poles"].copy()
@@ -287,6 +301,7 @@ print_grouped_notebook_summary(
     "Resolved horizon parameters",
     {
         "n_tests": n_tests,
+        "training_profile_name": TRAINING_PROFILE_NAME,
         "set_points_len": set_points_len,
         "warm_start": warm_start,
         "plot_start_episode": PLOT_START_EPISODE,
@@ -328,6 +343,7 @@ print_grouped_notebook_summary(
 # Assemble the shared runner configuration and execute the rollout.
 horizon_cfg = {
     "mode": RUN_MODE,
+    "training_profile_name": TRAINING_PROFILE_NAME,
     "state_mode": STATE_MODE,
     "algorithm": "sg_dqn" if AGENT_KIND == "sg_dqn" else "ddqn",
     "agent_kind": AGENT_KIND,
@@ -425,6 +441,8 @@ out_dir_cmp = compare_mpc_rl_from_dirs(
     prefix_name=COMPARE_PREFIX,
     compare_mode=RUN_PROFILE["compare_mode"],
     start_episode=COMPARE_START_EPISODE,
+    allow_missing_baseline=True,
+    expected_training_profile_name=TRAINING_PROFILE_NAME,
 )
 
 print(f"RL plots saved to      : {out_dir_rl}")

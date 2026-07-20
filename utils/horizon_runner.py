@@ -10,7 +10,8 @@ from utils.agent_step_runtime import (
     select_supervisor_gated_horizon_action,
 )
 from DQN.supervisor_gated_dqn_agent import SOURCE_POLICY, SOURCE_SUPERVISOR
-from systems.polymer.scenarios import build_polymer_training_profile, polymer_profile_result_fields
+from systems.polymer.scenarios import build_polymer_training_profile
+from utils.episode_profiles import episode_profile_result_fields, resolve_episode_bundle
 from utils.exploration_freeze import (
     effective_agent_exploration_value,
     exploration_freeze_result_fields,
@@ -109,23 +110,28 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         mismatch_cfg["observer_update_alignment"] if state_mode == "mismatch" else "legacy_previous_measurement"
     )
 
-    episode_bundle = build_polymer_training_profile(
-        profile_name=horizon_cfg.get("training_profile_name"),
-        y_sp_scenario=y_sp_scenario,
-        n_tests=int(horizon_cfg["n_tests"]),
-        set_points_len=int(horizon_cfg["set_points_len"]),
-        warm_start=int(horizon_cfg["warm_start"]),
-        test_cycle=list(horizon_cfg["test_cycle"]),
-        nominal_qi=float(horizon_cfg["nominal_qi"]),
-        nominal_qs=float(horizon_cfg["nominal_qs"]),
-        nominal_ha=float(horizon_cfg["nominal_ha"]),
-        qi_change=float(horizon_cfg["qi_change"]),
-        qs_change=float(horizon_cfg["qs_change"]),
-        ha_change=float(horizon_cfg["ha_change"]),
-        steady_outputs=steady_states["y_ss"],
-        data_min=data_min,
-        data_max=data_max,
-        n_inputs=int(B_aug.shape[1]),
+    episode_bundle = resolve_episode_bundle(
+        runtime_ctx,
+        fallback_builder=lambda: build_polymer_training_profile(
+            profile_name=horizon_cfg.get("training_profile_name"),
+            y_sp_scenario=y_sp_scenario,
+            n_tests=int(horizon_cfg["n_tests"]),
+            set_points_len=int(horizon_cfg["set_points_len"]),
+            warm_start=int(horizon_cfg["warm_start"]),
+            test_cycle=list(horizon_cfg["test_cycle"]),
+            nominal_qi=float(horizon_cfg["nominal_qi"]),
+            nominal_qs=float(horizon_cfg["nominal_qs"]),
+            nominal_ha=float(horizon_cfg["nominal_ha"]),
+            qi_change=float(horizon_cfg["qi_change"]),
+            qs_change=float(horizon_cfg["qs_change"]),
+            ha_change=float(horizon_cfg["ha_change"]),
+            steady_outputs=steady_states["y_ss"],
+            data_min=data_min,
+            data_max=data_max,
+            n_inputs=int(B_aug.shape[1]),
+        ),
+        expected_n_tests=int(horizon_cfg["n_tests"]),
+        expected_n_outputs=int(C_aug.shape[0]),
     )
     y_sp = np.asarray(episode_bundle["y_sp"], float)
     nFE = int(episode_bundle["nFE"])
@@ -140,6 +146,8 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
     disturbance_schedule = None
     if mode == "disturb":
         disturbance_schedule = runtime_ctx.get("disturbance_schedule")
+        if disturbance_schedule is None:
+            disturbance_schedule = episode_bundle.get("disturbance_schedule")
         if disturbance_schedule is None:
             disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
 
@@ -681,7 +689,7 @@ def run_dqn_mpc_horizon_supervisor(horizon_cfg, runtime_ctx):
         if value is not None:
             result_bundle[key] = np.asarray(value, float).reshape(-1)
     result_bundle.update(build_horizon_safety_bundle_fields(horizon_safety_cfg, horizon_safety_logs))
-    result_bundle.update(polymer_profile_result_fields(episode_bundle))
+    result_bundle.update(episode_profile_result_fields(episode_bundle))
     result_bundle.update(exploration_freeze_result_fields(agent, effective_exploration_step_log))
 
     attach_single_agent_replay_snapshot(result_bundle, agent)

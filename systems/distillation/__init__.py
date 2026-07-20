@@ -37,7 +37,14 @@ from .notebook_params import (
 )
 from .plant import DistillationColumnAspen, build_distillation_system, distillation_system_stepper
 from .scenarios import (
+    DISTILLATION_LEGACY_TRAINING_PROFILE,
+    DISTILLATION_TEMPERATURE_FLIP_TRAINING_PROFILE,
+    TEMPERATURE_FLIP_PHASE1_SETPOINTS_PHYS,
+    TEMPERATURE_FLIP_PHASE2_SETPOINTS_PHYS,
     build_distillation_disturbance_schedule,
+    build_distillation_training_profile,
     canonical_disturbance_profile,
+    canonical_distillation_training_profile,
+    default_distillation_profile_episode_count,
     validate_run_profile,
 )

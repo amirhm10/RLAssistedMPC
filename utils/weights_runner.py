@@ -9,8 +9,9 @@ from TD3Agent.supervisor_replay_buffer import (
     SOURCE_SUPERVISOR,
     SOURCE_WARM_START,
 )
-from systems.polymer.scenarios import build_polymer_training_profile, polymer_profile_result_fields
+from systems.polymer.scenarios import build_polymer_training_profile
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
+from utils.episode_profiles import episode_profile_result_fields, resolve_episode_bundle
 from utils.behavioral_cloning import (
     apply_bc_handoff_action,
     build_behavioral_cloning_bundle_fields,
@@ -202,23 +203,28 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     action_dim = 4
     identity_action = _map_from_bounds(np.ones(4, dtype=float), low_coef, high_coef)
 
-    episode_bundle = build_polymer_training_profile(
-        profile_name=weight_cfg.get("training_profile_name"),
-        y_sp_scenario=y_sp_scenario,
-        n_tests=int(weight_cfg["n_tests"]),
-        set_points_len=int(weight_cfg["set_points_len"]),
-        warm_start=int(weight_cfg["warm_start"]),
-        test_cycle=list(weight_cfg["test_cycle"]),
-        nominal_qi=float(weight_cfg["nominal_qi"]),
-        nominal_qs=float(weight_cfg["nominal_qs"]),
-        nominal_ha=float(weight_cfg["nominal_ha"]),
-        qi_change=float(weight_cfg["qi_change"]),
-        qs_change=float(weight_cfg["qs_change"]),
-        ha_change=float(weight_cfg["ha_change"]),
-        steady_outputs=steady_states["y_ss"],
-        data_min=data_min,
-        data_max=data_max,
-        n_inputs=int(B_aug.shape[1]),
+    episode_bundle = resolve_episode_bundle(
+        runtime_ctx,
+        fallback_builder=lambda: build_polymer_training_profile(
+            profile_name=weight_cfg.get("training_profile_name"),
+            y_sp_scenario=y_sp_scenario,
+            n_tests=int(weight_cfg["n_tests"]),
+            set_points_len=int(weight_cfg["set_points_len"]),
+            warm_start=int(weight_cfg["warm_start"]),
+            test_cycle=list(weight_cfg["test_cycle"]),
+            nominal_qi=float(weight_cfg["nominal_qi"]),
+            nominal_qs=float(weight_cfg["nominal_qs"]),
+            nominal_ha=float(weight_cfg["nominal_ha"]),
+            qi_change=float(weight_cfg["qi_change"]),
+            qs_change=float(weight_cfg["qs_change"]),
+            ha_change=float(weight_cfg["ha_change"]),
+            steady_outputs=steady_states["y_ss"],
+            data_min=data_min,
+            data_max=data_max,
+            n_inputs=int(B_aug.shape[1]),
+        ),
+        expected_n_tests=int(weight_cfg["n_tests"]),
+        expected_n_outputs=int(C_aug.shape[0]),
     )
     y_sp = np.asarray(episode_bundle["y_sp"], float)
     nFE = int(episode_bundle["nFE"])
@@ -233,6 +239,8 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
     disturbance_schedule = None
     if run_mode == "disturb":
         disturbance_schedule = runtime_ctx.get("disturbance_schedule")
+        if disturbance_schedule is None:
+            disturbance_schedule = episode_bundle.get("disturbance_schedule")
         if disturbance_schedule is None:
             disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
 
@@ -1005,7 +1013,7 @@ def run_weight_multiplier_supervisor(weight_cfg, runtime_ctx):
                 traces=phase1_train_traces,
             )
         )
-    result_bundle.update(polymer_profile_result_fields(episode_bundle))
+    result_bundle.update(episode_profile_result_fields(episode_bundle))
     result_bundle.update(exploration_freeze_result_fields(agent, effective_exploration_step_log))
 
     attach_single_agent_replay_snapshot(result_bundle, agent)

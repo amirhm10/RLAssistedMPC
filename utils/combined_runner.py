@@ -11,7 +11,7 @@ from TD3Agent.supervisor_replay_buffer import (
     SOURCE_SUPERVISOR as SG_SOURCE_SUPERVISOR,
     SOURCE_WARM_START as SG_SOURCE_WARM_START,
 )
-from systems.polymer.scenarios import build_polymer_training_profile, polymer_profile_result_fields
+from systems.polymer.scenarios import build_polymer_training_profile
 from utils.agent_step_runtime import (
     replay_train_continuous_agent,
     replay_train_horizon_agent,
@@ -22,6 +22,7 @@ from utils.agent_step_runtime import (
     select_supervisor_gated_continuous_action,
     select_supervisor_gated_horizon_action,
 )
+from utils.episode_profiles import episode_profile_result_fields, resolve_episode_bundle
 from utils.helpers import (
     action_to_horizons,
     apply_min_max,
@@ -304,23 +305,28 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     q_base = np.array([combined_cfg["Q1_penalty"], combined_cfg["Q2_penalty"]], float)
     r_base = np.array([combined_cfg["R1_penalty"], combined_cfg["R2_penalty"]], float)
 
-    episode_bundle = build_polymer_training_profile(
-        profile_name=combined_cfg.get("training_profile_name"),
-        y_sp_scenario=y_sp_scenario,
-        n_tests=int(combined_cfg["n_tests"]),
-        set_points_len=int(combined_cfg["set_points_len"]),
-        warm_start=int(combined_cfg["warm_start"]),
-        test_cycle=list(combined_cfg["test_cycle"]),
-        nominal_qi=float(combined_cfg["nominal_qi"]),
-        nominal_qs=float(combined_cfg["nominal_qs"]),
-        nominal_ha=float(combined_cfg["nominal_ha"]),
-        qi_change=float(combined_cfg["qi_change"]),
-        qs_change=float(combined_cfg["qs_change"]),
-        ha_change=float(combined_cfg["ha_change"]),
-        steady_outputs=steady_states["y_ss"],
-        data_min=data_min,
-        data_max=data_max,
-        n_inputs=int(B_aug.shape[1]),
+    episode_bundle = resolve_episode_bundle(
+        runtime_ctx,
+        fallback_builder=lambda: build_polymer_training_profile(
+            profile_name=combined_cfg.get("training_profile_name"),
+            y_sp_scenario=y_sp_scenario,
+            n_tests=int(combined_cfg["n_tests"]),
+            set_points_len=int(combined_cfg["set_points_len"]),
+            warm_start=int(combined_cfg["warm_start"]),
+            test_cycle=list(combined_cfg["test_cycle"]),
+            nominal_qi=float(combined_cfg["nominal_qi"]),
+            nominal_qs=float(combined_cfg["nominal_qs"]),
+            nominal_ha=float(combined_cfg["nominal_ha"]),
+            qi_change=float(combined_cfg["qi_change"]),
+            qs_change=float(combined_cfg["qs_change"]),
+            ha_change=float(combined_cfg["ha_change"]),
+            steady_outputs=steady_states["y_ss"],
+            data_min=data_min,
+            data_max=data_max,
+            n_inputs=int(B_aug.shape[1]),
+        ),
+        expected_n_tests=int(combined_cfg["n_tests"]),
+        expected_n_outputs=int(C_aug.shape[0]),
     )
     y_sp = np.asarray(episode_bundle["y_sp"], float)
     nFE = int(episode_bundle["nFE"])
@@ -335,6 +341,8 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     disturbance_schedule = None
     if run_mode == "disturb":
         disturbance_schedule = runtime_ctx.get("disturbance_schedule")
+        if disturbance_schedule is None:
+            disturbance_schedule = episode_bundle.get("disturbance_schedule")
         if disturbance_schedule is None:
             disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
 
@@ -2428,7 +2436,7 @@ def run_combined_supervisor(combined_cfg, runtime_ctx):
     result_bundle.update(_extract_losses(matrix_agent, "matrix"))
     result_bundle.update(_extract_losses(weight_agent, "weight"))
     result_bundle.update(_extract_losses(residual_agent, "residual"))
-    result_bundle.update(polymer_profile_result_fields(episode_bundle))
+    result_bundle.update(episode_profile_result_fields(episode_bundle))
     result_bundle["exploration_freeze_info"] = {
         name: getattr(active_agent, "exploration_freeze_info", None)
         for name, active_agent in active_exploration_agents.items()

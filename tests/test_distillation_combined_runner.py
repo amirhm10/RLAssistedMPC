@@ -192,7 +192,9 @@ def test_distillation_combined_root_runner_is_active_sg_plain_only():
     assert "run_combined_supervisor" in source
     assert "build_distillation_system" in source
     assert "distillation_system_stepper" in source
-    assert "build_distillation_disturbance_schedule" in source
+    assert "build_distillation_training_profile" in source
+    assert '"episode_bundle": EPISODE_BUNDLE' in source
+    assert '"training_profile_name": TRAINING_PROFILE_NAME' in source
     assert "validate_standalone_parity" in source
     assert "validate_disabled_matrix_bounds" in source
     assert "legacy matrix branch disabled" in source

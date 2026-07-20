@@ -16,8 +16,10 @@ from TD3Agent.agent import TD3Agent
 from TD3Agent.supervisor_gated_agent import SupervisorGatedTD3Agent, SupervisorGateConfig
 from systems.distillation import (
     DISTILLATION_SYSTEM_METADATA,
-    build_distillation_disturbance_schedule,
+    build_distillation_training_profile,
     build_distillation_system,
+    canonical_distillation_training_profile,
+    default_distillation_profile_episode_count,
     distillation_system_stepper,
     get_distillation_notebook_defaults,
     resolve_distillation_combined_agent_kinds,
@@ -303,6 +305,7 @@ WARM_START_OVERRIDE = NB["warm_start_override"]
 TEST_CYCLE_OVERRIDE = NB["test_cycle_override"]
 PLOT_START_EPISODE_OVERRIDE = NB["plot_start_episode_override"]
 COMPARE_START_EPISODE_OVERRIDE = NB["compare_start_episode_override"]
+TRAINING_PROFILE_OVERRIDE = NB.get("training_profile_override")
 
 REPO_ROOT, DATA_DIR, RESULT_DIR, DISTURBANCE_PROFILE, DYN_PATH, SNAPS_PATH, ASPEN_SOURCE = prepare_distillation_notebook_env(
     run_mode=RUN_MODE,
@@ -388,7 +391,15 @@ def _require_param_noise_for_combined_td3(name, td3_cfg):
 _require_param_noise_for_combined_td3("Markov", MARKOV_TD3_CFG)
 _require_param_noise_for_combined_td3("residual", RESIDUAL_TD3_CFG)
 
-n_tests = int(RUN_PROFILE.get("n_tests", EPISODE_CFG["n_tests"]) if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
+TRAINING_PROFILE_NAME = canonical_distillation_training_profile(
+    TRAINING_PROFILE_OVERRIDE or RUN_PROFILE.get("profile_name", "legacy_200")
+)
+profile_default_n_tests = (
+    default_distillation_profile_episode_count(TRAINING_PROFILE_NAME)
+    if TRAINING_PROFILE_OVERRIDE is not None
+    else RUN_PROFILE.get("n_tests", EPISODE_CFG["n_tests"])
+)
+n_tests = int(profile_default_n_tests if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
 set_points_len = int(
     RUN_PROFILE.get("set_points_len", EPISODE_CFG["set_points_len"])
     if SET_POINTS_LEN_OVERRIDE is None
@@ -406,8 +417,9 @@ COMPARE_START_EPISODE = int(
     if COMPARE_START_EPISODE_OVERRIDE is None
     else COMPARE_START_EPISODE_OVERRIDE
 )
-RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or RUN_PROFILE["result_prefix_template"].format(mode=COMBINED_AGENT_MODE)
-COMPARE_PREFIX = COMPARE_PREFIX_OVERRIDE or RUN_PROFILE["compare_prefix_template"].format(mode=COMBINED_AGENT_MODE)
+PROFILE_SUFFIX = "" if TRAINING_PROFILE_NAME == "legacy_200" else f"_{TRAINING_PROFILE_NAME}"
+RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or f"{RUN_PROFILE['result_prefix_template'].format(mode=COMBINED_AGENT_MODE)}{PROFILE_SUFFIX}"
+COMPARE_PREFIX = COMPARE_PREFIX_OVERRIDE or f"{RUN_PROFILE['compare_prefix_template'].format(mode=COMBINED_AGENT_MODE)}{PROFILE_SUFFIX}"
 BASELINE_MPC_PATH = (
     Path(BASELINE_MPC_PATH_OVERRIDE).expanduser()
     if BASELINE_MPC_PATH_OVERRIDE
@@ -416,16 +428,26 @@ BASELINE_MPC_PATH = (
         RUN_MODE,
         DISTURBANCE_PROFILE,
         data_override=DISTILLATION_DATA_DIR_OVERRIDE,
+        training_profile_name=TRAINING_PROFILE_NAME,
     )
 )
 
-TOTAL_STEPS = n_tests * set_points_len * len(y_sp_scenario_phys)
-DISTURBANCE_SCHEDULE = build_distillation_disturbance_schedule(
-    RUN_MODE,
-    DISTURBANCE_PROFILE,
-    TOTAL_STEPS,
+EPISODE_BUNDLE = build_distillation_training_profile(
+    profile_name=TRAINING_PROFILE_NAME,
+    run_mode=RUN_MODE,
+    disturbance_profile=DISTURBANCE_PROFILE,
+    y_sp_scenario_phys=y_sp_scenario_phys,
+    n_tests=n_tests,
+    set_points_len=set_points_len,
+    warm_start=warm_start,
+    test_cycle=TEST_CYCLE,
+    steady_outputs=steady_states["y_ss"],
+    data_min=data_min,
+    data_max=data_max,
+    n_inputs=N_INPUTS,
     nominal_feed=disturbance_nominal_feed,
 )
+DISTURBANCE_SCHEDULE = EPISODE_BUNDLE["disturbance_schedule"]
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PREDICT_GRID = list(CTRL["predict_grid"])
@@ -645,6 +667,7 @@ print_grouped_notebook_summary(
 
 combined_cfg = {
     "run_mode": RUN_MODE,
+    "training_profile_name": TRAINING_PROFILE_NAME,
     "combined_agent_mode": COMBINED_AGENT_MODE,
     "horizon_agent_kind": HORIZON_AGENT_KIND,
     "notebook_source": NOTEBOOK_SOURCE,
@@ -776,6 +799,7 @@ if ENABLE_RESIDUAL:
 
 runtime_ctx = {
     "system": system,
+    "episode_bundle": EPISODE_BUNDLE,
     "agents": agents,
     "steady_states": steady_states,
     "min_max_dict": min_max_dict,
@@ -823,6 +847,8 @@ try:
         start_episode=COMPARE_START_EPISODE,
         save_pdf=SAVE_PDF,
         style_profile=STYLE_PROFILE,
+        allow_missing_baseline=True,
+        expected_training_profile_name=TRAINING_PROFILE_NAME,
     )
 
     print("Combined result directory:", out_dir_rl)

@@ -61,22 +61,32 @@ def copy_legacy_distillation_data(repo_root, overwrite=False):
     return {"data_dir": data_dir, "result_dir": result_dir, "copied": copied}
 
 
-def canonical_baseline_filename(run_mode, disturbance_profile):
+def canonical_baseline_filename(run_mode, disturbance_profile, training_profile_name=None):
     run_mode = str(run_mode).lower()
     disturbance_profile = str(disturbance_profile).lower()
+    training_profile_name = str(training_profile_name or "").strip().lower()
     if run_mode == "nominal":
         return "mpc_results_nominal.pickle"
     if disturbance_profile == "ramp":
         return "mpc_results_disturb_ramp.pickle"
     if disturbance_profile == "fluctuation":
+        if training_profile_name == "temperature_flip_200_100":
+            return "mpc_results_disturb_fluctuation_temperature_flip_200_100.pickle"
         return "mpc_results_disturb_fluctuation.pickle"
     raise ValueError("Disturbance distillation baseline must use 'ramp' or 'fluctuation'.")
 
 
-def canonical_baseline_path(repo_root, run_mode, disturbance_profile, data_override=None):
+def canonical_baseline_path(
+    repo_root,
+    run_mode,
+    disturbance_profile,
+    data_override=None,
+    training_profile_name=None,
+):
     return resolve_distillation_data_dir(repo_root, override=data_override) / canonical_baseline_filename(
         run_mode,
         disturbance_profile,
+        training_profile_name=training_profile_name,
     )
 
 

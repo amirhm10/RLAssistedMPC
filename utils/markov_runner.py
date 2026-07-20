@@ -14,8 +14,9 @@ from TD3Agent.supervisor_replay_buffer import (
     SOURCE_SUPERVISOR,
     SOURCE_WARM_START,
 )
-from systems.polymer.scenarios import build_polymer_training_profile, polymer_profile_result_fields
+from systems.polymer.scenarios import build_polymer_training_profile
 from utils.agent_step_runtime import replay_train_continuous_agent, select_continuous_action
+from utils.episode_profiles import episode_profile_result_fields, resolve_episode_bundle
 from utils.behavioral_cloning import (
     apply_bc_handoff_action,
     build_behavioral_cloning_bundle_fields,
@@ -1246,10 +1247,11 @@ def build_runtime_context(markov_cfg, runtime_ctx):
     reward_fn = runtime_ctx["reward_fn"]
     reward_params = runtime_ctx.get("reward_params", {})
     system_metadata = runtime_ctx.get("system_metadata")
+    disturbance_labels = runtime_ctx.get("disturbance_labels")
 
-    episode_bundle = runtime_ctx.get("episode_bundle")
-    if episode_bundle is None:
-        episode_bundle = build_polymer_training_profile(
+    episode_bundle = resolve_episode_bundle(
+        runtime_ctx,
+        fallback_builder=lambda: build_polymer_training_profile(
             profile_name=markov_cfg.get("training_profile_name"),
             y_sp_scenario=y_sp_scenario,
             n_tests=int(markov_cfg["n_tests"]),
@@ -1266,26 +1268,19 @@ def build_runtime_context(markov_cfg, runtime_ctx):
             data_min=data_min,
             data_max=data_max,
             n_inputs=n_inputs,
-        )
-        y_sp = np.asarray(episode_bundle["y_sp"], float)
-        nFE = int(episode_bundle["nFE"])
-        sub_episode_changes_dict = dict(episode_bundle["sub_episode_changes_dict"])
-        time_in_sub_episodes = int(episode_bundle["time_in_sub_episodes"])
-        test_train_dict = dict(episode_bundle["test_train_dict"])
-        warm_start_step = int(episode_bundle["warm_start_step"])
-        qi = np.asarray(episode_bundle["qi"], float)
-        qs = np.asarray(episode_bundle["qs"], float)
-        ha = np.asarray(episode_bundle["ha"], float)
-    else:
-        y_sp = np.asarray(episode_bundle["y_sp"], float)
-        nFE = int(episode_bundle["nFE"])
-        sub_episode_changes_dict = dict(episode_bundle["sub_episode_changes_dict"])
-        time_in_sub_episodes = int(episode_bundle["time_in_sub_episodes"])
-        test_train_dict = dict(episode_bundle["test_train_dict"])
-        warm_start_step = int(episode_bundle["warm_start_step"])
-        qi = np.asarray(episode_bundle.get("qi", np.zeros(nFE, dtype=float)), float)
-        qs = np.asarray(episode_bundle.get("qs", np.zeros(nFE, dtype=float)), float)
-        ha = np.asarray(episode_bundle.get("ha", np.zeros(nFE, dtype=float)), float)
+        ),
+        expected_n_tests=int(markov_cfg["n_tests"]),
+        expected_n_outputs=int(C_aug.shape[0]),
+    )
+    y_sp = np.asarray(episode_bundle["y_sp"], float)
+    nFE = int(episode_bundle["nFE"])
+    sub_episode_changes_dict = dict(episode_bundle["sub_episode_changes_dict"])
+    time_in_sub_episodes = int(episode_bundle["time_in_sub_episodes"])
+    test_train_dict = dict(episode_bundle["test_train_dict"])
+    warm_start_step = int(episode_bundle["warm_start_step"])
+    qi = np.asarray(episode_bundle["qi"], float)
+    qs = np.asarray(episode_bundle["qs"], float)
+    ha = np.asarray(episode_bundle["ha"], float)
 
     max_steps = markov_cfg.get("max_steps")
     if max_steps is not None:
@@ -1314,6 +1309,8 @@ def build_runtime_context(markov_cfg, runtime_ctx):
     ss_scaled_inputs = np.asarray(system_data["u_ss_scaled"], float)
     y_ss_scaled = apply_min_max(steady_states["y_ss"], data_min[n_inputs:], data_max[n_inputs:])
     disturbance_schedule = runtime_ctx.get("disturbance_schedule")
+    if disturbance_schedule is None:
+        disturbance_schedule = episode_bundle.get("disturbance_schedule")
     if max_steps is not None:
         disturbance_schedule = _truncate_disturbance_schedule(disturbance_schedule, nFE)
     if disturbance_schedule is None and str(markov_cfg["run_mode"]).lower() == "disturb":
@@ -1357,6 +1354,7 @@ def build_runtime_context(markov_cfg, runtime_ctx):
         "min_max_dict": min_max_dict,
         "mismatch_cfg": mismatch_cfg,
         "system_metadata": system_metadata,
+        "disturbance_labels": disturbance_labels,
         "reward_fn": reward_fn,
         "reward_params": reward_params,
         "A_aug": A_aug,
@@ -2902,7 +2900,10 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         "xhatdhat": history["xhat_after"].T,
         "test_train_dict": ctx["test_train_dict"],
         "sub_episodes_changes_dict": ctx["sub_episode_changes_dict"],
-        "disturbance_profile": disturbance_profile_from_schedule(ctx["disturbance_schedule"])
+        "disturbance_profile": disturbance_profile_from_schedule(
+            ctx["disturbance_schedule"],
+            disturbance_labels=ctx.get("disturbance_labels"),
+        )
         if ctx["run_mode"] == "disturb"
         else None,
         "warm_start_step": int(ctx["warm_start_step"]),
@@ -3065,7 +3066,7 @@ def run_markov_correction_supervisor(markov_cfg, runtime_ctx):
         },
         "_rl_agent": history.get("_rl_agent"),
     }
-    result_bundle.update(polymer_profile_result_fields(ctx.get("episode_bundle", {})))
+    result_bundle.update(episode_profile_result_fields(ctx.get("episode_bundle", {})))
     result_bundle.update(
         exploration_freeze_result_fields(
             history.get("_rl_agent"),

@@ -887,8 +887,15 @@ def recompute_step_rewards(y_line_full, u_step, y_sp, steady_states, data_min, d
     return rewards, delta_y, delta_u
 
 
-def _robustness_window_summary(bundle):
-    if str(bundle.get("training_profile_name", "")) != "robustness_200_100":
+def _is_two_phase_profile(bundle):
+    return (
+        bundle.get("phase_switch_step") is not None
+        and bundle.get("phase_switch_episode") is not None
+    )
+
+
+def _phase_window_summary(bundle):
+    if not _is_two_phase_profile(bundle):
         return None
     episode_steps = int(bundle["time_in_sub_episodes"])
     nFE = int(bundle["nFE"])
@@ -904,7 +911,7 @@ def _robustness_window_summary(bundle):
     tracking_error = y_measured - y_sp_phys[:nFE, :]
     rewards = bundle.get("rewards_step")
     rewards = None if rewards is None else np.asarray(rewards, float)[:nFE]
-    windows = {
+    windows = bundle.get("profile_metric_windows") or {
         "phase1_tail_episodes_191_200": (191, 200),
         "phase2_entry_episodes_201_210": (201, 210),
         "phase2_tail_episodes_291_300": (291, 300),
@@ -926,6 +933,12 @@ def _robustness_window_summary(bundle):
     return summary
 
 
+def _robustness_window_summary(bundle):
+    """Backward-compatible alias for older polymer analysis imports."""
+
+    return _phase_window_summary(bundle)
+
+
 def _profile_plot_indices(n_steps, max_points=5000):
     n_steps = int(n_steps)
     if n_steps <= int(max_points):
@@ -937,8 +950,14 @@ def _profile_plot_indices(n_steps, max_points=5000):
     return idx
 
 
-def _plot_polymer_robustness_study(bundle, out_dir, prefix_name, save_pdf=False):
-    if str(bundle.get("training_profile_name", "")) != "robustness_200_100":
+def _store_phase_window_summary(bundle):
+    summary = _phase_window_summary(bundle)
+    bundle["phase_window_summary"] = summary
+    bundle["robustness_window_summary"] = summary
+
+
+def _plot_two_phase_study(bundle, out_dir, prefix_name, save_pdf=False):
+    if not _is_two_phase_profile(bundle):
         return
     nFE = int(bundle["nFE"])
     episode_steps = int(bundle["time_in_sub_episodes"])
@@ -1059,7 +1078,7 @@ def _plot_polymer_robustness_study(bundle, out_dir, prefix_name, save_pdf=False)
 
     focus_episodes = tuple(dict.fromkeys(ep for ep in (phase_episode, n_episodes) if 1 <= ep <= n_episodes))
     if not focus_episodes:
-        bundle["robustness_window_summary"] = _robustness_window_summary(bundle)
+        _store_phase_window_summary(bundle)
         return
     fig, axs = plt.subplots(
         len(focus_episodes),
@@ -1106,7 +1125,13 @@ def _plot_polymer_robustness_study(bundle, out_dir, prefix_name, save_pdf=False)
         ax.set_xlabel("Step within episode")
     _save_fig(fig, out_dir, f"fig_{prefix_name}_robustness_entry_final_inputs", save_pdf=save_pdf)
 
-    bundle["robustness_window_summary"] = _robustness_window_summary(bundle)
+    _store_phase_window_summary(bundle)
+
+
+def _plot_polymer_robustness_study(bundle, out_dir, prefix_name, save_pdf=False):
+    """Backward-compatible alias for the metadata-driven two-phase plotter."""
+
+    return _plot_two_phase_study(bundle, out_dir, prefix_name, save_pdf=save_pdf)
 
 
 def _plot_mismatch_diagnostics(bundle, out_dir, prefix, t_step, t_step_blk, start_step, W, s_last, last_steps, spans, delta_t, save_pdf):
@@ -1585,7 +1610,7 @@ def plot_baseline_mpc_results_core(result_bundle, plot_cfg):
                 _make_axes_bold(ax)
             axs[-1].set_xlabel(time_label)
             _save_fig(fig, out_dir, "fig_mpc_disturbance_profile", save_pdf=save_pdf)
-    _plot_polymer_robustness_study(bundle, out_dir, "mpc", save_pdf=save_pdf)
+    _plot_two_phase_study(bundle, out_dir, "mpc", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     save_bundle_pickle(out_dir, stored_bundle)
     return out_dir
@@ -1961,7 +1986,7 @@ def plot_horizon_results_core(result_bundle, plot_cfg):
         save_pdf=save_pdf,
     )
 
-    _plot_polymer_robustness_study(bundle, out_dir, "horizon", save_pdf=save_pdf)
+    _plot_two_phase_study(bundle, out_dir, "horizon", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     save_bundle_pickle(out_dir, stored_bundle)
     return out_dir
@@ -2810,7 +2835,7 @@ def plot_markov_correction_results_core(result_bundle, plot_cfg):
             _make_axes_bold(ax)
             _save_fig(fig, out_dir, "phase4_reward_compare", save_pdf=save_pdf)
 
-    _plot_polymer_robustness_study(bundle, out_dir, "markov", save_pdf=save_pdf)
+    _plot_two_phase_study(bundle, out_dir, "markov", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(
         {
@@ -3803,7 +3828,7 @@ def plot_weight_multiplier_results_core(result_bundle, plot_cfg):
     _plot_nstep_diagnostics(out_dir, "fig_weights_nstep_decomposition", bundle, save_pdf)
     _plot_phase1_release_window_single_agent(bundle, out_dir, time_label, save_pdf)
 
-    _plot_polymer_robustness_study(bundle, out_dir, "weights", save_pdf=save_pdf)
+    _plot_two_phase_study(bundle, out_dir, "weights", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(
         {
@@ -4255,7 +4280,7 @@ def plot_residual_results_core(result_bundle, plot_cfg):
     _plot_nstep_diagnostics(out_dir, "fig_residual_nstep_decomposition", bundle, save_pdf)
     _plot_phase1_release_window_single_agent(bundle, out_dir, time_label, save_pdf)
 
-    _plot_polymer_robustness_study(bundle, out_dir, "residual", save_pdf=save_pdf)
+    _plot_two_phase_study(bundle, out_dir, "residual", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     stored_bundle.update(
         {
@@ -5233,7 +5258,7 @@ def plot_combined_results_core(result_bundle, plot_cfg):
         plot_training_diagnostics(prefix, label)
 
     _plot_phase1_release_window_combined(bundle, out_dir, time_label, save_pdf)
-    _plot_polymer_robustness_study(bundle, out_dir, "combined", save_pdf=save_pdf)
+    _plot_two_phase_study(bundle, out_dir, "combined", save_pdf=save_pdf)
     stored_bundle = build_storage_bundle(bundle, start_episode)
     save_bundle_pickle(out_dir, stored_bundle)
 
@@ -5300,7 +5325,7 @@ def compare_mpc_rl_from_dirs_core(
         return None
 
     schedule_mismatches = []
-    if expected_profile == "robustness_200_100":
+    if expected_profile and _is_two_phase_profile(rl_bundle):
         for key in ("nFE", "time_in_sub_episodes", "phase_switch_step", "phase_switch_episode"):
             rl_value = rl_bundle.get(key)
             baseline_value = mpc_data.get(key)
@@ -5326,7 +5351,8 @@ def compare_mpc_rl_from_dirs_core(
         if not isinstance(rl_disturbances, dict) or not isinstance(baseline_disturbances, dict):
             schedule_mismatches.append("named disturbance schedules are missing")
         else:
-            for key in ("qi", "qs", "ha"):
+            disturbance_keys = sorted(set(rl_disturbances) | set(baseline_disturbances))
+            for key in disturbance_keys:
                 rl_values = rl_disturbances.get(key)
                 baseline_values = baseline_disturbances.get(key)
                 if rl_values is None or baseline_values is None:

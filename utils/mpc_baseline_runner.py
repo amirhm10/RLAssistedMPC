@@ -1,8 +1,9 @@
 import numpy as np
 import scipy.optimize as spo
 
-from systems.polymer.scenarios import build_polymer_training_profile, polymer_profile_result_fields
+from systems.polymer.scenarios import build_polymer_training_profile
 
+from utils.episode_profiles import episode_profile_result_fields, resolve_episode_bundle
 from utils.helpers import (
     apply_min_max,
     build_polymer_disturbance_schedule,
@@ -99,23 +100,28 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
         raise ValueError("mpc_cfg['run_mode'] must be 'nominal' or 'disturb'.")
     use_shifted_mpc_warm_start = bool(mpc_cfg.get("use_shifted_mpc_warm_start", False))
 
-    episode_bundle = build_polymer_training_profile(
-        profile_name=mpc_cfg.get("training_profile_name"),
-        y_sp_scenario=y_sp_scenario,
-        n_tests=int(mpc_cfg["n_tests"]),
-        set_points_len=int(mpc_cfg["set_points_len"]),
-        warm_start=int(mpc_cfg["warm_start"]),
-        test_cycle=list(mpc_cfg["test_cycle"]),
-        nominal_qi=float(mpc_cfg["nominal_qi"]),
-        nominal_qs=float(mpc_cfg["nominal_qs"]),
-        nominal_ha=float(mpc_cfg["nominal_ha"]),
-        qi_change=float(mpc_cfg["qi_change"]),
-        qs_change=float(mpc_cfg["qs_change"]),
-        ha_change=float(mpc_cfg["ha_change"]),
-        steady_outputs=steady_states["y_ss"],
-        data_min=data_min,
-        data_max=data_max,
-        n_inputs=int(B_aug.shape[1]),
+    episode_bundle = resolve_episode_bundle(
+        runtime_ctx,
+        fallback_builder=lambda: build_polymer_training_profile(
+            profile_name=mpc_cfg.get("training_profile_name"),
+            y_sp_scenario=y_sp_scenario,
+            n_tests=int(mpc_cfg["n_tests"]),
+            set_points_len=int(mpc_cfg["set_points_len"]),
+            warm_start=int(mpc_cfg["warm_start"]),
+            test_cycle=list(mpc_cfg["test_cycle"]),
+            nominal_qi=float(mpc_cfg["nominal_qi"]),
+            nominal_qs=float(mpc_cfg["nominal_qs"]),
+            nominal_ha=float(mpc_cfg["nominal_ha"]),
+            qi_change=float(mpc_cfg["qi_change"]),
+            qs_change=float(mpc_cfg["qs_change"]),
+            ha_change=float(mpc_cfg["ha_change"]),
+            steady_outputs=steady_states["y_ss"],
+            data_min=data_min,
+            data_max=data_max,
+            n_inputs=int(B_aug.shape[1]),
+        ),
+        expected_n_tests=int(mpc_cfg["n_tests"]),
+        expected_n_outputs=int(C_aug.shape[0]),
     )
     y_sp = np.asarray(episode_bundle["y_sp"], float)
     nFE = int(episode_bundle["nFE"])
@@ -134,6 +140,8 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
     disturbance_schedule = None
     if run_mode == "disturb":
         disturbance_schedule = runtime_ctx.get("disturbance_schedule")
+        if disturbance_schedule is None:
+            disturbance_schedule = episode_bundle.get("disturbance_schedule")
         if disturbance_schedule is None:
             disturbance_schedule = build_polymer_disturbance_schedule(qi=qi, qs=qs, ha=ha)
 
@@ -285,5 +293,5 @@ def run_offsetfree_mpc(mpc_cfg, runtime_ctx):
         "setpoint_schedule_override_applied": setpoint_schedule_override_applied,
         "input_saturation_summary": saturation_summary,
     }
-    result_bundle.update(polymer_profile_result_fields(episode_bundle))
+    result_bundle.update(episode_profile_result_fields(episode_bundle))
     return result_bundle

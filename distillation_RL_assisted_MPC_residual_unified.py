@@ -18,10 +18,16 @@ import torch
 from Simulation.mpc import MpcSolverGeneral
 from TD3Agent.agent import TD3Agent
 from TD3Agent.supervisor_gated_agent import SupervisorGatedTD3Agent, SupervisorGateConfig
-from systems.distillation import DISTILLATION_SYSTEM_METADATA, get_distillation_notebook_defaults, resolve_distillation_agent_kind
+from systems.distillation import (
+    DISTILLATION_SYSTEM_METADATA,
+    canonical_distillation_training_profile,
+    default_distillation_profile_episode_count,
+    get_distillation_notebook_defaults,
+    resolve_distillation_agent_kind,
+)
 from systems.distillation.data_io import canonical_baseline_path, load_distillation_system_data
 from systems.distillation.plant import build_distillation_system, distillation_system_stepper
-from systems.distillation.scenarios import build_distillation_disturbance_schedule
+from systems.distillation.scenarios import build_distillation_training_profile
 from utils.helpers import apply_min_max
 from utils.notebook_setup import prepare_distillation_notebook_env, print_grouped_notebook_summary
 from utils.plotting import compare_mpc_rl_from_dirs, plot_residual_results
@@ -87,6 +93,7 @@ WARM_START_OVERRIDE = NB["warm_start_override"]
 TEST_CYCLE_OVERRIDE = NB["test_cycle_override"]
 PLOT_START_EPISODE_OVERRIDE = NB["plot_start_episode_override"]
 COMPARE_START_EPISODE_OVERRIDE = NB["compare_start_episode_override"]
+TRAINING_PROFILE_OVERRIDE = NB.get("training_profile_override")
 REPO_ROOT, DATA_DIR, RESULT_DIR, DISTURBANCE_PROFILE, DYN_PATH, SNAPS_PATH, ASPEN_SOURCE = prepare_distillation_notebook_env(run_mode=RUN_MODE, disturbance_profile=DISTURBANCE_PROFILE, family="residual", aspen_preset=ASPEN_PRESET, dyn_path_override=ASPEN_PATH_OVERRIDE, snaps_path_override=SNAPS_PATH_OVERRIDE, aspen_root_override=ASPEN_ROOT_OVERRIDE, data_dir_override=DISTILLATION_DATA_DIR_OVERRIDE, results_dir_override=DISTILLATION_RESULTS_DIR_OVERRIDE)
 os.chdir(REPO_ROOT)
 
@@ -114,18 +121,47 @@ data_max = system_data["data_max"]
 min_max_dict = system_data["min_max_dict"]
 inputs_number = int(B_aug.shape[1])
 y_sp_scenario = apply_min_max(y_sp_scenario_phys, data_min[inputs_number:], data_max[inputs_number:]) - apply_min_max(steady_states["y_ss"], data_min[inputs_number:], data_max[inputs_number:])
-RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or f"distillation_residual_{AGENT_MODE}_{RUN_MODE}_{DISTURBANCE_PROFILE}"
-COMPARE_PREFIX = COMPARE_PREFIX_OVERRIDE or f"distillation_compare_residual_{AGENT_MODE}_{RUN_MODE}_{DISTURBANCE_PROFILE}"
-BASELINE_MPC_PATH = Path(BASELINE_MPC_PATH_OVERRIDE).expanduser() if BASELINE_MPC_PATH_OVERRIDE else canonical_baseline_path(REPO_ROOT, RUN_MODE, DISTURBANCE_PROFILE, data_override=DISTILLATION_DATA_DIR_OVERRIDE)
-n_tests = int(RUN_PROFILE["n_tests"] if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
+TRAINING_PROFILE_NAME = canonical_distillation_training_profile(
+    TRAINING_PROFILE_OVERRIDE or RUN_PROFILE.get("profile_name", "legacy_200")
+)
+profile_default_n_tests = (
+    default_distillation_profile_episode_count(TRAINING_PROFILE_NAME)
+    if TRAINING_PROFILE_OVERRIDE is not None
+    else RUN_PROFILE["n_tests"]
+)
+n_tests = int(profile_default_n_tests if N_TESTS_OVERRIDE is None else N_TESTS_OVERRIDE)
 set_points_len = int(RUN_PROFILE["set_points_len"] if SET_POINTS_LEN_OVERRIDE is None else SET_POINTS_LEN_OVERRIDE)
 warm_start = int(RUN_PROFILE["warm_start"] if WARM_START_OVERRIDE is None else WARM_START_OVERRIDE)
 TEST_CYCLE = list(RUN_PROFILE["test_cycle"] if TEST_CYCLE_OVERRIDE is None else TEST_CYCLE_OVERRIDE)
 PLOT_START_EPISODE = int(RUN_PROFILE.get("plot_start_episode", 1) if PLOT_START_EPISODE_OVERRIDE is None else PLOT_START_EPISODE_OVERRIDE)
 COMPARE_START_EPISODE = int(RUN_PROFILE.get("compare_start_episode", PLOT_START_EPISODE) if COMPARE_START_EPISODE_OVERRIDE is None else COMPARE_START_EPISODE_OVERRIDE)
-TOTAL_STEPS = n_tests * set_points_len * len(y_sp_scenario_phys)
+PROFILE_SUFFIX = "" if TRAINING_PROFILE_NAME == "legacy_200" else f"_{TRAINING_PROFILE_NAME}"
+RESULT_PREFIX = RESULT_PREFIX_OVERRIDE or f"distillation_residual_{AGENT_MODE}_{RUN_MODE}_{DISTURBANCE_PROFILE}{PROFILE_SUFFIX}"
+COMPARE_PREFIX = COMPARE_PREFIX_OVERRIDE or f"distillation_compare_residual_{AGENT_MODE}_{RUN_MODE}_{DISTURBANCE_PROFILE}{PROFILE_SUFFIX}"
+BASELINE_MPC_PATH = Path(BASELINE_MPC_PATH_OVERRIDE).expanduser() if BASELINE_MPC_PATH_OVERRIDE else canonical_baseline_path(
+    REPO_ROOT,
+    RUN_MODE,
+    DISTURBANCE_PROFILE,
+    data_override=DISTILLATION_DATA_DIR_OVERRIDE,
+    training_profile_name=TRAINING_PROFILE_NAME,
+)
 DISTURBANCE_NOMINAL_FEED = float(system.feed.FmR.Value)
-DISTURBANCE_SCHEDULE = build_distillation_disturbance_schedule(RUN_MODE, DISTURBANCE_PROFILE, TOTAL_STEPS, nominal_feed=DISTURBANCE_NOMINAL_FEED)
+EPISODE_BUNDLE = build_distillation_training_profile(
+    profile_name=TRAINING_PROFILE_NAME,
+    run_mode=RUN_MODE,
+    disturbance_profile=DISTURBANCE_PROFILE,
+    y_sp_scenario_phys=y_sp_scenario_phys,
+    n_tests=n_tests,
+    set_points_len=set_points_len,
+    warm_start=warm_start,
+    test_cycle=TEST_CYCLE,
+    steady_outputs=steady_states["y_ss"],
+    data_min=data_min,
+    data_max=data_max,
+    n_inputs=inputs_number,
+    nominal_feed=DISTURBANCE_NOMINAL_FEED,
+)
+DISTURBANCE_SCHEDULE = EPISODE_BUNDLE["disturbance_schedule"]
 
 # --- Cell 5 (markdown) ---
 # ## Run / Reward / Agent Setup
@@ -284,6 +320,7 @@ print_grouped_notebook_summary(
 residual_cfg = {
     "agent_kind": AGENT_KIND,
     "run_mode": RUN_MODE,
+    "training_profile_name": TRAINING_PROFILE_NAME,
     "state_mode": STATE_MODE,
         "mismatch_clip": MISMATCH_CLIP,
     "innovation_scale_mode": INNOVATION_SCALE_MODE,
@@ -348,6 +385,7 @@ residual_cfg = {
 
 runtime_ctx = {
     "system": system,
+    "episode_bundle": EPISODE_BUNDLE,
     "agent": residual_agent,
     "MPC_obj": MPC_obj,
     "steady_states": steady_states,
@@ -396,6 +434,8 @@ out_dir_cmp = compare_mpc_rl_from_dirs(
     start_episode=COMPARE_START_EPISODE,
     save_pdf=SAVE_PDF,
     style_profile=STYLE_PROFILE,
+    allow_missing_baseline=True,
+    expected_training_profile_name=TRAINING_PROFILE_NAME,
 )
 
 print(out_dir_rl)

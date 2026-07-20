@@ -14,7 +14,7 @@ from systems.polymer import get_polymer_notebook_defaults
 def test_polymer_active_defaults_exclude_sg_sac_profiles():
     for family in ("weights", "residual", "markov"):
         nb = get_polymer_notebook_defaults(family)
-        assert nb["agent_kind"] == "sg_td3"
+        assert nb["agent_kind"] == "td3"
         assert ("td3", "disturb") in nb["run_profiles"]
         assert ("sg_td3", "disturb") in nb["run_profiles"]
         assert ("sac", "disturb") not in nb["run_profiles"]

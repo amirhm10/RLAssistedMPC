@@ -21,11 +21,11 @@ from utils.phase1_hidden_release import ACTION_SOURCE_PHASE1_HIDDEN_BASELINE
 from utils.residual_authority import project_residual_action
 
 
-def test_polymer_combined_defaults_use_all_sg_mismatch_mode():
+def test_polymer_combined_defaults_use_all_plain_mismatch_mode():
     nb = get_polymer_notebook_defaults("combined")
     markov_nb = get_polymer_notebook_defaults("markov")
 
-    assert nb["combined_agent_mode"] == "sg"
+    assert nb["combined_agent_mode"] == "plain"
     assert nb["run_mode"] == "disturb"
     assert nb["enable_horizon"] is True
     assert nb["enable_markov"] is True
@@ -34,11 +34,15 @@ def test_polymer_combined_defaults_use_all_sg_mismatch_mode():
     assert nb["enable_matrix"] is False
 
     assert resolve_polymer_combined_agent_kinds(nb["combined_agent_mode"]) == {
-        "horizon_agent_kind": "sg_dqn",
-        "markov_agent_kind": "sg_td3",
-        "weights_agent_kind": "sg_td3",
-        "residual_agent_kind": "sg_td3",
+        "horizon_agent_kind": "dqn",
+        "markov_agent_kind": "td3",
+        "weights_agent_kind": "td3",
+        "residual_agent_kind": "td3",
     }
+    assert nb["horizon_agent_kind"] == "dqn"
+    assert nb["markov_agent_kind"] == "td3"
+    assert nb["weights_agent_kind"] == "td3"
+    assert nb["residual_agent_kind"] == "td3"
     assert nb["horizon_state_mode"] == "mismatch"
     assert nb["markov_state_mode"] == "mismatch"
     assert nb["weights_state_mode"] == "mismatch"
@@ -218,7 +222,7 @@ def test_combined_residual_rho_logging_handles_authority_disabled_projection():
 
 
 def run_direct():
-    test_polymer_combined_defaults_use_all_sg_mismatch_mode()
+    test_polymer_combined_defaults_use_all_plain_mismatch_mode()
     test_polymer_combined_plain_mode_resolves_all_plain_agents()
     test_polymer_combined_root_runner_is_active_sg_plain_only()
     test_sg_continuous_hidden_window_executes_supervisor_and_records_policy()

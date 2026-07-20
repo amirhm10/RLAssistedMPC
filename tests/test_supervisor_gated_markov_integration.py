@@ -24,7 +24,7 @@ from utils.markov_runner import (
 
 def test_polymer_markov_sg_td3_profile_available():
     nb = get_polymer_notebook_defaults("markov")
-    assert nb["agent_kind"] == "sg_td3"
+    assert nb["agent_kind"] == "td3"
     assert nb["run_mode"] == "disturb"
     assert nb["state_mode"] == "mismatch"
     assert ("sg_td3", "disturb") in nb["run_profiles"]
@@ -36,6 +36,7 @@ def test_polymer_markov_sg_td3_profile_available():
 
 def test_polymer_sg_td3_markov_defaults_shadow_only():
     configured = get_polymer_notebook_defaults("markov")
+    configured["agent_kind"] = "sg_td3"
     ctrl = configured["controller"]
     bc = configured["behavioral_cloning"]
 
@@ -69,6 +70,7 @@ def test_polymer_sg_td3_markov_defaults_shadow_only():
 
 def test_make_td3_markov_agent_returns_supervisor_gated_agent():
     configured = get_polymer_notebook_defaults("markov")
+    configured["agent_kind"] = "sg_td3"
     agent = make_td3_markov_agent(configured, state_dim=12, action_dim=4, set_points_len=20)
     assert isinstance(agent, SupervisorGatedTD3Agent)
 
@@ -169,6 +171,7 @@ def test_resolve_markov_supervisor_action_ls_else_mpc():
 
 def test_supervisor_gated_markov_replay_metadata_roundtrip():
     configured = get_polymer_notebook_defaults("markov")
+    configured["agent_kind"] = "sg_td3"
     agent = make_td3_markov_agent(configured, state_dim=6, action_dim=4, set_points_len=20)
     state = np.zeros(6, dtype=np.float32)
     next_state = np.ones(6, dtype=np.float32) * 0.1

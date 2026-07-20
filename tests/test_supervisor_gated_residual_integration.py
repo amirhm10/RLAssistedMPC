@@ -8,12 +8,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 
-def test_polymer_weights_and_residual_sg_td3_defaults():
+def test_polymer_weights_and_residual_plain_td3_defaults_with_sg_available():
     from systems.polymer import get_polymer_notebook_defaults
 
     for family in ("weights", "residual"):
         nb = get_polymer_notebook_defaults(family)
-        assert nb["agent_kind"] == "sg_td3"
+        assert nb["agent_kind"] == "td3"
         assert nb["run_mode"] == "disturb"
         assert nb["state_mode"] == "mismatch"
         assert ("td3", "disturb") in nb["run_profiles"]
@@ -171,7 +171,7 @@ def test_residual_runner_imports_with_supervisor_gated_branch():
 
 
 def run_direct():
-    test_polymer_weights_and_residual_sg_td3_defaults()
+    test_polymer_weights_and_residual_plain_td3_defaults_with_sg_available()
     test_distillation_residual_sg_td3_profile_available()
     test_distillation_sg_td3_critic_warm_config_manual_layers_off()
     test_distillation_sg_td3_weights_and_markov_use_mismatch_state()

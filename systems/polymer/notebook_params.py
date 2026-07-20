@@ -479,7 +479,7 @@ POLYMER_BASELINE_DEFAULTS = {
 }
 
 POLYMER_HORIZON_STANDARD_DEFAULTS = {
-    "agent_kind": "sg_dqn",  # Supervisor-gated robustness-study default.
+    "agent_kind": "dqn",  # Plain-agent robustness-study default; SG-DQN remains selectable.
     "run_mode": "disturb",  # Options: "nominal" | "disturb"
     "state_mode": "mismatch",  # Options: "standard" | "mismatch"
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
@@ -776,7 +776,7 @@ POLYMER_MATRIX_DEFAULTS = {
 }
 
 POLYMER_MARKOV_DEFAULTS = {
-    "agent_kind": "sg_td3",  # Supervisor-gated robustness-study default.
+    "agent_kind": "td3",  # Plain-agent robustness-study default; SG-TD3 remains selectable.
     "run_mode": "disturb",
     "state_mode": "mismatch",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
@@ -1097,7 +1097,7 @@ POLYMER_REIDENTIFICATION_DEFAULTS = {
 }
 
 POLYMER_WEIGHT_DEFAULTS = {
-    "agent_kind": "sg_td3",  # Supervisor-gated robustness-study default.
+    "agent_kind": "td3",  # Plain-agent robustness-study default; SG-TD3 remains selectable.
     "run_mode": "disturb",
     "state_mode": "mismatch",
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
@@ -1225,7 +1225,7 @@ POLYMER_WEIGHT_DEFAULTS = {
 }
 
 POLYMER_RESIDUAL_DEFAULTS = {
-    "agent_kind": "sg_td3",  # Supervisor-gated robustness-study default.
+    "agent_kind": "td3",  # Plain-agent robustness-study default; SG-TD3 remains selectable.
     "run_mode": "disturb",
     "state_mode": "mismatch",  # Options: "standard" | "mismatch". The latter feeds the authority error to the agent and normalizes it in the same way as the state features.
     **_copy_residual_authority_defaults(),
@@ -1401,7 +1401,7 @@ POLYMER_RESIDUAL_DEFAULTS = {
 
 POLYMER_COMBINED_DEFAULTS = {
     "run_mode": "disturb",
-    "combined_agent_mode": "sg",  # All-supervisor-gated robustness-study default.
+    "combined_agent_mode": "plain",  # All-plain robustness-study default; all-SG remains selectable.
     **deepcopy(POLYMER_COMMON_DISPLAY_DEFAULTS),
     **deepcopy(POLYMER_COMMON_PATH_DEFAULTS),
     **deepcopy(POLYMER_COMMON_OVERRIDE_DEFAULTS),
@@ -1409,19 +1409,19 @@ POLYMER_COMBINED_DEFAULTS = {
     #   True -> instantiate that agent block
     #   False -> leave it out of the combined supervisor
     "enable_horizon": True,
-    "horizon_agent_kind": "sg_dqn",
+    "horizon_agent_kind": "dqn",
     "horizon_state_mode": "mismatch",
     "enable_markov": True,
-    "markov_agent_kind": "sg_td3",
+    "markov_agent_kind": "td3",
     "markov_state_mode": "mismatch",
     "enable_matrix": False,
     "matrix_agent_kind": "td3",
     "matrix_state_mode": "mismatch",
     "enable_weights": True,
-    "weights_agent_kind": "sg_td3",
+    "weights_agent_kind": "td3",
     "weights_state_mode": "mismatch",
     "enable_residual": True,
-    "residual_agent_kind": "sg_td3",
+    "residual_agent_kind": "td3",
     "residual_state_mode": "mismatch",
     **_copy_residual_authority_defaults(),
     "residual_authority_enabled": False,

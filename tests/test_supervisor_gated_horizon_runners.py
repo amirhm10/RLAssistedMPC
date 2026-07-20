@@ -90,10 +90,10 @@ def test_distillation_horizon_root_runner_selects_sg_agent_without_wrapper():
     assert "HORIZON_AGENT_CLASS_OVERRIDE" in source
 
 
-def test_polymer_horizon_defaults_use_simple_sg_dqn_mismatch():
+def test_polymer_horizon_defaults_use_plain_dqn_mismatch_with_sg_available():
     configured = get_polymer_notebook_defaults("horizon_standard")
 
-    assert configured["agent_kind"] == "sg_dqn"
+    assert configured["agent_kind"] == "dqn"
     assert configured["run_mode"] == "disturb"
     assert configured["state_mode"] == "mismatch"
     assert ("dqn", "disturb") in configured["run_profiles"]
@@ -247,7 +247,7 @@ def run_direct():
     test_distillation_horizon_defaults_use_simple_sg_dqn_mode()
     test_distillation_horizon_plain_mode_resolves_to_dqn()
     test_distillation_horizon_root_runner_selects_sg_agent_without_wrapper()
-    test_polymer_horizon_defaults_use_simple_sg_dqn_mismatch()
+    test_polymer_horizon_defaults_use_plain_dqn_mismatch_with_sg_available()
     test_polymer_exported_script_selects_sg_agent_without_wrapper()
     test_sg_horizon_helper_tie_defaults_to_supervisor()
     test_sg_horizon_helper_selects_policy_when_q_advantage_is_positive()

@@ -199,7 +199,7 @@ def test_exploration_freeze_holds_dqn_and_both_td3_noise_schedules():
         assert effective_agent_exploration_value(td3, test=True) == 0.0
 
 
-def test_polymer_defaults_use_robustness_profile_sg_agents_and_distinct_names():
+def test_polymer_defaults_use_robustness_profile_plain_agents_and_distinct_names():
     baseline = get_polymer_notebook_defaults("baseline")
     horizon = get_polymer_notebook_defaults("horizon_standard")
     markov = get_polymer_notebook_defaults("markov")
@@ -208,10 +208,20 @@ def test_polymer_defaults_use_robustness_profile_sg_agents_and_distinct_names():
     combined = get_polymer_notebook_defaults("combined")
 
     assert baseline["run_profiles"]["disturb"]["profile_name"] == POLYMER_ROBUSTNESS_TRAINING_PROFILE
-    assert horizon["agent_kind"] == "sg_dqn"
+    assert horizon["agent_kind"] == "dqn"
     for settings in (markov, weights, residual):
-        assert settings["agent_kind"] == "sg_td3"
-    assert combined["combined_agent_mode"] == "sg"
+        assert settings["agent_kind"] == "td3"
+    assert combined["combined_agent_mode"] == "plain"
+    for settings, plain_kind, sg_kind in (
+        (horizon, "dqn", "sg_dqn"),
+        (markov, "td3", "sg_td3"),
+        (weights, "td3", "sg_td3"),
+        (residual, "td3", "sg_td3"),
+    ):
+        plain_profile = settings["run_profiles"][(plain_kind, "disturb")]
+        sg_profile = settings["run_profiles"][(sg_kind, "disturb")]
+        assert plain_profile["result_prefix"] != sg_profile["result_prefix"]
+        assert POLYMER_ROBUSTNESS_TRAINING_PROFILE in plain_profile["result_prefix"]
     for settings in (horizon, markov, weights, residual, combined):
         assert settings["episode_defaults"]["profile_name"] == POLYMER_ROBUSTNESS_TRAINING_PROFILE
         assert settings["episode_defaults"]["n_tests"] == 300

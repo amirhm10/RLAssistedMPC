@@ -67,3 +67,7 @@ Saved result bundles also contain physical tracking RMSE per output and average 
 ## Remaining experimental uncertainty
 
 The implementation verifies schedule and control-flow correctness, not closed-loop robustness performance. Tracking quality, constraint activity, supervisor selection, replay adaptation, and learning stability in episodes 201–300 must be assessed from the first real SG runs and their saved window metrics.
+
+## 2026-07-20 default-mode transition
+
+After the SG robustness runs were completed, the active polymer defaults were changed to the matching plain-agent arm: DQN for horizon, TD3 for Markov/weights/residual, and all-plain combined mode. The `robustness_200_100` schedule, matching MPC baseline, disturbance profile, exploration-freeze behavior, and result naming remain unchanged. SG configurations and their existing artifacts remain selectable and are not modified.

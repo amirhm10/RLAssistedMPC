@@ -1,6 +1,0 @@
-Method,Tail policy selected,Tail supervisor selected,Tail residual mean abs,Tail residual q95 abs,Tail full-bound fraction,Tail cap projection,Tail guard trigger,Tail headroom projection,Tail zero fallback,Steady residual ranges
-TD3 Residual,,,"[0.1020, 0.0674]","[0.2500, 0.2500]",0.0769375,0.0,0.0,6.25e-05,0.0,Qc -0.0637 to 0.0748; Qm -0.0141 to 0.0151
-SG-TD3 Residual,0.5691875,0.4308125,"[0.0437, 0.0395]","[0.2500, 0.2500]",0.0623125,0.0,0.0,0.0111875,0.0,Qc -0.0242 to 0.0338; Qm -0.0193 to 0.0239
-SG-TD3 Residual CW-old,0.57225,0.42775,"[0.0446, 0.0437]","[0.2469, 0.2499]",0.04875,0.0,0.0,0.002,0.0,Qc -0.0078 to 0.0213; Qm -0.0129 to 0.0209
-SG-TD3 Residual CW3,0.0713125,0.9286875,"[0.0150, 0.0172]","[0.2460, 0.2500]",0.052,0.0,0.0,0.0,0.0,Qc -0.0000 to 0.0000; Qm -0.0000 to 0.0000
-TD7 Residual,,,"[0.0442, 0.0309]","[0.2472, 0.2457]",0.053,0.0,0.0,0.0001875,0.0,Qc -0.0818 to 0.1258; Qm -0.0589 to 0.0758

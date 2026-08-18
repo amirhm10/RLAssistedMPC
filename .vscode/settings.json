@@ -1,9 +1,0 @@
-{
-    "python-envs.defaultEnvManager": "ms-python.python:conda",
-    "python-envs.defaultPackageManager": "ms-python.python:conda",
-    "python.defaultInterpreterPath": "C:\\Users\\hamediaa\\.conda\\envs\\rl-env\\python.exe",
-    "markdown.math.enabled": true,
-    "update.mode": "none",
-    "extensions.autoUpdate": false,
-    "extensions.autoCheckUpdates": false
-}

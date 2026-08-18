@@ -1,30 +1,87 @@
-# Keep the tracked directory placeholders, but ignore generated result runs.
-Polymer/Results/*
-!Polymer/Results/.gitkeep
+# Publication repository scope
+#
+# The tracked repository contains only the active polymer and distillation
+# Scenario 1/2 runners, their runtime dependencies, focused tests, and the
+# identification artifacts required to initialize those runners. Everything
+# below remains available locally but is excluded from publication commits.
 
-Distillation/Results/*
-!Distillation/Results/.gitkeep
+# Codex/AI-agent instructions, caches, backups, and editor state.
+/.agents/
+/.codex/
+/AGENTS.md
+/.pull-backups/
+/.idea/
+/.vscode/
 
-# Shared generated result folders.
-Result/
-Results/
-meeting/
+# Historical notebooks, experiments, presentations, reports, and analyses.
+/archive/
+/experiments/
+/report/
+/Paper/
+/MACC2026/
+/StatsControl2026/
+/meeting/
+/tools/
+/change-reports/*
+!/change-reports/2026-08-17_publication_scope.md
 
-# Other generated result or temporary run folders.
-VanDeVusse/Results/*
-.tmp_*/
-.detached-notebook-runs/
+# Inactive or superseded controller/agent implementations.
+/DuelingDQN/
+/TD7Agent/
+/BasicFunctions/*
+!/BasicFunctions/bs_fns.py
+/Simulation/rl_sim.py
+/systems/distillation/system_id.py
+/utils/horizon_runner_dueling.py
+/utils/matrix_runner.py
+/utils/mpc_acceptance_gate.py
+/utils/polymer_multiseed_core_study.py
+/utils/reidentification.py
+/utils/reidentification_runner.py
+/utils/structured_matrix_runner.py
 
-# Timestamped experiment bundles under Data are generated outputs.
-Data/**/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]/
+# Case studies and data outside the two active publication scenarios.
+/VanDeVusse/
+/Data/
 
-# Python cache artifacts.
+# Keep only the identification inputs needed by the active polymer runners.
+/Polymer/Data/*
+!/Polymer/Data/system_dict
+!/Polymer/Data/scaling_factor.pickle
+!/Polymer/Data/min_max_states.pickle
+
+# Keep only the identification inputs needed by the active distillation runners.
+/Distillation/Data/*
+!/Distillation/Data/system_dict.pickle
+!/Distillation/Data/scaling_factor.pickle
+!/Distillation/Data/min_max_states.pickle
+
+# Generated result bundles and plots. Baselines can be regenerated with the
+# two active MPCOffsetFree entrypoints before running comparisons.
+/Polymer/Results/
+/Distillation/Results/
+/Result/
+/Results/
+
+# Local logs, caches, and temporary run directories.
+/debug.log
+/.detached-notebook-runs/
+/.tmp_*/
+/pytest-cache-files-*/
+/_codex_tmp_*/
 __pycache__/
 *.py[cod]
+.pytest_cache/
 
-# Generated report figures and analysis assets should stay local.
-report/figures/*
-!report/figures/.gitkeep
-
-# Local manuscript drafts and generated paper assets.
-Paper/
+# Generated document/build artifacts if created outside ignored report trees.
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc

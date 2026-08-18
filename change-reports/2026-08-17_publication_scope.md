@@ -12,7 +12,6 @@ Historical reports, archives, presentations, prior result bundles, inactive algo
 - The complete runtime import closure in `Simulation/`, `systems/`, `utils/`, `BasicFunctions/`, `DQN/`, `TD3Agent/`, and `SACAgent/`
 - Focused automated tests for the active schedules and SG/plain execution paths
 - Only the compact identification and scaling artifacts needed to initialize each plant model
-- `PUBLICATION_REVIEW.md`, which maps every preserved scenario/mode axis to its implementation and provides independent Git and VS Code review commands
 
 The Van de Vusse package under `systems/vandevusse/` remains tracked because the unchanged shared notebook setup imports its path helpers during module initialization. The separate Van de Vusse experiment tree is ignored.
 

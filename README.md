@@ -37,8 +37,6 @@ The active default is the SG arm. Plain DQN and TD3 remain selectable through `s
 
 The reusable implementations are under `Simulation/`, `systems/`, `utils/`, `DQN/`, `TD3Agent/`, and `SACAgent/`. The SG and plain implementations intentionally share the same active runners so that schedule, plant, reward, and comparison logic remain aligned.
 
-See `PUBLICATION_REVIEW.md` for the preservation matrix, exclusion rationale, and commands for independently reviewing the publication boundary.
-
 ## Data and generated results
 
 The repository tracks only the compact system-identification and scaling artifacts required to initialize the two active workflows. Generated baselines, training bundles, plots, checkpoints, and historical reports are ignored.

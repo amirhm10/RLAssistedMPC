@@ -1,3 +1,0 @@
-comparison,tail_reward_delta,tail_temp_mae_delta,tail_comp_mae_delta,negative_postwarm_delta,tail_unique_pairs_delta,tail_default_frac_delta,tail_policy_decision_frac
-SG-DQN vs DDQN epsilon,2.40511786794778,-0.015599695840386424,-0.00011243229746640295,-12,-24,0.066,0.9325
-SG-dueling-DQN vs Dueling epsilon,-2.937459665052538,0.013380362525997863,0.00015311143538271777,13,-18,0.27799999999999997,0.717

@@ -1,7 +1,0 @@
-method,post_warm_release_blocked_frac,post_warm_release_released_frac,tail_release_blocked_frac,release_step,bc_active_frac,bc_gap_post_warm_mean,release_gap_post_warm_mean,release_max_coord_gap_post_warm_mean,tail_Q1_mult,tail_Q2_mult,tail_R1_mult,tail_R2_mult,tail_weight_distinct_rows,tail_raw_residual_norm,tail_exec_residual_norm,tail_projection_active_frac,tail_raw_exec_norm_ratio,tail_Hp_mean,tail_Hc_mean,post_warm_distinct_horizons,tail_distinct_horizons,post_warm_td3_source_frac,post_warm_ls_source_frac,post_warm_nominal_source_frac,post_warm_warm_ls_source_frac,tail_q95_abs_z,tail_z_norm_mean,post_warm_z_safety_projection_frac
-OF-MPC,nan,nan,nan,-1,nan,nan,nan,nan,,,,,,,,,,,,,,,,,,,,
-TD3 Weights,0.9999868421052631,0.0,1.0,-1,0.075,0.7999999999999999,0.7999999999999999,0.39999999999999997,1.0,1.0,1.0,1.0,1,,,,,,,,,,,,,,,
-TD3 Residual,0.9999868421052631,0.0,1.0,-1,0.075,0.9880487635426689,0.988048763638476,0.8494004848476386,,,,,,0.0,2.1636281850884065e-06,0.99975,2.030528546450452e-06,,,,,,,,,,,
-Horizon DDQN,nan,nan,nan,-1,nan,nan,nan,nan,,,,,,,,,,10.352,6.623,87,87,,,,,,,
-Dueling Horizon,nan,nan,nan,-1,nan,nan,nan,nan,,,,,,,,,,9.629,5.548,87,53,,,,,,,
-TD3 Markov,0.9999868421052631,0.0,1.0,-1,0.075,1.5112603504100959,2.023649290485807,1.0331582657388345,,,,,,,,,,,,,,0.0,0.0,0.9315263157894736,0.06847368421052631,0.0006772404611964411,0.002097897650667582,0.9998815789473684

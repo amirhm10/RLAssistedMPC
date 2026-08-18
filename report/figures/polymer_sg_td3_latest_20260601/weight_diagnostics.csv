@@ -1,3 +1,0 @@
-Method,Tail policy selected,Tail supervisor selected,Tail multipliers mean,Tail multiplier ranges,Tail common-scale std,Tail boundary fraction,Post identity source fraction,Tail cap projection,Tail fallback reason,Tail abs raw action mean
-TD3 Weights,,,"[1.510, 1.637, 1.273, 1.502]",m1 0.750 to 2.000; m2 0.750 to 2.000; m3 0.750 to 2.000; m4 0.750 to 2.000,0.2848423493737704,0.3504375,,0.0,0.0,"[0.674, 0.756, 0.658, 0.698]"
-SG-TD3 Weights CW3,0.0913125,0.9086875,"[1.026, 1.055, 1.028, 0.983]",m1 0.750 to 2.000; m2 0.750 to 2.000; m3 0.750 to 2.000; m4 0.750 to 2.000,0.03195588047319907,0.067125,0.9310916519187626,0.0,0.0,"[0.624, 0.624, 0.620, 0.633]"

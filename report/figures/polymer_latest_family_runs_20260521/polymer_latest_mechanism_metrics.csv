@@ -1,8 +1,0 @@
-method,horizon_tail_Hp_mean,horizon_tail_Hc_mean,horizon_distinct_actions,weight_tail_Q1_mean,weight_tail_Q2_mean,weight_tail_R1_mean,weight_tail_R2_mean,residual_tail_norm_mean,markov_z_q95_abs,markov_z_norm_tail_mean,markov_td3_source_post_warm,markov_ls_fallback_post_warm,markov_nominal_fallback_post_warm,markov_projection_active_fraction,markov_coord_cap_tail_mean
-OF-MPC,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan
-Horizon DQN,14.027,5.7775,83.0,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan
-Dueling Horizon,14.0335,5.893,83.0,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan
-TD3 Weights,nan,nan,nan,1.4380623522639666,1.5528143248828883,1.3122373285699813,1.5768534204143634,nan,nan,nan,nan,nan,nan,nan,nan
-TD3 Residual,nan,nan,nan,nan,nan,nan,nan,0.010092717924476104,nan,nan,nan,nan,nan,nan,nan
-TD3 Markov,nan,nan,nan,nan,nan,nan,nan,nan,0.04290757288906252,0.07406272862637937,1.0,0.0,0.0,0.8967822156724715,0.05000000000000001
-Combined,13.8185,5.8485,83.0,1.3315041266823164,1.3259730247025983,1.1467576804024453,1.2154893026748688,0.014614330086394848,0.04282861460953907,0.07327451213574633,1.0,0.0,0.0,0.259501707248074,0.05000000000000001

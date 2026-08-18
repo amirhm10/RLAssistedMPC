@@ -12,6 +12,7 @@
 /.pull-backups/
 /.idea/
 /.vscode/
+/.venv/
 
 # Historical notebooks, experiments, presentations, reports, and analyses.
 /archive/
@@ -24,6 +25,7 @@
 /tools/
 /change-reports/*
 !/change-reports/2026-08-17_publication_scope.md
+!/change-reports/2026-08-18_readme_documentation.md
 
 # Inactive or superseded controller/agent implementations.
 /DuelingDQN/

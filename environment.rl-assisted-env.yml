@@ -1,0 +1,23 @@
+name: rl-assisted-env
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.13.2
+  - pip
+  - libblas=*=*openblas
+  - libcblas=*=*openblas
+  - liblapack=*=*openblas
+  - numpy
+  - scipy
+  - matplotlib-base
+  - pandas
+  - scikit-learn
+  - control
+  - joblib
+  - ipykernel
+  - pytest
+  - pywin32
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu130
+      - torch==2.13.0+cu130

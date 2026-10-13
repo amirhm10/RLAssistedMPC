@@ -14,6 +14,19 @@ The wrapper selects SG/plain, selects the Scenario 2 profile, sets training seed
 
 ## Run
 
+The author's configured Conda environment is `rl-assisted-env`, with Python 3.13.2 and GPU-enabled PyTorch. Its recipe is `environment.rl-assisted-env.yml`, and `environment.rl-assisted-env.win-64.lock.yml` records the resolved Windows versions/builds. NumPy/SciPy use OpenBLAS to resolve the OpenMP conflict encountered with the initial MKL/PyTorch combination. The environment passed scientific import, identification-data loading, CUDA, and wrapper checks; these are setup checks, not a full training study.
+
+On this computer, start the study from CMD with:
+
+```cmd
+call "C:\ProgramData\anaconda3\Scripts\activate.bat" rl-assisted-env
+python "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\run_polymer_phase2_repeats.py"
+```
+
+The activation command works even if `conda` is not on PATH. To inspect the schedule first, add `--dry-run` to the Python command. In VS Code notebooks, select the registered kernel `Python (rl-assisted-env)`.
+
+To recreate the environment on Windows, use `conda env create --file environment.rl-assisted-env.win-64.lock.yml` when that environment name is not already installed. The shorter recipe keeps the requested libraries and Python/CUDA selections explicit while allowing Conda to resolve the other package versions. The Windows export preserves the versions and builds verified during setup. Both include the [official PyTorch CUDA package index](https://pytorch.org/get-started/previous-versions/) for the pinned CUDA wheel.
+
 Use the same scientific Python environment/interpreter you use for the working polymer simulations. The launcher defaults to its own `sys.executable` for every worker. It checks NumPy, SciPy, PyTorch, and Matplotlib before creating a new batch, and does not install or update packages.
 
 From the repository directory, inspect the plan:

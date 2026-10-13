@@ -6,9 +6,9 @@ Here Phase 2 means the paper's Scenario 2, which currently has one result per co
 
 ## Schedule
 
-Default order: horizon, weights, dynamic matrix (`markov`), residual, combined. Each category runs its five SG repetitions together, waits until all five finish and save, then runs its five plain/ungated repetitions together. Only after that does the next category start. At most five simulation processes run together by default.
+Default order: horizon, weights, dynamic matrix (`markov`), residual, combined. Each category launches its five SG repetitions and five plain/ungated repetitions together: ten parallel simulation processes. Only after all ten finish and save does the next category start. This schedule also applies to the combined controller.
 
-The five seed values are 7, 11, 23, 37, and 53, reused across categories and modes. The default plan has ten groups and 50 complete runs. The baseline is reused through the existing comparison code; the launcher does not regenerate it.
+The five seed values are 7, 11, 23, 37, and 53, reused across categories and modes. The default plan has five sequential category groups and 50 complete runs. Selecting only one mode launches five processes per category. Custom seed lists change the number of repetitions launched together. The baseline is reused through the existing comparison code; the launcher does not regenerate it.
 
 The wrapper selects SG/plain, selects the Scenario 2 profile, sets training seeds, and redirects output paths and prefixes in each worker process. Every other existing controller, reward, network, solver, disturbance, warm-up, and training setting is inherited. A worker-local defaults adapter covers the combined entrypoint without adding a hook to its source. No modified runner copy is generated.
 
@@ -41,7 +41,7 @@ If the terminal's Python differs from your working simulation interpreter:
 python run_polymer_phase2_repeats.py --python 'C:\path\to\your\working\python.exe'
 ```
 
-Optional `--seeds 7 11 23 37 53`, `--threads-per-run 1`, and `--output-dir PATH` customize only replication/scheduling/output settings. The thread default is one per worker to avoid multiplying CPU/BLAS thread pools across five simultaneous processes. The existing device selection is retained.
+Optional `--seeds 7 11 23 37 53`, `--threads-per-run 1`, and `--output-dir PATH` customize only replication/scheduling/output settings. The thread default is one per worker to avoid multiplying CPU/BLAS thread pools across ten simultaneous processes. The existing device selection is retained.
 
 ## Results and failures
 
@@ -56,7 +56,7 @@ New batches are stored under `Polymer/Results/phase2_repeats/<unique-batch-id>/`
 
 The batch's `manifest.json` records every job and result path. Separate result roots and short prefixes prevent simultaneous workers with identical second-resolution timestamps from overwriting one another.
 
-If any repetition fails, the wrapper waits for its group mates to finish saving, then stops before the next group. Finished results remain intact. To resume the saved plan:
+If any repetition fails, the wrapper waits for the other gated and ungated repetitions in that category to finish saving, then stops before the next category. Finished results remain intact. To resume the saved plan:
 
 ```powershell
 python run_polymer_phase2_repeats.py --resume 'Polymer\Results\phase2_repeats\<batch-id>'
@@ -70,7 +70,7 @@ Ctrl+C stops only the launcher's own child processes and leaves saved work avail
 
 ## Verification
 
-The focused tests use real short-lived Python workers to verify five-way overlap, the between-category barrier, separate save paths, failure handling, and resume. Worker/defaults tests check mode selection and preservation of controller/learning settings without running training. Run them with:
+The focused tests use real short-lived Python workers to verify ten-way overlap across both modes, the between-category barrier, separate save paths, failure handling, and resume. Worker/defaults tests check mode selection and preservation of controller/learning settings without running training. Run them with:
 
 ```powershell
 python -m unittest discover -s tests -p test_polymer_phase2_repeats.py -v

@@ -1,7 +1,7 @@
 """Repeat the existing polymer Scenario 2 runners without editing their sources.
 
-Five seeded processes run together within one category/mode. The next group
-starts only after every process in the current group has saved its results.
+Five gated and five ungated seeded processes run together within each category.
+The next category starts only after all ten processes have saved their results.
 The parent uses only the standard library; workers use the existing scientific
 Python environment. Use --dry-run to inspect the plan without starting training.
 """
@@ -205,23 +205,23 @@ def saved_status(attempt_dir: Path, returncode: int | None) -> dict:
 
 def run_batches(manifest: dict, batch_dir: Path,
                 command_factory: Callable[[str, Path], list[str]] = worker_command) -> int:
-    """Launch each whole seed group before waiting; never overlap groups."""
+    """Launch all selected modes/seeds together; never overlap categories."""
     manifest_path = batch_dir / "manifest.json"
-    groups = list(dict.fromkeys((job["category"], job["mode"]) for job in manifest["jobs"]))
+    groups = list(dict.fromkeys(job["category"] for job in manifest["jobs"]))
     manifest.update(state="running", updated_at=utc_now())
     write_json(manifest_path, manifest)
-    for category, mode in groups:
-        jobs = [job for job in manifest["jobs"] if (job["category"], job["mode"]) == (category, mode)]
+    for category in groups:
+        jobs = [job for job in manifest["jobs"] if job["category"] == category]
         pending = [job for job in jobs if not completed_result(job)]
         if not pending:
-            print(f"[SKIP] {category}/{mode}: all results already saved.", flush=True)
+            print(f"[SKIP] {category}: all results already saved.", flush=True)
             continue
-        print(f"[START] {category}/{mode}: {len(pending)} parallel repetitions.", flush=True)
+        print(f"[START] {category}: {len(pending)} parallel repetitions across selected modes.", flush=True)
         running = []
         try:
             for job in pending:
                 attempt_number = len(job["attempts"]) + 1
-                attempt_dir = batch_dir / f"{category}_{mode}" / f"s{job['seed']}" / f"a{attempt_number}"
+                attempt_dir = batch_dir / f"{category}_{job['mode']}" / f"s{job['seed']}" / f"a{attempt_number}"
                 attempt_dir.mkdir(parents=True, exist_ok=False)
                 payload = {
                     **{key: job[key] for key in ("category", "mode", "seed")},
@@ -265,10 +265,10 @@ def run_batches(manifest: dict, batch_dir: Path,
                 result = status.get("result_file")
                 if status:
                     job.update(state="completed", result_file=result)
-                    print(f"[SAVED] {category}/{mode} seed={job['seed']}: {result}", flush=True)
+                    print(f"[SAVED] {category}/{job['mode']} seed={job['seed']}: {result}", flush=True)
                 else:
                     job.update(state="failed", error="Worker exited without a saved result; see run.log/worker_status.json.")
-                    print(f"[FAILED] {category}/{mode} seed={job['seed']}; see {attempt_dir / 'run.log'}", flush=True)
+                    print(f"[FAILED] {category}/{job['mode']} seed={job['seed']}; see {attempt_dir / 'run.log'}", flush=True)
         except BaseException:
             for job, process, log, attempt_dir in running:
                 if process.poll() is None:
@@ -291,7 +291,7 @@ def run_batches(manifest: dict, batch_dir: Path,
         if any(job["state"] != "completed" for job in jobs):
             manifest["state"] = "failed"
             write_json(manifest_path, manifest)
-            print("Stopped before the next group. Saved results are preserved; use --resume.", flush=True)
+            print("Stopped before the next category. Saved results are preserved; use --resume.", flush=True)
             return 1
         write_json(manifest_path, manifest)
     manifest.update(state="completed", updated_at=utc_now())
@@ -354,9 +354,12 @@ def main(argv=None) -> int:
             manifest["source_commit"] = None
     print(f"Profile: {PROFILE} (200 + 100 episodes per repetition)", flush=True)
     print(f"Python: {manifest['python']}\nBatch directory: {batch_dir}", flush=True)
-    for category, mode in dict.fromkeys((job["category"], job["mode"]) for job in manifest["jobs"]):
-        seeds = [job["seed"] for job in manifest["jobs"] if (job["category"], job["mode"]) == (category, mode)]
-        print(f"  {category}/{mode}: parallel seeds {seeds}", flush=True)
+    for category in dict.fromkeys(job["category"] for job in manifest["jobs"]):
+        jobs = [job for job in manifest["jobs"] if job["category"] == category]
+        print(f"  {category}: {len(jobs)} parallel repetitions", flush=True)
+        for mode in dict.fromkeys(job["mode"] for job in jobs):
+            seeds = [job["seed"] for job in jobs if job["mode"] == mode]
+            print(f"    {mode}: seeds {seeds}", flush=True)
     print(f"Total repetitions: {len(manifest['jobs'])}", flush=True)
     if args.dry_run:
         return 0

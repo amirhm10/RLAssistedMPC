@@ -53,3 +53,7 @@ Before additional tests, finish the restarted E1/E2 evidence, investigate ARX's 
 Inspected: original wrapper/worker paths, manifests and statuses for all three campaigns; both failed logs; Windows crash events; Conda package records; source hashes; original-manuscript snapshot; all 50 repeat bundles and metadata; completed comparator metrics; preservation/comparison tests; nominal baseline and existing protocol documentation.
 
 Changed: the two environment specifications; this dated report; new derived recovery/intake files under `change-reports/runtime_recovery_20261014/`; synchronized paper workflow records. Original controllers, agents, plant, runners, raw results and manuscript package remain preserved. Long-running restarts write only fresh attempt/result folders.
+
+## Visible progress viewers
+
+At Amir's request, two visible CMD windows follow the existing production logs. `runtime_recovery_20261014/live_progress.ps1` reads parent and active-worker logs, follows subsequent categories/methods automatically, and reports launcher exit. `view_E1_progress.cmd` and `view_E2_progress.cmd` reopen the viewers. Each script passed a read-only `-Once` check before launch. Closing a viewer leaves the simulations running. No training process or scientific source was changed by opening these windows.

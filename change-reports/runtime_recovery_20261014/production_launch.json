@@ -1,0 +1,78 @@
+{
+  "launched_at_utc": "2026-10-14T15:02:10.5692084Z",
+  "environment": {
+    "python": "3.13.2 | packaged by conda-forge | (main, Feb 17 2025, 13:52:56) [MSC v.1942 64 bit (AMD64)]",
+    "executable": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "torch": "2.13.0+cu130",
+    "cuda_available": true,
+    "pools": [
+      {
+        "user_api": "blas",
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "openblas",
+        "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+        "version": "0.3.33",
+        "threading_layer": "pthreads",
+        "architecture": "Haswell"
+      },
+      {
+        "user_api": "openmp",
+        "internal_api": "openmp",
+        "num_threads": 1,
+        "prefix": "libiomp",
+        "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+        "version": null
+      },
+      {
+        "user_api": "openmp",
+        "internal_api": "openmp",
+        "num_threads": 1,
+        "prefix": "libiomp",
+        "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+        "version": null
+      }
+    ],
+    "numerical_stress": {
+      "iterations": 2500,
+      "slsqp_solves": 100,
+      "max_linear_residual": 1.2434497875801753E-14,
+      "duration_seconds": 1.0006441000150517
+    }
+  },
+  "faulthandler": true,
+  "e1": {
+    "log": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\runtime_recovery_20261014\\e1_resume_attempt2.log",
+    "parent_pid": 19460,
+    "batch": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06",
+    "resumed_categories": [
+      "markov",
+      "residual",
+      "combined"
+    ],
+    "completed_categories_retained": [
+      "horizon",
+      "weights"
+    ]
+  },
+  "e2": {
+    "original_batch": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261014_033927_fd26b6",
+    "parent_pid": 36136,
+    "completed_methods_retained": [
+      "ls",
+      "arx",
+      "bo"
+    ],
+    "batch": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261014_runtime_recovery_threshold_sg",
+    "methods": [
+      "threshold",
+      "sg"
+    ],
+    "log": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\runtime_recovery_20261014\\e2_resume_attempt2.log"
+  },
+  "phase2_repeats_retained": 50,
+  "restart_semantics": "Restart unfinished categories from their initial condition; no online-training checkpoint exists.",
+  "initial_launch_failure": "PowerShell argument concatenation produced an invalid script path; no scientific worker ran. Corrected quoted path expressions in attempt2."
+}

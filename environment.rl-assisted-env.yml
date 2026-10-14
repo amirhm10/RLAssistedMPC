@@ -8,8 +8,10 @@ dependencies:
   - libblas=*=*openblas
   - libcblas=*=*openblas
   - liblapack=*=*openblas
-  - numpy
-  - scipy
+  # Pinned numerical runtime after the 2026-10-14 native-crash recovery.
+  - libopenblas=0.3.33
+  - numpy=2.4.6
+  - scipy=1.17.1
   - matplotlib-base
   - pandas
   - scikit-learn

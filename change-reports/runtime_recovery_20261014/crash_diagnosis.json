@@ -1,0 +1,31 @@
+{
+  "exception": "0xc0000005",
+  "event_id": 1000,
+  "events": [
+    {
+      "study": "E1 markov",
+      "pid": 24244,
+      "toronto_time": "2026-10-14T08:23:01.553977-04:00",
+      "fault_module": "_multiarray_umath.cp313-win_amd64.pyd",
+      "last_logged_episode": 196,
+      "saved_matched_pairs": 172
+    },
+    {
+      "study": "E2 threshold",
+      "pid": 44336,
+      "toronto_time": "2026-10-14T09:18:06.270907-04:00",
+      "fault_module": "openblas.dll",
+      "last_logged_episode": 174
+    }
+  ],
+  "interpretation": "Native access violations; the exact internal trigger is unproven. Replacing the pinned numerical stack is the tested runtime remediation.",
+  "test_results": {
+    "pytest_passed": 35,
+    "pytest_warnings": 4,
+    "numerical_iterations": 2500,
+    "bounded_slsqp_solves": 100,
+    "e1_markov_smoke": "completed",
+    "threshold_sg_smoke": "completed",
+    "baseline_audit": "usable"
+  }
+}

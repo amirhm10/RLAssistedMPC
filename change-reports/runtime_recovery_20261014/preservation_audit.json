@@ -1,0 +1,15 @@
+{
+  "verified_at_utc": "2026-10-14T15:07:16.982842+00:00",
+  "original_manuscript_file_count": 46,
+  "original_manuscript_changed_files": [],
+  "e1_source_hashes_match": true,
+  "e1_source_count": 97,
+  "e2_source_hashes_match": true,
+  "e2_source_count": 105,
+  "original_scientific_python_file_count": 115,
+  "original_scientific_python_changed_files": [],
+  "original_scientific_snapshot_file_count": 116,
+  "original_scientific_snapshot_changed_files": [
+    "environment.rl-assisted-env.yml"
+  ]
+}

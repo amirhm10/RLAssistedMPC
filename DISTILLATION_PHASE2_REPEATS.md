@@ -32,6 +32,10 @@ The next channel reuses these ten files only after all current worker processes 
 
 The default Aspen folder is resolved through the existing settings. A manual model override supplies its parent directory; otherwise the existing `aspen_root_override` or `DISTILLATION_ASPEN_ROOT`/default root is used. `--aspen-root` selects a different folder explicitly. All required model files are checked before creating a batch or opening Aspen.
 
+Aspen can return `DISP_E_EXCEPTION` (`-2147352567`, "A string value was expected") when `win32com` probes `openDocument` or `CloseDocument` as properties before supplying their arguments. Each worker temporarily adds that HRESULT to `win32com.client.dynamic.ERRORS_BAD_CONTEXT`, allowing pywin32 to recognize the callable method and pass the existing arguments. This context remains active through Aspen cleanup and is restored afterwards. The installed `dynamic.py`, experiment sources, and scientific settings remain unchanged; errors from actual method calls still propagate. The dispatch behavior is documented in the [pywin32 source](https://github.com/mhammond/pywin32/blob/main/com/win32com/client/dynamic.py).
+
+If a batch failed with this COM lookup error before training, start a new batch after updating the wrapper. The source-hash check intentionally prevents resuming a batch with changed wrapper code. Earlier logs remain available.
+
 ## Run
 
 Use the existing `rl-assisted-env` environment with Aspen Dynamics and `pywin32`. In a Conda-enabled terminal, activate it and inspect the plan:

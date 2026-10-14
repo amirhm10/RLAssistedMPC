@@ -248,6 +248,81 @@ class LauncherTests(unittest.TestCase):
         checked = subprocess.run([sys.executable, "-c", code, str(model), str(locks)], cwd=ROOT, capture_output=True, text=True)
         self.assertEqual(checked.returncode, 0, checked.stderr)
 
+    def make_aspen_dispatch(self, fail_method=False):
+        """Use real pywin32 dispatch with the exact HRESULT from the failed logs."""
+        import pythoncom
+        import pywintypes
+        from win32com.client import build, dynamic
+        import winerror
+
+        calls = []
+
+        class AspenDispatch:
+            def GetIDsOfNames(self, lcid, name):
+                return {"openDocument": 1, "CloseDocument": 2}[name]
+
+            def Invoke(self, dispid, lcid, invoke_type, result_wanted, *args):
+                calls.append((dispid, invoke_type, args))
+                if invoke_type == pythoncom.DISPATCH_PROPERTYGET:
+                    raise pywintypes.com_error(
+                        winerror.DISP_E_EXCEPTION, "Exception occurred.",
+                        (10, "AspenModeler", "A string value was expected", None, 0, 0), None,
+                    )
+                if fail_method:
+                    raise pywintypes.com_error(
+                        winerror.DISP_E_EXCEPTION, "Exception occurred.",
+                        (10, "AspenModeler", "The model could not be opened", None, 0, 0), None,
+                    )
+                return None
+
+        return dynamic.CDispatch(AspenDispatch(), build.DispatchItem(), "Aspen fixture"), calls
+
+    def test_real_pywin32_method_lookup_reproduces_failure_and_workaround_preserves_arguments(self):
+        import pythoncom
+        import pywintypes
+        from win32com.client import dynamic
+        import winerror
+
+        original_errors = dynamic.ERRORS_BAD_CONTEXT
+        unpatched = [code for code in original_errors if code != winerror.DISP_E_EXCEPTION]
+        with patch.object(dynamic, "ERRORS_BAD_CONTEXT", unpatched):
+            failed, _ = self.make_aspen_dispatch()
+            with self.assertRaises(pywintypes.com_error) as error:
+                failed.openDocument(str(self.aspen_root / "C2S_SS_simulation1.dynf"))
+            self.assertEqual(error.exception.hresult, winerror.DISP_E_EXCEPTION)
+            with launcher.aspen_com_compatibility():
+                fixed, calls = self.make_aspen_dispatch()
+                filename = str(self.aspen_root / "C2S_SS_simulation1.dynf")
+                fixed.openDocument(filename)
+                fixed.CloseDocument(False)
+                method_calls = [(dispid, args) for dispid, invoke_type, args in calls
+                                if invoke_type == pythoncom.DISPATCH_METHOD]
+                self.assertEqual(method_calls, [(1, (filename,)), (2, (False,))])
+            self.assertIs(dynamic.ERRORS_BAD_CONTEXT, unpatched)
+        self.assertIs(dynamic.ERRORS_BAD_CONTEXT, original_errors)
+
+    def test_com_compatibility_preserves_real_method_errors_and_restores_context(self):
+        import pywintypes
+        from win32com.client import dynamic
+
+        original_errors = dynamic.ERRORS_BAD_CONTEXT
+        with self.assertRaises(pywintypes.com_error) as error:
+            with launcher.aspen_com_compatibility():
+                failing, _ = self.make_aspen_dispatch(fail_method=True)
+                failing.openDocument("missing-model.dynf")
+        self.assertIn("The model could not be opened", str(error.exception))
+        self.assertIs(dynamic.ERRORS_BAD_CONTEXT, original_errors)
+
+    def test_com_compatibility_restores_an_already_patched_context(self):
+        from win32com.client import dynamic
+        import winerror
+
+        patched_errors = [*dynamic.ERRORS_BAD_CONTEXT, winerror.DISP_E_EXCEPTION]
+        with patch.object(dynamic, "ERRORS_BAD_CONTEXT", patched_errors):
+            with launcher.aspen_com_compatibility():
+                self.assertIs(dynamic.ERRORS_BAD_CONTEXT, patched_errors)
+            self.assertIs(dynamic.ERRORS_BAD_CONTEXT, patched_errors)
+
     def test_process_creation_failure_reserves_attempt_without_overwriting_on_resume(self):
         manifest, batch, command = self.make_manifest()
         with redirect_stdout(io.StringIO()), patch.object(launcher.subprocess, "Popen", side_effect=OSError("injected spawn failure")):

@@ -247,6 +247,28 @@ def aspen_file_lock(dyn_path: Path, lock_directory: Path):
 
 
 @contextmanager
+def aspen_com_compatibility():
+    """Allow Aspen's method/property lookup error in this worker only.
+
+    Aspen reports DISP_E_EXCEPTION when dynamic dispatch probes methods such
+    as openDocument without arguments as properties. Adding that HRESULT to
+    pywin32's bad-context list lets it return a callable and pass the original
+    arguments. The workaround also covers CloseDocument and nested COM objects.
+    Actual errors from the subsequent method call still propagate normally.
+    """
+    import win32com.client.dynamic as dynamic
+    import winerror
+
+    original_errors = dynamic.ERRORS_BAD_CONTEXT
+    if winerror.DISP_E_EXCEPTION not in original_errors:
+        dynamic.ERRORS_BAD_CONTEXT = [*original_errors, winerror.DISP_E_EXCEPTION]
+    try:
+        yield
+    finally:
+        dynamic.ERRORS_BAD_CONTEXT = original_errors
+
+
+@contextmanager
 def worker_adapters(distillation, plant, job: dict):
     """Apply worker-local defaults and ensure this worker closes its Aspen app."""
     family, _ = RUNNERS[job["category"]]
@@ -327,7 +349,8 @@ def run_worker(job_file: Path) -> int:
 
         _, entrypoint = RUNNERS[job["category"]]
         with aspen_file_lock(Path(job["aspen_path"]), root / "Distillation" / "Results" / "_aspen_file_locks"):
-            with worker_adapters(distillation, plant, job):
+            # Keep the COM compatibility context active through worker cleanup.
+            with aspen_com_compatibility(), worker_adapters(distillation, plant, job):
                 namespace = runpy.run_path(str(root / entrypoint), run_name="__main__")
             # Cleanup must succeed before this worker reports a saved result.
             status["aspen_closed"] = True
@@ -354,7 +377,8 @@ def run_worker(job_file: Path) -> int:
             "worker_job": str(job_file), "created_at": utc_now(),
             "runtime_changes": ["SG/plain selection", "Scenario 2 profile selection",
                                 "training random seeds", "output directory and prefixes",
-                                "Aspen file and matching snapshot directory", "Aspen cleanup guard"],
+                                "Aspen file and matching snapshot directory", "Aspen cleanup guard",
+                                "Aspen COM method lookup workaround"],
         }
         write_json(result_dir / "replication_metadata.json", metadata)
         status.update(state="completed", finished_at=utc_now(), episodes=episodes,

@@ -16,18 +16,22 @@ $e3Python = 'C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\python.e
 
 The first command uses only the standard library and creates nothing. Preflight imports the scientific dependencies and resolves/hashes the existing Aspen models without opening Aspen or creating a study. The current family mappings are baseline simulation2, Markov simulation11, and combined simulation9. `--aspen-root 'C:\path\to\Plant'` changes their root while preserving the resolved filenames and matching snapshot-directory convention.
 
+Use `--aspen-number N` to select `C2S_SS_simulationN.dynf` and its matching snapshot directory for **all** distillation stages, including the nominal probe. The stages reuse that file sequentially; this overrides the family filenames only for the E3 study. The explicit root and number are saved with the study settings and cannot be changed on resume.
+
 Full production command, **not launched during implementation**:
 
 ```powershell
 & $e3Python run_e3_prediction_quality.py
 ```
 
-Run only one plant or one controller family:
+Run polymer and distillation separately, keeping distillation on available simulation11 while simulations 1–10 are occupied:
 
 ```powershell
 & $e3Python run_e3_prediction_quality.py --plants polymer
-& $e3Python run_e3_prediction_quality.py --plants distillation --categories markov
+& $e3Python run_e3_prediction_quality.py --plants distillation --aspen-number 11
 ```
+
+Each command runs both Markov and combined plus its plant's shared nominal probe. The two commands can run in separate terminals. Replace `11` with an available number from `12` through `16` if desired. Add `--categories markov` or `--categories combined` to restrict the controller family, or `--preflight` to check paths without starting training.
 
 Every selected plant gets one shared nominal probe. Selecting a category does not multiply nominal probes. The default order is polymer nominal, polymer Markov, polymer combined, distillation nominal, distillation Markov, distillation combined. Workers run sequentially with one numerical thread. `--seed`, `--samples-per-window`, `--prediction-horizons`, `--threads`, `--python`, and `--output-dir` allow explicit alternatives; the complete effective configuration is saved.
 

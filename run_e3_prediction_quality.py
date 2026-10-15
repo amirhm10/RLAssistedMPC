@@ -39,6 +39,11 @@ def build_jobs(plants, categories, seed):
 def validate_options(options):
     if options["seed"] < 0 or options["samples_per_window"] < 1 or options["threads"] < 1:
         raise ValueError("Seed must be nonnegative; sampling budget and threads must be positive.")
+    if options.get("aspen_number") is not None:
+        if options["aspen_number"] < 1:
+            raise ValueError("Aspen simulation number must be positive.")
+        if "distillation" not in options["plants"]:
+            raise ValueError("--aspen-number requires selecting distillation.")
     horizons = options["horizons"]
     if not horizons or sorted(set(horizons)) != list(horizons) or min(horizons) < 1:
         raise ValueError("Horizons must be distinct, increasing positive integers.")
@@ -55,14 +60,14 @@ def validate_options(options):
             raise ValueError("Requested forecast horizon exceeds the nominal validation budget.")
 
 
-def preflight(python, jobs, aspen_root=None):
+def preflight(python, jobs, aspen_root=None, aspen_number=None):
     request = {"categories": sorted({j["category"] for j in jobs if j["plant"] == "distillation"}),
-               "aspen_root": str(aspen_root) if aspen_root else None}
+               "aspen_root": str(aspen_root) if aspen_root else None, "aspen_number": aspen_number}
     code = (
         "import json,sys; import numpy,scipy,torch,control; "
         "from review_experiments.e3.runtime import resolve_aspen; "
         "r=json.load(sys.stdin); "
-        "print(json.dumps({c:resolve_aspen(c,r['aspen_root']) for c in r['categories']}))"
+        "print(json.dumps({c:resolve_aspen(c,r['aspen_root'],r['aspen_number']) for c in r['categories']}))"
     )
     checked = subprocess.run([str(python), "-c", code], cwd=ROOT, input=json.dumps(request),
                              text=True, capture_output=True)
@@ -390,6 +395,8 @@ def parser():
     value.add_argument("--threads", type=int)
     value.add_argument("--python", dest="python_executable")
     value.add_argument("--aspen-root", type=Path)
+    value.add_argument("--aspen-number", type=int,
+                       help="Use C2S_SS_simulationN.dynf for every sequential distillation stage.")
     value.add_argument("--output-dir", type=Path)
     value.add_argument("--dry-run", action="store_true")
     value.add_argument("--preflight", action="store_true", help="Check interpreter and Aspen paths without opening Aspen or writing outputs.")
@@ -419,7 +426,7 @@ def main(argv=None):
     if args.resume:
         if any(item is not None for item in (args.plants, args.categories, args.seed, args.prediction_horizons,
                                              args.samples_per_window, args.threads, args.python_executable,
-                                             args.aspen_root, args.output_dir)) or args.smoke:
+                                             args.aspen_root, args.aspen_number, args.output_dir)) or args.smoke:
             raise ValueError("Resume uses its saved options and interpreter; do not change the study settings.")
         directory = args.resume.resolve()
         manifest = json.loads((directory / "manifest.json").read_text())
@@ -431,7 +438,9 @@ def main(argv=None):
                    "seed": 7 if args.seed is None else args.seed,
                    "horizons": args.prediction_horizons or [1, 4, 8],
                    "samples_per_window": args.samples_per_window if args.samples_per_window is not None else (1 if args.smoke else 100),
-                   "threads": 1 if args.threads is None else args.threads, "smoke": args.smoke}
+                   "threads": 1 if args.threads is None else args.threads, "smoke": args.smoke,
+                   "aspen_number": args.aspen_number,
+                   "aspen_root": str(args.aspen_root.expanduser().resolve()) if args.aspen_root else None}
         if len(set(options["plants"])) != len(options["plants"]) or len(set(options["categories"])) != len(options["categories"]):
             raise ValueError("Plants and categories cannot be repeated.")
         validate_options(options)
@@ -448,17 +457,19 @@ def main(argv=None):
           f"seed {options['seed']}; horizons {options['horizons']}; sequential workers.")
     for job in jobs:
         print(f"  {job['id']}: {ENTRIES[job['plant']][job['category']]}")
+    if options.get("aspen_number") is not None:
+        print(f"  All distillation stages use C2S_SS_simulation{options['aspen_number']}.dynf sequentially.")
     if args.dry_run:
         print("Dry run: no imports of the scientific stack, outputs, Aspen sessions, or training.")
         return 0
     if args.preflight:
-        planned = preflight(python, jobs, args.aspen_root)
+        planned = preflight(python, jobs, options.get("aspen_root"), options.get("aspen_number"))
         print(json.dumps(planned, indent=2))
         return 0
     if args.resume:
         check_sources(manifest["source_hashes"])
     else:
-        jobs = preflight(python, jobs, args.aspen_root)
+        jobs = preflight(python, jobs, options.get("aspen_root"), options.get("aspen_number"))
         directory = (args.output_dir or ROOT / "Results" / "e3" /
                      (datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S") + "_" + uuid.uuid4().hex[:6])).resolve()
         directory.mkdir(parents=True, exist_ok=False)

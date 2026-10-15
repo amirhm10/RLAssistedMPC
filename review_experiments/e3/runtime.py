@@ -153,9 +153,11 @@ def passive_capture(category, session):
         setattr(module, function_name, original)
 
 
-def resolve_aspen(category, root_override=None):
+def resolve_aspen(category, root_override=None, number_override=None):
     from systems.distillation import get_distillation_notebook_defaults
     from systems.distillation.config import resolve_aspen_paths
+    if number_override is not None and number_override < 1:
+        raise ValueError("Aspen simulation number must be positive.")
     family = "baseline" if category == "nominal" else category
     defaults = get_distillation_notebook_defaults(family)
     path, snaps, source = resolve_aspen_paths(
@@ -163,12 +165,14 @@ def resolve_aspen(category, root_override=None):
         aspen_preset=defaults["aspen_preset"], dyn_path_override=defaults["aspen_path_override"],
         snaps_path_override=defaults["snaps_path_override"], aspen_root=defaults["aspen_root_override"])
     # The existing resolver's family-default branch does not use aspen_root.
-    # Preserve the resolved basename and matching snapshot directory convention.
-    if root_override:
+    # Explicit E3 selections also choose their matching snapshot directory.
+    if root_override or number_override is not None:
         from systems.distillation.config import resolve_snapshot_dir
-        path = Path(root_override).expanduser().resolve() / Path(path).name
+        root = Path(root_override).expanduser().resolve() if root_override else Path(path).parent
+        name = f"C2S_SS_simulation{number_override}.dynf" if number_override is not None else Path(path).name
+        path = root / name
         snaps = resolve_snapshot_dir(path)
-        source = "e3-root-override"
+        source = "e3-number-override" if number_override is not None else "e3-root-override"
     path, snaps = Path(path).resolve(), Path(snaps).resolve()
     if not path.is_file():
         raise FileNotFoundError(f"Missing Aspen file: {path}")

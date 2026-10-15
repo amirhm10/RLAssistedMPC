@@ -112,8 +112,46 @@ def test_dry_run_is_standard_library_only_and_creates_nothing(tmp_path):
     assert not (tmp_path / "unused").exists()
 
 
+def test_aspen_number_dry_run_is_standard_library_only_and_creates_nothing(tmp_path):
+    code = ("import sys; import run_e3_prediction_quality as c; "
+            f"c.main(['--dry-run','--plants','distillation','--aspen-number','11','--output-dir',{str(tmp_path / 'unused')!r}]); "
+            "assert not any(n in sys.modules for n in ('numpy','scipy','torch','win32com.client'))")
+    result = subprocess.run([sys.executable, "-c", code], cwd=ROOT, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert "2 SG training runs; 1 shared nominal probes" in result.stdout
+    assert "All distillation stages use C2S_SS_simulation11.dynf sequentially." in result.stdout
+    assert not (tmp_path / "unused").exists()
+
+
+@pytest.mark.parametrize("number", range(11, 17))
+def test_aspen_number_preflight_selects_all_stage_paths_and_matching_snapshots(number, tmp_path):
+    model = tmp_path / f"C2S_SS_simulation{number}.dynf"
+    model.write_bytes(b"Fake Aspen model for path preflight only; never opened by COM.")
+    snapshots = tmp_path / f"AM_C2S_SS_simulation{number}"
+    snapshots.mkdir()
+    jobs = cli.preflight(sys.executable, cli.build_jobs(["distillation"], ["markov", "combined"], 7),
+                         tmp_path, number)
+    from systems.distillation import get_distillation_notebook_defaults
+    for job in jobs:
+        paths = job["aspen"]
+        assert paths == {"aspen_path": str(model), "snaps_path": str(snapshots),
+                         "path_source": "e3-number-override", "aspen_sha256": sha256(model)}
+        family = "baseline" if job["category"] == "nominal" else job["category"]
+        configured = configure_defaults(get_distillation_notebook_defaults(family), "distillation",
+                                        job["category"], 7, tmp_path, paths)
+        assert configured["aspen_path_override"] == str(model)
+        assert configured["snaps_path_override"] == str(snapshots)
+
+
+def test_resume_cannot_override_saved_aspen_number(tmp_path):
+    with pytest.raises(ValueError, match="Resume uses its saved options"):
+        cli.main(["--resume", str(tmp_path), "--aspen-number", "12"])
+
+
 @pytest.mark.parametrize("arguments", [["--seed", "-1"], ["--samples-per-window", "999999"],
-                                       ["--prediction-horizons", "8", "1"], ["--smoke", "--plants", "distillation"]])
+                                       ["--prediction-horizons", "8", "1"], ["--smoke", "--plants", "distillation"],
+                                       ["--aspen-number", "0"], ["--aspen-number", "-1"],
+                                       ["--plants", "polymer", "--aspen-number", "11"]])
 def test_invalid_budgets_fail_before_outputs(arguments, tmp_path):
     with pytest.raises(ValueError):
         cli.main([*arguments, "--output-dir", str(tmp_path / "unused")])

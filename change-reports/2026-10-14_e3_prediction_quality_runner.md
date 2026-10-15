@@ -35,3 +35,11 @@ All 32 E3 cases pass across focused runs: 26 fast cases, four configuration-leve
 Full training parity compares trajectories, replay contents, learned network tensors, agent counters and Python/NumPy/PyTorch random states on the same compressed 300-episode clock. Small test networks run on CPU; production sizes and device selection are unchanged. No technical trajectory or plotted value is manuscript evidence. No production training or Aspen simulation was launched.
 
 SHA-256 comparison confirms all 165 pre-existing tracked files retain their starting contents, including the already dirty repetition wrapper. All nine new Python files parse successfully. Read-only preflight verified the installed scientific interpreter and all three current Aspen model paths; representative polymer and distillation prediction/error plots were rendered and visually inspected. Ruff is not installed in the scientific environment; no tooling was installed for this task.
+
+## Follow-up: explicit Aspen simulation number
+
+Added `--aspen-number N` so a separate distillation E3 study can use an available model while simulations 1–10 are occupied. All three sequential distillation stages, including the shared nominal probe, receive the selected model and its matching snapshot directory. Explicit root/number settings are recorded in the manifest and cannot be replaced on resume. Default family mappings and scientific procedures are unchanged.
+
+Inspected the E3 runner/runtime/tests/guide and the existing distillation path/default configuration. Changed the runner, E3 runtime, tests, guide, and this report. No original scientific/configuration files were changed; the 165-file preservation audit still passes.
+
+All 37 focused checks passed (`6 deselected` expensive training/nominal parity cases already verified for the initial implementation). New coverage checks simulation numbers 11–16 across nominal/Markov/combined preflight and effective defaults, matching snapshot paths, standard-library-only dry run, invalid numbers, and rejection of a changed number on resume. Read-only preflight against the actual installed files confirmed that all three distillation stages select simulation11. No Aspen session or production training was launched.

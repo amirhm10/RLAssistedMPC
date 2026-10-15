@@ -2,6 +2,30 @@
 
 Author-selected scope: one seed (7), polymer only, the original **200-cycle** `legacy_gradual_200` scenario. The 300-cycle robustness profile belongs to the separate Scenario 2 campaign. Existing scientific modules, entrypoints, identification assets, and user-owned outputs are read-only to this wrapper.
 
+## Missing-export recovery, 2026-10-15
+
+LS, ARX, BO and threshold have complete saved production trajectories. The
+matched SG run reached cycle 200, but its main export was rejected after
+unrelated E3 source additions changed a broad fingerprint. Its old network
+file contains empty dictionaries; neither it nor the episode reward log can
+recover the lost main trajectory or final trained policy.
+
+The repaired wrapper saves raw trajectories before final checks and exports
+registered PyTorch `state_dict` tensors, with finite-value and disk round-trip
+validation. Each combined export must contain all four agents. These are
+network-weight exports for identically configured inference agents, not
+optimizer/replay/plant checkpoints for continuing training. Existing empty
+files remain preserved, including threshold's; its saved trajectory is valid.
+
+Use `run_remaining_polymer_reviews.cmd` for E1 combined followed by E2 SG,
+or `python run_polymer_review_recovery.py --run --stages e2_sg` for SG alone.
+The default `python run_polymer_review_recovery.py --dry-run` audits the retained
+data and prints the plan without launching anything. New outputs are separate
+attempts under `Polymer/Results/review_recovery/`; completed comparator runs
+are not repeated. The SG attempt restarts its original 200-cycle training
+because an exact training checkpoint is unavailable. One seed, all bounds,
+networks, warm-up and hand-off remain unchanged.
+
 ## CMD commands
 
 ```cmd

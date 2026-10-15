@@ -1,5 +1,32 @@
 # Polymer E1 matched-rollout study
 
+## Remaining-run recovery, 2026-10-15
+
+Four standalone channels have 1,600 validated matched decisions in
+`Polymer/Results/e1/20261013_192015_916c06`. Residual reached cycle 300 and
+saved all 400 pairs, but an overly broad final source check blocked its main
+trajectory export. Its frozen inference snapshots do not contain optimizer or
+replay state for exact training resumption. Retain these pairs without rerunning
+residual. The combined capture is still missing.
+
+`run_polymer_review_recovery.py` audits the retained records and schedules only
+combined E1 (300 cycles; the original 1,600 remaining pairs), then missing E2 SG
+(200 cycles). It preserves all old folders/statuses and the original settings.
+Default invocation is a read-only plan; `--run` starts production. New results
+go under `Polymer/Results/review_recovery/`. Live worker logs appear in CMD.
+
+```cmd
+python run_polymer_review_recovery.py --dry-run
+run_remaining_polymer_reviews.cmd
+```
+
+The source fingerprint now excludes unrelated `review_experiments/e3/` files
+while retaining checks on shared implementation and E1 dependencies. Raw main
+trajectories are saved before final integrity checks; a failed status still
+excludes them from automatic verified reuse. Historical manifests are not
+rewritten to conceal failed exports. Do not use `--resume` on the old E1
+manifest after this documented wrapper revision; use the recovery launcher.
+
 Author-approved implementation scope, 2026-10-13: use **one training seed by default**, reuse the existing training/controller code, preserve the paper's warm-up and hand-off, and add the capture/evaluation needed for reviewer evidence. Full E1 production training has not been launched during development.
 
 ## Default study

@@ -1,0 +1,211 @@
+{
+  "schema": 1,
+  "smoke": false,
+  "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+  "e1_source_audit": {
+    "checked_files": 97,
+    "documented_wrapper_changes": {
+      "run_polymer_e1.py": {
+        "before": "b47a1ec38632f0b20ed0f7894049bf6b04b53004cac74e76d12758352d5ddc91",
+        "after": "ba0bf00ca864439d75b9f4770599c0b0ba0b0e76e115c0165296026c0e3509fc"
+      }
+    }
+  },
+  "e2_sg_source_audit": {
+    "checked_files": 105,
+    "documented_wrapper_changes": {
+      "run_polymer_e1.py": {
+        "before": "b47a1ec38632f0b20ed0f7894049bf6b04b53004cac74e76d12758352d5ddc91",
+        "after": "ba0bf00ca864439d75b9f4770599c0b0ba0b0e76e115c0165296026c0e3509fc"
+      },
+      "comparison_studies/common.py": {
+        "before": "5d66f04c9283d89ec00a45731d626c6299d6f3b53ace12225d567d786da41fc4",
+        "after": "24c8cdd0be7e1e1ade4321ed225ebc4841cbe410a38145c46a34f026d801b869"
+      },
+      "run_polymer_comparisons.py": {
+        "before": "ccaeecdafc3f610f66f28f1d422e7c3ffc2b500a5fbba60bc189fc7c381ab4f3",
+        "after": "3e972482c2f413dbce6cdc11b330acb968926ed45431dd08e7dc4e6eaf03fc14"
+      }
+    }
+  },
+  "retained_evidence": {
+    "e1_horizon": {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\horizon_s7\\a1",
+      "decisions": 400,
+      "decisions_sha256": "6851a8fc735043d73f24a83178ee7047f2b06e99e98018c0b4ccd76f64edab5e",
+      "original_state": "completed",
+      "trajectory_available": true
+    },
+    "e1_weights": {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\weights_s7\\a1",
+      "decisions": 400,
+      "decisions_sha256": "89ebf1f3133cd5e81b1d0f3cc4e6c38c5046e0ec249101f8e2e58f62a91cad1a",
+      "original_state": "completed",
+      "trajectory_available": true
+    },
+    "e1_markov": {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\markov_s7\\a2",
+      "decisions": 400,
+      "decisions_sha256": "a3dd6d416398ec0ce05e93622e2171671343a78958f089a428927f17c0632c97",
+      "original_state": "completed",
+      "trajectory_available": true
+    },
+    "e1_residual": {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\residual_s7\\a1",
+      "decisions": 400,
+      "decisions_sha256": "66ffd86c41be3574e9309e8f8ba0365a4fff77eb0a47a99ccde2c0f37da70ba5",
+      "original_state": "failed",
+      "trajectory_available": false
+    },
+    "e2_ls": {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261013_194218_ls_production\\ls",
+      "steps": 160000,
+      "trajectory_sha256": "a30ec45e7a2f0dbb109e9cdcf6846b994e27751708c59bca8831a5cb7eb8a9e2",
+      "source_audit": {
+        "checked_files": 105,
+        "documented_wrapper_changes": {
+          "run_polymer_e1.py": {
+            "before": "b47a1ec38632f0b20ed0f7894049bf6b04b53004cac74e76d12758352d5ddc91",
+            "after": "ba0bf00ca864439d75b9f4770599c0b0ba0b0e76e115c0165296026c0e3509fc"
+          },
+          "comparison_studies/common.py": {
+            "before": "5d66f04c9283d89ec00a45731d626c6299d6f3b53ace12225d567d786da41fc4",
+            "after": "24c8cdd0be7e1e1ade4321ed225ebc4841cbe410a38145c46a34f026d801b869"
+          },
+          "run_polymer_comparisons.py": {
+            "before": "ccaeecdafc3f610f66f28f1d422e7c3ffc2b500a5fbba60bc189fc7c381ab4f3",
+            "after": "3e972482c2f413dbce6cdc11b330acb968926ed45431dd08e7dc4e6eaf03fc14"
+          }
+        }
+      }
+    },
+    "e2_arx": {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261014_033927_fd26b6\\arx",
+      "steps": 160000,
+      "trajectory_sha256": "39dd0c8427eed56464cb6b48e7643c04f0cd26d5946cae913024fe62569676ab",
+      "source_audit": {
+        "checked_files": 105,
+        "documented_wrapper_changes": {
+          "run_polymer_e1.py": {
+            "before": "b47a1ec38632f0b20ed0f7894049bf6b04b53004cac74e76d12758352d5ddc91",
+            "after": "ba0bf00ca864439d75b9f4770599c0b0ba0b0e76e115c0165296026c0e3509fc"
+          },
+          "comparison_studies/common.py": {
+            "before": "5d66f04c9283d89ec00a45731d626c6299d6f3b53ace12225d567d786da41fc4",
+            "after": "24c8cdd0be7e1e1ade4321ed225ebc4841cbe410a38145c46a34f026d801b869"
+          },
+          "run_polymer_comparisons.py": {
+            "before": "ccaeecdafc3f610f66f28f1d422e7c3ffc2b500a5fbba60bc189fc7c381ab4f3",
+            "after": "3e972482c2f413dbce6cdc11b330acb968926ed45431dd08e7dc4e6eaf03fc14"
+          }
+        }
+      }
+    },
+    "e2_bo": {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261014_033927_fd26b6\\bo",
+      "steps": 160000,
+      "trajectory_sha256": "3d70db4f892f0bbbcdbb15546ea1a1618e1cb0e156db0450855c9a49f9c8e5f1",
+      "source_audit": {
+        "checked_files": 105,
+        "documented_wrapper_changes": {
+          "run_polymer_e1.py": {
+            "before": "b47a1ec38632f0b20ed0f7894049bf6b04b53004cac74e76d12758352d5ddc91",
+            "after": "ba0bf00ca864439d75b9f4770599c0b0ba0b0e76e115c0165296026c0e3509fc"
+          },
+          "comparison_studies/common.py": {
+            "before": "5d66f04c9283d89ec00a45731d626c6299d6f3b53ace12225d567d786da41fc4",
+            "after": "24c8cdd0be7e1e1ade4321ed225ebc4841cbe410a38145c46a34f026d801b869"
+          },
+          "run_polymer_comparisons.py": {
+            "before": "ccaeecdafc3f610f66f28f1d422e7c3ffc2b500a5fbba60bc189fc7c381ab4f3",
+            "after": "3e972482c2f413dbce6cdc11b330acb968926ed45431dd08e7dc4e6eaf03fc14"
+          }
+        }
+      }
+    },
+    "e2_threshold": {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261014_runtime_recovery_threshold_sg\\threshold",
+      "steps": 160000,
+      "trajectory_sha256": "3528a368750246fe88cd71c8b06e650bf9cfa4ddb92e0f8b43ee0ab48b430d09",
+      "source_audit": {
+        "checked_files": 105,
+        "documented_wrapper_changes": {
+          "run_polymer_e1.py": {
+            "before": "b47a1ec38632f0b20ed0f7894049bf6b04b53004cac74e76d12758352d5ddc91",
+            "after": "ba0bf00ca864439d75b9f4770599c0b0ba0b0e76e115c0165296026c0e3509fc"
+          },
+          "comparison_studies/common.py": {
+            "before": "5d66f04c9283d89ec00a45731d626c6299d6f3b53ace12225d567d786da41fc4",
+            "after": "24c8cdd0be7e1e1ade4321ed225ebc4841cbe410a38145c46a34f026d801b869"
+          },
+          "run_polymer_comparisons.py": {
+            "before": "ccaeecdafc3f610f66f28f1d422e7c3ffc2b500a5fbba60bc189fc7c381ab4f3",
+            "after": "3e972482c2f413dbce6cdc11b330acb968926ed45431dd08e7dc4e6eaf03fc14"
+          }
+        }
+      }
+    }
+  },
+  "stages": [
+    {
+      "name": "e1_combined",
+      "command": [
+        "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "-B",
+        "-u",
+        "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_polymer_e1.py",
+        "--categories",
+        "combined",
+        "--seeds",
+        "7",
+        "--workers",
+        "1",
+        "--threads",
+        "1",
+        "--python",
+        "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "--decisions-per-window",
+        "100",
+        "--rollout-steps",
+        "200",
+        "--horizons",
+        "20",
+        "80",
+        "200",
+        "--long-rollout-steps",
+        "800",
+        "--long-fraction",
+        "0.1",
+        "--snapshots-per-window",
+        "1",
+        "--continuation",
+        "gated",
+        "--return-tolerance",
+        "0.0"
+      ]
+    },
+    {
+      "name": "e2_sg",
+      "command": [
+        "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "-B",
+        "-u",
+        "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_polymer_comparisons.py",
+        "--methods",
+        "sg",
+        "--seed",
+        "7",
+        "--threads",
+        "1",
+        "--python",
+        "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe"
+      ]
+    }
+  ],
+  "limitations": [
+    "Residual matched pairs are retained; its original training trajectory is unavailable.",
+    "Old empty threshold/SG network files cannot restore trained weights.",
+    "No residual, threshold, LS, ARX or BO training is scheduled.",
+    "New exports are separate attempts, not recovered historical trajectories."
+  ]
+}

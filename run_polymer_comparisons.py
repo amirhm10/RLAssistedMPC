@@ -118,6 +118,7 @@ def worker(job_path):
                                           solver_audit,reference_physical)
     from comparison_studies.native import ls_run,arx_run,bo_run,combined_run,nominal_run
     from comparison_studies.analysis import metrics
+    from comparison_studies.checkpoints import save_inference_checkpoint
     job_path = Path(job_path)
     job = json.loads(job_path.read_text(encoding="utf-8"))
     output = job_path.parent
@@ -152,6 +153,7 @@ def worker(job_path):
             random.seed(job["seed"]);np.random.seed(job["seed"]);torch.manual_seed(job["seed"])
             if torch.cuda.is_available():torch.cuda.manual_seed_all(job["seed"])
         began = time.perf_counter()
+        agents = None
         with solver_audit() as audit:
             if job["method"] == "ls":
                 result = ls_run(namespace,full)
@@ -162,20 +164,29 @@ def worker(job_path):
             else:
                 result,agents,actual_defaults = combined_run(output,seed=job["seed"],threshold=threshold_value,smoke=job["smoke"])
                 write_json(output/"resolved_combined_defaults.json",actual_defaults)
-                state = {name:{field:{k:v.detach().cpu() for k,v in module.state_dict().items()}
-                               for field,module in vars(agent).items() if isinstance(module,torch.nn.Module)}
-                         for name,agent in agents.items()}
-                torch.save(state,output/"final_inference_networks.pt")
         result = {k:v for k,v in result.items() if not k.startswith("_")}
         result.update(comparison_method=job["method"],comparison_seed=job["seed"],comparison_smoke=job["smoke"],
                       comparison_source_hashes=job["source_hashes"],comparison_solver_audit=np.asarray(audit),
                       comparison_worker_seconds=time.perf_counter()-began)
         if result["nFE"] != (800 if job["smoke"] else 160000):
             raise RuntimeError("Incorrect Scenario1 control-step count.")
-        if source_hashes() != job["source_hashes"]:
-            raise RuntimeError("Sources changed during the run; preserve outputs for diagnosis.")
+        # Export raw data before the checkpoint and integrity checks. A failed
+        # status still prevents this unvalidated trajectory being reused.
         with (output/"training.pkl").open("xb") as stream:
             pickle.dump(result,stream,protocol=pickle.HIGHEST_PROTOCOL)
+        status.update(trajectory_saved=True,
+                      trajectory_sha256=hashlib.sha256((output/"training.pkl").read_bytes()).hexdigest())
+        if agents is not None:
+            expected_agents = {"horizon_agent", "weight_agent", "markov_agent", "residual_agent"}
+            if set(agents) != expected_agents:
+                raise RuntimeError(f"Incomplete combined policy export: {sorted(agents)}")
+            checkpoint = save_inference_checkpoint(output/"final_inference_networks.pt", agents,
+                metadata={"method":job["method"],"seed":job["seed"],"profile":job["profile"],
+                          "smoke":job["smoke"],"source_hashes":job["source_hashes"],
+                          "configuration":"resolved_combined_defaults.json"})
+            status["checkpoint"] = checkpoint
+        if source_hashes() != job["source_hashes"]:
+            raise RuntimeError("Sources changed during the run; raw trajectory retained for diagnosis.")
         if not job["smoke"]:
             write_json(output/"metrics.json",metrics(result))
         write_json(output/"timing.json",result.get("comparison_timing"))

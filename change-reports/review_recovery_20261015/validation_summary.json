@@ -1,0 +1,39 @@
+{
+  "fast_checks": {
+    "passed": 38,
+    "deselected_unchanged_expensive_parity": 8,
+    "command": "python -B -m pytest tests/test_polymer_review_recovery.py tests/test_polymer_comparisons.py tests/test_polymer_e1.py -k 'not test_capture_preserves_original_full_training_and_handoff and not test_saved_snapshot_reproduces_original_matched_branches' -q -p no:cacheprovider",
+    "warnings": "Four existing Gaussian-process length-scale-bound convergence warnings in a small BO contract test."
+  },
+  "additional_recovery_checks": {
+    "passed": 3,
+    "log": "additional_checks.log",
+    "contracts": [
+      "stop before next stage on failure",
+      "refuse existing output directory",
+      "reject incomplete matched decisions despite exit zero"
+    ]
+  },
+  "targeted_checks_total_passed": 41,
+  "end_to_end_technical_smokes": {
+    "e1_combined": {
+      "completed": true,
+      "decisions": 16,
+      "failed_pairs": 0,
+      "trajectory_hash_verified": true
+    },
+    "e2_sg": {
+      "completed": true,
+      "control_steps": 800,
+      "checkpoint_tensor_counts": {
+        "horizon_agent": 24,
+        "weight_agent": 72,
+        "markov_agent": 84,
+        "residual_agent": 84
+      },
+      "checkpoint_round_trip_verified": true
+    }
+  },
+  "scientific_performance_evidence": false,
+  "production_launched": false
+}

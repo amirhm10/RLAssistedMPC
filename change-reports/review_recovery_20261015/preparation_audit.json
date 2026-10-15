@@ -1,0 +1,60 @@
+{
+  "initial_snapshot_python_files_checked": 115,
+  "documented_snapshot_wrapper_repairs": [
+    "run_polymer_e1.py"
+  ],
+  "original_scientific_python_files_checked": 114,
+  "original_scientific_python_changed": [],
+  "original_manuscript_files_checked": 46,
+  "original_manuscript_changed": [],
+  "running_study_source_inventories": [
+    {
+      "manifest": "Results\\e3\\20261015_042751_513bff\\manifest.json",
+      "checked_files": 103,
+      "changed": []
+    },
+    {
+      "manifest": "Results\\e3\\20261015_042751_4e03da\\manifest.json",
+      "checked_files": 103,
+      "changed": []
+    },
+    {
+      "manifest": "Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\manifest.json",
+      "checked_files": 86,
+      "changed": []
+    }
+  ],
+  "wrapper_changes": {
+    "run_polymer_e1.py": {
+      "before": "b47a1ec38632f0b20ed0f7894049bf6b04b53004cac74e76d12758352d5ddc91",
+      "after": "ba0bf00ca864439d75b9f4770599c0b0ba0b0e76e115c0165296026c0e3509fc"
+    },
+    "run_polymer_comparisons.py": {
+      "before": "ccaeecdafc3f610f66f28f1d422e7c3ffc2b500a5fbba60bc189fc7c381ab4f3",
+      "after": "3e972482c2f413dbce6cdc11b330acb968926ed45431dd08e7dc4e6eaf03fc14"
+    },
+    "comparison_studies/common.py": {
+      "before": "5d66f04c9283d89ec00a45731d626c6299d6f3b53ace12225d567d786da41fc4",
+      "after": "24c8cdd0be7e1e1ade4321ed225ebc4841cbe410a38145c46a34f026d801b869"
+    }
+  },
+  "e1_fingerprint_files": 97,
+  "unrelated_e3_excluded_from_e1_fingerprint": true,
+  "production_stages": [
+    "e1_combined",
+    "e2_sg"
+  ],
+  "production_launched_by_this_preparation": false,
+  "retained_matched_decisions": 1600,
+  "smoke_exits": {
+    "e1_combined": {
+      "returncode": 0,
+      "saved_artifacts_verified": true
+    },
+    "e2_sg": {
+      "returncode": 0,
+      "saved_artifacts_verified": true
+    }
+  },
+  "both_smokes_complete": true
+}

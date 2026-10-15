@@ -40,7 +40,7 @@ def write_json(path, value):
 
 def source_hashes():
     from run_polymer_e1 import source_hashes as scientific_hashes
-    result = scientific_hashes()
+    result = scientific_hashes(ROOT)
     paths = list((ROOT / "comparison_studies").glob("*.py")) + [ROOT / "run_polymer_comparisons.py"]
     for path in paths:
         result[path.relative_to(ROOT).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()

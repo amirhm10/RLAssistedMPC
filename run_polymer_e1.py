@@ -45,13 +45,19 @@ def write_json(path, value):
     temporary.replace(path)
 
 
-def source_hashes():
-    files = {ROOT / name for name in ENTRIES.values()}
-    files.add(Path(__file__).resolve())
-    for directory in ("Simulation", "DQN", "TD3Agent", "utils", "systems", "review_experiments"):
-        files.update((ROOT / directory).rglob("*.py"))
-    files.update(ROOT / "Polymer" / "Data" / name for name in ("system_dict", "scaling_factor.pickle", "min_max_states.pickle"))
-    return {path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+def source_hashes(root=None):
+    """Fingerprint E1 dependencies, excluding unrelated reviewer experiments.
+
+    Additions or edits inside E1 and the shared implementation remain guarded.
+    A new E3 experiment must not invalidate an unchanged E1 training run.
+    """
+    root = Path(root) if root is not None else ROOT
+    files = {root / name for name in ENTRIES.values()}
+    files.update(root / name for name in ("run_polymer_e1.py", "review_experiments/__init__.py"))
+    for directory in ("Simulation", "DQN", "TD3Agent", "utils", "systems", "review_experiments/e1"):
+        files.update((root / directory).rglob("*.py"))
+    files.update(root / "Polymer" / "Data" / name for name in ("system_dict", "scaling_factor.pickle", "min_max_states.pickle"))
+    return {path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in sorted(files) if path.is_file()}
 
 
@@ -145,12 +151,16 @@ def worker(job_path):
                 stack.enter_context(compressed_smoke_clock(job["category"]))
             stack.enter_context(install_runner(job["category"], factory))
             namespace = execute_entrypoint(job["category"], configure)
-        if source_hashes() != job["source_hashes"]:
-            raise RuntimeError("Scientific/E1 sources changed during this capture; preserve the outputs and original source version.")
         if namespace.get("TRAINING_PROFILE_NAME") != "robustness_200_100":
             raise RuntimeError("Entrypoint did not select the requested Scenario 2 profile.")
+        # Preserve the completed raw trajectory even if final validation fails.
+        # Only the completed status certifies source validation and analysis.
         with (output / "training.pkl").open("xb") as stream:
             pickle.dump(namespace["result_bundle"], stream, protocol=pickle.HIGHEST_PROTOCOL)
+        status["trajectory_sha256"] = hashlib.sha256((output / "training.pkl").read_bytes()).hexdigest()
+        status["trajectory_saved"] = True
+        if source_hashes() != job["source_hashes"]:
+            raise RuntimeError("Scientific/E1 sources changed during this capture; raw trajectory retained for diagnosis.")
         summarize(records, output / "analysis", options.practical_tolerance)
         status.update(state="completed", finished_at=utc_now(), decisions=len(records),
                       failed_pairs=sum(r["status"] != "completed" for r in records),

@@ -66,7 +66,11 @@ def log_tail(path, count=16000):
 
 def snapshot(root=ROOT):
     rows = []
-    for name, relative in STUDIES.items():
+    studies = dict(STUDIES)
+    for path in sorted((Path(root)/"Polymer/Results/review_recovery").glob("*/concurrent_plan.json")):
+        if not read_json(path).get("smoke", True):
+            studies["Polymer_remaining_" + path.parent.name] = str(path.parent)
+    for name, relative in studies.items():
         directory = Path(root) / relative
         manifest = read_json(directory / "manifest.json")
         if not manifest:
@@ -89,10 +93,11 @@ def snapshot(root=ROOT):
             status = {}
             if path:
                 status = read_json(path/"status.json") or read_json(path/"worker_status.json")
-            state = job.get("state", status.get("state", "pending"))
+            execution = read_json(path/"execution.json") if path and name.startswith("Polymer_remaining_") else {}
+            state = (status.get("state") or execution.get("state") or job.get("state", "pending")) if execution else job.get("state", status.get("state", "pending"))
             if state == "running" and status.get("state") in ("failed", "completed"):
                 state = status["state"]
-            pid = attempt.get("pid", status.get("pid"))
+            pid = attempt.get("pid", status.get("pid", execution.get("pid")))
             info = process_info(pid) if state == "running" else {"alive": None, "cpu_seconds": None}
             if state == "running" and info["alive"] is False:
                 state = "stopped_without_final_status"
@@ -106,6 +111,9 @@ def snapshot(root=ROOT):
                    "historical_failed_attempts": sum(a.get("state") == "failed" for a in attempts[:-1]),
                    "last_log_at": datetime.fromtimestamp(log.stat().st_mtime).isoformat() if log and log.exists() else None}
             if path:
+                checkpoint = read_json(path/"training_checkpoints/latest.json")
+                if checkpoint:
+                    row["checkpoint_cycle"] = checkpoint.get("completed_cycles")
                 for candidate in (path/"capture"/"decisions.jsonl", path/"decisions"/"decisions.jsonl"):
                     if candidate.exists():
                         records = []
@@ -123,7 +131,7 @@ def snapshot(root=ROOT):
                     row["prediction_origins"] = sum(bool(line.strip()) for line in captures.open(encoding="utf-8"))
             rows.append(row)
     return {"observed_at_utc": datetime.now(timezone.utc).isoformat(), "jobs": rows,
-            "counts": {name: dict(collections.Counter(r["state"] for r in rows if r["study"] == name)) for name in STUDIES}}
+            "counts": {name: dict(collections.Counter(r["state"] for r in rows if r["study"] == name)) for name in studies}}
 
 
 def display(data):
@@ -141,5 +149,7 @@ def display(data):
             detail += f" matched={row['completed_matched_decisions']}/{row['expected_matched_decisions']} step={row.get('last_matched_step')}"
         if "prediction_origins" in row:
             detail += f" prediction_origins={row['prediction_origins']}"
+        if "checkpoint_cycle" in row:
+            detail += f" full_training_checkpoint_cycle={row['checkpoint_cycle']}"
         print(f"  {row['study']} {row['job']}: {row['state']} {detail}", flush=True)
-    print("The E2 SG row follows the recovery queue. Closing this viewer does not stop a study.", flush=True)
+    print("Historical failures remain visible; Polymer_remaining rows track the new independent recoveries. Closing this viewer does not stop a study.", flush=True)

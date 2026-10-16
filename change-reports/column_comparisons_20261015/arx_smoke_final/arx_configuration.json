@@ -1,0 +1,27 @@
+{
+  "revision": "persistent_nominal_prior_and_dc_gain_admission_v1",
+  "forgetting": 0.995,
+  "gain_ratio_bounds": [
+    0.25,
+    4.0
+  ],
+  "nominal_gains": [
+    [
+      0.0014990769165936161,
+      0.0038067136532561607
+    ],
+    [
+      -0.011994033581196575,
+      0.019424968630661715
+    ]
+  ],
+  "rejections": {
+    "reversed_gain_direction": 2,
+    "dc_gain_outside_nominal_bounds": 1589
+  },
+  "information_min_eigenvalues": [
+    0.0010011402430407368,
+    0.0010051173370651675
+  ],
+  "claim": "bounded model admission; no formal closed-loop stability guarantee"
+}

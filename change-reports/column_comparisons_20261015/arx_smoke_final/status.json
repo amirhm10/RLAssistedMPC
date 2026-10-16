@@ -1,0 +1,8 @@
+{
+  "state": "completed",
+  "pid": 5852,
+  "steps": 800,
+  "smoke": true,
+  "trajectory_sha256": "ea6b99338781eddbcc22f44f6716c63f5a1598d4efc1af08c744817e1b4bd660",
+  "solver_failed_calls": 0
+}

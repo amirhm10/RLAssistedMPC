@@ -1,0 +1,14 @@
+...................................................                      [100%]
+============================== warnings summary ===============================
+tests/test_polymer_comparisons.py::ComparatorMathTests::test_bo_budget_bounds_failure_exclusion_and_reproducibility
+tests/test_polymer_comparisons.py::ComparatorMathTests::test_bo_budget_bounds_failure_exclusion_and_reproducibility
+  C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\site-packages\sklearn\gaussian_process\kernels.py:445: ConvergenceWarning: The optimal value found for dimension 0 of parameter k2__length_scale is close to the specified lower bound 0.01. Decreasing the bound and calling fit again may find a better value.
+    warnings.warn(
+
+tests/test_polymer_comparisons.py::ComparatorMathTests::test_bo_budget_bounds_failure_exclusion_and_reproducibility
+tests/test_polymer_comparisons.py::ComparatorMathTests::test_bo_budget_bounds_failure_exclusion_and_reproducibility
+  C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\site-packages\sklearn\gaussian_process\kernels.py:445: ConvergenceWarning: The optimal value found for dimension 1 of parameter k2__length_scale is close to the specified lower bound 0.01. Decreasing the bound and calling fit again may find a better value.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+51 passed, 4 warnings in 9.22s

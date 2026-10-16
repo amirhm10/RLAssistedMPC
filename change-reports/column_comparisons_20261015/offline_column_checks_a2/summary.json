@@ -1,0 +1,86 @@
+{
+  "state": "completed",
+  "methods": [
+    {
+      "method": "nominal",
+      "steps": 400,
+      "cycles": 200,
+      "original_architectures": true,
+      "live_aspen_opened": false,
+      "scientific_performance_result": false
+    },
+    {
+      "method": "ls",
+      "steps": 400,
+      "cycles": 200,
+      "original_architectures": true,
+      "live_aspen_opened": false,
+      "scientific_performance_result": false
+    },
+    {
+      "method": "bo",
+      "steps": 400,
+      "cycles": 200,
+      "original_architectures": true,
+      "live_aspen_opened": false,
+      "scientific_performance_result": false
+    },
+    {
+      "method": "threshold",
+      "steps": 400,
+      "cycles": 200,
+      "original_architectures": true,
+      "live_aspen_opened": false,
+      "scientific_performance_result": false,
+      "checkpoint": {
+        "path": "inference.pt",
+        "sha256": "b74ac6ebddee7dcfa00859860b8884f0eee13dcccf1ae93ea122e0c50384d949",
+        "tensor_counts": {
+          "horizon_agent": 24,
+          "weight_agent": 72,
+          "markov_agent": 84,
+          "residual_agent": 84
+        },
+        "parameter_elements": {
+          "horizon_agent": 2157646,
+          "weight_agent": 6367244,
+          "markov_agent": 7485456,
+          "residual_agent": 7420938
+        },
+        "round_trip_verified": true,
+        "training_resume": false
+      }
+    },
+    {
+      "method": "sg",
+      "steps": 400,
+      "cycles": 200,
+      "original_architectures": true,
+      "live_aspen_opened": false,
+      "scientific_performance_result": false,
+      "checkpoint": {
+        "path": "inference.pt",
+        "sha256": "c704394b2f3a43bbdc3578cc802efc74f5436ecc6cd50ed3d201d76f8537a48c",
+        "tensor_counts": {
+          "horizon_agent": 24,
+          "weight_agent": 72,
+          "markov_agent": 84,
+          "residual_agent": 84
+        },
+        "parameter_elements": {
+          "horizon_agent": 2157646,
+          "weight_agent": 6367244,
+          "markov_agent": 7485456,
+          "residual_agent": 7420938
+        },
+        "round_trip_verified": true,
+        "training_resume": false
+      }
+    }
+  ],
+  "owned_fake_cases_created": 11,
+  "owned_fake_cases_closed": 11,
+  "live_aspen_opened": false,
+  "training_clock_stride": 200,
+  "scope": "Original column entrypoints and networks on compressed clock with an identified-model fake plant; no plant performance evidence."
+}

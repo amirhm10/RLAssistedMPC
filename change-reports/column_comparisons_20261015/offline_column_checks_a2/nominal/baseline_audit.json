@@ -1,0 +1,44 @@
+{
+  "state": "verified_configuration_schedule_scaling_and_saved_reward",
+  "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Data\\mpc_results_disturb_fluctuation.pickle",
+  "source_sha256": "268a29a3ee49f42748285585b77bd5c1794664c421b4515f78abbd8a4e21ff12",
+  "steps": 80000,
+  "reward_max_abs_difference_from_cached_values": 1007.9111261183444,
+  "reference_metric_reward": "recomputed with the unchanged active column reward for all arms",
+  "cached_reward_matches_active_reward": false,
+  "reward_params": {
+    "k_rel": [
+      0.3,
+      0.01
+    ],
+    "band_floor_phys": [
+      0.003,
+      0.2
+    ],
+    "band_floor_scaled": [
+      0.005622406766792754,
+      0.011228095071037137
+    ],
+    "Q_diag": [
+      37000.0,
+      20000.0
+    ],
+    "R_diag": [
+      2500.0,
+      2500.0
+    ],
+    "tau_frac": 0.7,
+    "gamma_out": 0.5,
+    "gamma_in": 0.5,
+    "beta": 7.0,
+    "gate": "geom",
+    "lam_in": 1.0,
+    "bonus_kind": "exp",
+    "bonus_k": 12.0,
+    "bonus_p": 0.6,
+    "bonus_c": 20.0,
+    "reward_scale": 1.0
+  },
+  "simulation_replayed": false,
+  "scope": "saved publication baseline; no same-environment bitwise trajectory reproduction claim"
+}

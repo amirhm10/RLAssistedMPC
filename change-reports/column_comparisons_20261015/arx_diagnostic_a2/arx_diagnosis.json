@@ -1,0 +1,3884 @@
+{
+  "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261014_033927_fd26b6\\arx\\training.pkl",
+  "source_sha256": "39dd0c8427eed56464cb6b48e7643c04f0cd26d5946cae913024fe62569676ab",
+  "steps": 160000,
+  "nominal_dc_gains_scaled": [
+    [
+      0.0014990769165936161,
+      0.0038067136532561607
+    ],
+    [
+      -0.011994033581196053,
+      0.019424968630660764
+    ]
+  ],
+  "all_admitted_poles_inside_unit_circle": true,
+  "temperature_monomer_reversed_gain_steps": 8775,
+  "first_reversed_gain_step_zero_based": 9200,
+  "first_reversed_gain_cycle": 12,
+  "last_cycle_temperature_min_max_K": [
+    443.9468451859685,
+    444.0347737683111
+  ],
+  "last_cycle_mean_reward": -22409.049957458832,
+  "final_dc_gains_scaled": [
+    [
+      -0.0020111370262067903,
+      0.06192733078086018
+    ],
+    [
+      -0.020581031321219148,
+      -0.2508438663137299
+    ]
+  ],
+  "interpretation": "Pole stability admitted predictors with reversed manipulated-input gains. This establishes an inadequate model-admission rule; closed-loop data alone do not isolate every cause of parameter drift.",
+  "repair": "Persistent nominal ridge prior plus gain direction/magnitude admission; last valid predictor retained.",
+  "production_repair_run_completed": false,
+  "cycles": [
+    {
+      "cycle": 1,
+      "mean_reward": -1.6718479619010405,
+      "temperature_min_max_K": [
+        320.325169900804,
+        326.18829667460176
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2407095732480213,
+          0.7212181099961005
+        ],
+        [
+          -0.24069244180125376,
+          0.5921969671387138
+        ]
+      ]
+    },
+    {
+      "cycle": 2,
+      "mean_reward": -1.6379125147218025,
+      "temperature_min_max_K": [
+        319.78594291787334,
+        324.16085905709696
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2605375568793902,
+          0.8488932377629156
+        ],
+        [
+          -0.8171369548911731,
+          1.1534245413652324
+        ]
+      ]
+    },
+    {
+      "cycle": 3,
+      "mean_reward": -1.7162560536147133,
+      "temperature_min_max_K": [
+        320.38157419807607,
+        324.0778915856536
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3128656754061008,
+          0.7610120525872084
+        ],
+        [
+          -0.5672700742540497,
+          1.0589552298169727
+        ]
+      ]
+    },
+    {
+      "cycle": 4,
+      "mean_reward": -1.6515158108159995,
+      "temperature_min_max_K": [
+        320.06087926669966,
+        324.0765599475728
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.1204856062958544,
+          0.8586221955682923
+        ],
+        [
+          -0.429597852751292,
+          0.8737479272716572
+        ]
+      ]
+    },
+    {
+      "cycle": 5,
+      "mean_reward": -1.754883148200065,
+      "temperature_min_max_K": [
+        320.36625257215735,
+        324.0915456790875
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2237345375700932,
+          0.707378568024795
+        ],
+        [
+          -0.3029249180729594,
+          0.7055478932113647
+        ]
+      ]
+    },
+    {
+      "cycle": 6,
+      "mean_reward": -1.6369245769097114,
+      "temperature_min_max_K": [
+        319.8970660461706,
+        324.18980619649454
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.4711479847011305,
+          0.6643385959221854
+        ],
+        [
+          -0.9838789370990026,
+          1.3928668167052143
+        ]
+      ]
+    },
+    {
+      "cycle": 7,
+      "mean_reward": -1.6736261368349614,
+      "temperature_min_max_K": [
+        320.1820621722764,
+        324.2414236600898
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.11215186623494731,
+          0.9243307320616433
+        ],
+        [
+          -0.3086232985771263,
+          0.7729174810759191
+        ]
+      ]
+    },
+    {
+      "cycle": 8,
+      "mean_reward": -1.7084893161500956,
+      "temperature_min_max_K": [
+        319.818337846679,
+        324.5185823928359
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.27050568895664917,
+          0.6547107109616565
+        ],
+        [
+          -0.8881906158522657,
+          1.405700850120182
+        ]
+      ]
+    },
+    {
+      "cycle": 9,
+      "mean_reward": -1.639709294228597,
+      "temperature_min_max_K": [
+        320.01849383252494,
+        324.06358338066303
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.4682972433072983,
+          0.7040812422241867
+        ],
+        [
+          -1.0282807613313028,
+          1.5004927529780467
+        ]
+      ]
+    },
+    {
+      "cycle": 10,
+      "mean_reward": -7.356726302056177,
+      "temperature_min_max_K": [
+        320.1802825630604,
+        329.1677030900738
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.05281345142995084,
+          1.1962496294198786
+        ],
+        [
+          -0.6794026801083027,
+          1.1634383214945496
+        ]
+      ]
+    },
+    {
+      "cycle": 11,
+      "mean_reward": -1.7200309032475452,
+      "temperature_min_max_K": [
+        320.05798561820154,
+        324.3265110011837
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.25696653065724084,
+          0.7211378082250877
+        ],
+        [
+          -1.1667281692026659,
+          1.6525934156586808
+        ]
+      ]
+    },
+    {
+      "cycle": 12,
+      "mean_reward": -1.6796100863124312,
+      "temperature_min_max_K": [
+        320.2138549291715,
+        324.12067232354894
+      ],
+      "reversed_temperature_monomer_steps": 1,
+      "final_dc_gains_scaled": [
+        [
+          0.31064425276329555,
+          0.7635864154122091
+        ],
+        [
+          -3.277399596551795,
+          4.351053784611999
+        ]
+      ]
+    },
+    {
+      "cycle": 13,
+      "mean_reward": -1.6910035959990644,
+      "temperature_min_max_K": [
+        320.46009675073327,
+        324.06564329914676
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2903409681700985,
+          0.7119671074529854
+        ],
+        [
+          -0.5929645394086599,
+          1.1495214546827026
+        ]
+      ]
+    },
+    {
+      "cycle": 14,
+      "mean_reward": -1.6457164939697413,
+      "temperature_min_max_K": [
+        319.7812524004343,
+        324.0851027750057
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.08781838339271412,
+          0.864147912045182
+        ],
+        [
+          -0.41498474346517356,
+          0.8390822365060794
+        ]
+      ]
+    },
+    {
+      "cycle": 15,
+      "mean_reward": -1.6535468909755284,
+      "temperature_min_max_K": [
+        319.4613926997843,
+        324.20890999544974
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3686262590895346,
+          0.6092383513679065
+        ],
+        [
+          -1.0033015231082112,
+          1.4664629220398095
+        ]
+      ]
+    },
+    {
+      "cycle": 16,
+      "mean_reward": -1.6462673236826988,
+      "temperature_min_max_K": [
+        320.110613420443,
+        324.1789534457174
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.060810083800750016,
+          0.8781776728013856
+        ],
+        [
+          -0.353405071705822,
+          0.8203824291335624
+        ]
+      ]
+    },
+    {
+      "cycle": 17,
+      "mean_reward": -1.673785038917572,
+      "temperature_min_max_K": [
+        319.8768784488393,
+        324.4113764994606
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.28871014498786096,
+          0.63893128543687
+        ],
+        [
+          -0.9821289039097113,
+          1.5601934153083168
+        ]
+      ]
+    },
+    {
+      "cycle": 18,
+      "mean_reward": -1.6265008602038924,
+      "temperature_min_max_K": [
+        319.8514192102802,
+        324.09659648727205
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.32541714399781824,
+          0.7845994784771904
+        ],
+        [
+          -0.7285622140609315,
+          1.114163120691411
+        ]
+      ]
+    },
+    {
+      "cycle": 19,
+      "mean_reward": -1.631003927296298,
+      "temperature_min_max_K": [
+        320.09208464109065,
+        324.0756656763127
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.5460382543376091,
+          0.6734291703267405
+        ],
+        [
+          -0.6781579763117603,
+          1.146390478303946
+        ]
+      ]
+    },
+    {
+      "cycle": 20,
+      "mean_reward": -1.6834834360365307,
+      "temperature_min_max_K": [
+        319.93551520370653,
+        324.3152833075314
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.13310292262217374,
+          0.8544025542088151
+        ],
+        [
+          -0.2526541692752129,
+          0.7233977256793005
+        ]
+      ]
+    },
+    {
+      "cycle": 21,
+      "mean_reward": -1.688871998713164,
+      "temperature_min_max_K": [
+        319.83584256063364,
+        324.6100527453012
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.26986991925227827,
+          0.6379709382176975
+        ],
+        [
+          -0.8300774500325199,
+          1.3805539958692383
+        ]
+      ]
+    },
+    {
+      "cycle": 22,
+      "mean_reward": -1.6179948165948201,
+      "temperature_min_max_K": [
+        319.975641737251,
+        324.07553632994757
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.4600303456710677,
+          0.714659413550465
+        ],
+        [
+          -0.9067144524168117,
+          1.3312757437794795
+        ]
+      ]
+    },
+    {
+      "cycle": 23,
+      "mean_reward": -227.21590671272514,
+      "temperature_min_max_K": [
+        318.31056702852715,
+        440.8228961904056
+      ],
+      "reversed_temperature_monomer_steps": 4,
+      "final_dc_gains_scaled": [
+        [
+          -0.22376364179763267,
+          0.48992213741576895
+        ],
+        [
+          -2.020858121307579,
+          3.5331079408273616
+        ]
+      ]
+    },
+    {
+      "cycle": 24,
+      "mean_reward": -1.989236226586513,
+      "temperature_min_max_K": [
+        320.14419265881594,
+        325.0397954293666
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.858371000646067,
+          0.8304545446456396
+        ],
+        [
+          -1.9936416911459338,
+          1.5444230447015483
+        ]
+      ]
+    },
+    {
+      "cycle": 25,
+      "mean_reward": -134.62222994809687,
+      "temperature_min_max_K": [
+        320.14396952174195,
+        348.4937567969149
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.13835083048723665,
+          1.7655321120149123
+        ],
+        [
+          -1.7731346530673582,
+          2.052120859355402
+        ]
+      ]
+    },
+    {
+      "cycle": 26,
+      "mean_reward": -1.712876391061689,
+      "temperature_min_max_K": [
+        320.1273015008128,
+        324.32463266338345
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2659125696016392,
+          0.7528032351092331
+        ],
+        [
+          -0.7945824879038131,
+          1.7926838628364332
+        ]
+      ]
+    },
+    {
+      "cycle": 27,
+      "mean_reward": -1.6057447463500865,
+      "temperature_min_max_K": [
+        320.0170462441052,
+        324.0593861351415
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3500885798259789,
+          0.7848692483332627
+        ],
+        [
+          -0.6959059208524754,
+          1.1721693737980317
+        ]
+      ]
+    },
+    {
+      "cycle": 28,
+      "mean_reward": -1.6542670936200254,
+      "temperature_min_max_K": [
+        319.7768835327224,
+        324.14264306391425
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.10213339331527756,
+          0.8837671059992595
+        ],
+        [
+          -0.29778080738011875,
+          0.7599274854400414
+        ]
+      ]
+    },
+    {
+      "cycle": 29,
+      "mean_reward": -1.6556886911848685,
+      "temperature_min_max_K": [
+        319.8560617158647,
+        324.4691292642492
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.287983963238352,
+          0.6155771790030333
+        ],
+        [
+          -0.9689384229955098,
+          1.557892309199478
+        ]
+      ]
+    },
+    {
+      "cycle": 30,
+      "mean_reward": -1.6092048434464894,
+      "temperature_min_max_K": [
+        319.9094309941445,
+        324.1009964141202
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.1889600857814222,
+          0.817641926003863
+        ],
+        [
+          -0.6035329101841704,
+          1.0155746778617136
+        ]
+      ]
+    },
+    {
+      "cycle": 31,
+      "mean_reward": -1.6522408619774935,
+      "temperature_min_max_K": [
+        320.2661183721884,
+        324.06817223322645
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.33102140728972734,
+          0.6898667847192483
+        ],
+        [
+          -0.5978935794872442,
+          1.183643117890337
+        ]
+      ]
+    },
+    {
+      "cycle": 32,
+      "mean_reward": -1.6311658933153028,
+      "temperature_min_max_K": [
+        319.8743993873493,
+        324.1368947280105
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.1043772160322887,
+          0.8933917559143232
+        ],
+        [
+          -0.3009551498408506,
+          0.7728621238685427
+        ]
+      ]
+    },
+    {
+      "cycle": 33,
+      "mean_reward": -1.6505508416852874,
+      "temperature_min_max_K": [
+        319.86038372914766,
+        324.4768919817671
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2841666328318578,
+          0.6163940506463459
+        ],
+        [
+          -0.9869067756218743,
+          1.5961363920371232
+        ]
+      ]
+    },
+    {
+      "cycle": 34,
+      "mean_reward": -1.6034433256164096,
+      "temperature_min_max_K": [
+        319.937231683259,
+        324.0995804959058
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2041524375238315,
+          0.812454107843479
+        ],
+        [
+          -0.6075808179893796,
+          1.0260124724066544
+        ]
+      ]
+    },
+    {
+      "cycle": 35,
+      "mean_reward": -1.6486236816859912,
+      "temperature_min_max_K": [
+        320.2910460482496,
+        324.06875916421416
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.32699169286855473,
+          0.6888431656197674
+        ],
+        [
+          -0.5423811065452886,
+          1.1150767638574688
+        ]
+      ]
+    },
+    {
+      "cycle": 36,
+      "mean_reward": -1.6248887988137297,
+      "temperature_min_max_K": [
+        319.89928260186366,
+        324.13240366584915
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.12372209501482387,
+          0.9056867154617048
+        ],
+        [
+          -0.28972583466672774,
+          0.7688435168311673
+        ]
+      ]
+    },
+    {
+      "cycle": 37,
+      "mean_reward": -1.6449700759242845,
+      "temperature_min_max_K": [
+        319.8403287511753,
+        324.493857989024
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.28613729575504043,
+          0.6034618917045332
+        ],
+        [
+          -0.9585942471704518,
+          1.5458281441300639
+        ]
+      ]
+    },
+    {
+      "cycle": 38,
+      "mean_reward": -1.5976604171081306,
+      "temperature_min_max_K": [
+        319.96609575451896,
+        324.0994604550258
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.13470837984313003,
+          0.8301826449734282
+        ],
+        [
+          -0.5477810848108908,
+          0.980017735090881
+        ]
+      ]
+    },
+    {
+      "cycle": 39,
+      "mean_reward": -1.6216152272097974,
+      "temperature_min_max_K": [
+        320.1238892716358,
+        324.072674124398
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.36458475015168673,
+          0.620465933136768
+        ],
+        [
+          -0.695060975453106,
+          1.2881752261179544
+        ]
+      ]
+    },
+    {
+      "cycle": 40,
+      "mean_reward": -1.62189493150526,
+      "temperature_min_max_K": [
+        319.9582538838786,
+        324.18174051424984
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.1668056416978325,
+          0.8905942720847447
+        ],
+        [
+          -0.2686765105622656,
+          0.759351952585227
+        ]
+      ]
+    },
+    {
+      "cycle": 41,
+      "mean_reward": -1.648095837698277,
+      "temperature_min_max_K": [
+        319.8261236179199,
+        324.5502770348032
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.27756548310956153,
+          0.5991980324222713
+        ],
+        [
+          -0.8764847499969718,
+          1.4409244377214845
+        ]
+      ]
+    },
+    {
+      "cycle": 42,
+      "mean_reward": -1.5896826256593988,
+      "temperature_min_max_K": [
+        320.0094093987445,
+        324.09094922672284
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.19004799196574382,
+          0.8074486227413824
+        ],
+        [
+          -0.5735114698143792,
+          1.0111824583767823
+        ]
+      ]
+    },
+    {
+      "cycle": 43,
+      "mean_reward": -1.6359407351463586,
+      "temperature_min_max_K": [
+        320.26247126210603,
+        324.0710060224569
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.31993056505248074,
+          0.6636910169494097
+        ],
+        [
+          -0.4643502238431456,
+          1.0165718785677984
+        ]
+      ]
+    },
+    {
+      "cycle": 44,
+      "mean_reward": -1.612011985769509,
+      "temperature_min_max_K": [
+        319.94329801180464,
+        324.13324815111264
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.1630317384207276,
+          0.9222664703615174
+        ],
+        [
+          -0.27374538260767106,
+          0.7651377841242699
+        ]
+      ]
+    },
+    {
+      "cycle": 45,
+      "mean_reward": -1.6372814339773112,
+      "temperature_min_max_K": [
+        319.8368322424016,
+        324.51904140021304
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.28384457805614904,
+          0.5912049762453347
+        ],
+        [
+          -0.8971162773753025,
+          1.4659385224902437
+        ]
+      ]
+    },
+    {
+      "cycle": 46,
+      "mean_reward": -1.5854496146841093,
+      "temperature_min_max_K": [
+        320.0169768452858,
+        324.0974160943975
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.08386131181099289,
+          0.844244238719042
+        ],
+        [
+          -0.49747013182713756,
+          0.9493456767113613
+        ]
+      ]
+    },
+    {
+      "cycle": 47,
+      "mean_reward": -1.596161957089579,
+      "temperature_min_max_K": [
+        319.92118340460206,
+        324.1340656737822
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.4140235882798105,
+          0.5561847309788956
+        ],
+        [
+          -0.6786959724824013,
+          1.1646769385544495
+        ]
+      ]
+    },
+    {
+      "cycle": 48,
+      "mean_reward": -1.603144285787797,
+      "temperature_min_max_K": [
+        320.14663486400246,
+        324.2141748831407
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.290995328479192,
+          0.9632447073811152
+        ],
+        [
+          -0.24611303956691535,
+          0.7584260230007104
+        ]
+      ]
+    },
+    {
+      "cycle": 49,
+      "mean_reward": -1.6589914691973933,
+      "temperature_min_max_K": [
+        319.83439688023503,
+        324.60725831348174
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2587515087779378,
+          0.601971248717632
+        ],
+        [
+          -0.8127756354776356,
+          1.3548703066930559
+        ]
+      ]
+    },
+    {
+      "cycle": 50,
+      "mean_reward": -1.5752322915150654,
+      "temperature_min_max_K": [
+        320.0644358725771,
+        324.0775678444268
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.33644524576135193,
+          0.7344020086990634
+        ],
+        [
+          -0.661855107570128,
+          1.112104794569935
+        ]
+      ]
+    },
+    {
+      "cycle": 51,
+      "mean_reward": -1.6046035121618174,
+      "temperature_min_max_K": [
+        319.85096262000866,
+        324.0852591941438
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.44540231811304315,
+          1.0156804547569993
+        ],
+        [
+          -0.2992278646799785,
+          0.7825654358216314
+        ]
+      ]
+    },
+    {
+      "cycle": 52,
+      "mean_reward": -1.6604750238581978,
+      "temperature_min_max_K": [
+        319.82542022420694,
+        324.6300361255619
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2515007959266345,
+          0.6189493137781876
+        ],
+        [
+          -1.0933847569411843,
+          1.6597022352528747
+        ]
+      ]
+    },
+    {
+      "cycle": 53,
+      "mean_reward": -1.572406415116451,
+      "temperature_min_max_K": [
+        320.1082499954132,
+        324.0655481041121
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.43759258230863024,
+          0.6718195975138934
+        ],
+        [
+          -0.8267213752046861,
+          1.3388946866406477
+        ]
+      ]
+    },
+    {
+      "cycle": 54,
+      "mean_reward": -8.924936633604428,
+      "temperature_min_max_K": [
+        320.2185015332179,
+        327.2344716070001
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.03418833660230731,
+          1.0270155503539946
+        ],
+        [
+          -0.46881911276283295,
+          1.0430956436019883
+        ]
+      ]
+    },
+    {
+      "cycle": 55,
+      "mean_reward": -1.6205907070473589,
+      "temperature_min_max_K": [
+        320.04806721180955,
+        324.3245500183803
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.27765574681934146,
+          0.619146514272898
+        ],
+        [
+          -0.6083783064987509,
+          1.2728937571546084
+        ]
+      ]
+    },
+    {
+      "cycle": 56,
+      "mean_reward": -1.5739653919231988,
+      "temperature_min_max_K": [
+        319.9875604552234,
+        324.1127734056372
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.04443004151432121,
+          0.9045197780143075
+        ],
+        [
+          -0.4401332717193811,
+          0.9002517730706405
+        ]
+      ]
+    },
+    {
+      "cycle": 57,
+      "mean_reward": -1.5862730133655876,
+      "temperature_min_max_K": [
+        319.77034120702143,
+        324.29225418047
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3731365265840676,
+          0.5569618353502416
+        ],
+        [
+          -0.8754905926546792,
+          1.3277865731628231
+        ]
+      ]
+    },
+    {
+      "cycle": 58,
+      "mean_reward": -1.578894853266251,
+      "temperature_min_max_K": [
+        320.1133644418704,
+        324.16531330529716
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.24672234078046523,
+          0.9532351622117851
+        ],
+        [
+          -0.2776016103825142,
+          0.7898033949268166
+        ]
+      ]
+    },
+    {
+      "cycle": 59,
+      "mean_reward": -1.6245715783241323,
+      "temperature_min_max_K": [
+        319.87741322883204,
+        324.50489050713014
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.27204963012745287,
+          0.5829382254512422
+        ],
+        [
+          -0.7670242273724629,
+          1.323461483448398
+        ]
+      ]
+    },
+    {
+      "cycle": 60,
+      "mean_reward": -1.5636357772323726,
+      "temperature_min_max_K": [
+        320.06289263321264,
+        324.09842380070126
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.0016384501723525173,
+          0.8783208969109432
+        ],
+        [
+          -0.4389952249621766,
+          0.9159152084938915
+        ]
+      ]
+    },
+    {
+      "cycle": 61,
+      "mean_reward": -1.5764218490262665,
+      "temperature_min_max_K": [
+        319.76408316709023,
+        324.23002764514246
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.4122857891384208,
+          0.5760836326060577
+        ],
+        [
+          -0.568683402291856,
+          0.9779850376396185
+        ]
+      ]
+    },
+    {
+      "cycle": 62,
+      "mean_reward": -1.576195299217555,
+      "temperature_min_max_K": [
+        320.1289533657436,
+        324.21383054993413
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.29796546680988034,
+          0.9701490512152704
+        ],
+        [
+          -0.23500446885752688,
+          0.7584888729779401
+        ]
+      ]
+    },
+    {
+      "cycle": 63,
+      "mean_reward": -1.6284474759232817,
+      "temperature_min_max_K": [
+        319.8839369491266,
+        324.54315569128437
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.26889452063212027,
+          0.5786857382609474
+        ],
+        [
+          -0.6114123744986122,
+          1.1522167058108685
+        ]
+      ]
+    },
+    {
+      "cycle": 64,
+      "mean_reward": -1.5583098998674898,
+      "temperature_min_max_K": [
+        320.09397818509086,
+        324.10380244165697
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.08667360784683696,
+          0.923470507964534
+        ],
+        [
+          -0.38371302495143284,
+          0.8785099362553078
+        ]
+      ]
+    },
+    {
+      "cycle": 65,
+      "mean_reward": -1.5788401945832646,
+      "temperature_min_max_K": [
+        319.8267073660475,
+        324.3208870166387
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3548998075101965,
+          0.5411233311644847
+        ],
+        [
+          -0.797473667907955,
+          1.265656717577384
+        ]
+      ]
+    },
+    {
+      "cycle": 66,
+      "mean_reward": -1.5645356220515452,
+      "temperature_min_max_K": [
+        320.11026167903594,
+        324.16031880478903
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.28344620914931973,
+          0.9766515667117585
+        ],
+        [
+          -0.26495719366952675,
+          0.7852435752464361
+        ]
+      ]
+    },
+    {
+      "cycle": 67,
+      "mean_reward": -1.6134220364928096,
+      "temperature_min_max_K": [
+        319.9069968792481,
+        324.49562122707147
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2734942067903896,
+          0.5750598522935735
+        ],
+        [
+          -0.7014984020289399,
+          1.264347811571968
+        ]
+      ]
+    },
+    {
+      "cycle": 68,
+      "mean_reward": -1.5531488455381768,
+      "temperature_min_max_K": [
+        320.09392564648033,
+        324.1098610847729
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.14748714307849214,
+          0.9516377093082039
+        ],
+        [
+          -0.35786038786442725,
+          0.8602571477035672
+        ]
+      ]
+    },
+    {
+      "cycle": 69,
+      "mean_reward": -1.5868112063731958,
+      "temperature_min_max_K": [
+        319.8983823126616,
+        324.36404019486054
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3036628217706341,
+          0.5562606769138064
+        ],
+        [
+          -0.945655289220777,
+          1.5242671076446712
+        ]
+      ]
+    },
+    {
+      "cycle": 70,
+      "mean_reward": -1.5546915770657836,
+      "temperature_min_max_K": [
+        320.09335585890454,
+        324.1301155933791
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.2460318980654716,
+          0.9805901032466293
+        ],
+        [
+          -0.29666288985626693,
+          0.8125168815930349
+        ]
+      ]
+    },
+    {
+      "cycle": 71,
+      "mean_reward": -1.5968215793834808,
+      "temperature_min_max_K": [
+        319.92907100395706,
+        324.4397871932385
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2826915446331644,
+          0.5677723649207531
+        ],
+        [
+          -0.7751596538154049,
+          1.3571545690091977
+        ]
+      ]
+    },
+    {
+      "cycle": 72,
+      "mean_reward": -1.5491929621777134,
+      "temperature_min_max_K": [
+        320.1028184598621,
+        324.12140600961084
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.24134476988659856,
+          0.9963774851028083
+        ],
+        [
+          -0.30929259992487357,
+          0.82523971239941
+        ]
+      ]
+    },
+    {
+      "cycle": 73,
+      "mean_reward": -1.5933722230251528,
+      "temperature_min_max_K": [
+        319.94968574179217,
+        324.4208330545592
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.28074126166506885,
+          0.5697781414756844
+        ],
+        [
+          -0.8154883540766543,
+          1.4160777567910596
+        ]
+      ]
+    },
+    {
+      "cycle": 74,
+      "mean_reward": -1.5462453934823597,
+      "temperature_min_max_K": [
+        320.09887801088047,
+        324.1224337544751
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.2522528218652868,
+          1.0013666157684513
+        ],
+        [
+          -0.3066511088693272,
+          0.8240312658922868
+        ]
+      ]
+    },
+    {
+      "cycle": 75,
+      "mean_reward": -1.5916887496722507,
+      "temperature_min_max_K": [
+        319.97025843587454,
+        324.4214699119516
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2778844597910152,
+          0.5717765182324706
+        ],
+        [
+          -0.7949228010146147,
+          1.4050342593563336
+        ]
+      ]
+    },
+    {
+      "cycle": 76,
+      "mean_reward": -1.543167016087264,
+      "temperature_min_max_K": [
+        320.0955238040272,
+        324.12360015131185
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.2635156204844673,
+          1.0074715076065561
+        ],
+        [
+          -0.3043771853689996,
+          0.8229668250072512
+        ]
+      ]
+    },
+    {
+      "cycle": 77,
+      "mean_reward": -1.5901038597318566,
+      "temperature_min_max_K": [
+        319.9902585078278,
+        324.42269658596
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2755643545698905,
+          0.5736186404391114
+        ],
+        [
+          -0.7842445708827386,
+          1.4054088909896683
+        ]
+      ]
+    },
+    {
+      "cycle": 78,
+      "mean_reward": -1.539913110370495,
+      "temperature_min_max_K": [
+        320.08892867487407,
+        324.12460564007125
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.26973199303438433,
+          1.0089551606943943
+        ],
+        [
+          -0.3064202729378061,
+          0.824767391262713
+        ]
+      ]
+    },
+    {
+      "cycle": 79,
+      "mean_reward": -1.5870051915597632,
+      "temperature_min_max_K": [
+        320.0104113241002,
+        324.4204643651531
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2753018959563816,
+          0.574444078359228
+        ],
+        [
+          -0.8017595452395846,
+          1.4387024610378847
+        ]
+      ]
+    },
+    {
+      "cycle": 80,
+      "mean_reward": -1.536597546537886,
+      "temperature_min_max_K": [
+        320.0800718804463,
+        324.1259145485304
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.2745697706050565,
+          1.0069210398303388
+        ],
+        [
+          -0.3100040121713526,
+          0.8273654629970126
+        ]
+      ]
+    },
+    {
+      "cycle": 81,
+      "mean_reward": -1.583356599909717,
+      "temperature_min_max_K": [
+        320.0314802326176,
+        324.4179897136243
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.27564342095190947,
+          0.5751579495654384
+        ],
+        [
+          -0.8225926688900806,
+          1.476573562092206
+        ]
+      ]
+    },
+    {
+      "cycle": 82,
+      "mean_reward": -1.5333778969821794,
+      "temperature_min_max_K": [
+        320.07124742510325,
+        324.12737717829054
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.2807149929793017,
+          1.0048504298089902
+        ],
+        [
+          -0.31345184160972195,
+          0.8297190298125683
+        ]
+      ]
+    },
+    {
+      "cycle": 83,
+      "mean_reward": -1.5797910394050927,
+      "temperature_min_max_K": [
+        320.04960199649275,
+        324.4164655272141
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.27593004639139324,
+          0.5760543348363478
+        ],
+        [
+          -0.8333812929734091,
+          1.5025603393178342
+        ]
+      ]
+    },
+    {
+      "cycle": 84,
+      "mean_reward": -1.5301073394221396,
+      "temperature_min_max_K": [
+        320.06373135141706,
+        324.1290624262132
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.28950846089254423,
+          1.0044289930925052
+        ],
+        [
+          -0.31580015638011516,
+          0.8312915976699288
+        ]
+      ]
+    },
+    {
+      "cycle": 85,
+      "mean_reward": -1.576380132709396,
+      "temperature_min_max_K": [
+        320.0666959634855,
+        324.41635599486233
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2761054108959231,
+          0.5772875884872092
+        ],
+        [
+          -0.8361962711954573,
+          1.5179727266065413
+        ]
+      ]
+    },
+    {
+      "cycle": 86,
+      "mean_reward": -1.5268414085486075,
+      "temperature_min_max_K": [
+        320.0575857014706,
+        324.13101124075854
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.3002790322744869,
+          1.00540115656447
+        ],
+        [
+          -0.3172871850049431,
+          0.8323273400182056
+        ]
+      ]
+    },
+    {
+      "cycle": 87,
+      "mean_reward": -1.5729075795438705,
+      "temperature_min_max_K": [
+        320.0835937081339,
+        324.4170590783199
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2767273157000957,
+          0.5784095135107128
+        ],
+        [
+          -0.8347212939053382,
+          1.5256063323020297
+        ]
+      ]
+    },
+    {
+      "cycle": 88,
+      "mean_reward": -1.5235629076606176,
+      "temperature_min_max_K": [
+        320.05473052918103,
+        324.1344935752882
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.31572690882958165,
+          1.009541141895763
+        ],
+        [
+          -0.3151102254694573,
+          0.8311680990377198
+        ]
+      ]
+    },
+    {
+      "cycle": 89,
+      "mean_reward": -1.5680387492185974,
+      "temperature_min_max_K": [
+        320.09854335586317,
+        324.41984020371416
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.281533045671471,
+          0.5769431468566408
+        ],
+        [
+          -0.8289966174178189,
+          1.522052609835569
+        ]
+      ]
+    },
+    {
+      "cycle": 90,
+      "mean_reward": -1.5206237571854262,
+      "temperature_min_max_K": [
+        320.05047553453556,
+        324.1401635320092
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.3347057829630756,
+          1.0102421735784628
+        ],
+        [
+          -0.3066284343840005,
+          0.8250548068033623
+        ]
+      ]
+    },
+    {
+      "cycle": 91,
+      "mean_reward": -1.5611127115541605,
+      "temperature_min_max_K": [
+        320.1141864332564,
+        324.4251395555295
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.29220012636052445,
+          0.573209933694436
+        ],
+        [
+          -0.8252823933851853,
+          1.5102140632233834
+        ]
+      ]
+    },
+    {
+      "cycle": 92,
+      "mean_reward": -1.518179173598636,
+      "temperature_min_max_K": [
+        320.0398017570558,
+        324.1485091423288
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.34791631571789544,
+          0.9980227974867901
+        ],
+        [
+          -0.2939486644119866,
+          0.8148469152459472
+        ]
+      ]
+    },
+    {
+      "cycle": 93,
+      "mean_reward": -1.5514322065835524,
+      "temperature_min_max_K": [
+        320.1283642277502,
+        324.43123898882243
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.31033570288150447,
+          0.569582387991253
+        ],
+        [
+          -0.8973907821727921,
+          1.5576264765469228
+        ]
+      ]
+    },
+    {
+      "cycle": 94,
+      "mean_reward": -1.5171928231763911,
+      "temperature_min_max_K": [
+        320.014580474311,
+        324.15930248694207
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.3351507009864705,
+          0.9597673612961833
+        ],
+        [
+          -0.2835577341220381,
+          0.8035190568586734
+        ]
+      ]
+    },
+    {
+      "cycle": 95,
+      "mean_reward": -1.5389727574443715,
+      "temperature_min_max_K": [
+        320.10019775370125,
+        324.4314725824096
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.35794489816041813,
+          0.5511290862262225
+        ],
+        [
+          -0.901141201781848,
+          1.4711822915111736
+        ]
+      ]
+    },
+    {
+      "cycle": 96,
+      "mean_reward": -1.5162153543103472,
+      "temperature_min_max_K": [
+        320.0323023584644,
+        324.18426844312336
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.3254480395680958,
+          0.9490485906794948
+        ],
+        [
+          -0.25289752033632085,
+          0.7837322938529135
+        ]
+      ]
+    },
+    {
+      "cycle": 97,
+      "mean_reward": -1.5340059078918653,
+      "temperature_min_max_K": [
+        320.08555609600467,
+        324.4231098358122
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.39134421550001186,
+          0.5420271776632243
+        ],
+        [
+          -1.0083646009204348,
+          1.508492372453811
+        ]
+      ]
+    },
+    {
+      "cycle": 98,
+      "mean_reward": -1.52195442758465,
+      "temperature_min_max_K": [
+        320.0591932655559,
+        324.207025613971
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.35906741340853277,
+          0.9669011229669348
+        ],
+        [
+          -0.2211151071019618,
+          0.7666810107754976
+        ]
+      ]
+    },
+    {
+      "cycle": 99,
+      "mean_reward": -1.5398051993176625,
+      "temperature_min_max_K": [
+        319.9118844926215,
+        324.4238840168804
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.4774177811239613,
+          0.554610502955158
+        ],
+        [
+          -1.0392355602166168,
+          1.3088151172684712
+        ]
+      ]
+    },
+    {
+      "cycle": 100,
+      "mean_reward": -2.2092586226598088,
+      "temperature_min_max_K": [
+        320.0953445731344,
+        324.2431483470856
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.3390995456566861,
+          0.9719265661743136
+        ],
+        [
+          -0.17585032093874817,
+          0.7392649550787227
+        ]
+      ]
+    },
+    {
+      "cycle": 101,
+      "mean_reward": -5.784634996042961,
+      "temperature_min_max_K": [
+        320.02164927406255,
+        328.6185024149222
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3657193806938754,
+          0.604011464881917
+        ],
+        [
+          -0.5867850639698278,
+          0.9350450410240854
+        ]
+      ]
+    },
+    {
+      "cycle": 102,
+      "mean_reward": -1.5146003916528585,
+      "temperature_min_max_K": [
+        319.9860802957396,
+        324.20879360645154
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.29670582565378967,
+          0.9127897163543438
+        ],
+        [
+          -0.26451747497261036,
+          0.7769718099343068
+        ]
+      ]
+    },
+    {
+      "cycle": 103,
+      "mean_reward": -1.51682700648229,
+      "temperature_min_max_K": [
+        320.0179164119771,
+        324.3950919751724
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.4793223972671072,
+          0.5418388561932856
+        ],
+        [
+          -0.9244914981024456,
+          1.3033099069845666
+        ]
+      ]
+    },
+    {
+      "cycle": 104,
+      "mean_reward": -9.630379223645443,
+      "temperature_min_max_K": [
+        320.1149725057547,
+        324.4243943048476
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.330621629591312,
+          0.980638089798291
+        ],
+        [
+          -0.18255283572668926,
+          0.7651950577988286
+        ]
+      ]
+    },
+    {
+      "cycle": 105,
+      "mean_reward": -2.8428862798327423,
+      "temperature_min_max_K": [
+        319.82248723288774,
+        328.7270697524743
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.47930152256385866,
+          0.6861106389417876
+        ],
+        [
+          -0.4771584513363592,
+          0.7010430593602669
+        ]
+      ]
+    },
+    {
+      "cycle": 106,
+      "mean_reward": -1.5339337339739774,
+      "temperature_min_max_K": [
+        319.9896415714715,
+        324.31559891950536
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.1767218858954837,
+          0.8851429076002597
+        ],
+        [
+          -0.21414377105282015,
+          0.7302486405337215
+        ]
+      ]
+    },
+    {
+      "cycle": 107,
+      "mean_reward": -1.511318765410267,
+      "temperature_min_max_K": [
+        320.2039689633012,
+        324.31884775176854
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.36550208394514877,
+          0.543558108232136
+        ],
+        [
+          -0.5930138048034906,
+          1.2209075888722871
+        ]
+      ]
+    },
+    {
+      "cycle": 108,
+      "mean_reward": -1.5473417232686761,
+      "temperature_min_max_K": [
+        320.10469573788237,
+        324.21212426774395
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.3709016529355374,
+          0.9799584763841304
+        ],
+        [
+          -0.1976995601346921,
+          0.7452661084988464
+        ]
+      ]
+    },
+    {
+      "cycle": 109,
+      "mean_reward": -1.5250445137752149,
+      "temperature_min_max_K": [
+        320.02522364184057,
+        324.3833373082278
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.4572508154193491,
+          0.5552474163129779
+        ],
+        [
+          -0.9834709037131766,
+          1.3315625523442
+        ]
+      ]
+    },
+    {
+      "cycle": 110,
+      "mean_reward": -1.5759727559719898,
+      "temperature_min_max_K": [
+        320.1465599185885,
+        324.2315911167103
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.33267548530133456,
+          0.9687396489428173
+        ],
+        [
+          -0.1718368080536058,
+          0.7257041271203061
+        ]
+      ]
+    },
+    {
+      "cycle": 111,
+      "mean_reward": -1.535112139994618,
+      "temperature_min_max_K": [
+        320.0959848525299,
+        324.46620058948633
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.41242556918739165,
+          0.551288347105709
+        ],
+        [
+          -0.982891094357696,
+          1.40906493076503
+        ]
+      ]
+    },
+    {
+      "cycle": 112,
+      "mean_reward": -1.4949155649425117,
+      "temperature_min_max_K": [
+        320.12916173766143,
+        324.2140894404589
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.3146488871940355,
+          0.9490952926883125
+        ],
+        [
+          -0.2093557124923552,
+          0.7469617602736467
+        ]
+      ]
+    },
+    {
+      "cycle": 113,
+      "mean_reward": -1.5122966014060495,
+      "temperature_min_max_K": [
+        320.1678343819875,
+        324.34291721797854
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.4023233923486262,
+          0.5639432448341637
+        ],
+        [
+          -0.8200173232627571,
+          1.3204435637863636
+        ]
+      ]
+    },
+    {
+      "cycle": 114,
+      "mean_reward": -1.4895780161115575,
+      "temperature_min_max_K": [
+        320.12821728066297,
+        324.2150182711848
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.29290538400545896,
+          0.9371840280080381
+        ],
+        [
+          -0.215586455189181,
+          0.7474050137468172
+        ]
+      ]
+    },
+    {
+      "cycle": 115,
+      "mean_reward": -1.5110697424076636,
+      "temperature_min_max_K": [
+        320.20907614832424,
+        324.3296302086386
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3706300234787497,
+          0.568952809987581
+        ],
+        [
+          -0.7279575503520348,
+          1.2977138064334945
+        ]
+      ]
+    },
+    {
+      "cycle": 116,
+      "mean_reward": -1.4879272748236634,
+      "temperature_min_max_K": [
+        320.13097555013957,
+        324.2019622665339
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.289278702728212,
+          0.9389366974569359
+        ],
+        [
+          -0.22490453969517937,
+          0.7510700878878169
+        ]
+      ]
+    },
+    {
+      "cycle": 117,
+      "mean_reward": -1.5097951384286838,
+      "temperature_min_max_K": [
+        320.2108346617491,
+        324.3205261708658
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3647023341164225,
+          0.5704310961978989
+        ],
+        [
+          -0.6663746576079941,
+          1.2450098120853967
+        ]
+      ]
+    },
+    {
+      "cycle": 118,
+      "mean_reward": -1.485703833787043,
+      "temperature_min_max_K": [
+        320.1556160322835,
+        324.1993238402682
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.2894621350667034,
+          0.9513175889901996
+        ],
+        [
+          -0.2189188013069317,
+          0.7465871515529581
+        ]
+      ]
+    },
+    {
+      "cycle": 119,
+      "mean_reward": -1.5098505720399331,
+      "temperature_min_max_K": [
+        320.20946647262707,
+        324.3081755131972
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3618559363706982,
+          0.570882532719439
+        ],
+        [
+          -0.6411905768453967,
+          1.219732538341644
+        ]
+      ]
+    },
+    {
+      "cycle": 120,
+      "mean_reward": -1.4835617962941712,
+      "temperature_min_max_K": [
+        320.17650097638875,
+        324.19644471077663
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.28602964011621307,
+          0.958393146278288
+        ],
+        [
+          -0.2139555121987797,
+          0.7421553491738264
+        ]
+      ]
+    },
+    {
+      "cycle": 121,
+      "mean_reward": -1.509286754990436,
+      "temperature_min_max_K": [
+        320.20684462088633,
+        324.29554486790914
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.35973744362094034,
+          0.5711242286768538
+        ],
+        [
+          -0.627895753547095,
+          1.2036535112540168
+        ]
+      ]
+    },
+    {
+      "cycle": 122,
+      "mean_reward": -1.4815789204759,
+      "temperature_min_max_K": [
+        320.19403395601626,
+        324.1940779799444
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.2793476381828738,
+          0.9614607135119972
+        ],
+        [
+          -0.2103234558412347,
+          0.7381543771806808
+        ]
+      ]
+    },
+    {
+      "cycle": 123,
+      "mean_reward": -1.508217346827663,
+      "temperature_min_max_K": [
+        320.2049616974871,
+        324.2825513651463
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3571821690862848,
+          0.5717999282488954
+        ],
+        [
+          -0.6190197180431193,
+          1.1915216363722572
+        ]
+      ]
+    },
+    {
+      "cycle": 124,
+      "mean_reward": -1.4797991917221125,
+      "temperature_min_max_K": [
+        320.2062515002796,
+        324.1920483799015
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.2675575747217096,
+          0.9590528028828568
+        ],
+        [
+          -0.21063499608221123,
+          0.7361628008012323
+        ]
+      ]
+    },
+    {
+      "cycle": 125,
+      "mean_reward": -1.506093082082987,
+      "temperature_min_max_K": [
+        320.2044950458854,
+        324.2688815436688
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3548649113550412,
+          0.5728437955785156
+        ],
+        [
+          -0.6063802718380361,
+          1.1750004800345113
+        ]
+      ]
+    },
+    {
+      "cycle": 126,
+      "mean_reward": -1.47806399452889,
+      "temperature_min_max_K": [
+        320.21358869020554,
+        324.19068365810904
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.2523062299863192,
+          0.9523104938170559
+        ],
+        [
+          -0.21362196098151562,
+          0.73538838258017
+        ]
+      ]
+    },
+    {
+      "cycle": 127,
+      "mean_reward": -1.502727399510599,
+      "temperature_min_max_K": [
+        320.20259793995496,
+        324.25427070324633
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3560183845958921,
+          0.5730223813747924
+        ],
+        [
+          -0.5846183647489226,
+          1.1452536676019849
+        ]
+      ]
+    },
+    {
+      "cycle": 128,
+      "mean_reward": -1.4763991280313997,
+      "temperature_min_max_K": [
+        320.2211298197698,
+        324.1921378955896
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.2390762248113337,
+          0.945478921491719
+        ],
+        [
+          -0.21318772999757823,
+          0.7323547910975098
+        ]
+      ]
+    },
+    {
+      "cycle": 129,
+      "mean_reward": -1.4988864851057218,
+      "temperature_min_max_K": [
+        320.1976671241096,
+        324.2395603309139
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3611214003589547,
+          0.5726142032632511
+        ],
+        [
+          -0.5551057563123012,
+          1.1033502737042138
+        ]
+      ]
+    },
+    {
+      "cycle": 130,
+      "mean_reward": -1.474924235927051,
+      "temperature_min_max_K": [
+        320.2327151917751,
+        324.19642473294033
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.228721449369689,
+          0.9408971067736869
+        ],
+        [
+          -0.207740230813412,
+          0.7264906569130852
+        ]
+      ]
+    },
+    {
+      "cycle": 131,
+      "mean_reward": -1.4954068714902689,
+      "temperature_min_max_K": [
+        320.1916789719911,
+        324.22532395061626
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.36721175794782895,
+          0.5727889698969254
+        ],
+        [
+          -0.5140532596845268,
+          1.049810660581516
+        ]
+      ]
+    },
+    {
+      "cycle": 132,
+      "mean_reward": -1.473573338395936,
+      "temperature_min_max_K": [
+        320.2446614983051,
+        324.20148526177275
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.21914812579484894,
+          0.9368796646398502
+        ],
+        [
+          -0.20158189657944775,
+          0.7202299502554593
+        ]
+      ]
+    },
+    {
+      "cycle": 133,
+      "mean_reward": -1.4919800818929354,
+      "temperature_min_max_K": [
+        320.1853478459751,
+        324.21129744428174
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.37334154956613896,
+          0.5739581820947348
+        ],
+        [
+          -0.4548945720360496,
+          0.9810235445969788
+        ]
+      ]
+    },
+    {
+      "cycle": 134,
+      "mean_reward": -1.4723155259120364,
+      "temperature_min_max_K": [
+        320.252302045603,
+        324.20674646004557
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.20783568863167423,
+          0.9307098066122242
+        ],
+        [
+          -0.1979302673106778,
+          0.7151049589522726
+        ]
+      ]
+    },
+    {
+      "cycle": 135,
+      "mean_reward": -1.4879044837782598,
+      "temperature_min_max_K": [
+        320.174755314925,
+        324.1970507841533
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3808451736383781,
+          0.5760734207748675
+        ],
+        [
+          -0.37365217101246095,
+          0.8960529153947312
+        ]
+      ]
+    },
+    {
+      "cycle": 136,
+      "mean_reward": -1.47135291080774,
+      "temperature_min_max_K": [
+        320.26040251824026,
+        324.21388050044555
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.20052495120742642,
+          0.9264839033240052
+        ],
+        [
+          -0.19231720817600373,
+          0.7088686029735322
+        ]
+      ]
+    },
+    {
+      "cycle": 137,
+      "mean_reward": -1.4849163326242734,
+      "temperature_min_max_K": [
+        320.162991109725,
+        324.1840517856249
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3850884584760428,
+          0.5795074443415535
+        ],
+        [
+          -0.29872034532136604,
+          0.823893502028456
+        ]
+      ]
+    },
+    {
+      "cycle": 138,
+      "mean_reward": -1.4705085237473647,
+      "temperature_min_max_K": [
+        320.2655924648472,
+        324.218744666337
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.19324799829019254,
+          0.9222693679704291
+        ],
+        [
+          -0.18908721802281708,
+          0.7040270267169456
+        ]
+      ]
+    },
+    {
+      "cycle": 139,
+      "mean_reward": -1.4819545184245737,
+      "temperature_min_max_K": [
+        320.15495132413713,
+        324.17167818824635
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.38757135833129164,
+          0.5833481361320301
+        ],
+        [
+          -0.24097482829292924,
+          0.7715635437628529
+        ]
+      ]
+    },
+    {
+      "cycle": 140,
+      "mean_reward": -1.469610388980354,
+      "temperature_min_max_K": [
+        320.2679633602946,
+        324.22150874039335
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.1849345526231109,
+          0.9172018548796679
+        ],
+        [
+          -0.18785844243954072,
+          0.7002525312688446
+        ]
+      ]
+    },
+    {
+      "cycle": 141,
+      "mean_reward": -1.4790276499638566,
+      "temperature_min_max_K": [
+        320.1500095649877,
+        324.1593943805528
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.38854609825885444,
+          0.5871836716574835
+        ],
+        [
+          -0.19749309365692885,
+          0.7343009221144131
+        ]
+      ]
+    },
+    {
+      "cycle": 142,
+      "mean_reward": -1.4687488507306716,
+      "temperature_min_max_K": [
+        320.26790983444266,
+        324.2222110412623
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.17638647531228036,
+          0.9116713366602716
+        ],
+        [
+          -0.18786521099296855,
+          0.6970713229957531
+        ]
+      ]
+    },
+    {
+      "cycle": 143,
+      "mean_reward": -1.4759386724777435,
+      "temperature_min_max_K": [
+        320.15021934508985,
+        324.1481126611
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.38935624796494134,
+          0.5919574941705517
+        ],
+        [
+          -0.167660079873857,
+          0.7098768602104554
+        ]
+      ]
+    },
+    {
+      "cycle": 144,
+      "mean_reward": -1.4678328188203948,
+      "temperature_min_max_K": [
+        320.2659204235166,
+        324.2215500173712
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.16745996979868982,
+          0.9057112371341375
+        ],
+        [
+          -0.1884533339092215,
+          0.6941000095736024
+        ]
+      ]
+    },
+    {
+      "cycle": 145,
+      "mean_reward": -1.4727059825080662,
+      "temperature_min_max_K": [
+        320.1522400280076,
+        324.1405325327234
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3904759070704979,
+          0.5974912762530443
+        ],
+        [
+          -0.1472374998050648,
+          0.6936761043077824
+        ]
+      ]
+    },
+    {
+      "cycle": 146,
+      "mean_reward": -1.4670204206178072,
+      "temperature_min_max_K": [
+        320.26349249224904,
+        324.2202856382942
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.15900519539857286,
+          0.9000774763262913
+        ],
+        [
+          -0.188890505989606,
+          0.6910249681355393
+        ]
+      ]
+    },
+    {
+      "cycle": 147,
+      "mean_reward": -1.4695416888806008,
+      "temperature_min_max_K": [
+        320.15492645047374,
+        324.13409122528896
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3921356173425173,
+          0.6042353769832564
+        ],
+        [
+          -0.13495706778240224,
+          0.6833256874369431
+        ]
+      ]
+    },
+    {
+      "cycle": 148,
+      "mean_reward": -1.4661420433283296,
+      "temperature_min_max_K": [
+        320.26301805267843,
+        324.21927905178353
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.15150363849449305,
+          0.8956569184206853
+        ],
+        [
+          -0.18888143012674166,
+          0.6879452214990557
+        ]
+      ]
+    },
+    {
+      "cycle": 149,
+      "mean_reward": -1.46662664237099,
+      "temperature_min_max_K": [
+        320.15794851890155,
+        324.1286597610785
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3936535369536373,
+          0.6114431376540939
+        ],
+        [
+          -0.1270550650587859,
+          0.6762930733285561
+        ]
+      ]
+    },
+    {
+      "cycle": 150,
+      "mean_reward": -1.465220950400546,
+      "temperature_min_max_K": [
+        320.26298871784735,
+        324.2179497509649
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.14443882523416635,
+          0.8918420507619111
+        ],
+        [
+          -0.18873921750571246,
+          0.6848725556798979
+        ]
+      ]
+    },
+    {
+      "cycle": 151,
+      "mean_reward": -1.4637191187414245,
+      "temperature_min_max_K": [
+        320.16095735195637,
+        324.12374517189966
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3955110597160067,
+          0.6191539116834756
+        ],
+        [
+          -0.12225193248792365,
+          0.6715074449238518
+        ]
+      ]
+    },
+    {
+      "cycle": 152,
+      "mean_reward": -1.4643282571707061,
+      "temperature_min_max_K": [
+        320.26370844515486,
+        324.21671663700715
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.13771552265339657,
+          0.8886052506134899
+        ],
+        [
+          -0.1883478486459865,
+          0.681768832804021
+        ]
+      ]
+    },
+    {
+      "cycle": 153,
+      "mean_reward": -1.4600591213917948,
+      "temperature_min_max_K": [
+        320.16373923556966,
+        324.1192758326557
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.4046160595911266,
+          0.6293425764747576
+        ],
+        [
+          -0.12864920578402028,
+          0.6725445475867962
+        ]
+      ]
+    },
+    {
+      "cycle": 154,
+      "mean_reward": -1.4626682088250433,
+      "temperature_min_max_K": [
+        320.27526471103863,
+        324.22035004874135
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.12886603057082985,
+          0.8879155810778437
+        ],
+        [
+          -0.18649988386126962,
+          0.6789140959808686
+        ]
+      ]
+    },
+    {
+      "cycle": 155,
+      "mean_reward": -1.4575938062138265,
+      "temperature_min_max_K": [
+        320.1747105852003,
+        324.1127489227748
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.40343023768845154,
+          0.6357712119140574
+        ],
+        [
+          -0.12317974239058103,
+          0.6663884978782595
+        ]
+      ]
+    },
+    {
+      "cycle": 156,
+      "mean_reward": -1.4618241364615203,
+      "temperature_min_max_K": [
+        320.2762752834192,
+        324.21818047575937
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.12449820615728224,
+          0.8861124408837422
+        ],
+        [
+          -0.18565223227625036,
+          0.6758889457270074
+        ]
+      ]
+    },
+    {
+      "cycle": 157,
+      "mean_reward": -1.4528208768605333,
+      "temperature_min_max_K": [
+        320.1729677226026,
+        324.1108684986126
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.426598032029974,
+          0.6473724522902433
+        ],
+        [
+          -0.14045570691168158,
+          0.6748142307846682
+        ]
+      ]
+    },
+    {
+      "cycle": 158,
+      "mean_reward": -1.4596249562353136,
+      "temperature_min_max_K": [
+        320.2985110735721,
+        324.22945038408386
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.1110755243065103,
+          0.8863942861093408
+        ],
+        [
+          -0.1829372252916791,
+          0.6732124440562312
+        ]
+      ]
+    },
+    {
+      "cycle": 159,
+      "mean_reward": -1.453008021177382,
+      "temperature_min_max_K": [
+        320.1988154130972,
+        324.09960155694705
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.39851608412736444,
+          0.6474298181890544
+        ],
+        [
+          -0.11368901459029175,
+          0.6551959374458859
+        ]
+      ]
+    },
+    {
+      "cycle": 160,
+      "mean_reward": -1.4604342160276287,
+      "temperature_min_max_K": [
+        320.27700222224803,
+        324.2109477160053
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.11673992919694709,
+          0.8832897584668312
+        ],
+        [
+          -0.18354366773252337,
+          0.6697142494326004
+        ]
+      ]
+    },
+    {
+      "cycle": 161,
+      "mean_reward": -1.4434077861301455,
+      "temperature_min_max_K": [
+        320.165425873349,
+        324.10858198787014
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.48512582900956924,
+          0.6788732355796521
+        ],
+        [
+          -0.18202987303726048,
+          0.6906363501560803
+        ]
+      ]
+    },
+    {
+      "cycle": 162,
+      "mean_reward": -1.4544258853835728,
+      "temperature_min_max_K": [
+        320.35825143422505,
+        324.25785173803416
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.06766360676946376,
+          0.8875457122870786
+        ],
+        [
+          -0.17424395091682915,
+          0.666898383154417
+        ]
+      ]
+    },
+    {
+      "cycle": 163,
+      "mean_reward": -1.4670528488521404,
+      "temperature_min_max_K": [
+        320.30414859248157,
+        324.0643222751837
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.30598094155752753,
+          0.6313082679156893
+        ],
+        [
+          -0.054629331821582465,
+          0.5964917591455862
+        ]
+      ]
+    },
+    {
+      "cycle": 164,
+      "mean_reward": -1.459280090661915,
+      "temperature_min_max_K": [
+        320.23907060904816,
+        324.12310764366396
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.12883938997105954,
+          0.8905925431377196
+        ],
+        [
+          -0.19001481063544604,
+          0.6666488663997531
+        ]
+      ]
+    },
+    {
+      "cycle": 165,
+      "mean_reward": -1.42862723238268,
+      "temperature_min_max_K": [
+        320.13743855238755,
+        324.1212798254629
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.6670371885917311,
+          0.7492973080321534
+        ],
+        [
+          -0.3487347117932003,
+          0.7361909360372709
+        ]
+      ]
+    },
+    {
+      "cycle": 166,
+      "mean_reward": -1.456951358593634,
+      "temperature_min_max_K": [
+        320.5029517368161,
+        324.30763417077617
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.010291594003398614,
+          0.8773668192988796
+        ],
+        [
+          -0.07303608251927589,
+          0.6100547652445797
+        ]
+      ]
+    },
+    {
+      "cycle": 167,
+      "mean_reward": -1.5969555621106275,
+      "temperature_min_max_K": [
+        320.33486083708664,
+        323.9522215298394
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2311418323692575,
+          0.6222827089298396
+        ],
+        [
+          -0.030806978551289926,
+          0.5609964008713282
+        ]
+      ]
+    },
+    {
+      "cycle": 168,
+      "mean_reward": -1.4425325707118861,
+      "temperature_min_max_K": [
+        320.3767906402892,
+        324.07148054013845
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.1333670585069383,
+          0.9641679179099385
+        ],
+        [
+          -0.18143417131437312,
+          0.6748799353620103
+        ]
+      ]
+    },
+    {
+      "cycle": 169,
+      "mean_reward": -1.4330108462647229,
+      "temperature_min_max_K": [
+        320.1412097703177,
+        324.1061096021592
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.5749716504924266,
+          0.7708999626467663
+        ],
+        [
+          -0.26926087308905183,
+          0.6943430093615127
+        ]
+      ]
+    },
+    {
+      "cycle": 170,
+      "mean_reward": -1.446678694037712,
+      "temperature_min_max_K": [
+        320.4439044139109,
+        324.2893717705376
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.04107927246041723,
+          0.8800946686105316
+        ],
+        [
+          -0.15954761751879987,
+          0.6532434490498775
+        ]
+      ]
+    },
+    {
+      "cycle": 171,
+      "mean_reward": -1.4868449829538823,
+      "temperature_min_max_K": [
+        320.4511341992382,
+        324.0378783245457
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.2725710467101225,
+          0.6142289826959848
+        ],
+        [
+          -0.03636630004978811,
+          0.5533339712589174
+        ]
+      ]
+    },
+    {
+      "cycle": 172,
+      "mean_reward": -1.4525175650866604,
+      "temperature_min_max_K": [
+        320.28453510946406,
+        324.07063374149146
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.12218668154897853,
+          0.9182050279886276
+        ],
+        [
+          -0.18780251143661397,
+          0.6629013060269897
+        ]
+      ]
+    },
+    {
+      "cycle": 173,
+      "mean_reward": -1.4209449680779336,
+      "temperature_min_max_K": [
+        320.12670164243684,
+        324.11569172565663
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.7716399216994347,
+          0.8717502030164515
+        ],
+        [
+          -0.39664788243085053,
+          0.7057452799433659
+        ]
+      ]
+    },
+    {
+      "cycle": 174,
+      "mean_reward": -1.5355196434094704,
+      "temperature_min_max_K": [
+        320.5697963192685,
+        324.3308377356483
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.04509515530591824,
+          0.8602657871389671
+        ],
+        [
+          -0.018406438345552705,
+          0.573235338688153
+        ]
+      ]
+    },
+    {
+      "cycle": 175,
+      "mean_reward": -1.8291788037567795,
+      "temperature_min_max_K": [
+        319.9142694882688,
+        323.75179935741954
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.5415461516017644,
+          0.49503242705838113
+        ],
+        [
+          -0.4241243513387517,
+          0.9104868096518921
+        ]
+      ]
+    },
+    {
+      "cycle": 176,
+      "mean_reward": -34.17604452762893,
+      "temperature_min_max_K": [
+        320.60975303191924,
+        327.80425511942235
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.08087840960456415,
+          1.041191804083458
+        ],
+        [
+          -0.42689298012818444,
+          0.7922469376461836
+        ]
+      ]
+    },
+    {
+      "cycle": 177,
+      "mean_reward": -1.457393474343433,
+      "temperature_min_max_K": [
+        320.3983688219511,
+        324.1423226134606
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.3977593615063076,
+          0.7431324405049505
+        ],
+        [
+          -0.3021548624185895,
+          0.8133874656640583
+        ]
+      ]
+    },
+    {
+      "cycle": 178,
+      "mean_reward": -1.445510966214672,
+      "temperature_min_max_K": [
+        320.42001625882654,
+        324.1958966454646
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.03482066956793831,
+          0.9213371522860976
+        ],
+        [
+          -0.19182005780998057,
+          0.662848922473474
+        ]
+      ]
+    },
+    {
+      "cycle": 179,
+      "mean_reward": -1.4200912619288892,
+      "temperature_min_max_K": [
+        320.2126145389867,
+        324.0654046883811
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.5347347266257679,
+          0.830940331220704
+        ],
+        [
+          -0.22808408965599045,
+          0.6654962706617076
+        ]
+      ]
+    },
+    {
+      "cycle": 180,
+      "mean_reward": -1.4475714821714325,
+      "temperature_min_max_K": [
+        320.3732967214343,
+        324.2890749220047
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.008145838572671043,
+          0.8833892550212168
+        ],
+        [
+          -0.17044084577729215,
+          0.642518670465545
+        ]
+      ]
+    },
+    {
+      "cycle": 181,
+      "mean_reward": -1.419056668944128,
+      "temperature_min_max_K": [
+        320.26810783340505,
+        324.05998921817087
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.5246143396041194,
+          0.7844297764842701
+        ],
+        [
+          -0.18883417166424615,
+          0.6619444294508662
+        ]
+      ]
+    },
+    {
+      "cycle": 182,
+      "mean_reward": -1.447063697037479,
+      "temperature_min_max_K": [
+        320.36889387685824,
+        324.2725129629023
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.035660566581106716,
+          0.8798669233419638
+        ],
+        [
+          -0.170088558050178,
+          0.6402325894141323
+        ]
+      ]
+    },
+    {
+      "cycle": 183,
+      "mean_reward": -1.414437371903818,
+      "temperature_min_max_K": [
+        320.2288206131594,
+        324.06917073407914
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.5635240574583025,
+          0.8410257995872589
+        ],
+        [
+          -0.2188159347256957,
+          0.6616267795880031
+        ]
+      ]
+    },
+    {
+      "cycle": 184,
+      "mean_reward": -1.442607120542536,
+      "temperature_min_max_K": [
+        320.4155898917276,
+        324.29463868304543
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.01709502822352986,
+          0.8890323142064197
+        ],
+        [
+          -0.16804192597159454,
+          0.6394683790127782
+        ]
+      ]
+    },
+    {
+      "cycle": 185,
+      "mean_reward": -1.4191480747510012,
+      "temperature_min_max_K": [
+        320.37837835877957,
+        324.0572977362689
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.5001035713313708,
+          0.7025970754674885
+        ],
+        [
+          -0.13428578737442257,
+          0.6466922308553067
+        ]
+      ]
+    },
+    {
+      "cycle": 186,
+      "mean_reward": -1.4466866992746332,
+      "temperature_min_max_K": [
+        320.37995794817584,
+        324.23282311035706
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          -0.06936931699207402,
+          0.8831772917740212
+        ],
+        [
+          -0.16689700499503085,
+          0.63672537954218
+        ]
+      ]
+    },
+    {
+      "cycle": 187,
+      "mean_reward": -1.4088174888960523,
+      "temperature_min_max_K": [
+        320.1951295760482,
+        324.08599110354066
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.6847835930749905,
+          0.93180106855895
+        ],
+        [
+          -0.2750491348974984,
+          0.6608392763931601
+        ]
+      ]
+    },
+    {
+      "cycle": 188,
+      "mean_reward": -1.4346854352951381,
+      "temperature_min_max_K": [
+        320.5481521014509,
+        324.3330149790306
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.16338266222332987,
+          0.8849170929508651
+        ],
+        [
+          -0.14422409574854675,
+          0.6302151870121998
+        ]
+      ]
+    },
+    {
+      "cycle": 189,
+      "mean_reward": -301.4580914077291,
+      "temperature_min_max_K": [
+        320.39089074869565,
+        366.201370457772
+      ],
+      "reversed_temperature_monomer_steps": 0,
+      "final_dc_gains_scaled": [
+        [
+          0.12399928607697658,
+          0.6201787889716401
+        ],
+        [
+          2.3159573817626935,
+          1.435767625106478
+        ]
+      ]
+    },
+    {
+      "cycle": 190,
+      "mean_reward": -21842.133492319692,
+      "temperature_min_max_K": [
+        327.14085432348315,
+        445.5105586170378
+      ],
+      "reversed_temperature_monomer_steps": 770,
+      "final_dc_gains_scaled": [
+        [
+          0.0856765948834941,
+          0.5975093059806094
+        ],
+        [
+          -0.08299807149064109,
+          -1.7609700811440214
+        ]
+      ]
+    },
+    {
+      "cycle": 191,
+      "mean_reward": -22662.0151706969,
+      "temperature_min_max_K": [
+        444.64557046151543,
+        444.7348322631397
+      ],
+      "reversed_temperature_monomer_steps": 800,
+      "final_dc_gains_scaled": [
+        [
+          0.08552028932765095,
+          0.5970972548555425
+        ],
+        [
+          -0.0824451584215432,
+          -1.7557357029216802
+        ]
+      ]
+    },
+    {
+      "cycle": 192,
+      "mean_reward": -22636.411116497846,
+      "temperature_min_max_K": [
+        444.5663567964602,
+        444.66183684326194
+      ],
+      "reversed_temperature_monomer_steps": 800,
+      "final_dc_gains_scaled": [
+        [
+          0.026374453996854553,
+          0.4531767290473205
+        ],
+        [
+          -0.0418440433155856,
+          -1.2741589793662607
+        ]
+      ]
+    },
+    {
+      "cycle": 193,
+      "mean_reward": -22607.53500004882,
+      "temperature_min_max_K": [
+        444.49077874172696,
+        444.59563836040263
+      ],
+      "reversed_temperature_monomer_steps": 800,
+      "final_dc_gains_scaled": [
+        [
+          -0.0009712438564647513,
+          0.2566969193156451
+        ],
+        [
+          -0.016001010284836536,
+          -2.4948029565040644
+        ]
+      ]
+    },
+    {
+      "cycle": 194,
+      "mean_reward": -22578.323937684825,
+      "temperature_min_max_K": [
+        444.4132394273967,
+        444.4999982801575
+      ],
+      "reversed_temperature_monomer_steps": 800,
+      "final_dc_gains_scaled": [
+        [
+          -0.0012955072059538308,
+          0.08681334889098158
+        ],
+        [
+          -0.018172084087424014,
+          -0.5419265178432138
+        ]
+      ]
+    },
+    {
+      "cycle": 195,
+      "mean_reward": -22551.11968369211,
+      "temperature_min_max_K": [
+        444.3492288354944,
+        444.42578451257197
+      ],
+      "reversed_temperature_monomer_steps": 800,
+      "final_dc_gains_scaled": [
+        [
+          -0.005466045009725992,
+          0.14984434885283976
+        ],
+        [
+          -0.043629504763836556,
+          -0.6717223359086177
+        ]
+      ]
+    },
+    {
+      "cycle": 196,
+      "mean_reward": -22523.02740170635,
+      "temperature_min_max_K": [
+        444.263439366225,
+        444.3491290197463
+      ],
+      "reversed_temperature_monomer_steps": 800,
+      "final_dc_gains_scaled": [
+        [
+          -0.0069222147819409845,
+          0.14197884661405763
+        ],
+        [
+          -0.03888818046736323,
+          -0.3868100439990364
+        ]
+      ]
+    },
+    {
+      "cycle": 197,
+      "mean_reward": -22493.917567601606,
+      "temperature_min_max_K": [
+        444.1802543977653,
+        444.263292275292
+      ],
+      "reversed_temperature_monomer_steps": 800,
+      "final_dc_gains_scaled": [
+        [
+          -0.0007696009061423803,
+          0.04201193847013811
+        ],
+        [
+          -0.01417629009743819,
+          -0.21818899195684452
+        ]
+      ]
+    },
+    {
+      "cycle": 198,
+      "mean_reward": -22465.085234532115,
+      "temperature_min_max_K": [
+        444.0986791555977,
+        444.187018693838
+      ],
+      "reversed_temperature_monomer_steps": 800,
+      "final_dc_gains_scaled": [
+        [
+          -0.0029112630901185293,
+          0.08782940427204229
+        ],
+        [
+          -0.02571295413488717,
+          -0.3052677644029969
+        ]
+      ]
+    },
+    {
+      "cycle": 199,
+      "mean_reward": -22438.74094464128,
+      "temperature_min_max_K": [
+        444.01627441716647,
+        444.1144337649652
+      ],
+      "reversed_temperature_monomer_steps": 800,
+      "final_dc_gains_scaled": [
+        [
+          -0.004625796446911868,
+          0.14252611624424727
+        ],
+        [
+          -0.0345200800054229,
+          -0.4213446307517447
+        ]
+      ]
+    },
+    {
+      "cycle": 200,
+      "mean_reward": -22409.049957458832,
+      "temperature_min_max_K": [
+        443.9468451859685,
+        444.0347737683111
+      ],
+      "reversed_temperature_monomer_steps": 800,
+      "final_dc_gains_scaled": [
+        [
+          -0.0020111370262067903,
+          0.06192733078086018
+        ],
+        [
+          -0.020581031321219148,
+          -0.2508438663137299
+        ]
+      ]
+    }
+  ],
+  "repair_offline_replay": {
+    "revision": "persistent_nominal_prior_and_dc_gain_admission_v1",
+    "forgetting": 0.995,
+    "gain_ratio_bounds": [
+      0.25,
+      4.0
+    ],
+    "nominal_gains": [
+      [
+        0.0014990769165936161,
+        0.0038067136532561607
+      ],
+      [
+        -0.011994033581196053,
+        0.019424968630660764
+      ]
+    ],
+    "rejections": {
+      "dc_gain_outside_nominal_bounds": 266490,
+      "reversed_gain_direction": 50283,
+      "nonfinite_or_unstable_poles": 88,
+      "insufficient_regressor_energy": 11
+    },
+    "information_min_eigenvalues": [
+      0.0010000000000000395,
+      0.0010000000000000367
+    ],
+    "claim": "bounded model admission; no formal closed-loop stability guarantee",
+    "steps": 160000,
+    "observed_input_one_step_rmse_scaled": [
+      0.01754854245077622,
+      0.3927427983475017
+    ],
+    "seconds": 49.027281199989375,
+    "limitation": "Historical failed-controller data, not a new closed-loop performance result."
+  },
+  "historical_algorithm_replay": {
+    "max_covariance_diagonal_by_output": [
+      100000000.00000015,
+      100000000.00000012
+    ],
+    "configured_covariance_eigenvalue_cap": 100000000.0,
+    "max_abs_coefficient_difference_from_saved_trace": 2.833996856632659e-10,
+    "scope": "Same recorded inputs/outputs replayed through the original RLS equations in the current numerical runtime"
+  }
+}

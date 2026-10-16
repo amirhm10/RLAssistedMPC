@@ -35,6 +35,15 @@ ongoing polymer workers. Their jobs were not stopped, restarted or modified.
 All 46 frozen original manuscript files remain unchanged.
 
 This is a startup record, not a completed result or a performance comparison.
+At 13:27:38, SG logged Windows RPC code `0x800706be` while Python was garbage
+collecting during runner preparation after closing the baseline-audit case.
+The worker did not exit: it opened its production case-12 application, printed
+the combined training configuration at 13:29:03 and continued accumulating CPU
+time. No restart or controller modification was needed. This observation shows
+continued initialization; it is not a claim that all future COM calls will pass.
+The follow-up process/model-title check is saved in `post_initialization.json`
+alongside the launch assessment.
+
 No controller, learner, plant, training setting, manuscript TeX or PDF was
 changed. Existing preparation validation remains 61 focused tests and the
 five offline method checks; no redundant training tests were started here.

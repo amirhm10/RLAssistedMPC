@@ -1,0 +1,174 @@
+{
+  "observed_at_utc": "2026-10-16T17:29:54.8150704Z",
+  "jobs": [
+    {
+      "method": "sg",
+      "aspen_number": 12,
+      "worker_pid": 43300,
+      "worker_cpu_seconds": 12.9375,
+      "aspen_pid": 43044,
+      "aspen_created": 134366452593093042,
+      "model_title": "C2S_SS_simulation12.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "aspen_cpu_seconds": 11.453125,
+      "execution_state": "running",
+      "log_bytes": 15152,
+      "log_updated": "2026-10-16T17:29:03.5813482Z",
+      "log_tail": [
+        "  residual_td3        : {'buffer_size': 40000, 'replay_frac_per': 0.4, 'replay_frac_recent': 0.3, 'replay_recent_window_mult': 10, 'replay_recent_window': 2000, 'replay_alpha': 0.6, 'replay_beta_start': 0.4, 'replay_beta_end': 1.0, 'replay_beta_steps': 50000}",
+        "",
+        "[Plotting]",
+        "  style_profile       : hybrid",
+        "  save_pdf            : False",
+        "  result_prefix       : column_comparison",
+        "  compare_prefix      : column_comparison"
+      ]
+    },
+    {
+      "method": "threshold",
+      "aspen_number": 13,
+      "worker_pid": 29248,
+      "worker_cpu_seconds": 12.53125,
+      "aspen_pid": 3232,
+      "aspen_created": 134366451287515303,
+      "model_title": "C2S_SS_simulation13.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "aspen_cpu_seconds": 19.53125,
+      "execution_state": "running",
+      "log_bytes": 5027,
+      "log_updated": "2026-10-16T17:26:48.4904136Z",
+      "log_tail": [
+        "  bonus_p             : 0.6",
+        "  bonus_c             : 20.0",
+        "  reward_scale        : 1.0",
+        "",
+        "[Debug]",
+        "  debug_validate_lifted: False",
+        "  debug_run_shadow_ls : False"
+      ]
+    },
+    {
+      "method": "ls",
+      "aspen_number": 14,
+      "worker_pid": 40760,
+      "worker_cpu_seconds": 17.046875,
+      "aspen_pid": 37892,
+      "aspen_created": 134366451851019168,
+      "model_title": "C2S_SS_simulation14.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "aspen_cpu_seconds": 17.4375,
+      "execution_state": "running",
+      "log_bytes": 5013,
+      "log_updated": "2026-10-16T17:27:45.4378942Z",
+      "log_tail": [
+        "  bonus_p             : 0.6",
+        "  bonus_c             : 20.0",
+        "  reward_scale        : 1.0",
+        "",
+        "[Debug]",
+        "  debug_validate_lifted: False",
+        "  debug_run_shadow_ls : False"
+      ]
+    },
+    {
+      "method": "bo",
+      "aspen_number": 15,
+      "worker_pid": 40604,
+      "worker_cpu_seconds": 8.609375,
+      "aspen_pid": 45620,
+      "aspen_created": 134366451102420370,
+      "model_title": "C2S_SS_simulation15.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "aspen_cpu_seconds": 17.1875,
+      "execution_state": "running",
+      "log_bytes": 5057,
+      "log_updated": "2026-10-16T17:26:27.0925160Z",
+      "log_tail": [
+        "  bonus_p             : 0.6",
+        "  bonus_c             : 20.0",
+        "  reward_scale        : 1.0",
+        "",
+        "[Debug]",
+        "  debug_validate_lifted: False",
+        "  debug_run_shadow_ls : False"
+      ]
+    },
+    {
+      "method": "e1_pilot",
+      "aspen_number": 16,
+      "worker_pid": 32748,
+      "worker_cpu_seconds": 11.5,
+      "aspen_pid": 46340,
+      "aspen_created": 134366451472619499,
+      "model_title": "C2S_SS_simulation16.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "aspen_cpu_seconds": 18.8125,
+      "execution_state": "running",
+      "log_bytes": 5025,
+      "log_updated": "2026-10-16T17:27:11.5968328Z",
+      "log_tail": [
+        "  bonus_p             : 0.6",
+        "  bonus_c             : 20.0",
+        "  reward_scale        : 1.0",
+        "",
+        "[Debug]",
+        "  debug_validate_lifted: False",
+        "  debug_run_shadow_ls : False"
+      ]
+    }
+  ],
+  "existing_cases_1_to_11_workers": [
+    {
+      "Id": 15260,
+      "StartTime": "2026-10-15T17:58:19.8612462-04:00",
+      "CPU": 2641.953125
+    },
+    {
+      "Id": 16924,
+      "StartTime": "2026-10-16T09:46:50.8621057-04:00",
+      "CPU": 2485.90625
+    },
+    {
+      "Id": 32904,
+      "StartTime": "2026-10-15T17:58:19.840973-04:00",
+      "CPU": 3268.84375
+    },
+    {
+      "Id": 34084,
+      "StartTime": "2026-10-15T17:58:19.8472567-04:00",
+      "CPU": 3292.0625
+    },
+    {
+      "Id": 40928,
+      "StartTime": "2026-10-15T17:58:19.8669255-04:00",
+      "CPU": 2585.59375
+    },
+    {
+      "Id": 43012,
+      "StartTime": "2026-10-15T17:58:19.8183283-04:00",
+      "CPU": 3257.265625
+    },
+    {
+      "Id": 43516,
+      "StartTime": "2026-10-15T17:58:19.8536158-04:00",
+      "CPU": 2578.53125
+    },
+    {
+      "Id": 46060,
+      "StartTime": "2026-10-15T17:58:19.8343587-04:00",
+      "CPU": 3254.390625
+    },
+    {
+      "Id": 47732,
+      "StartTime": "2026-10-15T17:58:19.8277141-04:00",
+      "CPU": 3275.03125
+    },
+    {
+      "Id": 48508,
+      "StartTime": "2026-10-15T17:58:19.8738379-04:00",
+      "CPU": 2579.21875
+    },
+    {
+      "Id": 49892,
+      "StartTime": "2026-10-15T17:58:19.8793253-04:00",
+      "CPU": 2586.03125
+    }
+  ],
+  "sg_rpc_observation": "The worker remained alive after its 0x800706be diagnostic, opened its production Aspen case, printed the combined training configuration afterward and continued accumulating CPU time. No restart or scientific-code modification.",
+  "interpretation": "Initialization and live process evidence; studies are unfinished."
+}

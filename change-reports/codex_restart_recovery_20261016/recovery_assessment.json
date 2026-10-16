@@ -1,0 +1,601 @@
+{
+  "observed_at_utc": "2026-10-16T17:42:31.524302+00:00",
+  "all_nine_running": true,
+  "jobs": {
+    "polymer_e1_combined": {
+      "worker": {
+        "pid": 16680,
+        "alive": true,
+        "created": 134366459540449649
+      },
+      "supervisor": {
+        "pid": 15568,
+        "alive": true,
+        "created": 134366459539584652
+      },
+      "last_new_cycle": 11,
+      "resume": "full state after cycle 10",
+      "log_tail": [
+        "  compare_prefix      : comparison",
+        "Resumed full training state after step 8000; 0 matched decisions retained.",
+        "Sub_Episode: 11 | avg. reward: -4.38431988350865 | Hp,Hc: (np.int64(9), np.int64(3)) | h sg src: policy=0,supervisor=799,warm=1,held=0,fallback=0 | avg z: [ 0.00303254  0.04758143  0.00043462 -0.00202271] | m exec src: td3=0,sg_ls=246,sg_mpc=553,solver_fb=0,ls_fb=0,nom_fb=0 | m sg src: policy=0,supervisor=799,warm=1,held=0,fallback=0 | alpha: off | avg weights: [1. 1. 1. 1.] | w sg src: policy=0,supervisor=799,warm=1,held=0,fallback=0 | avg residual: [-2.14434798e-09  1.35774704e-09] | r sg src: policy=0,supervisor=799,warm=1,held=0,fallback=0"
+      ]
+    },
+    "polymer_e2_sg": {
+      "worker": {
+        "pid": 46320,
+        "alive": true,
+        "created": 134366459525294618
+      },
+      "supervisor": {
+        "pid": 30280,
+        "alive": true,
+        "created": 134366459524465349
+      },
+      "last_new_cycle": 3,
+      "resume": "original initial conditions",
+      "log_tail": [
+        "Sub_Episode: 1 | avg. reward: -3.3883490348755414 | Hp,Hc: (np.int64(9), np.int64(3)) | h sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0 | avg z: [ 0.0027465   0.04225463  0.000408   -0.00149658] | m exec src: td3=0,sg_ls=0,sg_mpc=0,solver_fb=0,ls_fb=0,nom_fb=0 | m sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0 | alpha: off | avg weights: [1. 1. 1. 1.] | w sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0 | avg residual: [-4.32901913e-09 -7.53182473e-09] | r sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0",
+        "Sub_Episode: 2 | avg. reward: -4.434791293528491 | Hp,Hc: (np.int64(9), np.int64(3)) | h sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0 | avg z: [ 0.00262456  0.04178042  0.00035983 -0.00162943] | m exec src: td3=0,sg_ls=0,sg_mpc=0,solver_fb=0,ls_fb=0,nom_fb=0 | m sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0 | alpha: off | avg weights: [1. 1. 1. 1.] | w sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0 | avg residual: [4.20460453e-10 3.32982204e-09] | r sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0",
+        "Sub_Episode: 3 | avg. reward: -4.428820798194308 | Hp,Hc: (np.int64(9), np.int64(3)) | h sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0 | avg z: [ 0.00268564  0.04247186  0.00037161 -0.00167555] | m exec src: td3=0,sg_ls=0,sg_mpc=0,solver_fb=0,ls_fb=0,nom_fb=0 | m sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0 | alpha: off | avg weights: [1. 1. 1. 1.] | w sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0 | avg residual: [-7.67236442e-10 -8.11075569e-09] | r sg src: policy=0,supervisor=0,warm=800,held=0,fallback=0"
+      ]
+    },
+    "polymer_e2_arx_repaired": {
+      "worker": {
+        "pid": 36936,
+        "alive": true,
+        "created": 134366459525641088
+      },
+      "supervisor": {
+        "pid": 43108,
+        "alive": true,
+        "created": 134366459524806110
+      },
+      "last_new_cycle": 7,
+      "resume": "original initial conditions",
+      "log_tail": [
+        "Sub_Episode: 5 | avg. reward: -5.096467063648511 | avg. reward MPC: -4.870406848400211",
+        "Sub_Episode: 6 | avg. reward: -5.0904396882696 | avg. reward MPC: -4.864198883802804",
+        "Sub_Episode: 7 | avg. reward: -5.084163615937928 | avg. reward MPC: -4.857777838445296"
+      ]
+    },
+    "column_sg": {
+      "worker": {
+        "pid": 27148,
+        "alive": true,
+        "created": 134366459529496087
+      },
+      "supervisor": {
+        "pid": 44584,
+        "alive": true,
+        "created": 134366459525397956
+      },
+      "aspen_number": 12,
+      "attempt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\sg\\a2",
+      "owned_apps": [
+        {
+          "pid": 40932,
+          "alive": true,
+          "created": 134366459949141036,
+          "created_at": "2026-10-16T17:40:14.352057+00:00"
+        },
+        {
+          "pid": 47136,
+          "alive": true,
+          "created": 134366460913315151,
+          "created_at": "2026-10-16T17:41:50.399107+00:00"
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "requested_environment": {
+          "NPY_DISABLE_CPU_FEATURES": "X86_V3,AVX2,FMA3",
+          "OPENBLAS_CORETYPE": "NEHALEM",
+          "OPENBLAS_NUM_THREADS": "1",
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1",
+          "PYTHONFAULTHANDLER": "1",
+          "PYTHONUNBUFFERED": "1"
+        },
+        "numpy_x86_v3_enabled": false,
+        "threadpools": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "openblas",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+            "version": "0.3.33",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "scope": "process-local numerical dispatch; unchanged equations/settings",
+        "interpretation": "native-crash mitigation; exact underlying binary/hardware trigger unproven"
+      },
+      "log_tail": [
+        "[Debug]",
+        "  debug_validate_lifted: False",
+        "  debug_run_shadow_ls : False"
+      ]
+    },
+    "column_threshold": {
+      "worker": {
+        "pid": 16284,
+        "alive": true,
+        "created": 134366459530012960
+      },
+      "supervisor": {
+        "pid": 38336,
+        "alive": true,
+        "created": 134366459525773085
+      },
+      "aspen_number": 13,
+      "attempt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\threshold\\a2",
+      "owned_apps": [
+        {
+          "pid": 8588,
+          "alive": true,
+          "created": 134366459756810147,
+          "created_at": "2026-10-16T17:39:54.918817+00:00"
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "requested_environment": {
+          "NPY_DISABLE_CPU_FEATURES": "X86_V3,AVX2,FMA3",
+          "OPENBLAS_CORETYPE": "NEHALEM",
+          "OPENBLAS_NUM_THREADS": "1",
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1",
+          "PYTHONFAULTHANDLER": "1",
+          "PYTHONUNBUFFERED": "1"
+        },
+        "numpy_x86_v3_enabled": false,
+        "threadpools": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "openblas",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+            "version": "0.3.33",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "scope": "process-local numerical dispatch; unchanged equations/settings",
+        "interpretation": "native-crash mitigation; exact underlying binary/hardware trigger unproven"
+      },
+      "log_tail": [
+        "[Debug]",
+        "  debug_validate_lifted: False",
+        "  debug_run_shadow_ls : False"
+      ]
+    },
+    "column_ls": {
+      "worker": {
+        "pid": 37868,
+        "alive": true,
+        "created": 134366459530812805
+      },
+      "supervisor": {
+        "pid": 35276,
+        "alive": true,
+        "created": 134366459526150986
+      },
+      "aspen_number": 14,
+      "attempt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\ls\\a2",
+      "owned_apps": [
+        {
+          "pid": 5752,
+          "alive": true,
+          "created": 134366460143496772,
+          "created_at": "2026-10-16T17:40:33.416959+00:00"
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "requested_environment": {
+          "NPY_DISABLE_CPU_FEATURES": "X86_V3,AVX2,FMA3",
+          "OPENBLAS_CORETYPE": "NEHALEM",
+          "OPENBLAS_NUM_THREADS": "1",
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1",
+          "PYTHONFAULTHANDLER": "1",
+          "PYTHONUNBUFFERED": "1"
+        },
+        "numpy_x86_v3_enabled": false,
+        "threadpools": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "openblas",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+            "version": "0.3.33",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "scope": "process-local numerical dispatch; unchanged equations/settings",
+        "interpretation": "native-crash mitigation; exact underlying binary/hardware trigger unproven"
+      },
+      "log_tail": [
+        "[Debug]",
+        "  debug_validate_lifted: False",
+        "  debug_run_shadow_ls : False"
+      ]
+    },
+    "column_bo": {
+      "worker": {
+        "pid": 51024,
+        "alive": true,
+        "created": 134366459531004607
+      },
+      "supervisor": {
+        "pid": 48584,
+        "alive": true,
+        "created": 134366459526460559
+      },
+      "aspen_number": 15,
+      "attempt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\bo\\a2",
+      "owned_apps": [
+        {
+          "pid": 45936,
+          "alive": true,
+          "created": 134366460530319113,
+          "created_at": "2026-10-16T17:41:12.834771+00:00"
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "requested_environment": {
+          "NPY_DISABLE_CPU_FEATURES": "X86_V3,AVX2,FMA3",
+          "OPENBLAS_CORETYPE": "NEHALEM",
+          "OPENBLAS_NUM_THREADS": "1",
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1",
+          "PYTHONFAULTHANDLER": "1",
+          "PYTHONUNBUFFERED": "1"
+        },
+        "numpy_x86_v3_enabled": false,
+        "threadpools": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "openblas",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+            "version": "0.3.33",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "scope": "process-local numerical dispatch; unchanged equations/settings",
+        "interpretation": "native-crash mitigation; exact underlying binary/hardware trigger unproven"
+      },
+      "log_tail": [
+        "[Debug]",
+        "  debug_validate_lifted: False",
+        "  debug_run_shadow_ls : False"
+      ]
+    },
+    "column_e1_pilot": {
+      "worker": {
+        "pid": 1752,
+        "alive": true,
+        "created": 134366459531350273
+      },
+      "supervisor": {
+        "pid": 35632,
+        "alive": true,
+        "created": 134366459526864200
+      },
+      "aspen_number": 16,
+      "attempt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\e1_pilot\\a2",
+      "owned_apps": [
+        {
+          "pid": 51076,
+          "alive": true,
+          "created": 134366459570924592,
+          "created_at": "2026-10-16T17:39:35.683363+00:00"
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "requested_environment": {
+          "NPY_DISABLE_CPU_FEATURES": "X86_V3,AVX2,FMA3",
+          "OPENBLAS_CORETYPE": "NEHALEM",
+          "OPENBLAS_NUM_THREADS": "1",
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1",
+          "PYTHONFAULTHANDLER": "1",
+          "PYTHONUNBUFFERED": "1"
+        },
+        "numpy_x86_v3_enabled": false,
+        "threadpools": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "openblas",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+            "version": "0.3.33",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "scope": "process-local numerical dispatch; unchanged equations/settings",
+        "interpretation": "native-crash mitigation; exact underlying binary/hardware trigger unproven"
+      },
+      "log_tail": [
+        "[Debug]",
+        "  debug_validate_lifted: False",
+        "  debug_run_shadow_ls : False"
+      ]
+    },
+    "column_e3": {
+      "worker": {
+        "pid": 49828,
+        "alive": true,
+        "created": 134366459537195074
+      },
+      "aspen_number": 11,
+      "attempt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_4e03da\\distillation_combined_s7\\a2",
+      "resume": "restart original combined protocol; completed nominal/Markov retained",
+      "log_tail": [
+        "  save_pdf            : False",
+        "  result_prefix       : e3",
+        "  compare_prefix      : e3_comparison"
+      ]
+    }
+  },
+  "visible_cmds": [
+    {
+      "id": "polymer_e1_combined",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e1_combined\\run.cmd",
+      "cmd": {
+        "pid": 3360,
+        "alive": true,
+        "created": 134366459519330613
+      },
+      "started_at": "2026-10-16T17:39:11.939818+00:00"
+    },
+    {
+      "id": "polymer_e2_sg",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e2_sg\\run.cmd",
+      "cmd": {
+        "pid": 42460,
+        "alive": true,
+        "created": 134366459519421264
+      },
+      "started_at": "2026-10-16T17:39:11.948051+00:00"
+    },
+    {
+      "id": "polymer_e2_arx_repaired",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e2_arx_repaired\\run.cmd",
+      "cmd": {
+        "pid": 28028,
+        "alive": true,
+        "created": 134366459519498488
+      },
+      "started_at": "2026-10-16T17:39:11.957057+00:00"
+    },
+    {
+      "id": "column_e3",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\restart_recovery\\20261016_codex_restart\\column_e3.cmd",
+      "cmd": {
+        "pid": 44348,
+        "alive": true,
+        "created": 134366459519592894
+      },
+      "started_at": "2026-10-16T17:39:11.965084+00:00"
+    },
+    {
+      "id": "column_sg",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\sg\\run.cmd",
+      "cmd": {
+        "pid": 47840,
+        "alive": true,
+        "created": 134366459519672280
+      },
+      "started_at": "2026-10-16T17:39:11.973388+00:00"
+    },
+    {
+      "id": "column_threshold",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\threshold\\run.cmd",
+      "cmd": {
+        "pid": 8084,
+        "alive": true,
+        "created": 134366459519757848
+      },
+      "started_at": "2026-10-16T17:39:11.981329+00:00"
+    },
+    {
+      "id": "column_ls",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\ls\\run.cmd",
+      "cmd": {
+        "pid": 50684,
+        "alive": true,
+        "created": 134366459519836404
+      },
+      "started_at": "2026-10-16T17:39:11.990823+00:00"
+    },
+    {
+      "id": "column_bo",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\bo\\run.cmd",
+      "cmd": {
+        "pid": 51768,
+        "alive": true,
+        "created": 134366459519929528
+      },
+      "started_at": "2026-10-16T17:39:11.999244+00:00"
+    },
+    {
+      "id": "column_e1_pilot",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\e1_pilot\\run.cmd",
+      "cmd": {
+        "pid": 11516,
+        "alive": true,
+        "created": 134366459520013702
+      },
+      "started_at": "2026-10-16T17:39:12.008413+00:00"
+    }
+  ],
+  "broker": {
+    "pid": 43188,
+    "parent_pid": 2524,
+    "in_windows_job": true,
+    "scheduler_service_pid": 2524,
+    "parent_is_scheduler_service": true,
+    "session_id": 2,
+    "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+    "observed_at": "2026-10-16T17:39:03.685756+00:00"
+  },
+  "scheduler": {
+    "task_name": "RLAssistedMPC_ReviewerRecovery_1792172343082316600",
+    "user": "S-1-5-21-28487980-1139993225-2887019382-1009",
+    "logon_type": "interactive_token",
+    "run_level": "current_user",
+    "triggers": 0,
+    "execution_time_limit": "PT0S"
+  },
+  "task_status": {
+    "TaskName": "RLAssistedMPC_ReviewerRecovery_1792172343082316600",
+    "State": "Running",
+    "ExecutionTimeLimit": "PT0S",
+    "TriggerCount": 1
+  },
+  "surviving_repetition_parent_and_workers": [
+    {
+      "pid": 47608,
+      "alive": true,
+      "created": 134364661719791606
+    },
+    {
+      "pid": 43012,
+      "alive": true,
+      "created": 134365750998183283
+    },
+    {
+      "pid": 47732,
+      "alive": true,
+      "created": 134365750998277141
+    },
+    {
+      "pid": 46060,
+      "alive": true,
+      "created": 134365750998343587
+    },
+    {
+      "pid": 32904,
+      "alive": true,
+      "created": 134365750998409730
+    },
+    {
+      "pid": 34084,
+      "alive": true,
+      "created": 134365750998472567
+    },
+    {
+      "pid": 43516,
+      "alive": true,
+      "created": 134365750998536158
+    },
+    {
+      "pid": 15260,
+      "alive": true,
+      "created": 134365750998612462
+    },
+    {
+      "pid": 40928,
+      "alive": true,
+      "created": 134365750998669255
+    },
+    {
+      "pid": 48508,
+      "alive": true,
+      "created": 134365750998738379
+    },
+    {
+      "pid": 49892,
+      "alive": true,
+      "created": 134365750998793253
+    }
+  ],
+  "surviving_repetition_workers": 10,
+  "opened_model_numbers": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "pre_restart_checkpoint": {
+    "file": "training_state_1.pkl",
+    "sha256": "b7b380801d4e7c4aa8e0b6b018c2b02c2f80032d8729f88216d2cfd13f890350",
+    "completed_steps": 8000,
+    "completed_cycles": 10,
+    "bytes": 823810582
+  },
+  "source_integrity": {
+    "E3_polymer": {
+      "files": 103,
+      "unchanged": true,
+      "changed": []
+    },
+    "E3_column": {
+      "files": 103,
+      "unchanged": true,
+      "changed": []
+    },
+    "E1_combined_recovery": {
+      "files": 97,
+      "unchanged": true,
+      "changed": []
+    },
+    "column_repeats": {
+      "files": 86,
+      "unchanged": true,
+      "changed": []
+    }
+  },
+  "original_manuscript": {
+    "files": 46,
+    "unchanged": true,
+    "changed": []
+  },
+  "focused_tests": {
+    "passed": 7,
+    "file": "tests/test_review_restart_recovery.py"
+  },
+  "preservation": "Old scientific attempts/checkpoints remain. Pre-restart metadata/log copies are in the recovery directory. Full E1 checkpoint manager archives its replayed suffix.",
+  "interpretation": "Live restart verification only. Exact app-shutdown event was not logged; process/job evidence supports inherited app-owned cleanup."
+}

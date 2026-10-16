@@ -1,0 +1,98 @@
+[
+  {
+    "Id": 5752,
+    "StartTime": "2026-10-16T13:40:14.3496772-04:00",
+    "CPU": 12.265625,
+    "MainWindowTitle": "C2S_SS_simulation14.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 8588,
+    "StartTime": "2026-10-16T13:39:35.6810147-04:00",
+    "CPU": 14.796875,
+    "MainWindowTitle": "C2S_SS_simulation13.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 16548,
+    "StartTime": "2026-10-15T18:00:56.2061062-04:00",
+    "CPU": 1911.359375,
+    "MainWindowTitle": "C2S_SS_simulation6.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 19364,
+    "StartTime": "2026-10-15T17:59:25.2442-04:00",
+    "CPU": 1897.15625,
+    "MainWindowTitle": "C2S_SS_simulation4.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 24740,
+    "StartTime": "2026-10-15T18:00:01.4477633-04:00",
+    "CPU": 1896.421875,
+    "MainWindowTitle": "C2S_SS_simulation2.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 24996,
+    "StartTime": "2026-10-15T18:00:19.5942752-04:00",
+    "CPU": 1913.90625,
+    "MainWindowTitle": "C2S_SS_simulation10.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 27364,
+    "StartTime": "2026-10-15T18:01:14.6198239-04:00",
+    "CPU": 1910.5625,
+    "MainWindowTitle": "C2S_SS_simulation7.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 30076,
+    "StartTime": "2026-10-15T17:59:07.1825958-04:00",
+    "CPU": 1901.890625,
+    "MainWindowTitle": "C2S_SS_simulation3.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 38988,
+    "StartTime": "2026-10-15T17:59:43.244858-04:00",
+    "CPU": 1897.578125,
+    "MainWindowTitle": "C2S_SS_simulation5.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 40408,
+    "StartTime": "2026-10-15T17:58:49.1220348-04:00",
+    "CPU": 1921.015625,
+    "MainWindowTitle": "C2S_SS_simulation9.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 45080,
+    "StartTime": "2026-10-15T18:00:37.9823713-04:00",
+    "CPU": 1883.546875,
+    "MainWindowTitle": "C2S_SS_simulation1.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 45936,
+    "StartTime": "2026-10-16T13:40:53.0319113-04:00",
+    "CPU": 10.078125,
+    "MainWindowTitle": "C2S_SS_simulation15.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 46088,
+    "StartTime": "2026-10-16T13:40:33.4126589-04:00",
+    "CPU": 11.53125,
+    "MainWindowTitle": "C2S_SS_simulation11.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 47136,
+    "StartTime": "2026-10-16T13:41:31.3315151-04:00",
+    "CPU": 8.859375,
+    "MainWindowTitle": "C2S_SS_simulation12.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 47544,
+    "StartTime": "2026-10-15T17:58:29.748524-04:00",
+    "CPU": 1937.5625,
+    "MainWindowTitle": "C2S_SS_simulation8.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  {
+    "Id": 51076,
+    "StartTime": "2026-10-16T13:39:17.0924592-04:00",
+    "CPU": 15.640625,
+    "MainWindowTitle": "C2S_SS_simulation16.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  }
+]

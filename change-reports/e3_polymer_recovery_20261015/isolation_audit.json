@@ -1,0 +1,70 @@
+{
+  "protected_other_studies": [
+    {
+      "manifest": "Results\\e3\\20261015_042751_4e03da\\manifest.json",
+      "files_checked": 103,
+      "changed": []
+    },
+    {
+      "manifest": "Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\manifest.json",
+      "files_checked": 86,
+      "changed": []
+    },
+    {
+      "manifest": "Polymer\\Results\\review_recovery\\20261015_181507_3aa70b\\e1_combined\\20261015_181507_cf7a4e\\manifest.json",
+      "files_checked": 97,
+      "changed": []
+    }
+  ],
+  "old_failed_files_checked": 105,
+  "old_failed_files_changed": [],
+  "original_scientific_python_checked": 114,
+  "original_scientific_python_changed": [],
+  "frozen_manuscript_files_checked": 46,
+  "frozen_manuscript_changed": [],
+  "new_attempt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_combined_s7\\a2",
+  "new_worker": {
+    "state": "running",
+    "pid": 49624,
+    "started_at": "2026-10-16T03:15:51.452614+00:00",
+    "plant": "polymer",
+    "category": "combined",
+    "smoke": false
+  },
+  "isolated_runtime": {
+    "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "requested_environment": {
+      "NPY_DISABLE_CPU_FEATURES": "X86_V3,AVX2,FMA3",
+      "OPENBLAS_CORETYPE": "NEHALEM",
+      "OPENBLAS_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "PYTHONFAULTHANDLER": "1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "numpy_x86_v3_enabled": false,
+    "threadpools": [
+      {
+        "user_api": "blas",
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "openblas",
+        "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+        "version": "0.3.33",
+        "threading_layer": "pthreads",
+        "architecture": "Nehalem"
+      }
+    ],
+    "scope": "process-local numerical dispatch; unchanged equations/settings",
+    "interpretation": "native-crash mitigation; exact underlying binary/hardware trigger unproven",
+    "bootstrap_sha256": "3c24648bd6543278d9ddfaf2689499e8844f5c6a971dc4ce1c6b4f113ec618f8"
+  },
+  "bootstrap_file_matches_executed_hash": true,
+  "nominal_matrix_not_retrained": {
+    "nominal": 1,
+    "markov": 1
+  }
+}

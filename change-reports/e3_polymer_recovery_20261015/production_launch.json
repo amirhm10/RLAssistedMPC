@@ -1,0 +1,9 @@
+{
+  "parent_pid": 38588,
+  "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+  "script": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_polymer_e3_recovery.py",
+  "started_at_utc": "2026-10-16T03:15:47.1565038+00:00",
+  "stdout": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\e3_polymer_recovery_20261015\\restart_parent.log",
+  "stderr": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\e3_polymer_recovery_20261015\\restart_parent.err",
+  "scope": "Only failed polymer E3 combined, original study settings, isolated numerical dispatch"
+}

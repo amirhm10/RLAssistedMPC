@@ -1,0 +1,167 @@
+{
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "threadpools": [
+    {
+      "user_api": "blas",
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "openblas",
+      "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+      "version": "0.3.33",
+      "threading_layer": "pthreads",
+      "architecture": "Nehalem"
+    },
+    {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "libiomp",
+      "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+      "version": null
+    },
+    {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "libiomp",
+      "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+      "version": null
+    }
+  ],
+  "score_calls": 2000,
+  "fit_calls": 100,
+  "seconds": 0.9134674000088125,
+  "reference_trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_markov_s7\\a1\\capture\\traces\\adapted_0232008.npz",
+  "scores": [
+    0.0,
+    -0.001133175575744671,
+    -0.0013239318543488018,
+    -3.1915472667468305e-05,
+    -0.0009162942392874973,
+    -0.0014712433092365,
+    -0.00012484226337128556,
+    -0.0006913328457733672,
+    -0.0015665327076656058,
+    -0.00027181256172152505,
+    -0.00047352547448936753,
+    -0.0015997274076210188,
+    -0.00046011357019800524,
+    -0.00028262443738436195,
+    -0.0015702530634708208,
+    -0.0006766128298433908,
+    -0.00013254456363570013,
+    -0.0014779128491710955,
+    -0.0009021298643567522,
+    -3.5964382318185204e-05,
+    -0.0013335711332199984,
+    -0.001120244738223227,
+    -1.1604960099241177e-07,
+    -0.0011454747920582545,
+    -0.0013119912148132418
+  ],
+  "fits": [
+    {
+      "z": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": 0.0,
+      "success": true
+    },
+    {
+      "z": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": 0.0,
+      "success": true
+    },
+    {
+      "z": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": 0.0,
+      "success": true
+    },
+    {
+      "z": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": 0.0,
+      "success": true
+    },
+    {
+      "z": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": 0.0,
+      "success": true
+    },
+    {
+      "z": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": 0.0,
+      "success": true
+    },
+    {
+      "z": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": 0.0,
+      "success": true
+    },
+    {
+      "z": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": 0.0,
+      "success": true
+    },
+    {
+      "z": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": 0.0,
+      "success": true
+    },
+    {
+      "z": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": 0.0,
+      "success": true
+    }
+  ],
+  "scope": "unchanged functions; captured plant matrices; synthetic finite measured history",
+  "limitation": "Does not reconstruct the lost cycle-100 crash state or prove long-run stability."
+}

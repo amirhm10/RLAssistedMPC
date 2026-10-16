@@ -1,0 +1,104 @@
+[
+  {
+    "ProcessId": 47608,
+    "ParentProcessId": 33000,
+    "CreationDate": "2026-10-14T11:42:51.97916-04:00",
+    "CPUSeconds": 19.984375
+  },
+  {
+    "ProcessId": 2360,
+    "ParentProcessId": 47808,
+    "CreationDate": "2026-10-15T00:27:48.228345-04:00",
+    "CPUSeconds": 0.265625
+  },
+  {
+    "ProcessId": 14304,
+    "ParentProcessId": 2360,
+    "CreationDate": "2026-10-15T00:39:52.46378-04:00",
+    "CPUSeconds": 10426.984375
+  },
+  {
+    "ProcessId": 11296,
+    "ParentProcessId": 42520,
+    "CreationDate": "2026-10-15T14:15:07.648339-04:00",
+    "CPUSeconds": 2.484375
+  },
+  {
+    "ProcessId": 47288,
+    "ParentProcessId": 11296,
+    "CreationDate": "2026-10-15T14:15:07.829334-04:00",
+    "CPUSeconds": 32223.40625
+  },
+  {
+    "ProcessId": 43012,
+    "ParentProcessId": 47608,
+    "CreationDate": "2026-10-15T17:58:19.818328-04:00",
+    "CPUSeconds": 727.609375
+  },
+  {
+    "ProcessId": 47732,
+    "ParentProcessId": 47608,
+    "CreationDate": "2026-10-15T17:58:19.827714-04:00",
+    "CPUSeconds": 732.5625
+  },
+  {
+    "ProcessId": 46060,
+    "ParentProcessId": 47608,
+    "CreationDate": "2026-10-15T17:58:19.834358-04:00",
+    "CPUSeconds": 736.734375
+  },
+  {
+    "ProcessId": 32904,
+    "ParentProcessId": 47608,
+    "CreationDate": "2026-10-15T17:58:19.840973-04:00",
+    "CPUSeconds": 735.53125
+  },
+  {
+    "ProcessId": 34084,
+    "ParentProcessId": 47608,
+    "CreationDate": "2026-10-15T17:58:19.847256-04:00",
+    "CPUSeconds": 743.578125
+  },
+  {
+    "ProcessId": 43516,
+    "ParentProcessId": 47608,
+    "CreationDate": "2026-10-15T17:58:19.853615-04:00",
+    "CPUSeconds": 600.859375
+  },
+  {
+    "ProcessId": 15260,
+    "ParentProcessId": 47608,
+    "CreationDate": "2026-10-15T17:58:19.861246-04:00",
+    "CPUSeconds": 640.984375
+  },
+  {
+    "ProcessId": 40928,
+    "ParentProcessId": 47608,
+    "CreationDate": "2026-10-15T17:58:19.866925-04:00",
+    "CPUSeconds": 598.640625
+  },
+  {
+    "ProcessId": 48508,
+    "ParentProcessId": 47608,
+    "CreationDate": "2026-10-15T17:58:19.873837-04:00",
+    "CPUSeconds": 595.796875
+  },
+  {
+    "ProcessId": 49892,
+    "ParentProcessId": 47608,
+    "CreationDate": "2026-10-15T17:58:19.879325-04:00",
+    "CPUSeconds": 599.578125
+  },
+  {
+    "ProcessId": 38588,
+    "ParentProcessId": 20068,
+    "CreationDate": "2026-10-15T23:15:47.149155-04:00",
+    "CPUSeconds": 3.921875
+  },
+  {
+    "ProcessId": 49624,
+    "ParentProcessId": 38588,
+    "CreationDate": "2026-10-15T23:15:51.178333-04:00",
+    "CPUSeconds": 675.8125
+  }
+]

@@ -70,6 +70,8 @@ def snapshot(root=ROOT):
     for path in sorted((Path(root)/"Polymer/Results/review_recovery").glob("*/concurrent_plan.json")):
         if not read_json(path).get("smoke", True):
             studies["Polymer_remaining_" + path.parent.name] = str(path.parent)
+    for path in sorted((Path(root)/"Distillation/Results/column_review").glob("*/prepared_plan.json")):
+        studies["Column_review_" + path.parent.name] = str(path.parent)
     for name, relative in studies.items():
         directory = Path(root) / relative
         manifest = read_json(directory / "manifest.json")
@@ -107,6 +109,7 @@ def snapshot(root=ROOT):
             row = {"study": name, "job": job.get("id") or "/".join(str(job.get(k)) for k in ("category", "mode", "seed")),
                    "state": state, "pid": pid, **info, "cycle": int(cycles[-1]) if cycles else None,
                    "directory": str(path) if path else None,
+                   "aspen_number": job.get("aspen_number"),
                    "error": status.get("error") or attempt.get("error"),
                    "historical_failed_attempts": sum(a.get("state") == "failed" for a in attempts[:-1]),
                    "last_log_at": datetime.fromtimestamp(log.stat().st_mtime).isoformat() if log and log.exists() else None}
@@ -145,6 +148,8 @@ def display(data):
             continue
         cpu = str(row['cpu_seconds'])+'s' if row['cpu_seconds'] is not None else 'unavailable'
         detail = f"cycle={row['cycle']} PID={row['pid']} CPU={cpu}"
+        if row.get("aspen_number") is not None:
+            detail += f" Aspen={row['aspen_number']}"
         if "matched_decisions" in row:
             detail += f" matched={row['completed_matched_decisions']}/{row['expected_matched_decisions']} step={row.get('last_matched_step')}"
         if "prediction_origins" in row:

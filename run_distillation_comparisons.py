@@ -54,6 +54,7 @@ def completed(directory, expected):
         if expected.get("method") in ("sg", "threshold"):
             required.add("final_inference_networks.pt")
         return (status["state"] == "completed" and status.get("aspen_closed") is True
+                and status.get("steps") == 80000 and status.get("cycles") == 200
                 and all(job.get(k) == expected.get(k) for k in ("method", "seed", "source_hashes", "profile", "bo_trials"))
                 and required.issubset(status.get("files", {}))
                 and all((directory/name).is_file() and sha256(directory/name) == digest
@@ -134,6 +135,7 @@ def worker(path):
         files = {p.relative_to(output).as_posix(): sha256(p) for p in output.iterdir()
                  if p.is_file() and p.name not in {"worker.log", "job.json", "status.json"}}
         status.update(state="completed", finished_at=utc_now(), files=files,
+                      steps=int(result["nFE"]), cycles=len(result["avg_rewards"]),
                       solver_calls=len(audit), solver_failed_calls=sum(not r[1] for r in audit),
                       duration_seconds=time.perf_counter()-began)
         write_json(output/"status.json", status)

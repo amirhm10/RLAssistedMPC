@@ -75,7 +75,7 @@ def run(output):
     def compressed_resolve(*args, **kwargs):
         return compress_bundle(original_resolve(*args, **kwargs))
     output.mkdir(parents=True, exist_ok=False)
-    aspen = resolve_aspen("combined", number_override=1)  # inspect path/hash only
+    aspen = resolve_aspen("combined", number_override=12)  # inspect assigned path/hash only
     rows = []
     torch.set_num_threads(1)
     with ExitStack() as stack:
@@ -88,6 +88,8 @@ def run(output):
             directory = output/method
             directory.mkdir()
             result, agents = run_method(method, directory, aspen, 7, bo_trials=5)
+            if not all((directory / name).is_file() for name in ("baseline_audit.json", "baseline_metrics.json", "resolved_defaults.json")):
+                raise AssertionError(f"{method} omitted mandatory completed-worker sidecars.")
             if result["nFE"] != 400 or len(result["avg_rewards"]) != 200:
                 raise AssertionError("Technical clock did not preserve 200 episode boundaries.")
             if not all(np.all(np.isfinite(result[k])) for k in ("y", "u", "rewards_step")):

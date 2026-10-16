@@ -219,6 +219,12 @@ def run_method(method, output, aspen, seed, *, bo_trials=40):
         return result, agents
 
     threshold = None
+    if method == "sg":
+        # A standalone SG job has no calibration prefix to create its baseline
+        # audit. Validate it before training, in its own owned initialization.
+        # The production artifact contract requires these sidecars for every arm.
+        with aspen_resources(aspen):
+            prepare(seed, output, aspen)
     if method == "threshold":
         with aspen_resources(aspen):
             namespace = prepare(seed, output, aspen)
@@ -249,7 +255,7 @@ def run_method(method, output, aspen, seed, *, bo_trials=40):
             agents = sessions[0].agents
             write_json(output/"resolved_defaults.json", namespace["NB"])
         result.update(comparison_threshold=threshold, comparison_threshold_decisions=sessions[0].records,
-                      comparison_timing=clock.summary())
+                      comparison_timing=clock.summary(), reward_params=deepcopy(namespace["reward_params"]))
         return result, agents
 
     if method != "bo":

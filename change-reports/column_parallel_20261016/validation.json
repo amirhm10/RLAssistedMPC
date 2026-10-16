@@ -1,0 +1,259 @@
+{
+  "scope": "Development and offline checks only; live launch explicitly deferred by author",
+  "prepared_batch": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16",
+  "mapping": {
+    "sg": 12,
+    "threshold": 13,
+    "ls": 14,
+    "bo": 15,
+    "e1_pilot": 16
+  },
+  "state": "prepared",
+  "new_workers_started": 0,
+  "new_aspen_applications_opened": 0,
+  "plan_sha256": "523b3888349b65818f420f975de39609a2b79af48956538585ae5a702aaa93f5",
+  "manifest_sha256": "6edb69ef85ab5ddc39194b4e08d67937feb67aa21cbcf14a1af71c2f9a07e144",
+  "phase": {
+    "paper_label": "handoff phase",
+    "technical_meaning": "critic-only learning under supervisor/MPC control",
+    "critic_only_cycles": [
+      11,
+      13
+    ],
+    "policy_eligibility_cycle": 14,
+    "original_inclusive_boundaries_preserved": true,
+    "sources": [
+      {
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\sections\\results.tex",
+        "sha256": "2eb2a9a025f250875bc5552c20bbdf6ffcbce0e21978590a49acf65cc2ba39b9"
+      },
+      {
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\sections\\supporting_information_content.tex",
+        "sha256": "809e24aae82774ba4777ccb99e49b6a278fe7a1a238715fe4011e4a11dc8afeb"
+      },
+      {
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\phase1_hidden_release.py",
+        "sha256": "31d014a745d08e9ccbb9fc9aef3216c78f568261e0ff8783dc745a9dd2b19168"
+      },
+      {
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\combined_runner.py",
+        "sha256": "e1ffc0224f004e704bcf9eb1af2531cf83758d09ab3931285a03a93747278ab8"
+      },
+      {
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\systems\\distillation\\notebook_params.py",
+        "sha256": "b2b91712c1dc00e7d3e709ba625b454b767934f444db0bf0ae8d2bbed5b0348e"
+      }
+    ]
+  },
+  "tests": {
+    "passed": 61,
+    "log": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\column_parallel_20261016\\tests_final.log",
+    "sha256": "3e119c11f3c5b6a90b6454be928d8b448d2d233b71e6d5de085348d75779958f"
+  },
+  "offline_integration": {
+    "state": "completed",
+    "methods": [
+      {
+        "method": "nominal",
+        "steps": 400,
+        "cycles": 200,
+        "original_architectures": true,
+        "live_aspen_opened": false,
+        "scientific_performance_result": false
+      },
+      {
+        "method": "ls",
+        "steps": 400,
+        "cycles": 200,
+        "original_architectures": true,
+        "live_aspen_opened": false,
+        "scientific_performance_result": false
+      },
+      {
+        "method": "bo",
+        "steps": 400,
+        "cycles": 200,
+        "original_architectures": true,
+        "live_aspen_opened": false,
+        "scientific_performance_result": false
+      },
+      {
+        "method": "threshold",
+        "steps": 400,
+        "cycles": 200,
+        "original_architectures": true,
+        "live_aspen_opened": false,
+        "scientific_performance_result": false,
+        "checkpoint": {
+          "path": "inference.pt",
+          "sha256": "b74ac6ebddee7dcfa00859860b8884f0eee13dcccf1ae93ea122e0c50384d949",
+          "tensor_counts": {
+            "horizon_agent": 24,
+            "weight_agent": 72,
+            "markov_agent": 84,
+            "residual_agent": 84
+          },
+          "parameter_elements": {
+            "horizon_agent": 2157646,
+            "weight_agent": 6367244,
+            "markov_agent": 7485456,
+            "residual_agent": 7420938
+          },
+          "round_trip_verified": true,
+          "training_resume": false
+        }
+      },
+      {
+        "method": "sg",
+        "steps": 400,
+        "cycles": 200,
+        "original_architectures": true,
+        "live_aspen_opened": false,
+        "scientific_performance_result": false,
+        "checkpoint": {
+          "path": "inference.pt",
+          "sha256": "c704394b2f3a43bbdc3578cc802efc74f5436ecc6cd50ed3d201d76f8537a48c",
+          "tensor_counts": {
+            "horizon_agent": 24,
+            "weight_agent": 72,
+            "markov_agent": 84,
+            "residual_agent": 84
+          },
+          "parameter_elements": {
+            "horizon_agent": 2157646,
+            "weight_agent": 6367244,
+            "markov_agent": 7485456,
+            "residual_agent": 7420938
+          },
+          "round_trip_verified": true,
+          "training_resume": false
+        }
+      }
+    ],
+    "owned_fake_cases_created": 12,
+    "owned_fake_cases_closed": 12,
+    "live_aspen_opened": false,
+    "training_clock_stride": 200,
+    "scope": "Original column entrypoints and networks on compressed clock with an identified-model fake plant; no plant performance evidence."
+  },
+  "snapshot_api": {
+    "type_library": "{E85043BB-0E9D-11D3-82C4-00104B468DE2}",
+    "version": [
+      1,
+      0
+    ],
+    "name": "AspenCustomModelerLibrary",
+    "interfaces": {
+      "IAspenModelerDocument": {
+        "methods": {},
+        "properties": [
+          "Results",
+          "Time"
+        ]
+      },
+      "IAspenModelerResults": {
+        "methods": {
+          "TakeSnapshot": {
+            "arguments": [
+              "cvName"
+            ],
+            "signature": "PyFUNCDESC(memid=2048, scodeArray=(), args=((12, 0, None),), funckind=4, invkind=1, callconv=4, cParamsOpt=0, oVft=0, rettype=(24, 0, None), wFuncFlags=0)"
+          },
+          "LoadSnapshot": {
+            "arguments": [
+              "cvSnapshot"
+            ],
+            "signature": "PyFUNCDESC(memid=2051, scodeArray=(), args=((12, 0, None),), funckind=4, invkind=1, callconv=4, cParamsOpt=0, oVft=0, rettype=(24, 0, None), wFuncFlags=0)"
+          },
+          "FindSnapshot": {
+            "arguments": [
+              "Description"
+            ],
+            "signature": "PyFUNCDESC(memid=2056, scodeArray=(), args=((12, 0, None),), funckind=4, invkind=1, callconv=4, cParamsOpt=0, oVft=0, rettype=(12, 0, None), wFuncFlags=0)"
+          }
+        },
+        "properties": []
+      },
+      "IAspenModelerSnapshot": {
+        "methods": {
+          "ExportasBinary": {
+            "arguments": [
+              "ExportFile"
+            ],
+            "signature": "PyFUNCDESC(memid=2051, scodeArray=(), args=((12, 0, None),), funckind=4, invkind=1, callconv=4, cParamsOpt=0, oVft=0, rettype=(24, 0, None), wFuncFlags=0)"
+          }
+        },
+        "properties": [
+          "Converged"
+        ]
+      }
+    },
+    "live_aspen_opened": false,
+    "scope": "Registered API signatures only; live snapshot restoration still needs its pilot."
+  },
+  "source_integrity": {
+    "E3_polymer": {
+      "files": 103,
+      "unchanged": true,
+      "changed": []
+    },
+    "E3_column": {
+      "files": 103,
+      "unchanged": true,
+      "changed": []
+    },
+    "E1_combined_recovery": {
+      "files": 97,
+      "unchanged": true,
+      "changed": []
+    },
+    "column_repeats": {
+      "files": 86,
+      "unchanged": true,
+      "changed": []
+    }
+  },
+  "original_manuscript": {
+    "files": 46,
+    "unchanged": true,
+    "changed": []
+  },
+  "existing_run_counts": {
+    "polymer_repeats": {
+      "completed": 50
+    },
+    "column_repeats": {
+      "completed": 10,
+      "running": 10,
+      "pending": 30
+    },
+    "E1_polymer": {
+      "completed": 3,
+      "failed": 1,
+      "pending": 1
+    },
+    "E1_combined_recovery": {
+      "failed": 1
+    },
+    "E2_polymer_SG_recovery": {
+      "blocked_by_E1_failure": 1
+    },
+    "E3_polymer": {
+      "completed": 3
+    },
+    "E3_column": {
+      "completed": 2,
+      "running": 1
+    },
+    "Polymer_remaining_20261016_remaining_polymer_concurrent": {
+      "running": 3
+    },
+    "Column_review_20261016_prepared_cases12_16": {
+      "pending": 5
+    }
+  },
+  "observed_at_utc": "2026-10-16T17:18:36.799222+00:00",
+  "live_E1_pilot_pending": true,
+  "full_E1_critic_validation_implemented": false,
+  "unseen_reference_evaluation_pending": true
+}

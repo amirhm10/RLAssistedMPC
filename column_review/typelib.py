@@ -4,7 +4,7 @@ from __future__ import annotations
 TYPELIB = "{E85043BB-0E9D-11D3-82C4-00104B468DE2}"
 REQUIRED = {
     "IAspenModelerDocument": {"Results", "Time"},
-    "IAspenModelerResults": {"TakeSnapshot", "FindSnapshot", "LoadSnapshot"},
+    "IAspenModelerResults": {"Refresh", "TakeSnapshot", "FindSnapshot", "LoadSnapshot"},
     "IAspenModelerSnapshot": {"ExportasBinary", "Converged"},
 }
 

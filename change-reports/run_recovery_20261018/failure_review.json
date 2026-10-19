@@ -1,0 +1,212 @@
+{
+  "repeat_crashes": [
+    {
+      "category": "markov",
+      "mode": "sg",
+      "seed": 7,
+      "returncode": null,
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_sg\\s7\\a1",
+        "pid": 46912
+      },
+      "last_completed_cycle": 119,
+      "python_traceback_in_tail": false
+    },
+    {
+      "category": "markov",
+      "mode": "sg",
+      "seed": 11,
+      "returncode": null,
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_sg\\s11\\a1",
+        "pid": 44528
+      },
+      "last_completed_cycle": 153,
+      "python_traceback_in_tail": false
+    },
+    {
+      "category": "markov",
+      "mode": "sg",
+      "seed": 23,
+      "returncode": null,
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_sg\\s23\\a1",
+        "pid": 46308
+      },
+      "last_completed_cycle": 292,
+      "python_traceback_in_tail": false
+    },
+    {
+      "category": "markov",
+      "mode": "sg",
+      "seed": 37,
+      "returncode": null,
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_sg\\s37\\a1",
+        "pid": 33328
+      },
+      "last_completed_cycle": 157,
+      "python_traceback_in_tail": false
+    },
+    {
+      "category": "markov",
+      "mode": "sg",
+      "seed": 53,
+      "returncode": null,
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_sg\\s53\\a1",
+        "pid": 51348
+      },
+      "last_completed_cycle": 159,
+      "python_traceback_in_tail": false
+    },
+    {
+      "category": "markov",
+      "mode": "plain",
+      "seed": 7,
+      "returncode": null,
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_plain\\s7\\a1",
+        "pid": 41604
+      },
+      "last_completed_cycle": 186,
+      "python_traceback_in_tail": false
+    },
+    {
+      "category": "markov",
+      "mode": "plain",
+      "seed": 11,
+      "returncode": null,
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_plain\\s11\\a1",
+        "pid": 22104
+      },
+      "last_completed_cycle": 56,
+      "python_traceback_in_tail": false
+    },
+    {
+      "category": "markov",
+      "mode": "plain",
+      "seed": 23,
+      "returncode": null,
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_plain\\s23\\a1",
+        "pid": 12588
+      },
+      "last_completed_cycle": 199,
+      "python_traceback_in_tail": false
+    },
+    {
+      "category": "markov",
+      "mode": "plain",
+      "seed": 37,
+      "returncode": null,
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_plain\\s37\\a1",
+        "pid": 50468
+      },
+      "last_completed_cycle": 78,
+      "python_traceback_in_tail": false
+    },
+    {
+      "category": "markov",
+      "mode": "plain",
+      "seed": 53,
+      "returncode": null,
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_plain\\s53\\a1",
+        "pid": 38064
+      },
+      "last_completed_cycle": 215,
+      "python_traceback_in_tail": false
+    }
+  ],
+  "comparison_crashes": [
+    {
+      "method": "sg",
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\sg\\a2",
+        "pid": 27148,
+        "alive": true,
+        "created": 134366459529496087,
+        "state": "failed",
+        "started_at": "2026-10-16T17:39:12.958131+00:00",
+        "returncode": 3221225477,
+        "finished_at": "2026-10-17T17:39:40.667282+00:00"
+      },
+      "last_stack_dump_at": "2026-10-17T17:39:13.494311+00:00",
+      "seconds_after_worker_started": 86400.53618,
+      "seconds_from_nearest_1800_second_interval": 0.536179999995511,
+      "last_stack_dump_tail": "mediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_distillation_remaining.py\", line 319 in main\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_distillation_remaining.py\", line 347 in <module>\nTimeout (0:30:00)!\nThread 0x000084cc (most recent call first):\n  <no Python frame>\n\nThread 0x0000491c (most recent call first):\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\nn\\utils\\clip_grad.py\""
+    },
+    {
+      "method": "threshold",
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\threshold\\a2",
+        "pid": 16284,
+        "alive": true,
+        "created": 134366459530012960,
+        "state": "failed",
+        "started_at": "2026-10-16T17:39:13.006428+00:00",
+        "returncode": 3221225477,
+        "finished_at": "2026-10-16T20:39:41.926099+00:00"
+      },
+      "last_stack_dump_at": "2026-10-16T20:39:13.407720+00:00",
+      "seconds_after_worker_started": 10800.401292,
+      "seconds_from_nearest_1800_second_interval": 0.40129200000046694,
+      "last_stack_dump_tail": "4 (most recent call first):\n  <no Python frame>\n\nThread 0x000024b8 (most recent call first):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\markov_runner.py\", line 840 in lifted_mpc_cost\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\numpy\\_core\\numeric.py\", line 992 in isscalar\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\scipy\\_lib\\_util.py\", line 603 in __call__\n  File "
+    },
+    {
+      "method": "ls",
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\ls\\a2",
+        "pid": 37868,
+        "alive": true,
+        "created": 134366459530812805,
+        "state": "failed",
+        "started_at": "2026-10-16T17:39:13.088294+00:00",
+        "returncode": 3221225477,
+        "finished_at": "2026-10-16T21:09:40.828553+00:00"
+      },
+      "last_stack_dump_at": "2026-10-16T21:09:13.498322+00:00",
+      "seconds_after_worker_started": 12600.410028,
+      "seconds_from_nearest_1800_second_interval": 0.41002800000023853,
+      "last_stack_dump_tail": "le \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_distillation_remaining.py\", line 347 in <module>\nTimeout (0:30:00)!\nThread 0x0000ab68 (most recent call first):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\markov_runner.py\", line 464 in real_u_window\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\markov_runner.py\", line 592 in prediction_improvement_score\n  File "
+    },
+    {
+      "method": "bo",
+      "attempt": {
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\bo\\a2",
+        "pid": 51024,
+        "alive": true,
+        "created": 134366459531004607,
+        "state": "failed",
+        "started_at": "2026-10-16T17:39:13.105765+00:00",
+        "returncode": 3221225477,
+        "finished_at": "2026-10-17T00:39:41.584363+00:00"
+      },
+      "last_stack_dump_at": "2026-10-17T00:39:13.529969+00:00",
+      "seconds_after_worker_started": 25200.424204,
+      "seconds_from_nearest_1800_second_interval": 0.4242039999990084,
+      "last_stack_dump_tail": ", line 152 in worker\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_distillation_remaining.py\", line 319 in main\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_distillation_remaining.py\", line 347 in <module>\nTimeout (0:30:00)!\nThread 0x00007cd0 (most recent call first):\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\numpy\\_core\\fromnumeric.py\", line 2425 in sum\n  File "
+    }
+  ],
+  "confirmed_module": "Windows Application event 1000 identifies openblas.dll for SG seed 23; other repeat modules unconfirmed.",
+  "timer_causality": "Four crashes coincide with a scheduled all-thread stack dump. Correlation is strong, but no local reproducer established causation.",
+  "upstream_context": {
+    "url": "https://github.com/python/cpython/issues/140815",
+    "limitation": "Upstream report concerns a different platform/extremely small timeout. It does not prove the cause of these Windows 30-minute-monitor failures."
+  },
+  "pilot_error": {
+    "state": "failed",
+    "pid": 1752,
+    "method": "e1_pilot",
+    "started_at": "2026-10-16T17:39:13.273799+00:00",
+    "finished_at": "2026-10-16T17:47:23.799993+00:00",
+    "error": "(-2147417851, 'The server threw an exception.', None, None)",
+    "error_type": "com_error",
+    "parent_error": "Nonzero worker exit, incomplete artifacts or unverified Aspen cleanup.",
+    "returncode": 1,
+    "owned_apps_remaining": []
+  }
+}

@@ -67,6 +67,9 @@ def log_tail(path, count=16000):
 def snapshot(root=ROOT):
     rows = []
     studies = dict(STUDIES)
+    recovery = read_json(Path(root) / "Distillation/Results/review_recovery/latest.json")
+    if recovery.get("repeats"):
+        studies["column_repeats"] = recovery["repeats"]
     for path in sorted((Path(root)/"Polymer/Results/review_recovery").glob("*/concurrent_plan.json")):
         if not read_json(path).get("smoke", True):
             studies["Polymer_remaining_" + path.parent.name] = str(path.parent)
@@ -133,17 +136,31 @@ def snapshot(root=ROOT):
                 if captures.exists():
                     row["prediction_origins"] = sum(bool(line.strip()) for line in captures.open(encoding="utf-8"))
             rows.append(row)
+    historical = []
+    polymer_current = [r for r in rows if r["study"].startswith("Polymer_remaining_")]
+    if polymer_current:
+        historical += ["E1_polymer", "E1_combined_recovery", "E2_polymer_SG_recovery"]
+    if recovery.get("column"):
+        historical += [name for name, path in studies.items() if name.startswith("Column_review_")
+                       and Path(path).resolve() != Path(recovery["column"]).resolve()]
     return {"observed_at_utc": datetime.now(timezone.utc).isoformat(), "jobs": rows,
+            "historical_studies": historical, "active_recovery": recovery.get("directory"),
             "counts": {name: dict(collections.Counter(r["state"] for r in rows if r["study"] == name)) for name in studies}}
 
 
 def display(data):
-    print("\nReviewer studies: " + data["observed_at_utc"], flush=True)
+    observed = datetime.fromisoformat(data["observed_at_utc"]).astimezone()
+    historical = set(data.get("historical_studies", []))
+    print("\nReviewer studies: " + observed.strftime("%Y-%m-%d %H:%M:%S %Z"), flush=True)
     for name, counts in data["counts"].items():
+        if name in historical:
+            continue
         print(f"  {name}: {counts}", flush=True)
-    if data["counts"].get("E1_polymer", {}).get("failed"):
+    if "E1_polymer" not in historical and data["counts"].get("E1_polymer", {}).get("failed"):
         print("  Original E1 manifest retains the residual export failure; its 400 pairs survive. The separate recovery row tracks combined.", flush=True)
     for row in data["jobs"]:
+        if row["study"] in historical:
+            continue
         if row["state"] not in ("running", "failed", "stopped_without_final_status"):
             continue
         cpu = str(row['cpu_seconds'])+'s' if row['cpu_seconds'] is not None else 'unavailable'
@@ -157,4 +174,6 @@ def display(data):
         if "checkpoint_cycle" in row:
             detail += f" full_training_checkpoint_cycle={row['checkpoint_cycle']}"
         print(f"  {row['study']} {row['job']}: {row['state']} {detail}", flush=True)
-    print("Historical failures remain visible; Polymer_remaining rows track the new independent recoveries. Closing this viewer does not stop a study.", flush=True)
+    if historical:
+        print(f"  {len(historical)} superseded study records retained in the JSON audit; current recoveries shown above.", flush=True)
+    print("Closing this viewer does not stop a study. Failed attempts remain saved.", flush=True)

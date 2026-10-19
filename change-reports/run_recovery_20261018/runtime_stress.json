@@ -1,0 +1,38 @@
+{
+  "state": "passed",
+  "duration_seconds": 40.00056850002147,
+  "numpy_solve_inverse_pairs": 438521,
+  "SLSQP_Lyapunov_PyTorch_batches": 43853,
+  "max_linear_residual": 3.180095076160683e-14,
+  "max_optimizer_error": 2.030451823342716e-08,
+  "threadpools": [
+    {
+      "user_api": "blas",
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "openblas",
+      "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+      "version": "0.3.33",
+      "threading_layer": "pthreads",
+      "architecture": "Nehalem"
+    },
+    {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "libiomp",
+      "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+      "version": null
+    },
+    {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "libiomp",
+      "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+      "version": null
+    }
+  ],
+  "numpy_x86_v3_enabled": false,
+  "limitation": "Bounded CPU/import/BLAS/optimizer stress; does not prove multi-day training or Aspen stability."
+}

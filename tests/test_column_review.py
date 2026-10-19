@@ -166,9 +166,17 @@ class Snapshot:
 class Results:
     def __init__(self, plant):
         self.plant = plant
+        self.refreshed = False
+    def Refresh(self):
+        self.refreshed = True
     def TakeSnapshot(self, name):
+        if not self.refreshed:
+            raise RuntimeError("Refresh is required before snapshot access")
         self.snapshot = Snapshot(self.plant)
+        self.refreshed = False
     def FindSnapshot(self, name):
+        if not self.refreshed:
+            raise RuntimeError("Refresh is required after snapshot creation")
         return self.snapshot
     def LoadSnapshot(self, snapshot):
         self.plant.state = snapshot.state.copy()

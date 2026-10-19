@@ -38,10 +38,15 @@ class NativeSnapshot:
                              "controller": deepcopy(controller_state)}
         self.labels, self.internal = profile(plant)
         self.name = "review_e1_" + uuid.uuid4().hex
-        plant.sim.Results.TakeSnapshot(self.name)
-        snapshot = plant.sim.Results.FindSnapshot(self.name)
+        # Aspen's automation reference requires Refresh before using Results.
+        # An unrefreshed Results object threw a server exception in the pilot.
+        results = plant.sim.Results
+        results.Refresh()
+        results.TakeSnapshot(self.name)
+        results.Refresh()
+        snapshot = results.FindSnapshot(self.name)
         if isinstance(snapshot, (int, np.integer)):
-            snapshot = plant.sim.Results.GetSnapshot(int(snapshot))
+            snapshot = results.GetSnapshot(int(snapshot))
         self.native = snapshot
         if not bool(self.native.Converged):
             raise RuntimeError("Aspen reports a nonconverged native snapshot; it cannot validate E1 restoration.")

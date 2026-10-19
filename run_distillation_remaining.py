@@ -133,25 +133,23 @@ def worker(path):
         runtime_job = output / "runtime_job.json"
         write(runtime_job, job)
         faulthandler.enable()
-        with (output.parent / f"{output.name}_stall_stacks.log").open("a", encoding="utf-8") as stacks:
-            faulthandler.dump_traceback_later(1800, repeat=True, file=stacks)
-            try:
-                with case_lease(job["aspen"]), record_owned_apps(output):
-                    if job["method"] == "e1_pilot":
-                        from column_review.pilot import run
-                        run(output, job["aspen"], job["seed"])
-                        status.update(state="completed", aspen_closed=True, finished_at=now())
-                        status["files"] = {file.relative_to(output).as_posix(): digest(file) for file in output.rglob("*")
-                                           if file.is_file() and file.name in {"pilot_result.json", "continuations.npz", "python_checkpoint.pkl", "snapshot_api.json"}}
-                        status["files"].update({file.relative_to(output).as_posix(): digest(file)
-                                                for file in (output / "preserved_snapshots").glob("*.snp")})
-                        write(output / "status.json", status)
-                        code = 0
-                    else:
-                        from run_distillation_comparisons import worker as original_worker
-                        code = original_worker(runtime_job)
-            finally:
-                faulthandler.cancel_dump_traceback_later()
+        # Progress belongs in the supervisor process. Scheduled all-thread
+        # stack dumps coincided with four native crashes in the old attempts.
+        # Keep fatal-error diagnostics, without a timed in-worker watchdog.
+        with case_lease(job["aspen"]), record_owned_apps(output):
+            if job["method"] == "e1_pilot":
+                from column_review.pilot import run
+                run(output, job["aspen"], job["seed"])
+                status.update(state="completed", aspen_closed=True, finished_at=now())
+                status["files"] = {file.relative_to(output).as_posix(): digest(file) for file in output.rglob("*")
+                                   if file.is_file() and file.name in {"pilot_result.json", "continuations.npz", "python_checkpoint.pkl", "snapshot_api.json"}}
+                status["files"].update({file.relative_to(output).as_posix(): digest(file)
+                                        for file in (output / "preserved_snapshots").glob("*.snp")})
+                write(output / "status.json", status)
+                code = 0
+            else:
+                from run_distillation_comparisons import worker as original_worker
+                code = original_worker(runtime_job)
         if code == 0:
             check_job(job)
         return code

@@ -1,0 +1,4395 @@
+{
+  "observed_at_utc": "2026-10-19T00:38:12.264650+00:00",
+  "jobs": [
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/sg/7",
+      "state": "completed",
+      "pid": 39584,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:06:15.810616"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/sg/11",
+      "state": "completed",
+      "pid": 29280,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T22:59:12.515267"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/sg/23",
+      "state": "completed",
+      "pid": 14468,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:11:15.633550"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/sg/37",
+      "state": "completed",
+      "pid": 21768,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:05:14.083751"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/sg/53",
+      "state": "completed",
+      "pid": 39088,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:05:40.217527"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/plain/7",
+      "state": "completed",
+      "pid": 18332,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_plain\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:23:39.279249"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/plain/11",
+      "state": "completed",
+      "pid": 39832,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_plain\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:23:37.021832"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/plain/23",
+      "state": "completed",
+      "pid": 37136,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_plain\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:23:54.599363"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/plain/37",
+      "state": "completed",
+      "pid": 37808,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_plain\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:24:01.956046"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/plain/53",
+      "state": "completed",
+      "pid": 37244,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_plain\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:24:15.304791"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/sg/7",
+      "state": "completed",
+      "pid": 26104,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_sg\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T03:25:12.092360"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/sg/11",
+      "state": "completed",
+      "pid": 34028,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_sg\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T03:25:02.606814"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/sg/23",
+      "state": "completed",
+      "pid": 15768,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_sg\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T03:25:23.355166"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/sg/37",
+      "state": "completed",
+      "pid": 41340,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_sg\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T03:25:00.466120"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/sg/53",
+      "state": "completed",
+      "pid": 38964,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_sg\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T03:25:02.789271"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/plain/7",
+      "state": "completed",
+      "pid": 41204,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_plain\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T02:40:48.885374"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/plain/11",
+      "state": "completed",
+      "pid": 22360,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_plain\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T02:40:37.030248"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/plain/23",
+      "state": "completed",
+      "pid": 35812,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_plain\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T02:41:13.959593"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/plain/37",
+      "state": "completed",
+      "pid": 4292,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_plain\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T02:40:16.827418"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/plain/53",
+      "state": "completed",
+      "pid": 39752,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_plain\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T02:41:16.840202"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/sg/7",
+      "state": "completed",
+      "pid": 32772,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:57:44.254121"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/sg/11",
+      "state": "completed",
+      "pid": 10684,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T10:01:39.433738"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/sg/23",
+      "state": "completed",
+      "pid": 4076,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:53:28.655033"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/sg/37",
+      "state": "completed",
+      "pid": 35228,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:55:40.304266"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/sg/53",
+      "state": "completed",
+      "pid": 37252,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:52:57.306610"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/plain/7",
+      "state": "completed",
+      "pid": 33240,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:54:00.992914"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/plain/11",
+      "state": "completed",
+      "pid": 39280,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:55:31.213824"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/plain/23",
+      "state": "completed",
+      "pid": 35584,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:57:12.632862"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/plain/37",
+      "state": "completed",
+      "pid": 37436,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:51:57.337872"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/plain/53",
+      "state": "completed",
+      "pid": 36540,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:42:50.132254"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/sg/7",
+      "state": "completed",
+      "pid": 32760,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T14:13:49.705616"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/sg/11",
+      "state": "completed",
+      "pid": 39752,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T14:13:46.272830"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/sg/23",
+      "state": "completed",
+      "pid": 4840,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T14:13:53.615560"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/sg/37",
+      "state": "completed",
+      "pid": 35880,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T14:13:58.009247"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/sg/53",
+      "state": "completed",
+      "pid": 11908,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T14:13:53.242759"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/plain/7",
+      "state": "completed",
+      "pid": 39344,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_plain\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T13:28:48.792753"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/plain/11",
+      "state": "completed",
+      "pid": 41444,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_plain\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T13:28:27.747665"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/plain/23",
+      "state": "completed",
+      "pid": 38832,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_plain\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T13:28:48.122350"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/plain/37",
+      "state": "completed",
+      "pid": 21664,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_plain\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T13:28:40.812031"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/plain/53",
+      "state": "completed",
+      "pid": 34216,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_plain\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T13:28:44.561644"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/sg/7",
+      "state": "completed",
+      "pid": 6228,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T06:02:22.054096"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/sg/11",
+      "state": "completed",
+      "pid": 33916,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T06:09:39.661908"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/sg/23",
+      "state": "completed",
+      "pid": 23432,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T06:06:46.976906"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/sg/37",
+      "state": "completed",
+      "pid": 3400,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T06:11:40.129354"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/sg/53",
+      "state": "completed",
+      "pid": 9796,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T06:12:24.520820"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/plain/7",
+      "state": "completed",
+      "pid": 27692,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T04:12:13.971339"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/plain/11",
+      "state": "completed",
+      "pid": 30416,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T03:57:33.108377"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/plain/23",
+      "state": "completed",
+      "pid": 29344,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T04:20:48.360891"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/plain/37",
+      "state": "completed",
+      "pid": 40664,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T04:08:24.991206"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/plain/53",
+      "state": "completed",
+      "pid": 39784,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T04:01:40.311591"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/sg/7",
+      "state": "completed",
+      "pid": 26860,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s7\\a1",
+      "aspen_number": 1,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:14:41.560145"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/sg/11",
+      "state": "completed",
+      "pid": 24716,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s11\\a1",
+      "aspen_number": 2,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:46:19.151365"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/sg/23",
+      "state": "completed",
+      "pid": 10676,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s23\\a1",
+      "aspen_number": 3,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:47:21.950006"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/sg/37",
+      "state": "completed",
+      "pid": 45464,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s37\\a1",
+      "aspen_number": 4,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:40:44.871393"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/sg/53",
+      "state": "completed",
+      "pid": 22492,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s53\\a1",
+      "aspen_number": 5,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:45:42.732965"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/plain/7",
+      "state": "completed",
+      "pid": 47208,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s7\\a1",
+      "aspen_number": 6,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:55:17.277090"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/plain/11",
+      "state": "completed",
+      "pid": 29724,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s11\\a1",
+      "aspen_number": 7,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:22:34.554404"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/plain/23",
+      "state": "completed",
+      "pid": 46136,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s23\\a1",
+      "aspen_number": 8,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:42:31.641135"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/plain/37",
+      "state": "completed",
+      "pid": 16888,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s37\\a1",
+      "aspen_number": 9,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:58:13.220074"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/plain/53",
+      "state": "completed",
+      "pid": 37016,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s53\\a1",
+      "aspen_number": 10,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:55:16.366668"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/sg/7",
+      "state": "completed",
+      "pid": 43012,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s7\\a1",
+      "aspen_number": 1,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:41:11.984894"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/sg/11",
+      "state": "completed",
+      "pid": 47732,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s11\\a1",
+      "aspen_number": 2,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:35:38.044581"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/sg/23",
+      "state": "completed",
+      "pid": 46060,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s23\\a1",
+      "aspen_number": 3,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-17T00:05:38.479430"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/sg/37",
+      "state": "completed",
+      "pid": 32904,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s37\\a1",
+      "aspen_number": 4,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:35:58.770245"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/sg/53",
+      "state": "completed",
+      "pid": 34084,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s53\\a1",
+      "aspen_number": 5,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:39:05.899378"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/plain/7",
+      "state": "completed",
+      "pid": 43516,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s7\\a1",
+      "aspen_number": 6,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:19:59.626309"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/plain/11",
+      "state": "completed",
+      "pid": 15260,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s11\\a1",
+      "aspen_number": 7,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:06:49.008591"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/plain/23",
+      "state": "completed",
+      "pid": 40928,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s23\\a1",
+      "aspen_number": 8,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:32:18.495883"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/plain/37",
+      "state": "completed",
+      "pid": 48508,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s37\\a1",
+      "aspen_number": 9,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:17:44.703847"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/plain/53",
+      "state": "completed",
+      "pid": 49892,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s53\\a1",
+      "aspen_number": 10,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:16:20.060893"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/sg/7",
+      "state": "running",
+      "pid": 764,
+      "alive": true,
+      "cpu_seconds": 16.15625,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s7\\a2",
+      "aspen_number": 1,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:35:30.955571"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/sg/11",
+      "state": "running",
+      "pid": 9864,
+      "alive": true,
+      "cpu_seconds": 17.359375,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s11\\a2",
+      "aspen_number": 2,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:35:10.064246"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/sg/23",
+      "state": "running",
+      "pid": 9304,
+      "alive": true,
+      "cpu_seconds": 30.9375,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s23\\a2",
+      "aspen_number": 3,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:33:23.301223"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/sg/37",
+      "state": "running",
+      "pid": 44212,
+      "alive": true,
+      "cpu_seconds": 34.46875,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s37\\a2",
+      "aspen_number": 4,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:33:01.918448"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/sg/53",
+      "state": "running",
+      "pid": 34080,
+      "alive": true,
+      "cpu_seconds": 12.953125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s53\\a2",
+      "aspen_number": 5,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:35:55.184080"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/plain/7",
+      "state": "running",
+      "pid": 49728,
+      "alive": true,
+      "cpu_seconds": 26.703125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s7\\a2",
+      "aspen_number": 6,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:34:03.481641"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/plain/11",
+      "state": "running",
+      "pid": 46532,
+      "alive": true,
+      "cpu_seconds": 10.78125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s11\\a2",
+      "aspen_number": 7,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:36:15.775031"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/plain/23",
+      "state": "running",
+      "pid": 43244,
+      "alive": true,
+      "cpu_seconds": 24.125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s23\\a2",
+      "aspen_number": 8,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:34:26.431319"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/plain/37",
+      "state": "running",
+      "pid": 30536,
+      "alive": true,
+      "cpu_seconds": 20.703125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s37\\a2",
+      "aspen_number": 9,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:34:47.099301"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/plain/53",
+      "state": "running",
+      "pid": 50752,
+      "alive": true,
+      "cpu_seconds": 28.484375,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s53\\a2",
+      "aspen_number": 10,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:33:43.986011"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/7",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 1,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/11",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 2,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/23",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 3,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/37",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 4,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/53",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 5,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/7",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 6,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/11",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 7,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/23",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 8,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/37",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 9,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/53",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 10,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/7",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 1,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/11",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 2,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/23",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 3,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/37",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 4,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/53",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 5,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/7",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 6,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/11",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 7,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/23",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 8,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/37",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 9,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/53",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 10,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "E1_polymer",
+      "job": "horizon/None/7",
+      "state": "completed",
+      "pid": 31700,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\horizon_s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T22:27:41.912632",
+      "matched_decisions": 400,
+      "completed_matched_decisions": 400,
+      "last_matched_step": 239184,
+      "expected_matched_decisions": 400
+    },
+    {
+      "study": "E1_polymer",
+      "job": "weights/None/7",
+      "state": "completed",
+      "pid": 3940,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\weights_s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T04:14:24.703212",
+      "matched_decisions": 400,
+      "completed_matched_decisions": 400,
+      "last_matched_step": 239194,
+      "expected_matched_decisions": 400
+    },
+    {
+      "study": "E1_polymer",
+      "job": "markov/None/7",
+      "state": "completed",
+      "pid": 22980,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\markov_s7\\a2",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T20:39:04.795673",
+      "matched_decisions": 400,
+      "completed_matched_decisions": 400,
+      "last_matched_step": 239151,
+      "expected_matched_decisions": 400
+    },
+    {
+      "study": "E1_polymer",
+      "job": "residual/None/7",
+      "state": "failed",
+      "pid": 18364,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\residual_s7\\a1",
+      "aspen_number": null,
+      "error": "Scientific/E1 sources changed during this capture; preserve the outputs and original source version.",
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T23:26:15.762150",
+      "matched_decisions": 400,
+      "completed_matched_decisions": 400,
+      "last_matched_step": 239198,
+      "expected_matched_decisions": 400
+    },
+    {
+      "study": "E1_polymer",
+      "job": "combined/None/7",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "E1_combined_recovery",
+      "job": "combined/None/7",
+      "state": "failed",
+      "pid": 47288,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 198,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261015_181507_3aa70b\\e1_combined\\20261015_181507_cf7a4e\\combined_s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T08:45:58.317967",
+      "matched_decisions": 793,
+      "completed_matched_decisions": 793,
+      "last_matched_step": 159058,
+      "expected_matched_decisions": 1600
+    },
+    {
+      "study": "E2_polymer_SG_recovery",
+      "job": "sg",
+      "state": "blocked_by_E1_failure",
+      "pid": null,
+      "cpu_seconds": null,
+      "cycle": null
+    },
+    {
+      "study": "E3_polymer",
+      "job": "polymer_nominal",
+      "state": "completed",
+      "pid": 23560,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 2,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_nominal\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T00:28:03.477094"
+    },
+    {
+      "study": "E3_polymer",
+      "job": "polymer_markov_s7",
+      "state": "completed",
+      "pid": 8404,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_markov_s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T06:40:29.795664",
+      "prediction_origins": 400
+    },
+    {
+      "study": "E3_polymer",
+      "job": "polymer_combined_s7",
+      "state": "completed",
+      "pid": 49624,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_combined_s7\\a2",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 1,
+      "last_log_at": "2026-10-16T07:23:18.781627",
+      "prediction_origins": 400
+    },
+    {
+      "study": "E3_column",
+      "job": "distillation_nominal",
+      "state": "completed",
+      "pid": 11296,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 2,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_4e03da\\distillation_nominal\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T00:39:51.834405"
+    },
+    {
+      "study": "E3_column",
+      "job": "distillation_markov_s7",
+      "state": "completed",
+      "pid": 14304,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_4e03da\\distillation_markov_s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T09:46:43.070807",
+      "prediction_origins": 400
+    },
+    {
+      "study": "E3_column",
+      "job": "distillation_combined_s7",
+      "state": "completed",
+      "pid": 49828,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_4e03da\\distillation_combined_s7\\a2",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T03:55:36.719885",
+      "prediction_origins": 400
+    },
+    {
+      "study": "Polymer_remaining_20261016_remaining_polymer_concurrent",
+      "job": "e1_combined",
+      "state": "completed",
+      "pid": 16680,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e1_combined",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T16:50:48.503259",
+      "checkpoint_cycle": 300,
+      "matched_decisions": 1600,
+      "completed_matched_decisions": 1600,
+      "last_matched_step": 239164,
+      "expected_matched_decisions": 1600
+    },
+    {
+      "study": "Polymer_remaining_20261016_remaining_polymer_concurrent",
+      "job": "e2_sg",
+      "state": "completed",
+      "pid": 46320,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 200,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e2_sg",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T22:05:15.316894"
+    },
+    {
+      "study": "Polymer_remaining_20261016_remaining_polymer_concurrent",
+      "job": "e2_arx_repaired",
+      "state": "completed",
+      "pid": 36936,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 200,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e2_arx_repaired",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T15:44:28.303053"
+    },
+    {
+      "study": "Column_review_20261016_prepared_cases12_16",
+      "job": "sg",
+      "state": "failed",
+      "pid": 27148,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 189,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\sg\\a2",
+      "aspen_number": 12,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-17T13:39:13.494311"
+    },
+    {
+      "study": "Column_review_20261016_prepared_cases12_16",
+      "job": "threshold",
+      "state": "failed",
+      "pid": 16284,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 15,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\threshold\\a2",
+      "aspen_number": 13,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T16:39:13.407720"
+    },
+    {
+      "study": "Column_review_20261016_prepared_cases12_16",
+      "job": "ls",
+      "state": "failed",
+      "pid": 37868,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 30,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\ls\\a2",
+      "aspen_number": 14,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T17:09:13.498322"
+    },
+    {
+      "study": "Column_review_20261016_prepared_cases12_16",
+      "job": "bo",
+      "state": "failed",
+      "pid": 51024,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 9,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\bo\\a2",
+      "aspen_number": 15,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T20:39:13.529969"
+    },
+    {
+      "study": "Column_review_20261016_prepared_cases12_16",
+      "job": "e1_pilot",
+      "state": "failed",
+      "pid": 1752,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 1,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\e1_pilot\\a2",
+      "aspen_number": 16,
+      "error": "(-2147417851, 'The server threw an exception.', None, None)",
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T13:47:29.133645"
+    },
+    {
+      "study": "Column_review_20261018_recovered",
+      "job": "sg",
+      "state": "running",
+      "pid": 41388,
+      "alive": true,
+      "cpu_seconds": 12.546875,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\sg\\a1",
+      "aspen_number": 12,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:36:36.892349"
+    },
+    {
+      "study": "Column_review_20261018_recovered",
+      "job": "threshold",
+      "state": "running",
+      "pid": 14268,
+      "alive": true,
+      "cpu_seconds": 10.984375,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\threshold\\a1",
+      "aspen_number": 13,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:31:45.841221"
+    },
+    {
+      "study": "Column_review_20261018_recovered",
+      "job": "ls",
+      "state": "running",
+      "pid": 4064,
+      "alive": true,
+      "cpu_seconds": 34.625,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\ls\\a1",
+      "aspen_number": 14,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:32:46.383684"
+    },
+    {
+      "study": "Column_review_20261018_recovered",
+      "job": "bo",
+      "state": "running",
+      "pid": 51328,
+      "alive": true,
+      "cpu_seconds": 10.203125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\bo\\a1",
+      "aspen_number": 15,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:32:04.386843"
+    },
+    {
+      "study": "Column_review_20261018_recovered",
+      "job": "e1_pilot",
+      "state": "running",
+      "pid": 32736,
+      "alive": true,
+      "cpu_seconds": 10.9375,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\e1_pilot\\a1",
+      "aspen_number": 16,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:31:25.095261"
+    }
+  ],
+  "historical_studies": [
+    "E1_polymer",
+    "E1_combined_recovery",
+    "E2_polymer_SG_recovery",
+    "Column_review_20261016_prepared_cases12_16"
+  ],
+  "active_recovery": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018",
+  "counts": {
+    "polymer_repeats": {
+      "completed": 50
+    },
+    "column_repeats": {
+      "completed": 20,
+      "running": 10,
+      "pending": 20
+    },
+    "E1_polymer": {
+      "completed": 3,
+      "failed": 1,
+      "pending": 1
+    },
+    "E1_combined_recovery": {
+      "failed": 1
+    },
+    "E2_polymer_SG_recovery": {
+      "blocked_by_E1_failure": 1
+    },
+    "E3_polymer": {
+      "completed": 3
+    },
+    "E3_column": {
+      "completed": 3
+    },
+    "Polymer_remaining_20261016_remaining_polymer_concurrent": {
+      "completed": 3
+    },
+    "Column_review_20261016_prepared_cases12_16": {
+      "failed": 5
+    },
+    "Column_review_20261018_recovered": {
+      "running": 5
+    }
+  },
+  "current_jobs": [
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/sg/7",
+      "state": "completed",
+      "pid": 39584,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:06:15.810616"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/sg/11",
+      "state": "completed",
+      "pid": 29280,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T22:59:12.515267"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/sg/23",
+      "state": "completed",
+      "pid": 14468,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:11:15.633550"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/sg/37",
+      "state": "completed",
+      "pid": 21768,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:05:14.083751"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/sg/53",
+      "state": "completed",
+      "pid": 39088,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:05:40.217527"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/plain/7",
+      "state": "completed",
+      "pid": 18332,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_plain\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:23:39.279249"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/plain/11",
+      "state": "completed",
+      "pid": 39832,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_plain\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:23:37.021832"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/plain/23",
+      "state": "completed",
+      "pid": 37136,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_plain\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:23:54.599363"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/plain/37",
+      "state": "completed",
+      "pid": 37808,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_plain\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:24:01.956046"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "horizon/plain/53",
+      "state": "completed",
+      "pid": 37244,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_plain\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-12T23:24:15.304791"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/sg/7",
+      "state": "completed",
+      "pid": 26104,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_sg\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T03:25:12.092360"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/sg/11",
+      "state": "completed",
+      "pid": 34028,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_sg\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T03:25:02.606814"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/sg/23",
+      "state": "completed",
+      "pid": 15768,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_sg\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T03:25:23.355166"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/sg/37",
+      "state": "completed",
+      "pid": 41340,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_sg\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T03:25:00.466120"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/sg/53",
+      "state": "completed",
+      "pid": 38964,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_sg\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T03:25:02.789271"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/plain/7",
+      "state": "completed",
+      "pid": 41204,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_plain\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T02:40:48.885374"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/plain/11",
+      "state": "completed",
+      "pid": 22360,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_plain\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T02:40:37.030248"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/plain/23",
+      "state": "completed",
+      "pid": 35812,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_plain\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T02:41:13.959593"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/plain/37",
+      "state": "completed",
+      "pid": 4292,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_plain\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T02:40:16.827418"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "weights/plain/53",
+      "state": "completed",
+      "pid": 39752,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\weights_plain\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T02:41:16.840202"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/sg/7",
+      "state": "completed",
+      "pid": 32772,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:57:44.254121"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/sg/11",
+      "state": "completed",
+      "pid": 10684,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T10:01:39.433738"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/sg/23",
+      "state": "completed",
+      "pid": 4076,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:53:28.655033"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/sg/37",
+      "state": "completed",
+      "pid": 35228,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:55:40.304266"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/sg/53",
+      "state": "completed",
+      "pid": 37252,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:52:57.306610"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/plain/7",
+      "state": "completed",
+      "pid": 33240,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:54:00.992914"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/plain/11",
+      "state": "completed",
+      "pid": 39280,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:55:31.213824"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/plain/23",
+      "state": "completed",
+      "pid": 35584,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:57:12.632862"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/plain/37",
+      "state": "completed",
+      "pid": 37436,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:51:57.337872"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "markov/plain/53",
+      "state": "completed",
+      "pid": 36540,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T09:42:50.132254"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/sg/7",
+      "state": "completed",
+      "pid": 32760,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T14:13:49.705616"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/sg/11",
+      "state": "completed",
+      "pid": 39752,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T14:13:46.272830"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/sg/23",
+      "state": "completed",
+      "pid": 4840,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T14:13:53.615560"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/sg/37",
+      "state": "completed",
+      "pid": 35880,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T14:13:58.009247"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/sg/53",
+      "state": "completed",
+      "pid": 11908,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T14:13:53.242759"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/plain/7",
+      "state": "completed",
+      "pid": 39344,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_plain\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T13:28:48.792753"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/plain/11",
+      "state": "completed",
+      "pid": 41444,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_plain\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T13:28:27.747665"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/plain/23",
+      "state": "completed",
+      "pid": 38832,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_plain\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T13:28:48.122350"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/plain/37",
+      "state": "completed",
+      "pid": 21664,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_plain\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T13:28:40.812031"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "residual/plain/53",
+      "state": "completed",
+      "pid": 34216,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_plain\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-13T13:28:44.561644"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/sg/7",
+      "state": "completed",
+      "pid": 6228,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T06:02:22.054096"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/sg/11",
+      "state": "completed",
+      "pid": 33916,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T06:09:39.661908"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/sg/23",
+      "state": "completed",
+      "pid": 23432,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T06:06:46.976906"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/sg/37",
+      "state": "completed",
+      "pid": 3400,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T06:11:40.129354"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/sg/53",
+      "state": "completed",
+      "pid": 9796,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T06:12:24.520820"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/plain/7",
+      "state": "completed",
+      "pid": 27692,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T04:12:13.971339"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/plain/11",
+      "state": "completed",
+      "pid": 30416,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s11\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T03:57:33.108377"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/plain/23",
+      "state": "completed",
+      "pid": 29344,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s23\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T04:20:48.360891"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/plain/37",
+      "state": "completed",
+      "pid": 40664,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s37\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T04:08:24.991206"
+    },
+    {
+      "study": "polymer_repeats",
+      "job": "combined/plain/53",
+      "state": "completed",
+      "pid": 39784,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s53\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-14T04:01:40.311591"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/sg/7",
+      "state": "completed",
+      "pid": 26860,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s7\\a1",
+      "aspen_number": 1,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:14:41.560145"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/sg/11",
+      "state": "completed",
+      "pid": 24716,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s11\\a1",
+      "aspen_number": 2,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:46:19.151365"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/sg/23",
+      "state": "completed",
+      "pid": 10676,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s23\\a1",
+      "aspen_number": 3,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:47:21.950006"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/sg/37",
+      "state": "completed",
+      "pid": 45464,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s37\\a1",
+      "aspen_number": 4,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:40:44.871393"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/sg/53",
+      "state": "completed",
+      "pid": 22492,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s53\\a1",
+      "aspen_number": 5,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:45:42.732965"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/plain/7",
+      "state": "completed",
+      "pid": 47208,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s7\\a1",
+      "aspen_number": 6,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:55:17.277090"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/plain/11",
+      "state": "completed",
+      "pid": 29724,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s11\\a1",
+      "aspen_number": 7,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:22:34.554404"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/plain/23",
+      "state": "completed",
+      "pid": 46136,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s23\\a1",
+      "aspen_number": 8,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:42:31.641135"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/plain/37",
+      "state": "completed",
+      "pid": 16888,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s37\\a1",
+      "aspen_number": 9,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:58:13.220074"
+    },
+    {
+      "study": "column_repeats",
+      "job": "horizon/plain/53",
+      "state": "completed",
+      "pid": 37016,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s53\\a1",
+      "aspen_number": 10,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T17:55:16.366668"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/sg/7",
+      "state": "completed",
+      "pid": 43012,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s7\\a1",
+      "aspen_number": 1,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:41:11.984894"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/sg/11",
+      "state": "completed",
+      "pid": 47732,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s11\\a1",
+      "aspen_number": 2,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:35:38.044581"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/sg/23",
+      "state": "completed",
+      "pid": 46060,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s23\\a1",
+      "aspen_number": 3,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-17T00:05:38.479430"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/sg/37",
+      "state": "completed",
+      "pid": 32904,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s37\\a1",
+      "aspen_number": 4,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:35:58.770245"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/sg/53",
+      "state": "completed",
+      "pid": 34084,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s53\\a1",
+      "aspen_number": 5,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:39:05.899378"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/plain/7",
+      "state": "completed",
+      "pid": 43516,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s7\\a1",
+      "aspen_number": 6,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:19:59.626309"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/plain/11",
+      "state": "completed",
+      "pid": 15260,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s11\\a1",
+      "aspen_number": 7,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:06:49.008591"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/plain/23",
+      "state": "completed",
+      "pid": 40928,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s23\\a1",
+      "aspen_number": 8,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:32:18.495883"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/plain/37",
+      "state": "completed",
+      "pid": 48508,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s37\\a1",
+      "aspen_number": 9,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:17:44.703847"
+    },
+    {
+      "study": "column_repeats",
+      "job": "weights/plain/53",
+      "state": "completed",
+      "pid": 49892,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s53\\a1",
+      "aspen_number": 10,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T23:16:20.060893"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/sg/7",
+      "state": "running",
+      "pid": 764,
+      "alive": true,
+      "cpu_seconds": 16.15625,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s7\\a2",
+      "aspen_number": 1,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:35:30.955571"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/sg/11",
+      "state": "running",
+      "pid": 9864,
+      "alive": true,
+      "cpu_seconds": 17.359375,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s11\\a2",
+      "aspen_number": 2,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:35:10.064246"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/sg/23",
+      "state": "running",
+      "pid": 9304,
+      "alive": true,
+      "cpu_seconds": 30.9375,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s23\\a2",
+      "aspen_number": 3,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:33:23.301223"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/sg/37",
+      "state": "running",
+      "pid": 44212,
+      "alive": true,
+      "cpu_seconds": 34.46875,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s37\\a2",
+      "aspen_number": 4,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:33:01.918448"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/sg/53",
+      "state": "running",
+      "pid": 34080,
+      "alive": true,
+      "cpu_seconds": 12.953125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s53\\a2",
+      "aspen_number": 5,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:35:55.184080"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/plain/7",
+      "state": "running",
+      "pid": 49728,
+      "alive": true,
+      "cpu_seconds": 26.703125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s7\\a2",
+      "aspen_number": 6,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:34:03.481641"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/plain/11",
+      "state": "running",
+      "pid": 46532,
+      "alive": true,
+      "cpu_seconds": 10.78125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s11\\a2",
+      "aspen_number": 7,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:36:15.775031"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/plain/23",
+      "state": "running",
+      "pid": 43244,
+      "alive": true,
+      "cpu_seconds": 24.125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s23\\a2",
+      "aspen_number": 8,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:34:26.431319"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/plain/37",
+      "state": "running",
+      "pid": 30536,
+      "alive": true,
+      "cpu_seconds": 20.703125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s37\\a2",
+      "aspen_number": 9,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:34:47.099301"
+    },
+    {
+      "study": "column_repeats",
+      "job": "markov/plain/53",
+      "state": "running",
+      "pid": 50752,
+      "alive": true,
+      "cpu_seconds": 28.484375,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s53\\a2",
+      "aspen_number": 10,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:33:43.986011"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/7",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 1,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/11",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 2,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/23",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 3,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/37",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 4,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/53",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 5,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/7",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 6,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/11",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 7,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/23",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 8,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/37",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 9,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/53",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 10,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/7",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 1,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/11",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 2,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/23",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 3,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/37",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 4,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/53",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 5,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/7",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 6,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/11",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 7,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/23",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 8,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/37",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 9,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/53",
+      "state": "pending",
+      "pid": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": null,
+      "directory": null,
+      "aspen_number": 10,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": null
+    },
+    {
+      "study": "E3_polymer",
+      "job": "polymer_nominal",
+      "state": "completed",
+      "pid": 23560,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 2,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_nominal\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T00:28:03.477094"
+    },
+    {
+      "study": "E3_polymer",
+      "job": "polymer_markov_s7",
+      "state": "completed",
+      "pid": 8404,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_markov_s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T06:40:29.795664",
+      "prediction_origins": 400
+    },
+    {
+      "study": "E3_polymer",
+      "job": "polymer_combined_s7",
+      "state": "completed",
+      "pid": 49624,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_combined_s7\\a2",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 1,
+      "last_log_at": "2026-10-16T07:23:18.781627",
+      "prediction_origins": 400
+    },
+    {
+      "study": "E3_column",
+      "job": "distillation_nominal",
+      "state": "completed",
+      "pid": 11296,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 2,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_4e03da\\distillation_nominal\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-15T00:39:51.834405"
+    },
+    {
+      "study": "E3_column",
+      "job": "distillation_markov_s7",
+      "state": "completed",
+      "pid": 14304,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_4e03da\\distillation_markov_s7\\a1",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T09:46:43.070807",
+      "prediction_origins": 400
+    },
+    {
+      "study": "E3_column",
+      "job": "distillation_combined_s7",
+      "state": "completed",
+      "pid": 49828,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_4e03da\\distillation_combined_s7\\a2",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T03:55:36.719885",
+      "prediction_origins": 400
+    },
+    {
+      "study": "Polymer_remaining_20261016_remaining_polymer_concurrent",
+      "job": "e1_combined",
+      "state": "completed",
+      "pid": 16680,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 300,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e1_combined",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T16:50:48.503259",
+      "checkpoint_cycle": 300,
+      "matched_decisions": 1600,
+      "completed_matched_decisions": 1600,
+      "last_matched_step": 239164,
+      "expected_matched_decisions": 1600
+    },
+    {
+      "study": "Polymer_remaining_20261016_remaining_polymer_concurrent",
+      "job": "e2_sg",
+      "state": "completed",
+      "pid": 46320,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 200,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e2_sg",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T22:05:15.316894"
+    },
+    {
+      "study": "Polymer_remaining_20261016_remaining_polymer_concurrent",
+      "job": "e2_arx_repaired",
+      "state": "completed",
+      "pid": 36936,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 200,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e2_arx_repaired",
+      "aspen_number": null,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-16T15:44:28.303053"
+    },
+    {
+      "study": "Column_review_20261018_recovered",
+      "job": "sg",
+      "state": "running",
+      "pid": 41388,
+      "alive": true,
+      "cpu_seconds": 12.546875,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\sg\\a1",
+      "aspen_number": 12,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:36:36.892349"
+    },
+    {
+      "study": "Column_review_20261018_recovered",
+      "job": "threshold",
+      "state": "running",
+      "pid": 14268,
+      "alive": true,
+      "cpu_seconds": 10.984375,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\threshold\\a1",
+      "aspen_number": 13,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:31:45.841221"
+    },
+    {
+      "study": "Column_review_20261018_recovered",
+      "job": "ls",
+      "state": "running",
+      "pid": 4064,
+      "alive": true,
+      "cpu_seconds": 34.625,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\ls\\a1",
+      "aspen_number": 14,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:32:46.383684"
+    },
+    {
+      "study": "Column_review_20261018_recovered",
+      "job": "bo",
+      "state": "running",
+      "pid": 51328,
+      "alive": true,
+      "cpu_seconds": 10.203125,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\bo\\a1",
+      "aspen_number": 15,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:32:04.386843"
+    },
+    {
+      "study": "Column_review_20261018_recovered",
+      "job": "e1_pilot",
+      "state": "running",
+      "pid": 32736,
+      "alive": true,
+      "cpu_seconds": 10.9375,
+      "cycle": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\e1_pilot\\a1",
+      "aspen_number": 16,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-18T20:31:25.095261"
+    }
+  ],
+  "live_recovery_workers": 15,
+  "broker": {
+    "pid": 10628,
+    "parent_pid": 2524,
+    "in_windows_job": true,
+    "scheduler_service_pid": 2524,
+    "parent_is_scheduler_service": true,
+    "session_id": 2,
+    "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+    "observed_at": "2026-10-19T00:30:16.686574+00:00"
+  },
+  "visible_launches": [
+    {
+      "id": "column_repeats",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats.cmd",
+      "process": {
+        "pid": 21324,
+        "alive": true,
+        "created": 134368434167312567
+      },
+      "started_at": "2026-10-19T00:30:16.737528+00:00"
+    },
+    {
+      "id": "column_sg",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\sg\\run.cmd",
+      "process": {
+        "pid": 35496,
+        "alive": true,
+        "created": 134368434167387038
+      },
+      "started_at": "2026-10-19T00:30:16.742998+00:00"
+    },
+    {
+      "id": "column_threshold",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\threshold\\run.cmd",
+      "process": {
+        "pid": 37112,
+        "alive": true,
+        "created": 134368434167443020
+      },
+      "started_at": "2026-10-19T00:30:16.749014+00:00"
+    },
+    {
+      "id": "column_ls",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\ls\\run.cmd",
+      "process": {
+        "pid": 27376,
+        "alive": true,
+        "created": 134368434167503511
+      },
+      "started_at": "2026-10-19T00:30:16.754919+00:00"
+    },
+    {
+      "id": "column_bo",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\bo\\run.cmd",
+      "process": {
+        "pid": 18340,
+        "alive": true,
+        "created": 134368434167561956
+      },
+      "started_at": "2026-10-19T00:30:16.761301+00:00"
+    },
+    {
+      "id": "column_e1_pilot",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\e1_pilot\\run.cmd",
+      "process": {
+        "pid": 34508,
+        "alive": true,
+        "created": 134368434167626808
+      },
+      "started_at": "2026-10-19T00:30:16.767546+00:00"
+    },
+    {
+      "id": "progress",
+      "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\progress.cmd",
+      "process": {
+        "pid": 29780,
+        "alive": true,
+        "created": 134368434167688167
+      },
+      "started_at": "2026-10-19T00:30:16.773134+00:00"
+    }
+  ],
+  "repetition_console_reopen": {
+    "broker": {
+      "pid": 19996,
+      "parent_pid": 2524,
+      "in_windows_job": true,
+      "scheduler_service_pid": 2524,
+      "parent_is_scheduler_service": true,
+      "session_id": 2,
+      "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+      "observed_at": "2026-10-19T00:31:15.055344+00:00"
+    },
+    "cmd_pid": 2884
+  },
+  "recovery_plan": {
+    "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018",
+    "repeats": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats",
+    "column": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered",
+    "commands": [
+      {
+        "id": "column_repeats",
+        "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats.cmd"
+      },
+      {
+        "id": "column_sg",
+        "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\sg\\run.cmd"
+      },
+      {
+        "id": "column_threshold",
+        "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\threshold\\run.cmd"
+      },
+      {
+        "id": "column_ls",
+        "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\ls\\run.cmd"
+      },
+      {
+        "id": "column_bo",
+        "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\bo\\run.cmd"
+      },
+      {
+        "id": "column_e1_pilot",
+        "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\e1_pilot\\run.cmd"
+      },
+      {
+        "id": "progress",
+        "command": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\progress.cmd"
+      }
+    ],
+    "prepared_at": "2026-10-19T00:30:09.982015+00:00",
+    "runtime": {
+      "NPY_DISABLE_CPU_FEATURES": "X86_V3,AVX2,FMA3",
+      "OPENBLAS_CORETYPE": "NEHALEM",
+      "OPENBLAS_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "PYTHONFAULTHANDLER": "1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "repetitions_reused": 20,
+    "repetitions_remaining": 30,
+    "old_repeat_manifest_sha256": "e0a244cc5ba1a34518ae4e05cde457774665e9723ef1d1780afa7ecf4b3fc1dc",
+    "old_column_manifest_sha256": "7799825c36c38c0f112b41a57388fae935ca3fe11c2f64c823190f01e6e5025f",
+    "restart_semantics": "Failed column jobs restart original initial conditions; no full-state continuation exists.",
+    "scientific_settings_changed": false,
+    "timed_stack_dumps": false
+  },
+  "old_manifest_hashes_unchanged": {
+    "repeats": true,
+    "column": true
+  },
+  "runtime_checks": [
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s7\\a2",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s11\\a2",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s23\\a2",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s37\\a2",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s53\\a2",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s7\\a2",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s11\\a2",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s23\\a2",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s37\\a2",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s53\\a2",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\sg\\a1",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\threshold\\a1",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\ls\\a1",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\bo\\a1",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\e1_pilot\\a1",
+      "numpy_x86_v3_enabled": false,
+      "blas": [
+        {
+          "architecture": "Nehalem",
+          "num_threads": 1
+        }
+      ]
+    }
+  ],
+  "owned_aspen_apps": [
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s7\\a2",
+      "recorded": {
+        "pid": 31608,
+        "alive": true,
+        "created": 134368436466049305,
+        "created_at": "2026-10-19T00:34:26.442064+00:00"
+      },
+      "current": {
+        "pid": 31608,
+        "alive": true,
+        "created": 134368436466049305
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s11\\a2",
+      "recorded": {
+        "pid": 51944,
+        "alive": true,
+        "created": 134368436271649123,
+        "created_at": "2026-10-19T00:34:06.609558+00:00"
+      },
+      "current": {
+        "pid": 51944,
+        "alive": true,
+        "created": 134368436271649123
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s23\\a2",
+      "recorded": {
+        "pid": 3020,
+        "alive": true,
+        "created": 134368435341456329,
+        "created_at": "2026-10-19T00:32:32.637007+00:00"
+      },
+      "current": {
+        "pid": 3020,
+        "alive": true,
+        "created": 134368435341456329
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s37\\a2",
+      "recorded": {
+        "pid": 25012,
+        "alive": true,
+        "created": 134368435156139565,
+        "created_at": "2026-10-19T00:32:14.146794+00:00"
+      },
+      "current": {
+        "pid": 25012,
+        "alive": true,
+        "created": 134368435156139565
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s53\\a2",
+      "recorded": {
+        "pid": 33220,
+        "alive": true,
+        "created": 134368436664379363,
+        "created_at": "2026-10-19T00:34:46.391345+00:00"
+      },
+      "current": {
+        "pid": 33220,
+        "alive": true,
+        "created": 134368436664379363
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s7\\a2",
+      "recorded": {
+        "pid": 52096,
+        "alive": true,
+        "created": 134368435711033361,
+        "created_at": "2026-10-19T00:33:09.389860+00:00"
+      },
+      "current": {
+        "pid": 52096,
+        "alive": true,
+        "created": 134368435711033361
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s11\\a2",
+      "recorded": {
+        "pid": 45720,
+        "alive": true,
+        "created": 134368436863870910,
+        "created_at": "2026-10-19T00:35:06.990311+00:00"
+      },
+      "current": {
+        "pid": 45720,
+        "alive": true,
+        "created": 134368436863870910
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s23\\a2",
+      "recorded": {
+        "pid": 50928,
+        "alive": true,
+        "created": 134368435893888322,
+        "created_at": "2026-10-19T00:33:28.166179+00:00"
+      },
+      "current": {
+        "pid": 50928,
+        "alive": true,
+        "created": 134368435893888322
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s37\\a2",
+      "recorded": {
+        "pid": 52312,
+        "alive": true,
+        "created": 134368436081649974,
+        "created_at": "2026-10-19T00:33:47.167025+00:00"
+      },
+      "current": {
+        "pid": 52312,
+        "alive": true,
+        "created": 134368436081649974
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s53\\a2",
+      "recorded": {
+        "pid": 25680,
+        "alive": true,
+        "created": 134368435526357718,
+        "created_at": "2026-10-19T00:32:51.104600+00:00"
+      },
+      "current": {
+        "pid": 25680,
+        "alive": true,
+        "created": 134368435526357718
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\sg\\a1",
+      "recorded": {
+        "pid": 38344,
+        "alive": true,
+        "created": 134368434788622082,
+        "created_at": "2026-10-19T00:31:37.239432+00:00"
+      },
+      "current": {
+        "pid": 38344,
+        "alive": false,
+        "created": null
+      },
+      "ownership_verified": false
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\sg\\a1",
+      "recorded": {
+        "pid": 38736,
+        "alive": true,
+        "created": 134368437069888534,
+        "created_at": "2026-10-19T00:35:27.275728+00:00"
+      },
+      "current": {
+        "pid": 38736,
+        "alive": true,
+        "created": 134368437069888534
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\threshold\\a1",
+      "recorded": {
+        "pid": 46472,
+        "alive": true,
+        "created": 134368434410288828,
+        "created_at": "2026-10-19T00:30:59.552278+00:00"
+      },
+      "current": {
+        "pid": 46472,
+        "alive": true,
+        "created": 134368434410288828
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\ls\\a1",
+      "recorded": {
+        "pid": 35888,
+        "alive": true,
+        "created": 134368434972373760,
+        "created_at": "2026-10-19T00:31:55.615009+00:00"
+      },
+      "current": {
+        "pid": 35888,
+        "alive": true,
+        "created": 134368434972373760
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\bo\\a1",
+      "recorded": {
+        "pid": 51988,
+        "alive": true,
+        "created": 134368434595503634,
+        "created_at": "2026-10-19T00:31:18.865616+00:00"
+      },
+      "current": {
+        "pid": 51988,
+        "alive": true,
+        "created": 134368434595503634
+      },
+      "ownership_verified": true
+    },
+    {
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\e1_pilot\\a1",
+      "recorded": {
+        "pid": 25840,
+        "alive": true,
+        "created": 134368434210917407,
+        "created_at": "2026-10-19T00:30:41.030126+00:00"
+      },
+      "current": {
+        "pid": 25840,
+        "alive": true,
+        "created": 134368434210917407
+      },
+      "ownership_verified": true
+    }
+  ],
+  "completed_polymer": {
+    "e1_combined": {
+      "status": {
+        "state": "completed",
+        "started_at": "2026-10-16T17:39:15.678622+00:00",
+        "pid": 16680,
+        "trajectory_sha256": "f7d22381eca2609b158ae0c2add2a575dd250ab3ca0053ea5ac7d7f99bd6e583",
+        "trajectory_saved": true,
+        "finished_at": "2026-10-18T20:50:50.628403+00:00",
+        "decisions": 1600,
+        "failed_pairs": 0,
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "torch": "2.13.0+cu130",
+        "device": "cuda"
+      },
+      "artifact_contract_verified": true,
+      "postprocess": {
+        "state": "completed",
+        "matched_decisions": 3200,
+        "sources": [
+          {
+            "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\horizon_s7\\a1\\capture\\decisions.jsonl",
+            "sha256": "6851a8fc735043d73f24a83178ee7047f2b06e99e98018c0b4ccd76f64edab5e"
+          },
+          {
+            "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\weights_s7\\a1\\capture\\decisions.jsonl",
+            "sha256": "89ebf1f3133cd5e81b1d0f3cc4e6c38c5046e0ec249101f8e2e58f62a91cad1a"
+          },
+          {
+            "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\markov_s7\\a2\\capture\\decisions.jsonl",
+            "sha256": "a3dd6d416398ec0ce05e93622e2171671343a78958f089a428927f17c0632c97"
+          },
+          {
+            "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\residual_s7\\a1\\capture\\decisions.jsonl",
+            "sha256": "66ffd86c41be3574e9309e8f8ba0365a4fff77eb0a47a99ccde2c0f37da70ba5"
+          },
+          {
+            "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e1_combined\\capture\\decisions.jsonl",
+            "sha256": "d59f7709da0f333b9fe3007aaf90ad5bb4f08252091c10582995449b7a5e5a01"
+          }
+        ],
+        "excluded": "793 pairs from the superseded crashed combined attempt are preserved but not pooled.",
+        "scope": "one seed; standalone and combined contexts reported separately"
+      }
+    },
+    "e2_sg": {
+      "status": {
+        "state": "completed",
+        "started_at": "2026-10-16T17:39:28.041804+00:00",
+        "pid": 46320,
+        "method": "sg",
+        "trajectory_saved": true,
+        "trajectory_sha256": "329e903141c5b5a95174c803cb9fefc687fa06117517c70e9bf03436a4f9b496",
+        "checkpoint": {
+          "path": "final_inference_networks.pt",
+          "sha256": "94618648b60e8692a5f8f6261da41905869a0e5f60cc4bf9d274f150af1fe9c4",
+          "tensor_counts": {
+            "horizon_agent": 24,
+            "weight_agent": 72,
+            "markov_agent": 84,
+            "residual_agent": 84
+          },
+          "parameter_elements": {
+            "horizon_agent": 2204838,
+            "weight_agent": 6373388,
+            "markov_agent": 7492624,
+            "residual_agent": 7428106
+          },
+          "round_trip_verified": true,
+          "training_resume": false
+        },
+        "finished_at": "2026-10-17T02:05:19.071339+00:00",
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "steps": 160000,
+        "optimizer_calls": 639973,
+        "optimizer_failed_calls": 3,
+        "duration_seconds": 30348.51234939997,
+        "numpy": "2.4.6",
+        "torch": "2.13.0+cu130",
+        "device": "cuda"
+      },
+      "artifact_contract_verified": true,
+      "postprocess": {
+        "state": "completed",
+        "metric_rows": 30,
+        "sources": {
+          "ls": {
+            "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261013_194218_ls_production\\ls\\training.pkl",
+            "sha256": "a30ec45e7a2f0dbb109e9cdcf6846b994e27751708c59bca8831a5cb7eb8a9e2"
+          },
+          "bo": {
+            "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261014_033927_fd26b6\\bo\\training.pkl",
+            "sha256": "3d70db4f892f0bbbcdbb15546ea1a1618e1cb0e156db0450855c9a49f9c8e5f1"
+          },
+          "threshold": {
+            "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261014_runtime_recovery_threshold_sg\\threshold\\training.pkl",
+            "sha256": "3528a368750246fe88cd71c8b06e650bf9cfa4ddb92e0f8b43ee0ab48b430d09"
+          },
+          "offsetfree": {
+            "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Data\\mpc_results_dist.pickle",
+            "sha256": "844bead9043ac452ed53fdf88751b728a34d1e680d1970ca9476c6de992b05ca"
+          },
+          "sg": {
+            "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e2_sg\\training.pkl",
+            "sha256": "329e903141c5b5a95174c803cb9fefc687fa06117517c70e9bf03436a4f9b496"
+          },
+          "arx_regularized": {
+            "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e2_arx_repaired\\training.pkl",
+            "sha256": "846314c2f6e34efa52ca62c1d3c2422c30b0dea5192c1ba138989e5f6e626a8c"
+          }
+        },
+        "excluded": "Original drifting ARX retained as a diagnosed failed comparator, replaced by separately validated regularized ARX.",
+        "scope": "one polymer realization per comparator; descriptive evidence"
+      }
+    },
+    "e2_arx_repaired": {
+      "status": {
+        "state": "completed",
+        "pid": 36936,
+        "steps": 160000,
+        "smoke": false,
+        "trajectory_sha256": "846314c2f6e34efa52ca62c1d3c2422c30b0dea5192c1ba138989e5f6e626a8c",
+        "solver_failed_calls": 0
+      },
+      "artifact_contract_verified": true,
+      "postprocess": {
+        "state": "waiting",
+        "reason": "Waiting for e2_sg."
+      }
+    }
+  },
+  "snapshot_pilot": {
+    "state": "running",
+    "pid": 32736,
+    "method": "e1_pilot",
+    "started_at": "2026-10-19T00:30:17.793121+00:00"
+  },
+  "runtime_stress": {
+    "state": "passed",
+    "duration_seconds": 40.00056850002147,
+    "numpy_solve_inverse_pairs": 438521,
+    "SLSQP_Lyapunov_PyTorch_batches": 43853,
+    "max_linear_residual": 3.180095076160683e-14,
+    "max_optimizer_error": 2.030451823342716e-08,
+    "threadpools": [
+      {
+        "user_api": "blas",
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "openblas",
+        "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+        "version": "0.3.33",
+        "threading_layer": "pthreads",
+        "architecture": "Nehalem"
+      },
+      {
+        "user_api": "openmp",
+        "internal_api": "openmp",
+        "num_threads": 1,
+        "prefix": "libiomp",
+        "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+        "version": null
+      },
+      {
+        "user_api": "openmp",
+        "internal_api": "openmp",
+        "num_threads": 1,
+        "prefix": "libiomp",
+        "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+        "version": null
+      }
+    ],
+    "numpy_x86_v3_enabled": false,
+    "limitation": "Bounded CPU/import/BLAS/optimizer stress; does not prove multi-day training or Aspen stability."
+  },
+  "old_failure_review": {
+    "repeat_crashes": [
+      {
+        "category": "markov",
+        "mode": "sg",
+        "seed": 7,
+        "returncode": null,
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_sg\\s7\\a1",
+          "pid": 46912
+        },
+        "last_completed_cycle": 119,
+        "python_traceback_in_tail": false
+      },
+      {
+        "category": "markov",
+        "mode": "sg",
+        "seed": 11,
+        "returncode": null,
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_sg\\s11\\a1",
+          "pid": 44528
+        },
+        "last_completed_cycle": 153,
+        "python_traceback_in_tail": false
+      },
+      {
+        "category": "markov",
+        "mode": "sg",
+        "seed": 23,
+        "returncode": null,
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_sg\\s23\\a1",
+          "pid": 46308
+        },
+        "last_completed_cycle": 292,
+        "python_traceback_in_tail": false
+      },
+      {
+        "category": "markov",
+        "mode": "sg",
+        "seed": 37,
+        "returncode": null,
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_sg\\s37\\a1",
+          "pid": 33328
+        },
+        "last_completed_cycle": 157,
+        "python_traceback_in_tail": false
+      },
+      {
+        "category": "markov",
+        "mode": "sg",
+        "seed": 53,
+        "returncode": null,
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_sg\\s53\\a1",
+          "pid": 51348
+        },
+        "last_completed_cycle": 159,
+        "python_traceback_in_tail": false
+      },
+      {
+        "category": "markov",
+        "mode": "plain",
+        "seed": 7,
+        "returncode": null,
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_plain\\s7\\a1",
+          "pid": 41604
+        },
+        "last_completed_cycle": 186,
+        "python_traceback_in_tail": false
+      },
+      {
+        "category": "markov",
+        "mode": "plain",
+        "seed": 11,
+        "returncode": null,
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_plain\\s11\\a1",
+          "pid": 22104
+        },
+        "last_completed_cycle": 56,
+        "python_traceback_in_tail": false
+      },
+      {
+        "category": "markov",
+        "mode": "plain",
+        "seed": 23,
+        "returncode": null,
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_plain\\s23\\a1",
+          "pid": 12588
+        },
+        "last_completed_cycle": 199,
+        "python_traceback_in_tail": false
+      },
+      {
+        "category": "markov",
+        "mode": "plain",
+        "seed": 37,
+        "returncode": null,
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_plain\\s37\\a1",
+          "pid": 50468
+        },
+        "last_completed_cycle": 78,
+        "python_traceback_in_tail": false
+      },
+      {
+        "category": "markov",
+        "mode": "plain",
+        "seed": 53,
+        "returncode": null,
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\markov_plain\\s53\\a1",
+          "pid": 38064
+        },
+        "last_completed_cycle": 215,
+        "python_traceback_in_tail": false
+      }
+    ],
+    "comparison_crashes": [
+      {
+        "method": "sg",
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\sg\\a2",
+          "pid": 27148,
+          "alive": true,
+          "created": 134366459529496087,
+          "state": "failed",
+          "started_at": "2026-10-16T17:39:12.958131+00:00",
+          "returncode": 3221225477,
+          "finished_at": "2026-10-17T17:39:40.667282+00:00"
+        },
+        "last_stack_dump_at": "2026-10-17T17:39:13.494311+00:00",
+        "seconds_after_worker_started": 86400.53618,
+        "seconds_from_nearest_1800_second_interval": 0.536179999995511,
+        "last_stack_dump_tail": "mediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_distillation_remaining.py\", line 319 in main\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_distillation_remaining.py\", line 347 in <module>\nTimeout (0:30:00)!\nThread 0x000084cc (most recent call first):\n  <no Python frame>\n\nThread 0x0000491c (most recent call first):\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\nn\\utils\\clip_grad.py\""
+      },
+      {
+        "method": "threshold",
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\threshold\\a2",
+          "pid": 16284,
+          "alive": true,
+          "created": 134366459530012960,
+          "state": "failed",
+          "started_at": "2026-10-16T17:39:13.006428+00:00",
+          "returncode": 3221225477,
+          "finished_at": "2026-10-16T20:39:41.926099+00:00"
+        },
+        "last_stack_dump_at": "2026-10-16T20:39:13.407720+00:00",
+        "seconds_after_worker_started": 10800.401292,
+        "seconds_from_nearest_1800_second_interval": 0.40129200000046694,
+        "last_stack_dump_tail": "4 (most recent call first):\n  <no Python frame>\n\nThread 0x000024b8 (most recent call first):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\markov_runner.py\", line 840 in lifted_mpc_cost\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\numpy\\_core\\numeric.py\", line 992 in isscalar\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\scipy\\_lib\\_util.py\", line 603 in __call__\n  File "
+      },
+      {
+        "method": "ls",
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\ls\\a2",
+          "pid": 37868,
+          "alive": true,
+          "created": 134366459530812805,
+          "state": "failed",
+          "started_at": "2026-10-16T17:39:13.088294+00:00",
+          "returncode": 3221225477,
+          "finished_at": "2026-10-16T21:09:40.828553+00:00"
+        },
+        "last_stack_dump_at": "2026-10-16T21:09:13.498322+00:00",
+        "seconds_after_worker_started": 12600.410028,
+        "seconds_from_nearest_1800_second_interval": 0.41002800000023853,
+        "last_stack_dump_tail": "le \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_distillation_remaining.py\", line 347 in <module>\nTimeout (0:30:00)!\nThread 0x0000ab68 (most recent call first):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\markov_runner.py\", line 464 in real_u_window\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\markov_runner.py\", line 592 in prediction_improvement_score\n  File "
+      },
+      {
+        "method": "bo",
+        "attempt": {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261016_prepared_cases12_16\\bo\\a2",
+          "pid": 51024,
+          "alive": true,
+          "created": 134366459531004607,
+          "state": "failed",
+          "started_at": "2026-10-16T17:39:13.105765+00:00",
+          "returncode": 3221225477,
+          "finished_at": "2026-10-17T00:39:41.584363+00:00"
+        },
+        "last_stack_dump_at": "2026-10-17T00:39:13.529969+00:00",
+        "seconds_after_worker_started": 25200.424204,
+        "seconds_from_nearest_1800_second_interval": 0.4242039999990084,
+        "last_stack_dump_tail": ", line 152 in worker\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_distillation_remaining.py\", line 319 in main\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_distillation_remaining.py\", line 347 in <module>\nTimeout (0:30:00)!\nThread 0x00007cd0 (most recent call first):\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\numpy\\_core\\fromnumeric.py\", line 2425 in sum\n  File "
+      }
+    ],
+    "confirmed_module": "Windows Application event 1000 identifies openblas.dll for SG seed 23; other repeat modules unconfirmed.",
+    "timer_causality": "Four crashes coincide with a scheduled all-thread stack dump. Correlation is strong, but no local reproducer established causation.",
+    "upstream_context": {
+      "url": "https://github.com/python/cpython/issues/140815",
+      "limitation": "Upstream report concerns a different platform/extremely small timeout. It does not prove the cause of these Windows 30-minute-monitor failures."
+    },
+    "pilot_error": {
+      "state": "failed",
+      "pid": 1752,
+      "method": "e1_pilot",
+      "started_at": "2026-10-16T17:39:13.273799+00:00",
+      "finished_at": "2026-10-16T17:47:23.799993+00:00",
+      "error": "(-2147417851, 'The server threw an exception.', None, None)",
+      "error_type": "com_error",
+      "parent_error": "Nonzero worker exit, incomplete artifacts or unverified Aspen cleanup.",
+      "returncode": 1,
+      "owned_apps_remaining": []
+    }
+  },
+  "windows_fault_events": {
+    "Time": "2026-10-18T04:59:50.8119254-04:00",
+    "Message": "Faulting application name: python.exe, version: 3.13.2150.1013, time stamp: 0x67b33fe7\r\nFaulting module name: openblas.dll, version: 0.0.0.0, time stamp: 0x69eada78\r\nException code: 0xc0000005\r\nFault offset: 0x00000000000276a6\r\nFaulting process id: 0xB4E4\r\nFaulting application start time: 0x1DD5DECC8ABE999\r\nFaulting application path: C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe\r\nFaulting module path: C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll\r\nReport Id: eb58faa6-5ada-425a-b654-a78fd8f745bf\r\nFaulting package full name: \r\nFaulting package-relative application ID: ",
+    "Data": "python.exe | 3.13.2150.1013 | 67b33fe7 | openblas.dll | 0.0.0.0 | 69eada78 | c0000005 | 00000000000276a6 | 0xb4e4 | 0x1dd5decc8abe999 | C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe | C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll | eb58faa6-5ada-425a-b654-a78fd8f745bf |  | "
+  },
+  "changed_source_hashes": {
+    "recover_review_runs.py": "32a5542d33dd0c7e7bc830a99ca4576bdd86a5ff3b1e4138656ea07219f13f2c",
+    "run_distillation_remaining.py": "27d985f7e5f8d83416edac17cb6bfbd15fa76d837f6e8a54b6b9941bfcee1201",
+    "column_review/pilot.py": "eed1043604606105a310744551ff7c03f2b7346804bb9f839f3db412971ebd4c",
+    "column_review/typelib.py": "6fbfbf3b0199e56823374da5fe7c0b1cf5d3954ce5fedae7f23adc383de125d1",
+    "revision_comparisons/progress.py": "87772e20e2ce81b2d8f18da1f85329b864c47f9084e549c93bedc967845b0dad"
+  },
+  "validation": {
+    "regression_tests_passed": 61,
+    "regression_seconds": 16.83,
+    "post_launcher_change_tests_passed": 6,
+    "post_launcher_change_seconds": 0.2
+  }
+}

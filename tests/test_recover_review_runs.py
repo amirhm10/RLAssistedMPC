@@ -91,3 +91,15 @@ def test_progress_prefers_recovery_and_does_not_show_old_failure_as_current(tmp_
         display(data)
     assert "old_failed" not in text.getvalue()
     assert "column_repeats" in text.getvalue()
+
+
+def test_known_snapshot_failure_holds_retry_and_preserves_original_command(tmp_path):
+    stage = tmp_path / "e1_pilot"
+    stage.mkdir()
+    original = b"@echo off\npython original_full_pilot.py\n"
+    (stage / "run.cmd").write_bytes(original)
+    with patch("subprocess.Popen", side_effect=AssertionError("Holding a failed pilot must not start it")):
+        recovery.hold_snapshot_pilot(tmp_path)
+    assert (stage / "run_before_snapshot_hold.cmd").read_bytes() == original
+    assert "original_full_pilot.py" not in (stage / "run.cmd").read_text()
+    assert recovery.read(stage / "snapshot_hold.json")["state"] == "held"

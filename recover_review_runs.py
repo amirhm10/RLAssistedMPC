@@ -91,6 +91,23 @@ def command_file(path, title, arguments):
                     encoding="utf-8")
 
 
+def hold_snapshot_pilot(column_directory):
+    """Do not commission another full-prefix retry of the known native failure."""
+    stage = Path(column_directory) / "e1_pilot"
+    command = stage / "run.cmd"
+    preserved = stage / "run_before_snapshot_hold.cmd"
+    if not preserved.exists():
+        preserved.write_bytes(command.read_bytes())
+    reason = ("Native TakeSnapshot failed again; a short startup snapshot exported, "
+              "but its restored state did not advance time. Native restoration remains unvalidated.")
+    command.write_text('@echo off\nsetlocal\ntitle Column e1_pilot - HELD pending native restoration validation\n'
+                       f'echo {reason}\necho See RUN_RECOVERY_STATUS.md and the bounded snapshot diagnostics.\n'
+                       'echo Full-prefix retry is held; other production jobs continue independently.\npause\nexit /b 1\n',
+                       encoding="utf-8")
+    write(stage / "snapshot_hold.json", {"state": "held", "reason": reason,
+                                         "release_requires": "Validated native state restoration, advancing clock and repeated continuations."})
+
+
 def prepare(directory):
     from column_review.common import now, digest
     from run_distillation_remaining import prepare as prepare_column
@@ -111,6 +128,7 @@ def prepare(directory):
     write(repeat_directory / "manifest.json", manifest)
     column_directory = ROOT / "Distillation/Results/column_review" / (directory.name + "_recovered")
     prepare_column(column_directory)
+    hold_snapshot_pilot(column_directory)
     command_file(directory / "repeats.cmd", "Column repetitions - 30 remaining - Aspen 1-10",
                  [Path(__file__).resolve(), "--run-repeats", repeat_directory])
     command_file(directory / "progress.cmd", "ALL REVIEW RUNS - live progress",
@@ -127,6 +145,7 @@ def prepare(directory):
               "old_column_manifest_sha256": digest(OLD_COLUMN / "manifest.json"),
               "restart_semantics": "Failed column jobs restart original initial conditions; no full-state continuation exists.",
               "scientific_settings_changed": False, "timed_stack_dumps": False}
+    result["snapshot_pilot_hold"] = read(column_directory / "e1_pilot/snapshot_hold.json")
     write(directory / "plan.json", result)
     write(POINTER, result)
     return result

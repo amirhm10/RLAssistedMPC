@@ -56,11 +56,18 @@ def main():
     data["runtime_stress"] = read(output / "runtime_stress.json", {})
     data["old_failure_review"] = read(output / "failure_review.json", {})
     data["windows_fault_events"] = read(output / "windows_fault_events.json", {})
+    data["snapshot_diagnostics"] = {path.name: read(path / "status.json", {})
+                                     for path in directory.glob("snapshot_diag_*") if path.is_dir()}
+    data["diagnostic_snapshot_exports"] = [{"path": str(path), "bytes": path.stat().st_size, "sha256": digest(path)}
+                                           for path in directory.glob("snapshot_diag_*/snapshots/*.snp")]
+    data["snapshot_clock_checks"] = read(directory / "snapshot_diag_clock/step_clock.json", [])
+    data["snapshot_clock_initial_state"] = read(directory / "snapshot_diag_clock/native_before.json", {})
     data["changed_source_hashes"] = {name: digest(ROOT / name) for name in (
         "recover_review_runs.py", "run_distillation_remaining.py", "column_review/pilot.py",
         "column_review/typelib.py", "revision_comparisons/progress.py")}
     data["validation"] = {"regression_tests_passed": 61, "regression_seconds": 16.83,
-                          "post_launcher_change_tests_passed": 6, "post_launcher_change_seconds": .20}
+                          "post_launcher_change_tests_passed": 6, "post_launcher_change_seconds": .20,
+                          "post_pilot_hold_tests_passed": 7, "post_pilot_hold_seconds": .26}
     (output / "recovery_assessment.json").write_text(json.dumps(data, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     print(json.dumps({"observed_at": data["observed_at_utc"], "live_workers": data["live_recovery_workers"],
                       "owned_aspen_apps": sum(a["ownership_verified"] for a in ownership),

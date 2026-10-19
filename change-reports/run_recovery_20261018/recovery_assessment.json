@@ -1,5 +1,5 @@
 {
-  "observed_at_utc": "2026-10-19T00:38:12.264650+00:00",
+  "observed_at_utc": "2026-10-19T00:46:45.168719+00:00",
   "jobs": [
     {
       "study": "polymer_repeats",
@@ -987,13 +987,13 @@
       "state": "running",
       "pid": 764,
       "alive": true,
-      "cpu_seconds": 16.15625,
-      "cycle": null,
+      "cpu_seconds": 66.53125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s7\\a2",
       "aspen_number": 1,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:35:30.955571"
+      "last_log_at": "2026-10-18T20:43:20.986598"
     },
     {
       "study": "column_repeats",
@@ -1001,13 +1001,13 @@
       "state": "running",
       "pid": 9864,
       "alive": true,
-      "cpu_seconds": 17.359375,
-      "cycle": null,
+      "cpu_seconds": 69.078125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s11\\a2",
       "aspen_number": 2,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:35:10.064246"
+      "last_log_at": "2026-10-18T20:43:04.621784"
     },
     {
       "study": "column_repeats",
@@ -1015,13 +1015,13 @@
       "state": "running",
       "pid": 9304,
       "alive": true,
-      "cpu_seconds": 30.9375,
-      "cycle": null,
+      "cpu_seconds": 81.296875,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s23\\a2",
       "aspen_number": 3,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:33:23.301223"
+      "last_log_at": "2026-10-18T20:41:08.801587"
     },
     {
       "study": "column_repeats",
@@ -1029,13 +1029,13 @@
       "state": "running",
       "pid": 44212,
       "alive": true,
-      "cpu_seconds": 34.46875,
-      "cycle": null,
+      "cpu_seconds": 83.03125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s37\\a2",
       "aspen_number": 4,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:33:01.918448"
+      "last_log_at": "2026-10-18T20:40:44.306352"
     },
     {
       "study": "column_repeats",
@@ -1043,13 +1043,13 @@
       "state": "running",
       "pid": 34080,
       "alive": true,
-      "cpu_seconds": 12.953125,
-      "cycle": null,
+      "cpu_seconds": 64.359375,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s53\\a2",
       "aspen_number": 5,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:35:55.184080"
+      "last_log_at": "2026-10-18T20:43:41.031621"
     },
     {
       "study": "column_repeats",
@@ -1057,13 +1057,13 @@
       "state": "running",
       "pid": 49728,
       "alive": true,
-      "cpu_seconds": 26.703125,
-      "cycle": null,
+      "cpu_seconds": 73.828125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s7\\a2",
       "aspen_number": 6,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:34:03.481641"
+      "last_log_at": "2026-10-18T20:41:56.180874"
     },
     {
       "study": "column_repeats",
@@ -1071,13 +1071,13 @@
       "state": "running",
       "pid": 46532,
       "alive": true,
-      "cpu_seconds": 10.78125,
-      "cycle": null,
+      "cpu_seconds": 60.9375,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s11\\a2",
       "aspen_number": 7,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:36:15.775031"
+      "last_log_at": "2026-10-18T20:44:04.290092"
     },
     {
       "study": "column_repeats",
@@ -1085,13 +1085,13 @@
       "state": "running",
       "pid": 43244,
       "alive": true,
-      "cpu_seconds": 24.125,
-      "cycle": null,
+      "cpu_seconds": 70.796875,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s23\\a2",
       "aspen_number": 8,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:34:26.431319"
+      "last_log_at": "2026-10-18T20:42:20.462805"
     },
     {
       "study": "column_repeats",
@@ -1099,13 +1099,13 @@
       "state": "running",
       "pid": 30536,
       "alive": true,
-      "cpu_seconds": 20.703125,
-      "cycle": null,
+      "cpu_seconds": 69.78125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s37\\a2",
       "aspen_number": 9,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:34:47.099301"
+      "last_log_at": "2026-10-18T20:42:45.664728"
     },
     {
       "study": "column_repeats",
@@ -1113,13 +1113,13 @@
       "state": "running",
       "pid": 50752,
       "alive": true,
-      "cpu_seconds": 28.484375,
-      "cycle": null,
+      "cpu_seconds": 76.34375,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s53\\a2",
       "aspen_number": 10,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:33:43.986011"
+      "last_log_at": "2026-10-18T20:41:37.401795"
     },
     {
       "study": "column_repeats",
@@ -1724,13 +1724,13 @@
       "state": "running",
       "pid": 41388,
       "alive": true,
-      "cpu_seconds": 12.546875,
-      "cycle": null,
+      "cpu_seconds": 59.953125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\sg\\a1",
       "aspen_number": 12,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:36:36.892349"
+      "last_log_at": "2026-10-18T20:44:18.024537"
     },
     {
       "study": "Column_review_20261018_recovered",
@@ -1738,13 +1738,13 @@
       "state": "running",
       "pid": 14268,
       "alive": true,
-      "cpu_seconds": 10.984375,
-      "cycle": null,
+      "cpu_seconds": 16.984375,
+      "cycle": 2,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\threshold\\a1",
       "aspen_number": 13,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:31:45.841221"
+      "last_log_at": "2026-10-18T20:45:47.544906"
     },
     {
       "study": "Column_review_20261018_recovered",
@@ -1752,13 +1752,13 @@
       "state": "running",
       "pid": 4064,
       "alive": true,
-      "cpu_seconds": 34.625,
-      "cycle": null,
+      "cpu_seconds": 76.34375,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\ls\\a1",
       "aspen_number": 14,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:32:46.383684"
+      "last_log_at": "2026-10-18T20:40:23.854478"
     },
     {
       "study": "Column_review_20261018_recovered",
@@ -1766,27 +1766,27 @@
       "state": "running",
       "pid": 51328,
       "alive": true,
-      "cpu_seconds": 10.203125,
-      "cycle": null,
+      "cpu_seconds": 15.96875,
+      "cycle": 2,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\bo\\a1",
       "aspen_number": 15,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:32:04.386843"
+      "last_log_at": "2026-10-18T20:46:10.715288"
     },
     {
       "study": "Column_review_20261018_recovered",
       "job": "e1_pilot",
-      "state": "running",
+      "state": "failed",
       "pid": 32736,
-      "alive": true,
-      "cpu_seconds": 10.9375,
-      "cycle": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\e1_pilot\\a1",
       "aspen_number": 16,
-      "error": null,
+      "error": "(-2147417851, 'The server threw an exception.', None, None)",
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:31:25.095261"
+      "last_log_at": "2026-10-18T20:38:24.308569"
     }
   ],
   "historical_studies": [
@@ -1829,7 +1829,8 @@
       "failed": 5
     },
     "Column_review_20261018_recovered": {
-      "running": 5
+      "running": 4,
+      "failed": 1
     }
   },
   "current_jobs": [
@@ -2819,13 +2820,13 @@
       "state": "running",
       "pid": 764,
       "alive": true,
-      "cpu_seconds": 16.15625,
-      "cycle": null,
+      "cpu_seconds": 66.53125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s7\\a2",
       "aspen_number": 1,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:35:30.955571"
+      "last_log_at": "2026-10-18T20:43:20.986598"
     },
     {
       "study": "column_repeats",
@@ -2833,13 +2834,13 @@
       "state": "running",
       "pid": 9864,
       "alive": true,
-      "cpu_seconds": 17.359375,
-      "cycle": null,
+      "cpu_seconds": 69.078125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s11\\a2",
       "aspen_number": 2,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:35:10.064246"
+      "last_log_at": "2026-10-18T20:43:04.621784"
     },
     {
       "study": "column_repeats",
@@ -2847,13 +2848,13 @@
       "state": "running",
       "pid": 9304,
       "alive": true,
-      "cpu_seconds": 30.9375,
-      "cycle": null,
+      "cpu_seconds": 81.296875,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s23\\a2",
       "aspen_number": 3,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:33:23.301223"
+      "last_log_at": "2026-10-18T20:41:08.801587"
     },
     {
       "study": "column_repeats",
@@ -2861,13 +2862,13 @@
       "state": "running",
       "pid": 44212,
       "alive": true,
-      "cpu_seconds": 34.46875,
-      "cycle": null,
+      "cpu_seconds": 83.03125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s37\\a2",
       "aspen_number": 4,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:33:01.918448"
+      "last_log_at": "2026-10-18T20:40:44.306352"
     },
     {
       "study": "column_repeats",
@@ -2875,13 +2876,13 @@
       "state": "running",
       "pid": 34080,
       "alive": true,
-      "cpu_seconds": 12.953125,
-      "cycle": null,
+      "cpu_seconds": 64.359375,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s53\\a2",
       "aspen_number": 5,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:35:55.184080"
+      "last_log_at": "2026-10-18T20:43:41.031621"
     },
     {
       "study": "column_repeats",
@@ -2889,13 +2890,13 @@
       "state": "running",
       "pid": 49728,
       "alive": true,
-      "cpu_seconds": 26.703125,
-      "cycle": null,
+      "cpu_seconds": 73.828125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s7\\a2",
       "aspen_number": 6,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:34:03.481641"
+      "last_log_at": "2026-10-18T20:41:56.180874"
     },
     {
       "study": "column_repeats",
@@ -2903,13 +2904,13 @@
       "state": "running",
       "pid": 46532,
       "alive": true,
-      "cpu_seconds": 10.78125,
-      "cycle": null,
+      "cpu_seconds": 60.9375,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s11\\a2",
       "aspen_number": 7,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:36:15.775031"
+      "last_log_at": "2026-10-18T20:44:04.290092"
     },
     {
       "study": "column_repeats",
@@ -2917,13 +2918,13 @@
       "state": "running",
       "pid": 43244,
       "alive": true,
-      "cpu_seconds": 24.125,
-      "cycle": null,
+      "cpu_seconds": 70.796875,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s23\\a2",
       "aspen_number": 8,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:34:26.431319"
+      "last_log_at": "2026-10-18T20:42:20.462805"
     },
     {
       "study": "column_repeats",
@@ -2931,13 +2932,13 @@
       "state": "running",
       "pid": 30536,
       "alive": true,
-      "cpu_seconds": 20.703125,
-      "cycle": null,
+      "cpu_seconds": 69.78125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s37\\a2",
       "aspen_number": 9,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:34:47.099301"
+      "last_log_at": "2026-10-18T20:42:45.664728"
     },
     {
       "study": "column_repeats",
@@ -2945,13 +2946,13 @@
       "state": "running",
       "pid": 50752,
       "alive": true,
-      "cpu_seconds": 28.484375,
-      "cycle": null,
+      "cpu_seconds": 76.34375,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s53\\a2",
       "aspen_number": 10,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:33:43.986011"
+      "last_log_at": "2026-10-18T20:41:37.401795"
     },
     {
       "study": "column_repeats",
@@ -3374,13 +3375,13 @@
       "state": "running",
       "pid": 41388,
       "alive": true,
-      "cpu_seconds": 12.546875,
-      "cycle": null,
+      "cpu_seconds": 59.953125,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\sg\\a1",
       "aspen_number": 12,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:36:36.892349"
+      "last_log_at": "2026-10-18T20:44:18.024537"
     },
     {
       "study": "Column_review_20261018_recovered",
@@ -3388,13 +3389,13 @@
       "state": "running",
       "pid": 14268,
       "alive": true,
-      "cpu_seconds": 10.984375,
-      "cycle": null,
+      "cpu_seconds": 16.984375,
+      "cycle": 2,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\threshold\\a1",
       "aspen_number": 13,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:31:45.841221"
+      "last_log_at": "2026-10-18T20:45:47.544906"
     },
     {
       "study": "Column_review_20261018_recovered",
@@ -3402,13 +3403,13 @@
       "state": "running",
       "pid": 4064,
       "alive": true,
-      "cpu_seconds": 34.625,
-      "cycle": null,
+      "cpu_seconds": 76.34375,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\ls\\a1",
       "aspen_number": 14,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:32:46.383684"
+      "last_log_at": "2026-10-18T20:40:23.854478"
     },
     {
       "study": "Column_review_20261018_recovered",
@@ -3416,30 +3417,30 @@
       "state": "running",
       "pid": 51328,
       "alive": true,
-      "cpu_seconds": 10.203125,
-      "cycle": null,
+      "cpu_seconds": 15.96875,
+      "cycle": 2,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\bo\\a1",
       "aspen_number": 15,
       "error": null,
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:32:04.386843"
+      "last_log_at": "2026-10-18T20:46:10.715288"
     },
     {
       "study": "Column_review_20261018_recovered",
       "job": "e1_pilot",
-      "state": "running",
+      "state": "failed",
       "pid": 32736,
-      "alive": true,
-      "cpu_seconds": 10.9375,
-      "cycle": null,
+      "alive": null,
+      "cpu_seconds": null,
+      "cycle": 1,
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\e1_pilot\\a1",
       "aspen_number": 16,
-      "error": null,
+      "error": "(-2147417851, 'The server threw an exception.', None, None)",
       "historical_failed_attempts": 0,
-      "last_log_at": "2026-10-18T20:31:25.095261"
+      "last_log_at": "2026-10-18T20:38:24.308569"
     }
   ],
-  "live_recovery_workers": 15,
+  "live_recovery_workers": 14,
   "broker": {
     "pid": 10628,
     "parent_pid": 2524,
@@ -3980,10 +3981,10 @@
       },
       "current": {
         "pid": 25840,
-        "alive": true,
-        "created": 134368434210917407
+        "alive": false,
+        "created": null
       },
-      "ownership_verified": true
+      "ownership_verified": false
     }
   ],
   "completed_polymer": {
@@ -4119,10 +4120,16 @@
     }
   },
   "snapshot_pilot": {
-    "state": "running",
+    "state": "failed",
     "pid": 32736,
     "method": "e1_pilot",
-    "started_at": "2026-10-19T00:30:17.793121+00:00"
+    "started_at": "2026-10-19T00:30:17.793121+00:00",
+    "finished_at": "2026-10-19T00:38:18.982681+00:00",
+    "error": "(-2147417851, 'The server threw an exception.', None, None)",
+    "error_type": "com_error",
+    "parent_error": "Nonzero worker exit, incomplete artifacts or unverified Aspen cleanup.",
+    "returncode": 1,
+    "owned_apps_remaining": []
   },
   "runtime_stress": {
     "state": "passed",
@@ -4379,8 +4386,91 @@
     "Message": "Faulting application name: python.exe, version: 3.13.2150.1013, time stamp: 0x67b33fe7\r\nFaulting module name: openblas.dll, version: 0.0.0.0, time stamp: 0x69eada78\r\nException code: 0xc0000005\r\nFault offset: 0x00000000000276a6\r\nFaulting process id: 0xB4E4\r\nFaulting application start time: 0x1DD5DECC8ABE999\r\nFaulting application path: C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe\r\nFaulting module path: C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll\r\nReport Id: eb58faa6-5ada-425a-b654-a78fd8f745bf\r\nFaulting package full name: \r\nFaulting package-relative application ID: ",
     "Data": "python.exe | 3.13.2150.1013 | 67b33fe7 | openblas.dll | 0.0.0.0 | 69eada78 | c0000005 | 00000000000276a6 | 0xb4e4 | 0x1dd5decc8abe999 | C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe | C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll | eb58faa6-5ada-425a-b654-a78fd8f745bf |  | "
   },
+  "snapshot_diagnostics": {
+    "snapshot_diag_clock": {
+      "state": "failed",
+      "mode": "clock",
+      "started_at": "2026-10-19T00:42:57.608994+00:00",
+      "pid": 43652,
+      "scope": "Technical startup snapshot diagnosis; no 400-step prefix or trained-agent/E1 validation.",
+      "error": "Aspen did not advance by the original controller sampling interval.",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_snapshot_diagnostics.py\", line 80, in main\n    disturbances = np.full(3, float(plant.feed.FmR.Value))\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_review\\pilot.py\", line 84, in paired_continuations\n    raise RuntimeError(\"Aspen did not advance by the original controller sampling interval.\")\nRuntimeError: Aspen did not advance by the original controller sampling interval.\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_snapshot_diagnostics.py\", line 91, in main\n    traced_step(*args, **kwargs)\n       ~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_review\\pilot.py\", line 84, in paired_continuations\n    raise RuntimeError(\"Aspen did not advance by the original controller sampling interval.\")\nRuntimeError: Aspen did not advance by the original controller sampling interval.\n",
+      "finished_at": "2026-10-19T00:44:29.781646+00:00"
+    },
+    "snapshot_diag_short": {
+      "state": "failed",
+      "mode": "short",
+      "started_at": "2026-10-19T00:40:32.695428+00:00",
+      "pid": 49284,
+      "scope": "Technical startup snapshot diagnosis; no 400-step prefix or trained-agent/E1 validation.",
+      "error": "Aspen did not advance by the original controller sampling interval.",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_snapshot_diagnostics.py\", line 63, in main\n    runs = paired_continuations(plant, snapshot, inputs, disturbances)\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_review\\pilot.py\", line 84, in paired_continuations\n    raise RuntimeError(\"Aspen did not advance by the original controller sampling interval.\")\nRuntimeError: Aspen did not advance by the original controller sampling interval.\n",
+      "finished_at": "2026-10-19T00:42:05.252708+00:00"
+    }
+  },
+  "diagnostic_snapshot_exports": [
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\snapshot_diag_clock\\snapshots\\review_e1_r1018.snp",
+      "bytes": 4582764,
+      "sha256": "0c3634900b36fa971dbedcc3a1af7784dcc183a861361d45292a993f0347594e"
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\snapshot_diag_short\\snapshots\\review_e1_r1018.snp",
+      "bytes": 4582764,
+      "sha256": "c455da68c121c3fe08283fda837c83d51480a57d5c62ef8f511c6417ceab64ee"
+    }
+  ],
+  "snapshot_clock_checks": [
+    {
+      "before": 40.0,
+      "run_mode": "Dynamic",
+      "communication_interval": 0.1666667,
+      "configured_delta_t": 0.16666666666666666,
+      "end_time": 40.0,
+      "after": 40.166747,
+      "successful": true,
+      "termination": "AtTime",
+      "actual_delta_t": 0.16674700000000087
+    },
+    {
+      "before": 40.166747,
+      "run_mode": "Dynamic",
+      "communication_interval": 0.1666667,
+      "configured_delta_t": 0.16666666666666666,
+      "end_time": 40.0,
+      "after": 40.166747,
+      "successful": true,
+      "termination": "AtTime",
+      "actual_delta_t": 0.0
+    },
+    {
+      "before": 40.166747,
+      "run_mode": "Dynamic",
+      "communication_interval": 0.16666666666666666,
+      "configured_delta_t": 0.16666666666666666,
+      "end_time": 40.50008033333334,
+      "after": 40.166747,
+      "successful": true,
+      "termination": "AtTime",
+      "actual_delta_t": 0.0
+    }
+  ],
+  "snapshot_clock_initial_state": {
+    "State": "Paused",
+    "RunMode": "Dynamic",
+    "Successful": "True",
+    "FullName": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation16.dynf",
+    "Name": "C2S_SS_simulation16.dynf",
+    "Termination": "AtTime",
+    "Time": 40.0,
+    "RecordHistory": false,
+    "CommunicationInterval": 0.1666667,
+    "EndTime": 40.0,
+    "SnapshotCount": 2,
+    "ResultCount": 15
+  },
   "changed_source_hashes": {
-    "recover_review_runs.py": "32a5542d33dd0c7e7bc830a99ca4576bdd86a5ff3b1e4138656ea07219f13f2c",
+    "recover_review_runs.py": "3749a2c0278c0d0ce39f1690eef42e243f828e59c1d7ce15ea23c5b976c25286",
     "run_distillation_remaining.py": "27d985f7e5f8d83416edac17cb6bfbd15fa76d837f6e8a54b6b9941bfcee1201",
     "column_review/pilot.py": "eed1043604606105a310744551ff7c03f2b7346804bb9f839f3db412971ebd4c",
     "column_review/typelib.py": "6fbfbf3b0199e56823374da5fe7c0b1cf5d3954ce5fedae7f23adc383de125d1",
@@ -4390,6 +4480,8 @@
     "regression_tests_passed": 61,
     "regression_seconds": 16.83,
     "post_launcher_change_tests_passed": 6,
-    "post_launcher_change_seconds": 0.2
+    "post_launcher_change_seconds": 0.2,
+    "post_pilot_hold_tests_passed": 7,
+    "post_pilot_hold_seconds": 0.26
   }
 }

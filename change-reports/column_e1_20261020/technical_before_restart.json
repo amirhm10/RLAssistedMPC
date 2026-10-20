@@ -1,0 +1,37 @@
+{
+  "state": "technical_checkpoint",
+  "pid": 47648,
+  "started_at": "2026-10-20T21:06:21.953180+00:00",
+  "category": "combined",
+  "case": 16,
+  "technical": true,
+  "output": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_integration_a10\\combined\\a1",
+  "profile": "temperature_flip_200_100",
+  "native_sessions": {
+    "aspen": {
+      "aspen_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_integration_a10\\combined\\a1\\native_d4481e58\\main\\C2S_SS_simulation16.dynf",
+      "snaps_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_integration_a10\\combined\\a1\\native_d4481e58\\main\\AM_C2S_SS_simulation16",
+      "path_source": "e3-number-override",
+      "aspen_sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4"
+    },
+    "branch_aspen": {
+      "aspen_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_integration_a10\\combined\\a1\\native_d4481e58\\branch\\C2S_SS_simulation16.dynf",
+      "snaps_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_integration_a10\\combined\\a1\\native_d4481e58\\branch\\AM_C2S_SS_simulation16",
+      "path_source": "e3-number-override",
+      "aspen_sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4"
+    }
+  },
+  "completed_steps": 80,
+  "matched_pairs": 4,
+  "channels": [
+    "horizon",
+    "markov",
+    "residual",
+    "weights"
+  ],
+  "full_state_checks": 4,
+  "resumed_from_step": null,
+  "checkpoint_has_four_learners": true,
+  "finished_at": "2026-10-20T21:12:52.768202+00:00",
+  "owned_apps_remaining": []
+}

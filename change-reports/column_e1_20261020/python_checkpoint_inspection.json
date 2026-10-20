@@ -1,0 +1,12 @@
+{
+  "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_integration_a10\\combined\\a1\\training_checkpoints\\training_state_0.pkl",
+  "python_round_trip_exact": true,
+  "cache_replacement_preserves_complete_state": true,
+  "aliases": {
+    "current_input": [],
+    "current_output": []
+  },
+  "expected": "fcb6e24b0b8cbecdc1c841abac560473f10868bef6893f8ffe4e81199d5c690d",
+  "actual": "fcb6e24b0b8cbecdc1c841abac560473f10868bef6893f8ffe4e81199d5c690d",
+  "after_cache_replacement": "fcb6e24b0b8cbecdc1c841abac560473f10868bef6893f8ffe4e81199d5c690d"
+}

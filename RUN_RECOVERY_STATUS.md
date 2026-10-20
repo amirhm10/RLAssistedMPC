@@ -1,5 +1,11 @@
 # Reviewer-run recovery — latest update October 20, 2026
 
+## Column E1 integrated and started — October 20
+
+At 2026-10-20T21:26:28.530174+00:00: column E1 combined seed 7 is live on source case 16 (PID 34440, cycle 1/300), with four standalone configurations queued. The 47 focused tests, four-channel native/learner checks and fresh-process full-state restart pass. A second private case-16 application handles rollouts; the training application remains untouched by restores. Full native/Python checkpoints are enabled.
+
+All 13 existing worker identities and the automatic combined queue are preserved. The ten combined repetitions still reserve cases 1,2,4–10,12. Including the five newly authorized E1 configurations, 28 production jobs remain: 14 running and 14 queued. Production E1 results are pending. Details: change-reports/column_e1_20261020/INTEGRATION.md and launch_assessment.json.
+
 ## Snapshot/threshold repair and stopped-run recovery — October 20
 
 At 13:57 Toronto: **23 production jobs remain: 13 running and 10 queued**. The ten residual repetitions are at cycle 11/300. Markov SG seed 23 attempt 4 is live (PID 23064, cycle 2/300). Threshold recovery is at cycle 18/200, PID 45524; its latest validated four-agent inference export is from cycle 10. Column BO has 36/40 calibration trials saved; its 200-cycle final evaluation follows.

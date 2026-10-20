@@ -70,6 +70,12 @@ def snapshot(root=ROOT):
     recovery = read_json(Path(root) / "Distillation/Results/review_recovery/latest.json")
     if recovery.get("repeats"):
         studies["column_repeats"] = recovery["repeats"]
+    e1 = read_json(Path(root) / "Distillation/Results/column_e1/latest.json")
+    if e1.get("directory"):
+        studies["E1_column"] = e1["directory"]
+    state_recovery = read_json(Path(root) / "Distillation/Results/state_recovery/latest.json")
+    if state_recovery.get("threshold"):
+        studies["Polymer_threshold_policy_recovery"] = state_recovery["threshold"]
     for path in sorted((Path(root)/"Polymer/Results/review_recovery").glob("*/concurrent_plan.json")):
         if not read_json(path).get("smoke", True):
             studies["Polymer_remaining_" + path.parent.name] = str(path.parent)
@@ -85,13 +91,16 @@ def snapshot(root=ROOT):
                              "pid": None, "cpu_seconds": None, "cycle": None})
             continue
         jobs = manifest.get("jobs", [])
+        if name == "Polymer_threshold_policy_recovery" and "jobs" not in manifest:
+            jobs = [{"id": "threshold/seed7", "state": manifest.get("state", "pending"),
+                     "directory": manifest.get("directory"), "pid": manifest.get("pid")}]
         if "jobs" not in manifest and "methods" in manifest:
             jobs = [{"id": method, "state": read_json(directory/method/"status.json").get("state", "pending"),
                      "attempts": [{"directory": str((directory/method).resolve())}]} for method in manifest["methods"]]
         for job in jobs:
             attempts = [a if isinstance(a, dict) else {"directory": a}
                         for a in job.get("attempts", [])]
-            attempt = attempts[-1] if attempts else {}
+            attempt = attempts[-1] if attempts else {"directory": job.get("directory"), "pid": job.get("pid")}
             path = Path(attempt["directory"]) if attempt.get("directory") else None
             if path is not None and not path.is_absolute():
                 path = directory / path
@@ -102,6 +111,8 @@ def snapshot(root=ROOT):
             state = (status.get("state") or execution.get("state") or job.get("state", "pending")) if execution else job.get("state", status.get("state", "pending"))
             if state == "running" and status.get("state") in ("failed", "completed"):
                 state = status["state"]
+            if e1.get("directory") and name.startswith("Column_review_") and job.get("id") == "e1_pilot":
+                state = "superseded_technical_pilot"
             pid = attempt.get("pid", status.get("pid", execution.get("pid")))
             info = process_info(pid) if state == "running" else {"alive": None, "cpu_seconds": None}
             if state == "running" and info["alive"] is False:
@@ -120,6 +131,9 @@ def snapshot(root=ROOT):
                 checkpoint = read_json(path/"training_checkpoints/latest.json")
                 if checkpoint:
                     row["checkpoint_cycle"] = checkpoint.get("completed_cycles")
+                policy = read_json(path/"policy_checkpoints/latest.json")
+                if policy:
+                    row["policy_checkpoint_cycle"] = policy.get("completed_cycles")
                 for candidate in (path/"capture"/"decisions.jsonl", path/"decisions"/"decisions.jsonl"):
                     if candidate.exists():
                         records = []
@@ -188,6 +202,8 @@ def display(data):
             detail += f" prediction_origins={row['prediction_origins']}"
         if "checkpoint_cycle" in row:
             detail += f" full_training_checkpoint_cycle={row['checkpoint_cycle']}"
+        if "policy_checkpoint_cycle" in row:
+            detail += f" validated_inference_policy_cycle={row['policy_checkpoint_cycle']}"
         print(f"  {row['study']} {row['job']}: {row['state']} {detail}", flush=True)
     if historical:
         print(f"  {len(historical)} superseded study records retained in the JSON audit; current recoveries shown above.", flush=True)

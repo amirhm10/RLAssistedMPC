@@ -1,5 +1,13 @@
 # Reviewer-run recovery — latest update October 20, 2026
 
+## All-study audit — October 20, 12:59 Toronto
+
+**22 production jobs remain: 12 running and 10 queued.** Running: Markov SG seed 23 (cycle 108/300), ten residual repetitions (cycle 2/300), and column BO (35/40 calibration trials saved; 200-cycle evaluation still follows). The ten combined repetitions are queued after residual. The independent coordinator and every current worker are live; an independent Windows inventory finds no unregistered experiment worker or new failure.
+
+Finished evidence verifies: 50/50 polymer repetitions, 29/50 column repetitions, 3,200 polymer E1 matched pairs, all five polymer E2 method trajectories plus baseline/shared analysis, six E3 stages across both plants, and column SG/threshold/LS comparisons. The separate case-16 snapshot pilot remains failed/held and blocks full column E1. The historical polymer threshold policy export is empty and needs recovery before frozen-policy testing; the ARX local waiting marker is superseded by the completed shared E2 analysis. These are separate from the 22 existing production jobs.
+
+Recommended order and exact evidence: `change-reports/run_recovery_20261020/ALL_RUNS_STATUS.md` and `all_runs_20261020_165926.json`. Keep the live jobs/automatic queue running, repair native restoration and the unusable policy export separately, and audit/assemble finished column results before extending the study scope. No study was launched or stopped during this audit.
+
 ## Residual started using spare case 12 — October 20, 12:40 Toronto
 
 The nine original healthy Markov runs are complete; **29 completed results are retained**. The active Markov SG seed 23 retry continues on case 3 with its existing process and progress (cycle 104 at inspection). To start the next channel immediately, the pending residual SG seed 23 job now uses free, byte-identical Aspen case 12. The pending combined SG seed 23 job uses case 12 too. Cases 1, 2, 4--10 serve the other seeds. BO on case 15 continues unchanged.

@@ -1,0 +1,22 @@
+[
+  {
+    "ModuleName": "_multiarray_umath.cp313-win_amd64.pyd",
+    "FileName": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\_core\\_multiarray_umath.cp313-win_amd64.pyd"
+  },
+  {
+    "ModuleName": "libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+    "FileName": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll"
+  },
+  {
+    "ModuleName": "_fblas.cp313-win_amd64.pyd",
+    "FileName": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\linalg\\_fblas.cp313-win_amd64.pyd"
+  },
+  {
+    "ModuleName": "libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+    "FileName": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll"
+  },
+  {
+    "ModuleName": "openblas.dll",
+    "FileName": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll"
+  }
+]

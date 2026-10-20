@@ -1,5 +1,11 @@
 # Reviewer-run recovery — latest update October 20, 2026
 
+## Snapshot/threshold repair and stopped-run recovery — October 20
+
+At 13:57 Toronto: **23 production jobs remain: 13 running and 10 queued**. The ten residual repetitions are at cycle 11/300. Markov SG seed 23 attempt 4 is live (PID 23064, cycle 2/300). Threshold recovery is at cycle 18/200, PID 45524; its latest validated four-agent inference export is from cycle 10. Column BO has 36/40 calibration trials saved; its 200-cycle final evaluation follows.
+
+The native snapshot continuation pilot passed; full column E1 adapter integration remains separate. Threshold's original empty export is preserved and its fresh policy-recovery run is underway with validated periodic exports. The former Markov attempt stopped at cycle 112 for an unconfirmed reason; attempt 4 has its own independent visible session. All eleven other production workers and the residual/combined coordinator retain their identities; combined remains automatic. Details: change-reports/state_recovery_20261020/RECOVERY.md and repair_assessment.json.
+
 ## All-study audit — October 20, 12:59 Toronto
 
 **22 production jobs remain: 12 running and 10 queued.** Running: Markov SG seed 23 (cycle 108/300), ten residual repetitions (cycle 2/300), and column BO (35/40 calibration trials saved; 200-cycle evaluation still follows). The ten combined repetitions are queued after residual. The independent coordinator and every current worker are live; an independent Windows inventory finds no unregistered experiment worker or new failure.

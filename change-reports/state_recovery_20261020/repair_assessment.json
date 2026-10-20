@@ -1,0 +1,418 @@
+{
+  "observed_at_utc": "2026-10-20T17:57:48.058460+00:00",
+  "production_running": 13,
+  "production_queued": 10,
+  "production_unfinished": 23,
+  "protected_workers_preserved": [
+    {
+      "job": "residual/sg/7",
+      "pid": 27384,
+      "creation_unchanged": true
+    },
+    {
+      "job": "residual/sg/11",
+      "pid": 50820,
+      "creation_unchanged": true
+    },
+    {
+      "job": "residual/sg/23",
+      "pid": 15472,
+      "creation_unchanged": true
+    },
+    {
+      "job": "residual/sg/37",
+      "pid": 44812,
+      "creation_unchanged": true
+    },
+    {
+      "job": "residual/sg/53",
+      "pid": 42188,
+      "creation_unchanged": true
+    },
+    {
+      "job": "residual/plain/7",
+      "pid": 32632,
+      "creation_unchanged": true
+    },
+    {
+      "job": "residual/plain/11",
+      "pid": 47360,
+      "creation_unchanged": true
+    },
+    {
+      "job": "residual/plain/23",
+      "pid": 22424,
+      "creation_unchanged": true
+    },
+    {
+      "job": "residual/plain/37",
+      "pid": 29360,
+      "creation_unchanged": true
+    },
+    {
+      "job": "residual/plain/53",
+      "pid": 31656,
+      "creation_unchanged": true
+    },
+    {
+      "job": "bo",
+      "pid": 51328,
+      "creation_unchanged": true
+    }
+  ],
+  "active_existing_jobs": [
+    {
+      "study": "column_repeats",
+      "job": "markov/sg/23",
+      "state": "running",
+      "pid": 23064,
+      "alive": true,
+      "cpu_seconds": 109.0625,
+      "cycle": 2,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_openblas\\retry\\markov_sg\\s23\\a4",
+      "aspen_number": 3,
+      "error": null,
+      "historical_failed_attempts": 1,
+      "last_log_at": "2026-10-20T13:53:36.404805"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/7",
+      "state": "running",
+      "pid": 27384,
+      "alive": true,
+      "cpu_seconds": 122.515625,
+      "cycle": 11,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s7\\a1",
+      "aspen_number": 1,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-20T13:55:01.204625"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/11",
+      "state": "running",
+      "pid": 50820,
+      "alive": true,
+      "cpu_seconds": 125.015625,
+      "cycle": 11,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s11\\a1",
+      "aspen_number": 2,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-20T13:53:10.414362"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/23",
+      "state": "running",
+      "pid": 15472,
+      "alive": true,
+      "cpu_seconds": 127.984375,
+      "cycle": 11,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s23\\a1",
+      "aspen_number": 12,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-20T13:52:57.496430"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/37",
+      "state": "running",
+      "pid": 44812,
+      "alive": true,
+      "cpu_seconds": 122.96875,
+      "cycle": 11,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s37\\a1",
+      "aspen_number": 4,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-20T13:54:00.275890"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/sg/53",
+      "state": "running",
+      "pid": 42188,
+      "alive": true,
+      "cpu_seconds": 129.5625,
+      "cycle": 11,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s53\\a1",
+      "aspen_number": 5,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-20T13:51:38.971782"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/7",
+      "state": "running",
+      "pid": 32632,
+      "alive": true,
+      "cpu_seconds": 106.078125,
+      "cycle": 11,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s7\\a1",
+      "aspen_number": 6,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-20T13:54:08.823003"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/11",
+      "state": "running",
+      "pid": 47360,
+      "alive": true,
+      "cpu_seconds": 110.3125,
+      "cycle": 11,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s11\\a1",
+      "aspen_number": 7,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-20T13:53:18.941729"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/23",
+      "state": "running",
+      "pid": 22424,
+      "alive": true,
+      "cpu_seconds": 106.203125,
+      "cycle": 11,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s23\\a1",
+      "aspen_number": 8,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-20T13:53:56.916975"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/37",
+      "state": "running",
+      "pid": 29360,
+      "alive": true,
+      "cpu_seconds": 109.21875,
+      "cycle": 11,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s37\\a1",
+      "aspen_number": 9,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-20T13:52:04.087512"
+    },
+    {
+      "study": "column_repeats",
+      "job": "residual/plain/53",
+      "state": "running",
+      "pid": 31656,
+      "alive": true,
+      "cpu_seconds": 110.703125,
+      "cycle": 11,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s53\\a1",
+      "aspen_number": 10,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-20T13:51:47.351274"
+    },
+    {
+      "study": "Column_review_20261018_recovered",
+      "job": "bo",
+      "state": "running",
+      "pid": 51328,
+      "alive": true,
+      "cpu_seconds": 1762.734375,
+      "cycle": 6,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\bo\\a1",
+      "aspen_number": 15,
+      "error": null,
+      "historical_failed_attempts": 0,
+      "last_log_at": "2026-10-20T13:56:27.205366"
+    }
+  ],
+  "coordinator": {
+    "state": "running",
+    "stage": "residual",
+    "pid": 36308,
+    "updated_at": "2026-10-20T17:57:46.006517+00:00",
+    "seed23_spare_case": 12,
+    "alive": true,
+    "cpu_seconds": 2.0625,
+    "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12"
+  },
+  "combined_guards_pass": true,
+  "combined_slots": {
+    "sg/7": 1,
+    "sg/11": 2,
+    "sg/23": 12,
+    "sg/37": 4,
+    "sg/53": 5,
+    "plain/7": 6,
+    "plain/11": 7,
+    "plain/23": 8,
+    "plain/37": 9,
+    "plain/53": 10
+  },
+  "column_BO_saved_calibration_trials": 36,
+  "column_BO_final_evaluation_cycles": 200,
+  "snapshot_pilot": {
+    "state": "completed",
+    "pilot_passed": true,
+    "prefix_steps": 400,
+    "continuation_steps_each": 24,
+    "identical_continuations": 3,
+    "clock_tolerance_hours": 1.1e-06,
+    "diagnostic_labels": [
+      "simulation_time_h",
+      "feed_flow",
+      "native_reflux_flow",
+      "native_reboiler_duty",
+      "tray_1_temperature",
+      "tray_1_ethane_vapor_fraction",
+      "tray_12_temperature",
+      "tray_12_ethane_vapor_fraction",
+      "tray_24_temperature",
+      "tray_24_ethane_vapor_fraction",
+      "tray_40_temperature",
+      "tray_40_ethane_vapor_fraction",
+      "tray_60_temperature",
+      "tray_60_ethane_vapor_fraction",
+      "tray_85_temperature",
+      "tray_85_ethane_vapor_fraction"
+    ],
+    "max_output_difference": [
+      0.0,
+      0.0
+    ],
+    "native_snapshot": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261020_snapshot_pilot_a2\\preserved_snapshots\\review_e1_3e6cfa6533b0.snp",
+    "native_snapshot_sha256": "6ee39a8d41ee8286585c26d4e70332e18c2538adffe4e93b629a1c1c78900daf",
+    "adapter": "Short snapshot name; verify one zero-time native initialization before the original plant step.",
+    "e1_production_ready": false,
+    "e1_critic_validation_performed": false,
+    "remaining": "E1 adapter still must preserve learners, gates, action histories, observer/MPC state and select the matched-rollout budget."
+  },
+  "snapshot_artifacts": {
+    "continuations.npz": "d123834e032e062850becda4c62d54e9d58b4ba5e8210647602b55cddb63a431",
+    "restore_initializations.json": "1b0c2694039854afef6a881d80256cd68517325cbfb1efc4caae2d698fb9d815",
+    "python_checkpoint.pkl": "1279e8a7d310ef8c361b480a407762cd7f5ded477b81daa4053fec043ed837ac",
+    "preserved_snapshots\\review_e1_3e6cfa6533b0.snp": "6ee39a8d41ee8286585c26d4e70332e18c2538adffe4e93b629a1c1c78900daf"
+  },
+  "snapshot_continuation_max_output_differences": [
+    [
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0
+    ]
+  ],
+  "owned_aspen_apps_all_accounted_for": [
+    13184,
+    22972,
+    24636,
+    27056,
+    34208,
+    35216,
+    37328,
+    41988,
+    44872,
+    45340,
+    46832,
+    54208
+  ],
+  "threshold_recovery": {
+    "manifest": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\state_recovery\\20261020_threshold_policy_recovery\\manifest.json",
+    "pid": 45524,
+    "cycle": 18,
+    "periodic_policy": {
+      "path": "cycle_0010.pt",
+      "sha256": "a1ef0ee82168a7a81b464f8c182a119419ae2c5d59fa00fe3c38a2a2ee713f0c",
+      "tensor_counts": {
+        "horizon_agent": 24,
+        "weight_agent": 72,
+        "markov_agent": 72,
+        "residual_agent": 72
+      },
+      "parameter_elements": {
+        "horizon_agent": 2204838,
+        "weight_agent": 6373388,
+        "markov_agent": 6422540,
+        "residual_agent": 6367240
+      },
+      "round_trip_verified": true,
+      "training_resume": false,
+      "completed_steps": 8000,
+      "completed_cycles": 10
+    },
+    "original_trajectory_and_empty_export_unchanged": true,
+    "complete_trained_policy_recovery_pending": true,
+    "exact_old_weights_recovered": false
+  },
+  "threshold_loaded_numerical_libraries": [
+    {
+      "ModuleName": "_multiarray_umath.cp313-win_amd64.pyd",
+      "FileName": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\_core\\_multiarray_umath.cp313-win_amd64.pyd"
+    },
+    {
+      "ModuleName": "libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+      "FileName": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll"
+    },
+    {
+      "ModuleName": "_fblas.cp313-win_amd64.pyd",
+      "FileName": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\linalg\\_fblas.cp313-win_amd64.pyd"
+    },
+    {
+      "ModuleName": "libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+      "FileName": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll"
+    },
+    {
+      "ModuleName": "openblas.dll",
+      "FileName": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll"
+    }
+  ],
+  "independent_brokers": {
+    "threshold": {
+      "pid": 48600,
+      "parent_pid": 2524,
+      "in_windows_job": true,
+      "scheduler_service_pid": 2524,
+      "parent_is_scheduler_service": true,
+      "session_id": 2,
+      "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+      "observed_at": "2026-10-20T17:35:39.567519+00:00"
+    },
+    "markov": {
+      "pid": 40456,
+      "parent_pid": 2524,
+      "in_windows_job": true,
+      "scheduler_service_pid": 2524,
+      "parent_is_scheduler_service": true,
+      "session_id": 2,
+      "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+      "observed_at": "2026-10-20T17:39:41.522309+00:00"
+    }
+  },
+  "frozen_original_files_unchanged": 46,
+  "repair_source_hashes": {
+    "repair_aspen_snapshot.py": "3fc5b9f969e6aef58aeec0c83d382d77c7b7ec4e10a47bfbba894cd9bed712c3",
+    "recover_polymer_threshold.py": "8e7c13dfbada45a4ecf0021d4c9af9f97c4da9c7542e742583922aed06318b1f",
+    "restart_stopped_markov.py": "3e36d88f7d5ff0d9761c5a1cb024cdc9e0067817dc90de71bdc8950489b9f33d",
+    "tests/test_state_recovery.py": "9510e9ccb533074a2c32bbb281acfdbd4e69adc042fac51cb7e5be207e17a759"
+  },
+  "verification": {
+    "focused_tests_passed": 21,
+    "threshold_technical_smoke_steps": 800,
+    "smoke_validated_all_four_final_agents": true
+  },
+  "limitations": [
+    "Full column E1 still needs learner/gate/history/MPC adapter integration and an explicit matched-rollout budget.",
+    "Markov a3 stopped at cycle 112 without final records; cause unconfirmed. A4 restarts from original initial conditions.",
+    "Periodic inference weights are not full optimizer/replay/plant checkpoints.",
+    "Long production completion is pending; runtime mitigation does not guarantee multi-day stability."
+  ]
+}

@@ -1,0 +1,2018 @@
+{
+  "observed_at_utc": "2026-10-20T16:44:59.637526+00:00",
+  "plan": {
+    "prepared_at": "2026-10-20T16:40:42.605885+00:00",
+    "previous_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_openblas",
+    "original_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats",
+    "retry_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_openblas\\retry",
+    "retained_results": [
+      {
+        "job": [
+          "horizon",
+          "sg",
+          7
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s7\\a1\\rl\\20261015_171418\\input_data.pkl",
+        "sha256": "338eef60ec5dc16901996f5b777a4d116aa19d9f5c05defa5fe5a1c928d74a97"
+      },
+      {
+        "job": [
+          "horizon",
+          "sg",
+          11
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s11\\a1\\rl\\20261015_174558\\input_data.pkl",
+        "sha256": "a5d07ef1da3b8d5b4ec55ae7996b5512b607bd5749eb528408449ab2bff16912"
+      },
+      {
+        "job": [
+          "horizon",
+          "sg",
+          23
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s23\\a1\\rl\\20261015_174659\\input_data.pkl",
+        "sha256": "87ccce07d828b46ae9a688ff28798096f34516aa21de498275e07eb41fd04cb5"
+      },
+      {
+        "job": [
+          "horizon",
+          "sg",
+          37
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s37\\a1\\rl\\20261015_174022\\input_data.pkl",
+        "sha256": "51299e105fa8d05ad089bc8edfade9c46ee1a67b7bb1f283078424805db9bc73"
+      },
+      {
+        "job": [
+          "horizon",
+          "sg",
+          53
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s53\\a1\\rl\\20261015_174522\\input_data.pkl",
+        "sha256": "51f6fdfbe7bf2abdf321a0542ea83690af4a0839c449c2364d76e1975ba15f56"
+      },
+      {
+        "job": [
+          "horizon",
+          "plain",
+          7
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s7\\a1\\rl\\20261015_175455\\input_data.pkl",
+        "sha256": "d8d0f7dbbfa4398f96915acf5f77f97257155abf55aaff26aef4025129c2b0c0"
+      },
+      {
+        "job": [
+          "horizon",
+          "plain",
+          11
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s11\\a1\\rl\\20261015_172212\\input_data.pkl",
+        "sha256": "10bede697bc9cd51dbe3b40417c206b7e17621e63f364c31897bf800431c1843"
+      },
+      {
+        "job": [
+          "horizon",
+          "plain",
+          23
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s23\\a1\\rl\\20261015_174209\\input_data.pkl",
+        "sha256": "fed78c1efc0d55263bd82e8bdec1a18388e26a3deac723110f513a000f0c9ee0"
+      },
+      {
+        "job": [
+          "horizon",
+          "plain",
+          37
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s37\\a1\\rl\\20261015_175751\\input_data.pkl",
+        "sha256": "2aa6522796aae2b03f6bce93eb0a27f2d629375f1bf4ff2830dd44469978ae69"
+      },
+      {
+        "job": [
+          "horizon",
+          "plain",
+          53
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s53\\a1\\rl\\20261015_175454\\input_data.pkl",
+        "sha256": "372d6eddae805331324b3ed80aa9f8f3b426d231a604ecac49c3d7b4dbb8f169"
+      },
+      {
+        "job": [
+          "weights",
+          "sg",
+          7
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s7\\a1\\rl\\20261016_234050\\input_data.pkl",
+        "sha256": "1118ac1457a7a93d5fdea67748f140f3f13a166a8d44067b8e20afdd32d5ce1f"
+      },
+      {
+        "job": [
+          "weights",
+          "sg",
+          11
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s11\\a1\\rl\\20261016_233515\\input_data.pkl",
+        "sha256": "8aa7e5c4d62db1e6d77bb7a92c637fece01c68bf36c49e2a02374e17d03352ff"
+      },
+      {
+        "job": [
+          "weights",
+          "sg",
+          23
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s23\\a1\\rl\\20261017_000517\\input_data.pkl",
+        "sha256": "29f9b560f494becea514615f72433bebac46a8708736c0bc02b3264570988df8"
+      },
+      {
+        "job": [
+          "weights",
+          "sg",
+          37
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s37\\a1\\rl\\20261016_233536\\input_data.pkl",
+        "sha256": "fbe3bd5eeab18b4345e13e87d34e1e5e078ce5791338237a0ce825ae34816c46"
+      },
+      {
+        "job": [
+          "weights",
+          "sg",
+          53
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s53\\a1\\rl\\20261016_233843\\input_data.pkl",
+        "sha256": "fe5e61f4bda20fc724e0327dfbf7024a65eb8b678cf2a9f9a488046db1a8c54a"
+      },
+      {
+        "job": [
+          "weights",
+          "plain",
+          7
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s7\\a1\\rl\\20261016_231936\\input_data.pkl",
+        "sha256": "270206bb383cc2480e6de2b32d206a33ee5c46cf217b011708445285ec208f11"
+      },
+      {
+        "job": [
+          "weights",
+          "plain",
+          11
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s11\\a1\\rl\\20261016_230623\\input_data.pkl",
+        "sha256": "f83137f7bf3b279649690d0fac528143646803d3577bf6694274c8a5f0901578"
+      },
+      {
+        "job": [
+          "weights",
+          "plain",
+          23
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s23\\a1\\rl\\20261016_233155\\input_data.pkl",
+        "sha256": "0b49d7e636d86d499014bd9f164e32ccae2461a48bc6ea53f02d8114bd8c0316"
+      },
+      {
+        "job": [
+          "weights",
+          "plain",
+          37
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s37\\a1\\rl\\20261016_231721\\input_data.pkl",
+        "sha256": "a1941e355d7ece91e425cd6920e8e380415ce88eca01ddc0d1b86c13706d1f7c"
+      },
+      {
+        "job": [
+          "weights",
+          "plain",
+          53
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s53\\a1\\rl\\20261016_231555\\input_data.pkl",
+        "sha256": "d06261fe2d2d27dc04367ea18eeb3f6599f1cca04896a3c30d7d6bd0ec6d2257"
+      },
+      {
+        "job": [
+          "markov",
+          "sg",
+          7
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s7\\a2\\rl\\20261020_061606\\input_data.pkl",
+        "sha256": "f39c471d2b62f4e1ab7eb6a613664814fada2d5d6997165ea1a593eae34df3b1"
+      },
+      {
+        "job": [
+          "markov",
+          "sg",
+          11
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s11\\a2\\rl\\20261020_061549\\input_data.pkl",
+        "sha256": "9d2e17c53196d9d72c000d1310a9bfde98bbd71faed043bad5875f6ab2edf4df"
+      },
+      {
+        "job": [
+          "markov",
+          "sg",
+          37
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s37\\a2\\rl\\20261020_055859\\input_data.pkl",
+        "sha256": "cba30135aba6b360f52f5c40e37b62049988817119c5027388d80a0442063dde"
+      },
+      {
+        "job": [
+          "markov",
+          "sg",
+          53
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s53\\a2\\rl\\20261020_060138\\input_data.pkl",
+        "sha256": "834131469fe94d7999785cf46c8961ee02e052ae64aa7b07f79f4481fc95fd90"
+      },
+      {
+        "job": [
+          "markov",
+          "plain",
+          7
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s7\\a2\\rl\\20261020_080744\\input_data.pkl",
+        "sha256": "7927eaabc8c05d48e07bea2e575b77061478461c233ddadee27043cfa45a2423"
+      },
+      {
+        "job": [
+          "markov",
+          "plain",
+          11
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s11\\a2\\rl\\20261020_081206\\input_data.pkl",
+        "sha256": "6c51edebbaac9e16b098a689240eeb2ebe6177338de122e91542928c54021a3b"
+      },
+      {
+        "job": [
+          "markov",
+          "plain",
+          23
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s23\\a2\\rl\\20261020_075108\\input_data.pkl",
+        "sha256": "5a65bfea541199c143f8ece5638ff2a8068e334e4ae2d3a0cf1b210d0e04338a"
+      },
+      {
+        "job": [
+          "markov",
+          "plain",
+          37
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s37\\a2\\rl\\20261020_080706\\input_data.pkl",
+        "sha256": "ee2ce586b47557ce289b132270d31441961aa86b1beed824b4f38d9d651b3fc8"
+      },
+      {
+        "job": [
+          "markov",
+          "plain",
+          53
+        ],
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s53\\a2\\rl\\20261020_082734\\input_data.pkl",
+        "sha256": "6abafb0a2db0508f5c7d1fdaa67d417b18ee464d5dc01d2fa842f48e0282ec06"
+      }
+    ],
+    "protected_workers": [
+      {
+        "job": "markov/sg/23",
+        "study": "column_repeats",
+        "pid": 28652,
+        "alive": true,
+        "created": 134369464566642703
+      },
+      {
+        "job": "bo",
+        "study": "Column_review_20261018_recovered",
+        "pid": 51328,
+        "alive": true,
+        "created": 134368434176541071
+      }
+    ],
+    "protected_apps": [
+      {
+        "pid": 53912,
+        "alive": true,
+        "created": 134369464663958466,
+        "created_at": "2026-10-20T05:08:05.580666+00:00"
+      },
+      {
+        "pid": 45088,
+        "alive": true,
+        "created": 134369863490783929,
+        "created_at": "2026-10-20T16:12:47.199439+00:00"
+      }
+    ],
+    "seed23_model": {
+      "source_case": 3,
+      "new_pending_case": 12,
+      "sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4"
+    },
+    "previous_coordinator_failure": {
+      "state": "blocked",
+      "error": "Cannot verify process lifetime: 43244",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\recover_markov_seed23.py\", line 405, in coordinate\n    while not queue_ready(plan, group_finished(directory / \"retry\")):\n              ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\recover_markov_seed23.py\", line 366, in queue_ready\n    return (not any(same_process(p) for p in plan[\"external_workers\"])\n                ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\recover_markov_seed23.py\", line 366, in <genexpr>\n    return (not any(same_process(p) for p in plan[\"external_workers\"])\n                    ~~~~~~~~~~~~^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\recover_markov_seed23.py\", line 66, in same_process\n    raise RuntimeError(f\"Cannot verify process lifetime: {record['pid']}\")\nRuntimeError: Cannot verify process lifetime: 43244\n",
+      "updated_at": "2026-10-20T14:38:37.091938+00:00",
+      "pid": 48692
+    },
+    "bootstrap_sha256": {
+      "continue_column_queue.py": "21439cba0f74b1577e2a928705e34f536e05be36450991e99959631011f594c3",
+      "recover_markov_seed23.py": "acedabb4f0b19036dfcd856a9cc0f4062660432e29a295403c66aeb659a6efa5",
+      "review_blas_runtime.py": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab"
+    },
+    "policy": "Keep active Markov seed 23 on case 3; start residual now, then combined on cases 1,2,12,4--10.",
+    "scientific_settings_changed": false
+  },
+  "counts": {
+    "completed": 29,
+    "running": 11,
+    "pending": 10
+  },
+  "workers": [
+    {
+      "job": [
+        "residual",
+        "sg",
+        7
+      ],
+      "aspen_number": 1,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s7\\a1",
+      "status": {
+        "state": "running",
+        "started_at": "2026-10-20T16:41:27.971246+00:00",
+        "pid": 27384,
+        "category": "residual",
+        "mode": "sg",
+        "seed": 7,
+        "aspen_number": 1,
+        "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation1.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\AM_C2S_SS_simulation1"
+      },
+      "process": {
+        "pid": 27384,
+        "alive": true,
+        "created": 134369880570331591
+      },
+      "owned_aspen": [
+        {
+          "recorded": {
+            "pid": 24636,
+            "alive": true,
+            "created": 134369882619028568,
+            "created_at": "2026-10-20T16:44:40.642838+00:00"
+          },
+          "current": {
+            "pid": 24636,
+            "alive": true,
+            "created": 134369882619028568
+          }
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "numpy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\__init__.py",
+        "scipy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\__init__.py",
+        "private_blas": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "threadpools": [
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "numpy_x86_v3_enabled": false,
+        "runtime_manifest_sha256": "1d414b4f7583059a8a2beb5519173ec851fb17359a34b872f5aed66cdd39cd3a",
+        "runtime_bootstrap_sha256": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab",
+        "shared_environment_modified": false,
+        "scope": "New processes only; NumPy/SciPy math/settings unchanged; floating-point build differences recorded.",
+        "limitation": "Other dependencies can still load Conda BLAS; bounded checks cannot prove multi-day stability.",
+        "bootstrap_sha256": {
+          "continue_column_queue.py": "21439cba0f74b1577e2a928705e34f536e05be36450991e99959631011f594c3",
+          "recover_markov_seed23.py": "acedabb4f0b19036dfcd856a9cc0f4062660432e29a295403c66aeb659a6efa5",
+          "review_blas_runtime.py": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab"
+        },
+        "seed": 7,
+        "mode": "sg"
+      },
+      "startup_error": false
+    },
+    {
+      "job": [
+        "residual",
+        "sg",
+        11
+      ],
+      "aspen_number": 2,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s11\\a1",
+      "status": {
+        "state": "running",
+        "started_at": "2026-10-20T16:41:27.694556+00:00",
+        "pid": 50820,
+        "category": "residual",
+        "mode": "sg",
+        "seed": 11,
+        "aspen_number": 2,
+        "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation2.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\AM_C2S_SS_simulation2"
+      },
+      "process": {
+        "pid": 50820,
+        "alive": true,
+        "created": 134369880570399091
+      },
+      "owned_aspen": [
+        {
+          "recorded": {
+            "pid": 22972,
+            "alive": true,
+            "created": 134369881670824300,
+            "created_at": "2026-10-20T16:43:06.734875+00:00"
+          },
+          "current": {
+            "pid": 22972,
+            "alive": true,
+            "created": 134369881670824300
+          }
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "numpy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\__init__.py",
+        "scipy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\__init__.py",
+        "private_blas": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "threadpools": [
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "numpy_x86_v3_enabled": false,
+        "runtime_manifest_sha256": "1d414b4f7583059a8a2beb5519173ec851fb17359a34b872f5aed66cdd39cd3a",
+        "runtime_bootstrap_sha256": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab",
+        "shared_environment_modified": false,
+        "scope": "New processes only; NumPy/SciPy math/settings unchanged; floating-point build differences recorded.",
+        "limitation": "Other dependencies can still load Conda BLAS; bounded checks cannot prove multi-day stability.",
+        "bootstrap_sha256": {
+          "continue_column_queue.py": "21439cba0f74b1577e2a928705e34f536e05be36450991e99959631011f594c3",
+          "recover_markov_seed23.py": "acedabb4f0b19036dfcd856a9cc0f4062660432e29a295403c66aeb659a6efa5",
+          "review_blas_runtime.py": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab"
+        },
+        "seed": 11,
+        "mode": "sg"
+      },
+      "startup_error": false
+    },
+    {
+      "job": [
+        "residual",
+        "sg",
+        23
+      ],
+      "aspen_number": 12,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s23\\a1",
+      "status": {
+        "state": "running",
+        "started_at": "2026-10-20T16:41:27.792527+00:00",
+        "pid": 15472,
+        "category": "residual",
+        "mode": "sg",
+        "seed": 23,
+        "aspen_number": 12,
+        "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation12.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\native_snapshots\\residual\\case12"
+      },
+      "process": {
+        "pid": 15472,
+        "alive": true,
+        "created": 134369880570461571
+      },
+      "owned_aspen": [
+        {
+          "recorded": {
+            "pid": 13184,
+            "alive": true,
+            "created": 134369881477280310,
+            "created_at": "2026-10-20T16:42:47.085222+00:00"
+          },
+          "current": {
+            "pid": 13184,
+            "alive": true,
+            "created": 134369881477280310
+          }
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "numpy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\__init__.py",
+        "scipy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\__init__.py",
+        "private_blas": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "threadpools": [
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "numpy_x86_v3_enabled": false,
+        "runtime_manifest_sha256": "1d414b4f7583059a8a2beb5519173ec851fb17359a34b872f5aed66cdd39cd3a",
+        "runtime_bootstrap_sha256": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab",
+        "shared_environment_modified": false,
+        "scope": "New processes only; NumPy/SciPy math/settings unchanged; floating-point build differences recorded.",
+        "limitation": "Other dependencies can still load Conda BLAS; bounded checks cannot prove multi-day stability.",
+        "bootstrap_sha256": {
+          "continue_column_queue.py": "21439cba0f74b1577e2a928705e34f536e05be36450991e99959631011f594c3",
+          "recover_markov_seed23.py": "acedabb4f0b19036dfcd856a9cc0f4062660432e29a295403c66aeb659a6efa5",
+          "review_blas_runtime.py": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab"
+        },
+        "seed": 23,
+        "mode": "sg"
+      },
+      "startup_error": false
+    },
+    {
+      "job": [
+        "residual",
+        "sg",
+        37
+      ],
+      "aspen_number": 4,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s37\\a1",
+      "status": {
+        "state": "running",
+        "started_at": "2026-10-20T16:41:27.768055+00:00",
+        "pid": 44812,
+        "category": "residual",
+        "mode": "sg",
+        "seed": 37,
+        "aspen_number": 4,
+        "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation4.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\AM_C2S_SS_simulation4"
+      },
+      "process": {
+        "pid": 44812,
+        "alive": true,
+        "created": 134369880570531899
+      },
+      "owned_aspen": [
+        {
+          "recorded": {
+            "pid": 37328,
+            "alive": true,
+            "created": 134369882067858230,
+            "created_at": "2026-10-20T16:43:44.973289+00:00"
+          },
+          "current": {
+            "pid": 37328,
+            "alive": true,
+            "created": 134369882067858230
+          }
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "numpy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\__init__.py",
+        "scipy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\__init__.py",
+        "private_blas": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "threadpools": [
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "numpy_x86_v3_enabled": false,
+        "runtime_manifest_sha256": "1d414b4f7583059a8a2beb5519173ec851fb17359a34b872f5aed66cdd39cd3a",
+        "runtime_bootstrap_sha256": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab",
+        "shared_environment_modified": false,
+        "scope": "New processes only; NumPy/SciPy math/settings unchanged; floating-point build differences recorded.",
+        "limitation": "Other dependencies can still load Conda BLAS; bounded checks cannot prove multi-day stability.",
+        "bootstrap_sha256": {
+          "continue_column_queue.py": "21439cba0f74b1577e2a928705e34f536e05be36450991e99959631011f594c3",
+          "recover_markov_seed23.py": "acedabb4f0b19036dfcd856a9cc0f4062660432e29a295403c66aeb659a6efa5",
+          "review_blas_runtime.py": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab"
+        },
+        "seed": 37,
+        "mode": "sg"
+      },
+      "startup_error": false
+    },
+    {
+      "job": [
+        "residual",
+        "sg",
+        53
+      ],
+      "aspen_number": 5,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s53\\a1",
+      "status": {
+        "state": "running",
+        "started_at": "2026-10-20T16:41:27.743644+00:00",
+        "pid": 42188,
+        "category": "residual",
+        "mode": "sg",
+        "seed": 53,
+        "aspen_number": 5,
+        "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation5.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\AM_C2S_SS_simulation5"
+      },
+      "process": {
+        "pid": 42188,
+        "alive": true,
+        "created": 134369880570596545
+      },
+      "owned_aspen": [
+        {
+          "recorded": {
+            "pid": 27056,
+            "alive": true,
+            "created": 134369880925762174,
+            "created_at": "2026-10-20T16:41:50.799477+00:00"
+          },
+          "current": {
+            "pid": 27056,
+            "alive": true,
+            "created": 134369880925762174
+          }
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "numpy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\__init__.py",
+        "scipy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\__init__.py",
+        "private_blas": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "threadpools": [
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "numpy_x86_v3_enabled": false,
+        "runtime_manifest_sha256": "1d414b4f7583059a8a2beb5519173ec851fb17359a34b872f5aed66cdd39cd3a",
+        "runtime_bootstrap_sha256": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab",
+        "shared_environment_modified": false,
+        "scope": "New processes only; NumPy/SciPy math/settings unchanged; floating-point build differences recorded.",
+        "limitation": "Other dependencies can still load Conda BLAS; bounded checks cannot prove multi-day stability.",
+        "bootstrap_sha256": {
+          "continue_column_queue.py": "21439cba0f74b1577e2a928705e34f536e05be36450991e99959631011f594c3",
+          "recover_markov_seed23.py": "acedabb4f0b19036dfcd856a9cc0f4062660432e29a295403c66aeb659a6efa5",
+          "review_blas_runtime.py": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab"
+        },
+        "seed": 53,
+        "mode": "sg"
+      },
+      "startup_error": false
+    },
+    {
+      "job": [
+        "residual",
+        "plain",
+        7
+      ],
+      "aspen_number": 6,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s7\\a1",
+      "status": {
+        "state": "running",
+        "started_at": "2026-10-20T16:41:27.777141+00:00",
+        "pid": 32632,
+        "category": "residual",
+        "mode": "plain",
+        "seed": 7,
+        "aspen_number": 6,
+        "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation6.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\AM_C2S_SS_simulation6"
+      },
+      "process": {
+        "pid": 32632,
+        "alive": true,
+        "created": 134369880570687882
+      },
+      "owned_aspen": [
+        {
+          "recorded": {
+            "pid": 35216,
+            "alive": true,
+            "created": 134369882433721702,
+            "created_at": "2026-10-20T16:44:21.906584+00:00"
+          },
+          "current": {
+            "pid": 35216,
+            "alive": true,
+            "created": 134369882433721702
+          }
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "numpy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\__init__.py",
+        "scipy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\__init__.py",
+        "private_blas": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "threadpools": [
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "numpy_x86_v3_enabled": false,
+        "runtime_manifest_sha256": "1d414b4f7583059a8a2beb5519173ec851fb17359a34b872f5aed66cdd39cd3a",
+        "runtime_bootstrap_sha256": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab",
+        "shared_environment_modified": false,
+        "scope": "New processes only; NumPy/SciPy math/settings unchanged; floating-point build differences recorded.",
+        "limitation": "Other dependencies can still load Conda BLAS; bounded checks cannot prove multi-day stability.",
+        "bootstrap_sha256": {
+          "continue_column_queue.py": "21439cba0f74b1577e2a928705e34f536e05be36450991e99959631011f594c3",
+          "recover_markov_seed23.py": "acedabb4f0b19036dfcd856a9cc0f4062660432e29a295403c66aeb659a6efa5",
+          "review_blas_runtime.py": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab"
+        },
+        "seed": 7,
+        "mode": "plain"
+      },
+      "startup_error": false
+    },
+    {
+      "job": [
+        "residual",
+        "plain",
+        11
+      ],
+      "aspen_number": 7,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s11\\a1",
+      "status": {
+        "state": "running",
+        "started_at": "2026-10-20T16:41:27.751826+00:00",
+        "pid": 47360,
+        "category": "residual",
+        "mode": "plain",
+        "seed": 11,
+        "aspen_number": 7,
+        "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation7.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\AM_C2S_SS_simulation7"
+      },
+      "process": {
+        "pid": 47360,
+        "alive": true,
+        "created": 134369880570784891
+      },
+      "owned_aspen": [
+        {
+          "recorded": {
+            "pid": 34208,
+            "alive": true,
+            "created": 134369881867340581,
+            "created_at": "2026-10-20T16:43:26.787188+00:00"
+          },
+          "current": {
+            "pid": 34208,
+            "alive": true,
+            "created": 134369881867340581
+          }
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "numpy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\__init__.py",
+        "scipy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\__init__.py",
+        "private_blas": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "threadpools": [
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "numpy_x86_v3_enabled": false,
+        "runtime_manifest_sha256": "1d414b4f7583059a8a2beb5519173ec851fb17359a34b872f5aed66cdd39cd3a",
+        "runtime_bootstrap_sha256": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab",
+        "shared_environment_modified": false,
+        "scope": "New processes only; NumPy/SciPy math/settings unchanged; floating-point build differences recorded.",
+        "limitation": "Other dependencies can still load Conda BLAS; bounded checks cannot prove multi-day stability.",
+        "bootstrap_sha256": {
+          "continue_column_queue.py": "21439cba0f74b1577e2a928705e34f536e05be36450991e99959631011f594c3",
+          "recover_markov_seed23.py": "acedabb4f0b19036dfcd856a9cc0f4062660432e29a295403c66aeb659a6efa5",
+          "review_blas_runtime.py": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab"
+        },
+        "seed": 11,
+        "mode": "plain"
+      },
+      "startup_error": false
+    },
+    {
+      "job": [
+        "residual",
+        "plain",
+        23
+      ],
+      "aspen_number": 8,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s23\\a1",
+      "status": {
+        "state": "running",
+        "started_at": "2026-10-20T16:41:27.744034+00:00",
+        "pid": 22424,
+        "category": "residual",
+        "mode": "plain",
+        "seed": 23,
+        "aspen_number": 8,
+        "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation8.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\AM_C2S_SS_simulation8"
+      },
+      "process": {
+        "pid": 22424,
+        "alive": true,
+        "created": 134369880570865168
+      },
+      "owned_aspen": [
+        {
+          "recorded": {
+            "pid": 45340,
+            "alive": true,
+            "created": 134369882249720212,
+            "created_at": "2026-10-20T16:44:03.373549+00:00"
+          },
+          "current": {
+            "pid": 45340,
+            "alive": true,
+            "created": 134369882249720212
+          }
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "numpy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\__init__.py",
+        "scipy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\__init__.py",
+        "private_blas": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "threadpools": [
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "numpy_x86_v3_enabled": false,
+        "runtime_manifest_sha256": "1d414b4f7583059a8a2beb5519173ec851fb17359a34b872f5aed66cdd39cd3a",
+        "runtime_bootstrap_sha256": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab",
+        "shared_environment_modified": false,
+        "scope": "New processes only; NumPy/SciPy math/settings unchanged; floating-point build differences recorded.",
+        "limitation": "Other dependencies can still load Conda BLAS; bounded checks cannot prove multi-day stability.",
+        "bootstrap_sha256": {
+          "continue_column_queue.py": "21439cba0f74b1577e2a928705e34f536e05be36450991e99959631011f594c3",
+          "recover_markov_seed23.py": "acedabb4f0b19036dfcd856a9cc0f4062660432e29a295403c66aeb659a6efa5",
+          "review_blas_runtime.py": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab"
+        },
+        "seed": 23,
+        "mode": "plain"
+      },
+      "startup_error": false
+    },
+    {
+      "job": [
+        "residual",
+        "plain",
+        37
+      ],
+      "aspen_number": 9,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s37\\a1",
+      "status": {
+        "state": "running",
+        "started_at": "2026-10-20T16:41:27.728018+00:00",
+        "pid": 29360,
+        "category": "residual",
+        "mode": "plain",
+        "seed": 37,
+        "aspen_number": 9,
+        "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation9.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\AM_C2S_SS_simulation9"
+      },
+      "process": {
+        "pid": 29360,
+        "alive": true,
+        "created": 134369880570957540
+      },
+      "owned_aspen": [
+        {
+          "recorded": {
+            "pid": 54208,
+            "alive": true,
+            "created": 134369881292115833,
+            "created_at": "2026-10-20T16:42:27.729112+00:00"
+          },
+          "current": {
+            "pid": 54208,
+            "alive": true,
+            "created": 134369881292115833
+          }
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "numpy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\__init__.py",
+        "scipy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\__init__.py",
+        "private_blas": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "threadpools": [
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "numpy_x86_v3_enabled": false,
+        "runtime_manifest_sha256": "1d414b4f7583059a8a2beb5519173ec851fb17359a34b872f5aed66cdd39cd3a",
+        "runtime_bootstrap_sha256": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab",
+        "shared_environment_modified": false,
+        "scope": "New processes only; NumPy/SciPy math/settings unchanged; floating-point build differences recorded.",
+        "limitation": "Other dependencies can still load Conda BLAS; bounded checks cannot prove multi-day stability.",
+        "bootstrap_sha256": {
+          "continue_column_queue.py": "21439cba0f74b1577e2a928705e34f536e05be36450991e99959631011f594c3",
+          "recover_markov_seed23.py": "acedabb4f0b19036dfcd856a9cc0f4062660432e29a295403c66aeb659a6efa5",
+          "review_blas_runtime.py": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab"
+        },
+        "seed": 37,
+        "mode": "plain"
+      },
+      "startup_error": false
+    },
+    {
+      "job": [
+        "residual",
+        "plain",
+        53
+      ],
+      "aspen_number": 10,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s53\\a1",
+      "status": {
+        "state": "running",
+        "started_at": "2026-10-20T16:41:27.801203+00:00",
+        "pid": 31656,
+        "category": "residual",
+        "mode": "plain",
+        "seed": 53,
+        "aspen_number": 10,
+        "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation10.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\AM_C2S_SS_simulation10"
+      },
+      "process": {
+        "pid": 31656,
+        "alive": true,
+        "created": 134369880571064530
+      },
+      "owned_aspen": [
+        {
+          "recorded": {
+            "pid": 41988,
+            "alive": true,
+            "created": 134369881107978501,
+            "created_at": "2026-10-20T16:42:09.212706+00:00"
+          },
+          "current": {
+            "pid": 41988,
+            "alive": true,
+            "created": 134369881107978501
+          }
+        }
+      ],
+      "runtime": {
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "numpy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\__init__.py",
+        "scipy_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy\\__init__.py",
+        "private_blas": [
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "threadpools": [
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiomp5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "openmp",
+            "internal_api": "openmp",
+            "num_threads": 1,
+            "prefix": "libiomp",
+            "filepath": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\lib\\libiompstubs5md.dll",
+            "version": null
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+            "version": "0.3.31.188.0",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          },
+          {
+            "user_api": "blas",
+            "internal_api": "openblas",
+            "num_threads": 1,
+            "prefix": "libscipy_openblas",
+            "filepath": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+            "version": "0.3.30",
+            "threading_layer": "pthreads",
+            "architecture": "Nehalem"
+          }
+        ],
+        "numpy_x86_v3_enabled": false,
+        "runtime_manifest_sha256": "1d414b4f7583059a8a2beb5519173ec851fb17359a34b872f5aed66cdd39cd3a",
+        "runtime_bootstrap_sha256": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab",
+        "shared_environment_modified": false,
+        "scope": "New processes only; NumPy/SciPy math/settings unchanged; floating-point build differences recorded.",
+        "limitation": "Other dependencies can still load Conda BLAS; bounded checks cannot prove multi-day stability.",
+        "bootstrap_sha256": {
+          "continue_column_queue.py": "21439cba0f74b1577e2a928705e34f536e05be36450991e99959631011f594c3",
+          "recover_markov_seed23.py": "acedabb4f0b19036dfcd856a9cc0f4062660432e29a295403c66aeb659a6efa5",
+          "review_blas_runtime.py": "7e174c1f87f69fe05630e2178fa4a5ce9e53a24d4daee0faceb67b99ae11c6ab"
+        },
+        "seed": 53,
+        "mode": "plain"
+      },
+      "startup_error": false
+    }
+  ],
+  "protected_workers": [
+    {
+      "recorded": {
+        "job": "markov/sg/23",
+        "study": "column_repeats",
+        "pid": 28652,
+        "alive": true,
+        "created": 134369464566642703
+      },
+      "current": {
+        "pid": 28652,
+        "alive": true,
+        "created": 134369464566642703
+      }
+    },
+    {
+      "recorded": {
+        "job": "bo",
+        "study": "Column_review_20261018_recovered",
+        "pid": 51328,
+        "alive": true,
+        "created": 134368434176541071
+      },
+      "current": {
+        "pid": 51328,
+        "alive": true,
+        "created": 134368434176541071
+      }
+    }
+  ],
+  "retained_results": [
+    {
+      "job": [
+        "horizon",
+        "sg",
+        7
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s7\\a1\\rl\\20261015_171418\\input_data.pkl",
+      "sha256": "338eef60ec5dc16901996f5b777a4d116aa19d9f5c05defa5fe5a1c928d74a97",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "horizon",
+        "sg",
+        11
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s11\\a1\\rl\\20261015_174558\\input_data.pkl",
+      "sha256": "a5d07ef1da3b8d5b4ec55ae7996b5512b607bd5749eb528408449ab2bff16912",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "horizon",
+        "sg",
+        23
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s23\\a1\\rl\\20261015_174659\\input_data.pkl",
+      "sha256": "87ccce07d828b46ae9a688ff28798096f34516aa21de498275e07eb41fd04cb5",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "horizon",
+        "sg",
+        37
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s37\\a1\\rl\\20261015_174022\\input_data.pkl",
+      "sha256": "51299e105fa8d05ad089bc8edfade9c46ee1a67b7bb1f283078424805db9bc73",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "horizon",
+        "sg",
+        53
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s53\\a1\\rl\\20261015_174522\\input_data.pkl",
+      "sha256": "51f6fdfbe7bf2abdf321a0542ea83690af4a0839c449c2364d76e1975ba15f56",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "horizon",
+        "plain",
+        7
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s7\\a1\\rl\\20261015_175455\\input_data.pkl",
+      "sha256": "d8d0f7dbbfa4398f96915acf5f77f97257155abf55aaff26aef4025129c2b0c0",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "horizon",
+        "plain",
+        11
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s11\\a1\\rl\\20261015_172212\\input_data.pkl",
+      "sha256": "10bede697bc9cd51dbe3b40417c206b7e17621e63f364c31897bf800431c1843",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "horizon",
+        "plain",
+        23
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s23\\a1\\rl\\20261015_174209\\input_data.pkl",
+      "sha256": "fed78c1efc0d55263bd82e8bdec1a18388e26a3deac723110f513a000f0c9ee0",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "horizon",
+        "plain",
+        37
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s37\\a1\\rl\\20261015_175751\\input_data.pkl",
+      "sha256": "2aa6522796aae2b03f6bce93eb0a27f2d629375f1bf4ff2830dd44469978ae69",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "horizon",
+        "plain",
+        53
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s53\\a1\\rl\\20261015_175454\\input_data.pkl",
+      "sha256": "372d6eddae805331324b3ed80aa9f8f3b426d231a604ecac49c3d7b4dbb8f169",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "weights",
+        "sg",
+        7
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s7\\a1\\rl\\20261016_234050\\input_data.pkl",
+      "sha256": "1118ac1457a7a93d5fdea67748f140f3f13a166a8d44067b8e20afdd32d5ce1f",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "weights",
+        "sg",
+        11
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s11\\a1\\rl\\20261016_233515\\input_data.pkl",
+      "sha256": "8aa7e5c4d62db1e6d77bb7a92c637fece01c68bf36c49e2a02374e17d03352ff",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "weights",
+        "sg",
+        23
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s23\\a1\\rl\\20261017_000517\\input_data.pkl",
+      "sha256": "29f9b560f494becea514615f72433bebac46a8708736c0bc02b3264570988df8",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "weights",
+        "sg",
+        37
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s37\\a1\\rl\\20261016_233536\\input_data.pkl",
+      "sha256": "fbe3bd5eeab18b4345e13e87d34e1e5e078ce5791338237a0ce825ae34816c46",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "weights",
+        "sg",
+        53
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s53\\a1\\rl\\20261016_233843\\input_data.pkl",
+      "sha256": "fe5e61f4bda20fc724e0327dfbf7024a65eb8b678cf2a9f9a488046db1a8c54a",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "weights",
+        "plain",
+        7
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s7\\a1\\rl\\20261016_231936\\input_data.pkl",
+      "sha256": "270206bb383cc2480e6de2b32d206a33ee5c46cf217b011708445285ec208f11",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "weights",
+        "plain",
+        11
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s11\\a1\\rl\\20261016_230623\\input_data.pkl",
+      "sha256": "f83137f7bf3b279649690d0fac528143646803d3577bf6694274c8a5f0901578",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "weights",
+        "plain",
+        23
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s23\\a1\\rl\\20261016_233155\\input_data.pkl",
+      "sha256": "0b49d7e636d86d499014bd9f164e32ccae2461a48bc6ea53f02d8114bd8c0316",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "weights",
+        "plain",
+        37
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s37\\a1\\rl\\20261016_231721\\input_data.pkl",
+      "sha256": "a1941e355d7ece91e425cd6920e8e380415ce88eca01ddc0d1b86c13706d1f7c",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "weights",
+        "plain",
+        53
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s53\\a1\\rl\\20261016_231555\\input_data.pkl",
+      "sha256": "d06261fe2d2d27dc04367ea18eeb3f6599f1cca04896a3c30d7d6bd0ec6d2257",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "markov",
+        "sg",
+        7
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s7\\a2\\rl\\20261020_061606\\input_data.pkl",
+      "sha256": "f39c471d2b62f4e1ab7eb6a613664814fada2d5d6997165ea1a593eae34df3b1",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "markov",
+        "sg",
+        11
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s11\\a2\\rl\\20261020_061549\\input_data.pkl",
+      "sha256": "9d2e17c53196d9d72c000d1310a9bfde98bbd71faed043bad5875f6ab2edf4df",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "markov",
+        "sg",
+        37
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s37\\a2\\rl\\20261020_055859\\input_data.pkl",
+      "sha256": "cba30135aba6b360f52f5c40e37b62049988817119c5027388d80a0442063dde",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "markov",
+        "sg",
+        53
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s53\\a2\\rl\\20261020_060138\\input_data.pkl",
+      "sha256": "834131469fe94d7999785cf46c8961ee02e052ae64aa7b07f79f4481fc95fd90",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "markov",
+        "plain",
+        7
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s7\\a2\\rl\\20261020_080744\\input_data.pkl",
+      "sha256": "7927eaabc8c05d48e07bea2e575b77061478461c233ddadee27043cfa45a2423",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "markov",
+        "plain",
+        11
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s11\\a2\\rl\\20261020_081206\\input_data.pkl",
+      "sha256": "6c51edebbaac9e16b098a689240eeb2ebe6177338de122e91542928c54021a3b",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "markov",
+        "plain",
+        23
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s23\\a2\\rl\\20261020_075108\\input_data.pkl",
+      "sha256": "5a65bfea541199c143f8ece5638ff2a8068e334e4ae2d3a0cf1b210d0e04338a",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "markov",
+        "plain",
+        37
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s37\\a2\\rl\\20261020_080706\\input_data.pkl",
+      "sha256": "ee2ce586b47557ce289b132270d31441961aa86b1beed824b4f38d9d651b3fc8",
+      "unchanged": true
+    },
+    {
+      "job": [
+        "markov",
+        "plain",
+        53
+      ],
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s53\\a2\\rl\\20261020_082734\\input_data.pkl",
+      "sha256": "6abafb0a2db0508f5c7d1fdaa67d417b18ee464d5dc01d2fa842f48e0282ec06",
+      "unchanged": true
+    }
+  ],
+  "source_integrity": {
+    "repeats": {
+      "files": 86,
+      "changed": [],
+      "unchanged": true
+    },
+    "E1": {
+      "files": 97,
+      "changed": [],
+      "unchanged": true
+    },
+    "E3_polymer": {
+      "files": 103,
+      "changed": [],
+      "unchanged": true
+    },
+    "E3_column": {
+      "files": 103,
+      "changed": [],
+      "unchanged": true
+    }
+  },
+  "original_manuscript": {
+    "files": 46,
+    "unchanged": true
+  },
+  "coordinator": {
+    "state": "running",
+    "stage": "residual",
+    "pid": 36308,
+    "updated_at": "2026-10-20T16:44:57.088703+00:00",
+    "seed23_spare_case": 12
+  },
+  "broker": {
+    "pid": 29220,
+    "parent_pid": 2524,
+    "in_windows_job": true,
+    "scheduler_service_pid": 2524,
+    "parent_is_scheduler_service": true,
+    "session_id": 2,
+    "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+    "observed_at": "2026-10-20T16:40:56.570783+00:00"
+  },
+  "visible_consoles": [
+    {
+      "console": "queue",
+      "pid": 13544,
+      "alive": true,
+      "created": 134369880565722436,
+      "started_at": "2026-10-20T16:40:56.578339+00:00"
+    },
+    {
+      "console": "progress",
+      "pid": 44952,
+      "alive": true,
+      "created": 134369880565799391,
+      "started_at": "2026-10-20T16:40:56.585727+00:00"
+    }
+  ],
+  "scheduled": {
+    "task_name": "RLAssistedMPC-ColumnQueue-29040ec0dc81",
+    "triggers": 0,
+    "execution_time_limit": "PT0S"
+  },
+  "markov_retry": {
+    "study": "column_repeats",
+    "job": "markov/sg/23",
+    "state": "running",
+    "pid": 28652,
+    "alive": true,
+    "cpu_seconds": 5819.53125,
+    "cycle": 106,
+    "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_openblas\\retry\\markov_sg\\s23\\a3",
+    "aspen_number": 3,
+    "error": null,
+    "historical_failed_attempts": 1,
+    "last_log_at": "2026-10-20T12:42:18.036429"
+  },
+  "combined_queued": {
+    "state": "pending",
+    "jobs": [
+      {
+        "category": "combined",
+        "mode": "sg",
+        "seed": 7,
+        "aspen_number": 1,
+        "state": "pending"
+      },
+      {
+        "category": "combined",
+        "mode": "sg",
+        "seed": 11,
+        "aspen_number": 2,
+        "state": "pending"
+      },
+      {
+        "category": "combined",
+        "mode": "sg",
+        "seed": 23,
+        "aspen_number": 12,
+        "state": "pending"
+      },
+      {
+        "category": "combined",
+        "mode": "sg",
+        "seed": 37,
+        "aspen_number": 4,
+        "state": "pending"
+      },
+      {
+        "category": "combined",
+        "mode": "sg",
+        "seed": 53,
+        "aspen_number": 5,
+        "state": "pending"
+      },
+      {
+        "category": "combined",
+        "mode": "plain",
+        "seed": 7,
+        "aspen_number": 6,
+        "state": "pending"
+      },
+      {
+        "category": "combined",
+        "mode": "plain",
+        "seed": 11,
+        "aspen_number": 7,
+        "state": "pending"
+      },
+      {
+        "category": "combined",
+        "mode": "plain",
+        "seed": 23,
+        "aspen_number": 8,
+        "state": "pending"
+      },
+      {
+        "category": "combined",
+        "mode": "plain",
+        "seed": 37,
+        "aspen_number": 9,
+        "state": "pending"
+      },
+      {
+        "category": "combined",
+        "mode": "plain",
+        "seed": 53,
+        "aspen_number": 10,
+        "state": "pending"
+      }
+    ]
+  },
+  "tests": {
+    "passed": 49,
+    "additional": "Case-3 lease integration rerun passed after using the production lock directory."
+  },
+  "scope": "Next existing channel started; active retry preserved; long-run completion remains pending."
+}

@@ -1,5 +1,13 @@
 # Reviewer-run recovery — latest update October 20, 2026
 
+## Residual started using spare case 12 — October 20, 12:40 Toronto
+
+The nine original healthy Markov runs are complete; **29 completed results are retained**. The active Markov SG seed 23 retry continues on case 3 with its existing process and progress (cycle 104 at inspection). To start the next channel immediately, the pending residual SG seed 23 job now uses free, byte-identical Aspen case 12. The pending combined SG seed 23 job uses case 12 too. Cases 1, 2, 4--10 serve the other seeds. BO on case 15 continues unchanged.
+
+The old replacement coordinator stopped on an inaccessible retired worker PID after the original scheduler had stopped at the historical failed attempt. A new independent coordinator validates completed records/artifacts, confirms free case leases and starts residual now, then combined after residual. Final per-group records supersede retired PID queries. Source/model/ownership checks remain enforced. The old live retry bootstrap and original scientific sources are unchanged.
+
+**Current launch inventory: 29 completed, 11 running, 10 queued** column repetitions. All ten residual workers started, including SG seed 23 on case 12. The queue and live-progress consoles are open. There are 49 passing focused tests, including all twenty fake pending runs with case 3 held occupied. Details and ownership/runtime verification: `change-reports/run_recovery_20261020/CASE12_QUEUE.md` and `case12_queue_assessment.json`. The earlier sections below are dated historical recovery records.
+
 ## Markov SG seed 23 restarted; remaining queue armed — October 20
 
 Seed 23 failed again at cycle 62 with Windows access violation `0xC0000005` in Conda's `openblas.dll`, at offset `0x276a6`, despite the earlier conservative dispatch. A new a3 attempt started at 01:07 Toronto on October 20, PID 28652, with original seed 23, SG mode, Scenario 2 profile and 300-cycle budget. It restarts at cycle 1 because there is no verified full learner/simulator checkpoint. Its owned Aspen case is 3. The nine healthy Markov workers and original supervisor retain their process identities.

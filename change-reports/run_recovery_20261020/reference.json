@@ -1,0 +1,33 @@
+{
+  "state": "passed",
+  "private": false,
+  "seconds": 5.004702700069174,
+  "markov_LBFGSB_fits": 285,
+  "linear_batches": 855,
+  "max_linear_residual": 1.2712053631958042e-14,
+  "max_matvec_error": 4.263256414560601e-14,
+  "reference_z": [
+    -0.5,
+    -0.5,
+    -0.3536217296062369,
+    -0.2946033710378302
+  ],
+  "reference_score": {
+    "score": 26.08979024397126,
+    "nominal_sse": 169.4496027884674,
+    "corrected_sse": 143.28862859710847,
+    "n_windows": 6,
+    "output_nominal_sse": [
+      51.084485181292195,
+      38.89453569986256
+    ],
+    "output_corrected_sse": [
+      41.06966079575931,
+      40.04244852148592
+    ]
+  },
+  "runtime": {
+    "numpy": "2.4.6"
+  },
+  "limitation": "Synthetic history through actual production LS implementation; no Aspen, no long-run stability proof."
+}

@@ -143,8 +143,18 @@ def snapshot(root=ROOT):
     if recovery.get("column"):
         historical += [name for name, path in studies.items() if name.startswith("Column_review_")
                        and Path(path).resolve() != Path(recovery["column"]).resolve()]
+    coordinator = {}
+    if recovery.get("repeat_recovery_plan"):
+        plan_directory = Path(recovery["repeat_recovery_plan"]).parent
+        coordinator = read_json(plan_directory / "coordinator_status.json")
+        if coordinator:
+            info = process_info(coordinator.get("pid"))
+            coordinator = {**coordinator, **info, "directory": str(plan_directory)}
+            if coordinator["state"] == "running" and info["alive"] is False:
+                coordinator["state"] = "stopped_without_final_status"
     return {"observed_at_utc": datetime.now(timezone.utc).isoformat(), "jobs": rows,
             "historical_studies": historical, "active_recovery": recovery.get("directory"),
+            "repeat_queue_coordinator": coordinator,
             "counts": {name: dict(collections.Counter(r["state"] for r in rows if r["study"] == name)) for name in studies}}
 
 
@@ -156,6 +166,11 @@ def display(data):
         if name in historical:
             continue
         print(f"  {name}: {counts}", flush=True)
+    coordinator = data.get("repeat_queue_coordinator", {})
+    if coordinator:
+        print(f"  Column queue: {coordinator['state']} stage={coordinator.get('stage')} PID={coordinator.get('pid')}", flush=True)
+        if coordinator.get("error"):
+            print(f"  Queue requires attention: {coordinator['error']}", flush=True)
     if "E1_polymer" not in historical and data["counts"].get("E1_polymer", {}).get("failed"):
         print("  Original E1 manifest retains the residual export failure; its 400 pairs survive. The separate recovery row tracks combined.", flush=True)
     for row in data["jobs"]:

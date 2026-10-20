@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://pypi.org/pypi/numpy/2.4.6/json",
+    "wheel": "numpy-2.4.6-cp313-cp313-win_amd64.whl",
+    "sha256": "c4fc99836233ea196540b17ab0983aff60ed07941751930f5f4d05bc3b3b7359",
+    "matches": true
+  },
+  {
+    "url": "https://pypi.org/pypi/scipy/1.17.1/json",
+    "wheel": "scipy-1.17.1-cp313-cp313-win_amd64.whl",
+    "sha256": "37425bc9175607b0268f493d79a292c39f9d001a357bebb6b88fdfaff13f6448",
+    "matches": true
+  }
+]

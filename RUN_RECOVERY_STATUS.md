@@ -1,4 +1,18 @@
-# Reviewer-run recovery — October 18, 2026
+# Reviewer-run recovery — latest update October 20, 2026
+
+## Markov SG seed 23 restarted; remaining queue armed — October 20
+
+Seed 23 failed again at cycle 62 with Windows access violation `0xC0000005` in Conda's `openblas.dll`, at offset `0x276a6`, despite the earlier conservative dispatch. A new a3 attempt started at 01:07 Toronto on October 20, PID 28652, with original seed 23, SG mode, Scenario 2 profile and 300-cycle budget. It restarts at cycle 1 because there is no verified full learner/simulator checkpoint. Its owned Aspen case is 3. The nine healthy Markov workers and original supervisor retain their process identities.
+
+New processes load private official NumPy 2.4.6 and SciPy 1.17.1 Windows wheels, with their bundled OpenBLAS builds (0.3.31.188.0 and 0.3.30). Their wheel hashes match official PyPI metadata; all 2,465 extracted files are checked before each new worker. The shared environment, original Conda DLL, scientific sources, training settings and saved results are unchanged. This is a stronger isolated crash mitigation; multi-day stability remains unproven. Other optional dependencies can still load Conda BLAS.
+
+The independent coordinator (PID 48692) tracks the old workers and new retry in a fresh 50-job aggregate manifest. It waits for their exits and confirmed Aspen cleanup, then starts ten residual runs followed by ten combined runs. A failed preceding category no longer strands unrelated queued work once its resources are verified free. It preserves original failures and completed results. Source checks, per-case leases, creation-time process checks and duplicate guards remain enforced. New processes also retry brief Windows manifest replacement locks, a failure reproduced in the queue test.
+
+At the launch audit: **20 completed, 10 running, 20 queued** column repetitions; all nine protected workers unchanged. The 39 focused tests passed, including fake-worker handoff with injected retry/residual failures. The isolated runtime passed 2,738 actual Markov L-BFGS-B fits in 40 seconds and 8,214 linear batches, with fitted parameters identical to the reference build on the synthetic fixture. These checks do not establish production completion or the exact underlying binary defect.
+
+The **ALL REVIEW RUNS - LIVE** and **SEED 23 RECOVERY AND REMAINING QUEUE** consoles are open through a demand-only interactive Windows task, independent of Codex, with no execution timeout. `show_review_progress.cmd` opens another read-only view. Detailed records: `change-reports/run_recovery_20261020/README.md`, `recovery_assessment.json`; current repetition manifest: `Distillation/Results/review_recovery/20261020_openblas/manifest.json`. The separate native snapshot pilot remains held.
+
+## Historical recovery — October 18, 2026
 
 The approved unfinished column work was restarted in visible CMD windows at 8:30–8:31 p.m. Toronto. The native snapshot pilot failed again at 8:38 p.m. and is held for separate bounded diagnostics; the other 14 production workers continue. Windows Task Scheduler owns the production launch process independently of Codex; it has no recurring trigger or execution timeout. This file is a saved recovery record. The **ALL REVIEW RUNS - live progress** console refreshes every 30 seconds.
 

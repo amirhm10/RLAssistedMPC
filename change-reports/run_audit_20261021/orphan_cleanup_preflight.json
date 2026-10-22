@@ -1,0 +1,48 @@
+{
+  "residual_plain_23": {
+    "owned_apps": [
+      {
+        "recorded": {
+          "pid": 45340,
+          "alive": true,
+          "created": 134369882249720212,
+          "created_at": "2026-10-20T16:44:03.373549+00:00"
+        },
+        "current": {
+          "pid": 45340,
+          "alive": true,
+          "created": 134369882249720212
+        }
+      }
+    ],
+    "automatic_cleanup_preflight": [
+      {
+        "passes": false,
+        "error": "Unexpected Aspen child; inspect before cleanup: conhost.exe"
+      }
+    ]
+  },
+  "markov_sg_23": {
+    "owned_apps": [
+      {
+        "recorded": {
+          "pid": 44872,
+          "alive": true,
+          "created": 134369915873523688,
+          "created_at": "2026-10-20T17:40:06.158937+00:00"
+        },
+        "current": {
+          "pid": 44872,
+          "alive": true,
+          "created": 134369915873523688
+        }
+      }
+    ],
+    "automatic_cleanup_preflight": [
+      {
+        "passes": false,
+        "error": "Unexpected Aspen child; inspect before cleanup: conhost.exe"
+      }
+    ]
+  }
+}

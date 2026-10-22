@@ -1,0 +1,162 @@
+{
+  "started_at": "2026-10-22T00:49:36.786415+00:00",
+  "plan": "orphan_cleanup_plan.json",
+  "actions": [
+    {
+      "record": {
+        "pid": 52912,
+        "alive": true,
+        "created": 134369882251451795,
+        "name": "conhost.exe",
+        "executable": "C:\\WINDOWS\\system32\\conhost.exe",
+        "parent_pid": 21664
+      },
+      "action": "closed_verified_orphan",
+      "case": 8
+    },
+    {
+      "record": {
+        "pid": 21664,
+        "alive": true,
+        "created": 134369882251414255,
+        "name": "sim_server.exe",
+        "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\sim_server.exe",
+        "parent_pid": 45340
+      },
+      "action": "closed_verified_orphan",
+      "case": 8
+    },
+    {
+      "record": {
+        "pid": 27132,
+        "alive": true,
+        "created": 134369882251474841,
+        "name": "conhost.exe",
+        "executable": "C:\\WINDOWS\\system32\\conhost.exe",
+        "parent_pid": 54064
+      },
+      "action": "closed_verified_orphan",
+      "case": 8
+    },
+    {
+      "record": {
+        "pid": 54064,
+        "alive": true,
+        "created": 134369882251442217,
+        "name": "am_task_server.exe",
+        "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\am_task_server.exe",
+        "parent_pid": 45340
+      },
+      "action": "closed_verified_orphan",
+      "case": 8
+    },
+    {
+      "record": {
+        "pid": 45340,
+        "alive": true,
+        "created": 134369882249720212,
+        "created_at": "2026-10-20T16:44:03.373549+00:00",
+        "name": "aspenmodeler.exe",
+        "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe"
+      },
+      "action": "closed_verified_orphan",
+      "case": 8
+    },
+    {
+      "record": {
+        "pid": 47680,
+        "alive": true,
+        "created": 134369915874345983,
+        "name": "conhost.exe",
+        "executable": "C:\\WINDOWS\\system32\\conhost.exe",
+        "parent_pid": 47072
+      },
+      "action": "closed_verified_orphan",
+      "case": 3
+    },
+    {
+      "record": {
+        "pid": 47072,
+        "alive": true,
+        "created": 134369915874298709,
+        "name": "sim_server.exe",
+        "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\sim_server.exe",
+        "parent_pid": 44872
+      },
+      "action": "closed_verified_orphan",
+      "case": 3
+    },
+    {
+      "record": {
+        "pid": 2368,
+        "alive": true,
+        "created": 134369915874383704,
+        "name": "conhost.exe",
+        "executable": "C:\\WINDOWS\\system32\\conhost.exe",
+        "parent_pid": 1344
+      },
+      "action": "closed_verified_orphan",
+      "case": 3
+    },
+    {
+      "record": {
+        "pid": 1344,
+        "alive": true,
+        "created": 134369915874337528,
+        "name": "am_task_server.exe",
+        "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\am_task_server.exe",
+        "parent_pid": 44872
+      },
+      "action": "closed_verified_orphan",
+      "case": 3
+    },
+    {
+      "record": {
+        "pid": 44872,
+        "alive": true,
+        "created": 134369915873523688,
+        "created_at": "2026-10-20T17:40:06.158937+00:00",
+        "name": "aspenmodeler.exe",
+        "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe"
+      },
+      "action": "closed_verified_orphan",
+      "case": 3
+    }
+  ],
+  "finished_at": "2026-10-22T00:49:36.927486+00:00",
+  "state": "cleared",
+  "protected_processes_after": [
+    {
+      "pid": 32632,
+      "alive": true,
+      "created": 134369880570687882
+    },
+    {
+      "pid": 47360,
+      "alive": true,
+      "created": 134369880570784891
+    },
+    {
+      "pid": 29360,
+      "alive": true,
+      "created": 134369880570957540
+    },
+    {
+      "pid": 31656,
+      "alive": true,
+      "created": 134369880571064530
+    },
+    {
+      "pid": 36308,
+      "alive": true,
+      "created": 134369880567357769
+    },
+    {
+      "pid": 15980,
+      "alive": true,
+      "created": 134369880568944304
+    }
+  ],
+  "scientific_sources_changed": false,
+  "queued_manifests_changed": false
+}

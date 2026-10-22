@@ -1,0 +1,142 @@
+[
+  {
+    "ProcessId": 10628,
+    "ParentProcessId": 2524,
+    "CreationDate": "2026-10-18T20:30:16.043587-04:00",
+    "Name": "pythonw.exe",
+    "CommandLine": "\"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe\" -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\recover_review_runs.py\" --broker \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\""
+  },
+  {
+    "ProcessId": 50152,
+    "ParentProcessId": 29780,
+    "CreationDate": "2026-10-18T20:30:17.355889-04:00",
+    "Name": "python.exe",
+    "CommandLine": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch"
+  },
+  {
+    "ProcessId": 51704,
+    "ParentProcessId": 2524,
+    "CreationDate": "2026-10-20T01:07:34.979719-04:00",
+    "Name": "pythonw.exe",
+    "CommandLine": "\"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe\" -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\recover_markov_seed23.py\" --broker \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_openblas\""
+  },
+  {
+    "ProcessId": 40324,
+    "ParentProcessId": 49160,
+    "CreationDate": "2026-10-20T01:07:36.429319-04:00",
+    "Name": "python.exe",
+    "CommandLine": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch"
+  },
+  {
+    "ProcessId": 29220,
+    "ParentProcessId": 2524,
+    "CreationDate": "2026-10-20T12:40:55.680717-04:00",
+    "Name": "pythonw.exe",
+    "CommandLine": "\"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe\" -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\continue_column_queue.py\" --broker \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\""
+  },
+  {
+    "ProcessId": 36308,
+    "ParentProcessId": 13544,
+    "CreationDate": "2026-10-20T12:40:56.735776-04:00",
+    "Name": "python.exe",
+    "CommandLine": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\continue_column_queue.py\" --coordinate \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\""
+  },
+  {
+    "ProcessId": 6216,
+    "ParentProcessId": 44952,
+    "CreationDate": "2026-10-20T12:40:56.760569-04:00",
+    "Name": "python.exe",
+    "CommandLine": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch"
+  },
+  {
+    "ProcessId": 15980,
+    "ParentProcessId": 36308,
+    "CreationDate": "2026-10-20T12:40:56.89443-04:00",
+    "Name": "python.exe",
+    "CommandLine": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\continue_column_queue.py\" --run-group \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\""
+  },
+  {
+    "ProcessId": 32632,
+    "ParentProcessId": 15980,
+    "CreationDate": "2026-10-20T12:40:57.068788-04:00",
+    "Name": "python.exe",
+    "CommandLine": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\continue_column_queue.py\" --worker \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s7\\a1\\job.json\""
+  },
+  {
+    "ProcessId": 47360,
+    "ParentProcessId": 15980,
+    "CreationDate": "2026-10-20T12:40:57.078489-04:00",
+    "Name": "python.exe",
+    "CommandLine": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\continue_column_queue.py\" --worker \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s11\\a1\\job.json\""
+  },
+  {
+    "ProcessId": 29360,
+    "ParentProcessId": 15980,
+    "CreationDate": "2026-10-20T12:40:57.095754-04:00",
+    "Name": "python.exe",
+    "CommandLine": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\continue_column_queue.py\" --worker \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s37\\a1\\job.json\""
+  },
+  {
+    "ProcessId": 31656,
+    "ParentProcessId": 15980,
+    "CreationDate": "2026-10-20T12:40:57.106453-04:00",
+    "Name": "python.exe",
+    "CommandLine": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\continue_column_queue.py\" --worker \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s53\\a1\\job.json\""
+  },
+  {
+    "ProcessId": 41988,
+    "ParentProcessId": 1924,
+    "CreationDate": "2026-10-20T12:41:50.79785-04:00",
+    "Name": "AspenModeler.exe",
+    "CommandLine": "\"C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\\\AspenModeler.exe\" /ad /Automation -Embedding"
+  },
+  {
+    "ProcessId": 54208,
+    "ParentProcessId": 1924,
+    "CreationDate": "2026-10-20T12:42:09.211583-04:00",
+    "Name": "AspenModeler.exe",
+    "CommandLine": "\"C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\\\AspenModeler.exe\" /ad /Automation -Embedding"
+  },
+  {
+    "ProcessId": 34208,
+    "ParentProcessId": 1924,
+    "CreationDate": "2026-10-20T12:43:06.734058-04:00",
+    "Name": "AspenModeler.exe",
+    "CommandLine": "\"C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\\\AspenModeler.exe\" /ad /Automation -Embedding"
+  },
+  {
+    "ProcessId": 45340,
+    "ParentProcessId": 1924,
+    "CreationDate": "2026-10-20T12:43:44.972021-04:00",
+    "Name": "AspenModeler.exe",
+    "CommandLine": "\"C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\\\AspenModeler.exe\" /ad /Automation -Embedding"
+  },
+  {
+    "ProcessId": 35216,
+    "ParentProcessId": 1924,
+    "CreationDate": "2026-10-20T12:44:03.37217-04:00",
+    "Name": "AspenModeler.exe",
+    "CommandLine": "\"C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\\\AspenModeler.exe\" /ad /Automation -Embedding"
+  },
+  {
+    "ProcessId": 44872,
+    "ParentProcessId": 1924,
+    "CreationDate": "2026-10-20T13:39:47.352368-04:00",
+    "Name": "AspenModeler.exe",
+    "CommandLine": "\"C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\\\AspenModeler.exe\" /ad /Automation -Embedding"
+  },
+  {
+    "ProcessId": 39640,
+    "ParentProcessId": 2524,
+    "CreationDate": "2026-10-20T17:17:38.46848-04:00",
+    "Name": "pythonw.exe",
+    "CommandLine": "\"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe\" -B \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\column_e1_20261020\\visible_progress.py\" --broker \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_live_progress\""
+  },
+  {
+    "ProcessId": 2748,
+    "ParentProcessId": 25112,
+    "CreationDate": "2026-10-20T17:17:38.758727-04:00",
+    "Name": "python.exe",
+    "CommandLine": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch --interval 30"
+  }
+]

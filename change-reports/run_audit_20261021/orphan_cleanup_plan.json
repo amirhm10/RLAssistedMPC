@@ -1,0 +1,134 @@
+{
+  "prepared_at": "2026-10-22T00:49:27.824969+00:00",
+  "authorization": "Existing author request to recover failed runs and preserve the automatic combined queue",
+  "protected_processes": [
+    {
+      "pid": 32632,
+      "alive": true,
+      "created": 134369880570687882
+    },
+    {
+      "pid": 47360,
+      "alive": true,
+      "created": 134369880570784891
+    },
+    {
+      "pid": 29360,
+      "alive": true,
+      "created": 134369880570957540
+    },
+    {
+      "pid": 31656,
+      "alive": true,
+      "created": 134369880571064530
+    },
+    {
+      "pid": 36308,
+      "alive": true,
+      "created": 134369880567357769
+    },
+    {
+      "pid": 15980,
+      "alive": true,
+      "created": 134369880568944304
+    }
+  ],
+  "groups": [
+    {
+      "attempt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s23\\a1",
+      "failed_worker_pid": 22424,
+      "case": 8,
+      "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation8.dynf",
+      "records": [
+        {
+          "pid": 52912,
+          "alive": true,
+          "created": 134369882251451795,
+          "name": "conhost.exe",
+          "executable": "C:\\WINDOWS\\system32\\conhost.exe",
+          "parent_pid": 21664
+        },
+        {
+          "pid": 21664,
+          "alive": true,
+          "created": 134369882251414255,
+          "name": "sim_server.exe",
+          "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\sim_server.exe",
+          "parent_pid": 45340
+        },
+        {
+          "pid": 27132,
+          "alive": true,
+          "created": 134369882251474841,
+          "name": "conhost.exe",
+          "executable": "C:\\WINDOWS\\system32\\conhost.exe",
+          "parent_pid": 54064
+        },
+        {
+          "pid": 54064,
+          "alive": true,
+          "created": 134369882251442217,
+          "name": "am_task_server.exe",
+          "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\am_task_server.exe",
+          "parent_pid": 45340
+        },
+        {
+          "pid": 45340,
+          "alive": true,
+          "created": 134369882249720212,
+          "created_at": "2026-10-20T16:44:03.373549+00:00",
+          "name": "aspenmodeler.exe",
+          "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe"
+        }
+      ]
+    },
+    {
+      "attempt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_openblas\\retry\\markov_sg\\s23\\a4",
+      "failed_worker_pid": 23064,
+      "case": 3,
+      "aspen_path": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation3.dynf",
+      "records": [
+        {
+          "pid": 47680,
+          "alive": true,
+          "created": 134369915874345983,
+          "name": "conhost.exe",
+          "executable": "C:\\WINDOWS\\system32\\conhost.exe",
+          "parent_pid": 47072
+        },
+        {
+          "pid": 47072,
+          "alive": true,
+          "created": 134369915874298709,
+          "name": "sim_server.exe",
+          "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\sim_server.exe",
+          "parent_pid": 44872
+        },
+        {
+          "pid": 2368,
+          "alive": true,
+          "created": 134369915874383704,
+          "name": "conhost.exe",
+          "executable": "C:\\WINDOWS\\system32\\conhost.exe",
+          "parent_pid": 1344
+        },
+        {
+          "pid": 1344,
+          "alive": true,
+          "created": 134369915874337528,
+          "name": "am_task_server.exe",
+          "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\am_task_server.exe",
+          "parent_pid": 44872
+        },
+        {
+          "pid": 44872,
+          "alive": true,
+          "created": 134369915873523688,
+          "created_at": "2026-10-20T17:40:06.158937+00:00",
+          "name": "aspenmodeler.exe",
+          "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe"
+        }
+      ]
+    }
+  ]
+}

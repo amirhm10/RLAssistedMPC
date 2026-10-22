@@ -1,4 +1,14 @@
-# Reviewer-run recovery — latest update October 20, 2026
+# Reviewer-run recovery — latest update October 21, 2026
+
+## Current audit and queue handoff cleanup — October 21, 20:50 Toronto
+
+**22 production jobs remain: four running, ten queued for automatic combined launch, four E1 configurations held, and four failed.** Finished artifacts verify: polymer repetitions 50/50, column repetitions 34/50 (five residual SG runs newly complete), polymer E1 3,200 matched pairs, polymer E2 trajectories/shared analysis, all six E3 stages, and all four column E2 comparators including newly completed BO.
+
+Four residual plain workers remain healthy at cycles 296, 291, 295 and 297/300 (seeds 7, 11, 37 and 53). The Markov SG seed-23 retry failed at 135/300; residual plain seed 23 crashed at 190/300; threshold policy recovery crashed at 129/200; column E1 failed its first native restore-fidelity check after cycle 13. Windows identifies the private NumPy extension in the three numerical crashes. The previous runtime mitigation has not eliminated this failure class. Threshold's cycle-120 inference weights are populated and valid but cannot resume training. E1's full cycle-10 checkpoint verifies, but zero production matched pairs completed and its four later configurations are held.
+
+The combined coordinator and residual supervisor remain live with unchanged identities, and source/model/bootstrap guards pass. A preflight found that orphan cleanup would reject a console-host child of the crashed case-8 Aspen application. Only the verified orphan trees of the two crashed column runs (cases 8 and 3) were cleared under the existing queue-preservation authorization; all four live workers and both supervisors were preserved. No scientific source or queued manifest changed. The known current handoff blocker is cleared; the ten combined runs can start after the residual group finishes, subject to cleanup and further crash risk.
+
+Estimate: healthy residual completion in 1–2 hours; combined cohort roughly 2–3 days if no further failures. Failed runs need repair/recovery. Full column E1 at the present sequential budget projects to several weeks after repair (roughly 27 days at measured step throughput before uncertain branch/transfer overhead). There is no firm overall completion date. See `change-reports/run_audit_20261021/STATUS.md`, `audit.json` and `final_state.json`. All 46 frozen manuscript files remain unchanged.
 
 ## Column E1 integrated and started — October 20
 

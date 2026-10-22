@@ -1,0 +1,8 @@
+{
+  "observed_at_utc": "2026-10-22T17:50:35.3795943Z",
+  "memory": {
+    "CommittedBytes": 118660444160,
+    "CommitLimit": 120191516672,
+    "AvailableMBytes": 16081
+  }
+}

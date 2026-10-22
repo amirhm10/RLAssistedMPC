@@ -1,5 +1,15 @@
 # Reviewer-run recovery — latest update October 22, 2026
 
+## Current run audit - October 22, 13:49 Toronto
+
+At October 22, 13:49 Toronto (2026-10-22T17:49:01.974451+00:00), **17 current jobs are running; the polymer threshold recovery has completed; zero current jobs are failed, stopped or queued.** The current pool is twelve column repetitions and five reduced column E1 jobs. Polymer repetitions remain 50/50 complete; column repetitions remain 38/50 complete, with twelve running. Combined SG repetitions are at cycles 112-113/300 and plain at 87-91/300. Markov SG seed 23 is at cycle 121/300; residual plain seed 23 is at 115/300.
+
+Column E1 has 145/640 completed primary pairs (495 remaining), with zero failed or duplicate pairs and unchanged protocol/source guards. Combined is at cycle 19, with 65/320 pairs. The four standalone jobs each have 20/80 release-window pairs; current cycles are horizon 96, weights 95, Markov 85, residual 98. Their next original sampling window starts at cycle 191; they are actively training between windows. All 17 worker groups show CPU increases across their Python/Aspen processes in the sampled interval; all 22 assigned Aspen applications are live and accounted for. The coordinator and all four independent recovery supervisors are live.
+
+Current Windows memory commitment is 98.7% of its current limit, with 1.43 GiB of commitment headroom. The pagefile is system-managed; system settings were not changed. Windows reported RADAR_PRE_LEAK_64 for Aspen at 02:44; this is a resource warning, not proof of the underlying leak mechanism. No new Python/Aspen APPCRASH/Application Error event appears after the preceding 00:23 verified audit. All jobs are progressing, but memory headroom remains a reliability concern. No multi-day stability guarantee is established.
+
+Details and preserved ownership evidence: `change-reports/run_audit_20261022_1340/STATUS.md` and `assessment.json`.
+
 ## Reduced column E1 budget - 2026-10-22
 
 At October 22, 00:21 Toronto (2026-10-22T04:21:48.483341+00:00), all five reduced column E1 jobs are running on cases 13-17. All 13 unrelated production workers retain their original identities and the original automatic combined coordinator is preserved. There are 18 active remaining jobs, with no current failed or queued job in this verified inventory. Historical failures and replaced E1 attempts remain recorded. The 50 polymer and 38 column completed repetitions are unchanged.

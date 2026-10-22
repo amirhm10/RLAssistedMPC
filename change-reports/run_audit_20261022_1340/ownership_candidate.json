@@ -1,0 +1,13 @@
+{
+  "observed_at_utc": "2026-10-22T17:48:14.1171032Z",
+  "native": {
+    "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+    "title": "C2S_SS_simulation11.dynf - Aspen Plus Dynamics V14 - aspenONE",
+    "created": 134371064077341978,
+    "pid": 22316
+  },
+  "worker": {
+    "created": 134371064003094853,
+    "pid": 35808
+  }
+}

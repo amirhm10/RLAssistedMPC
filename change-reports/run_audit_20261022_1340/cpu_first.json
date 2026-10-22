@@ -1,0 +1,658 @@
+{
+  "observed_at": "2026-10-22T17:43:40.5419708Z",
+  "processes": [
+    {
+      "Id": 1016,
+      "ProcessName": "AspenModeler",
+      "CPU": 1323.125,
+      "StartTime": "2026-10-22T00:20:42.3179193-04:00",
+      "PrivateMemorySize64": 1995894784,
+      "WorkingSet64": 1960353792
+    },
+    {
+      "Id": 9316,
+      "ProcessName": "AspenModeler",
+      "CPU": 3906.59375,
+      "StartTime": "2026-10-22T00:10:42.8028132-04:00",
+      "PrivateMemorySize64": 9275842560,
+      "WorkingSet64": 8874844160
+    },
+    {
+      "Id": 12000,
+      "ProcessName": "AspenModeler",
+      "CPU": 4845.421875,
+      "StartTime": "2026-10-21T21:40:09.7923271-04:00",
+      "PrivateMemorySize64": 158408704,
+      "WorkingSet64": 201306112
+    },
+    {
+      "Id": 19256,
+      "ProcessName": "AspenModeler",
+      "CPU": 1347.953125,
+      "StartTime": "2026-10-22T00:20:00.1106405-04:00",
+      "PrivateMemorySize64": 2053718016,
+      "WorkingSet64": 2014851072
+    },
+    {
+      "Id": 22316,
+      "ProcessName": "AspenModeler",
+      "CPU": 5044.0,
+      "StartTime": "2026-10-21T21:33:27.7341978-04:00",
+      "PrivateMemorySize64": 234438656,
+      "WorkingSet64": 277766144
+    },
+    {
+      "Id": 29084,
+      "ProcessName": "AspenModeler",
+      "CPU": 3797.109375,
+      "StartTime": "2026-10-21T21:42:28.5545077-04:00",
+      "PrivateMemorySize64": 158208000,
+      "WorkingSet64": 200384512
+    },
+    {
+      "Id": 29720,
+      "ProcessName": "AspenModeler",
+      "CPU": 4829.09375,
+      "StartTime": "2026-10-21T21:40:28.3226762-04:00",
+      "PrivateMemorySize64": 157335552,
+      "WorkingSet64": 200347648
+    },
+    {
+      "Id": 35756,
+      "ProcessName": "AspenModeler",
+      "CPU": 3157.8125,
+      "StartTime": "2026-10-22T00:19:07.8149484-04:00",
+      "PrivateMemorySize64": 244051968,
+      "WorkingSet64": 288243712
+    },
+    {
+      "Id": 36404,
+      "ProcessName": "AspenModeler",
+      "CPU": 4825.265625,
+      "StartTime": "2026-10-21T21:39:51.4043481-04:00",
+      "PrivateMemorySize64": 156147712,
+      "WorkingSet64": 199045120
+    },
+    {
+      "Id": 38588,
+      "ProcessName": "AspenModeler",
+      "CPU": 3828.265625,
+      "StartTime": "2026-10-21T21:42:09.3369329-04:00",
+      "PrivateMemorySize64": 157409280,
+      "WorkingSet64": 199901184
+    },
+    {
+      "Id": 39372,
+      "ProcessName": "AspenModeler",
+      "CPU": 4844.796875,
+      "StartTime": "2026-10-21T21:40:47.467364-04:00",
+      "PrivateMemorySize64": 158646272,
+      "WorkingSet64": 201228288
+    },
+    {
+      "Id": 41696,
+      "ProcessName": "AspenModeler",
+      "CPU": 3920.671875,
+      "StartTime": "2026-10-21T21:41:48.5660642-04:00",
+      "PrivateMemorySize64": 157601792,
+      "WorkingSet64": 200310784
+    },
+    {
+      "Id": 43764,
+      "ProcessName": "AspenModeler",
+      "CPU": 1329.78125,
+      "StartTime": "2026-10-22T00:20:22.3339286-04:00",
+      "PrivateMemorySize64": 1965510656,
+      "WorkingSet64": 1931444224
+    },
+    {
+      "Id": 44800,
+      "ProcessName": "AspenModeler",
+      "CPU": 845.125,
+      "StartTime": "2026-10-22T00:09:01.4595329-04:00",
+      "PrivateMemorySize64": 242688000,
+      "WorkingSet64": 287125504
+    },
+    {
+      "Id": 46768,
+      "ProcessName": "AspenModeler",
+      "CPU": 3322.453125,
+      "StartTime": "2026-10-22T00:08:20.7296173-04:00",
+      "PrivateMemorySize64": 241938432,
+      "WorkingSet64": 286838784
+    },
+    {
+      "Id": 46892,
+      "ProcessName": "AspenModeler",
+      "CPU": 2854.453125,
+      "StartTime": "2026-10-22T00:18:46.3221178-04:00",
+      "PrivateMemorySize64": 242876416,
+      "WorkingSet64": 286969856
+    },
+    {
+      "Id": 48208,
+      "ProcessName": "AspenModeler",
+      "CPU": 4842.703125,
+      "StartTime": "2026-10-21T21:41:26.8626924-04:00",
+      "PrivateMemorySize64": 158904320,
+      "WorkingSet64": 201232384
+    },
+    {
+      "Id": 49616,
+      "ProcessName": "AspenModeler",
+      "CPU": 1455.375,
+      "StartTime": "2026-10-22T00:10:02.433838-04:00",
+      "PrivateMemorySize64": 1986875392,
+      "WorkingSet64": 1948712960
+    },
+    {
+      "Id": 52360,
+      "ProcessName": "AspenModeler",
+      "CPU": 2637.890625,
+      "StartTime": "2026-10-21T21:41:06.9674683-04:00",
+      "PrivateMemorySize64": 157167616,
+      "WorkingSet64": 200089600
+    },
+    {
+      "Id": 55256,
+      "ProcessName": "AspenModeler",
+      "CPU": 3245.546875,
+      "StartTime": "2026-10-22T00:18:27.2171445-04:00",
+      "PrivateMemorySize64": 245436416,
+      "WorkingSet64": 289820672
+    },
+    {
+      "Id": 55316,
+      "ProcessName": "AspenModeler",
+      "CPU": 3842.125,
+      "StartTime": "2026-10-21T21:42:49.7153224-04:00",
+      "PrivateMemorySize64": 158183424,
+      "WorkingSet64": 201043968
+    },
+    {
+      "Id": 56532,
+      "ProcessName": "AspenModeler",
+      "CPU": 4604.3125,
+      "StartTime": "2026-10-21T21:51:29.7082649-04:00",
+      "PrivateMemorySize64": 234323968,
+      "WorkingSet64": 280186880
+    },
+    {
+      "Id": 2748,
+      "ProcessName": "python",
+      "CPU": 2489.125,
+      "StartTime": "2026-10-20T17:17:38.7587272-04:00",
+      "PrivateMemorySize64": 61558784,
+      "WorkingSet64": 62066688
+    },
+    {
+      "Id": 4248,
+      "ProcessName": "python",
+      "CPU": 0.015625,
+      "StartTime": "2026-10-21T21:28:47.8138327-04:00",
+      "PrivateMemorySize64": 815104,
+      "WorkingSet64": 3043328
+    },
+    {
+      "Id": 6216,
+      "ProcessName": "python",
+      "CPU": 2700.265625,
+      "StartTime": "2026-10-20T12:40:56.7605695-04:00",
+      "PrivateMemorySize64": 61571072,
+      "WorkingSet64": 61489152
+    },
+    {
+      "Id": 8812,
+      "ProcessName": "python",
+      "CPU": 9155.90625,
+      "StartTime": "2026-10-21T21:39:32.5215989-04:00",
+      "PrivateMemorySize64": 3479408640,
+      "WorkingSet64": 89468928
+    },
+    {
+      "Id": 9628,
+      "ProcessName": "python",
+      "CPU": 8791.578125,
+      "StartTime": "2026-10-21T21:39:32.5322298-04:00",
+      "PrivateMemorySize64": 3474616320,
+      "WorkingSet64": 89456640
+    },
+    {
+      "Id": 10020,
+      "ProcessName": "python",
+      "CPU": 1019.765625,
+      "StartTime": "2026-10-21T21:51:19.9591048-04:00",
+      "PrivateMemorySize64": 62930944,
+      "WorkingSet64": 63774720
+    },
+    {
+      "Id": 11248,
+      "ProcessName": "python",
+      "CPU": 7589.328125,
+      "StartTime": "2026-10-21T21:39:32.561099-04:00",
+      "PrivateMemorySize64": 3173126144,
+      "WorkingSet64": 77062144
+    },
+    {
+      "Id": 12032,
+      "ProcessName": "python",
+      "CPU": 8.484375,
+      "StartTime": "2026-10-22T00:08:03.7647431-04:00",
+      "PrivateMemorySize64": 916369408,
+      "WorkingSet64": 22028288
+    },
+    {
+      "Id": 12496,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:33:20.2995822-04:00",
+      "PrivateMemorySize64": 823296,
+      "WorkingSet64": 3076096
+    },
+    {
+      "Id": 15092,
+      "ProcessName": "python",
+      "CPU": 9045.421875,
+      "StartTime": "2026-10-21T21:39:32.5132924-04:00",
+      "PrivateMemorySize64": 3477778432,
+      "WorkingSet64": 89018368
+    },
+    {
+      "Id": 18272,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-22T00:18:11.7639096-04:00",
+      "PrivateMemorySize64": 815104,
+      "WorkingSet64": 3055616
+    },
+    {
+      "Id": 18548,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-22T00:08:08.3094622-04:00",
+      "PrivateMemorySize64": 819200,
+      "WorkingSet64": 3067904
+    },
+    {
+      "Id": 21212,
+      "ProcessName": "python",
+      "CPU": 9145.796875,
+      "StartTime": "2026-10-21T21:39:32.506216-04:00",
+      "PrivateMemorySize64": 3471327232,
+      "WorkingSet64": 89374720
+    },
+    {
+      "Id": 21748,
+      "ProcessName": "python",
+      "CPU": 7234.84375,
+      "StartTime": "2026-10-21T21:39:32.5390976-04:00",
+      "PrivateMemorySize64": 3172900864,
+      "WorkingSet64": 90681344
+    },
+    {
+      "Id": 22232,
+      "ProcessName": "python",
+      "CPU": 0.015625,
+      "StartTime": "2026-10-21T21:39:32.5067465-04:00",
+      "PrivateMemorySize64": 827392,
+      "WorkingSet64": 2469888
+    },
+    {
+      "Id": 22588,
+      "ProcessName": "python",
+      "CPU": 5831.25,
+      "StartTime": "2026-10-22T00:08:08.3220647-04:00",
+      "PrivateMemorySize64": 4770226176,
+      "WorkingSet64": 1337090048
+    },
+    {
+      "Id": 23668,
+      "ProcessName": "python",
+      "CPU": 7257.078125,
+      "StartTime": "2026-10-21T21:39:32.5500989-04:00",
+      "PrivateMemorySize64": 3172499456,
+      "WorkingSet64": 76247040
+    },
+    {
+      "Id": 25660,
+      "ProcessName": "python",
+      "CPU": 7280.09375,
+      "StartTime": "2026-10-21T21:39:32.5830844-04:00",
+      "PrivateMemorySize64": 3173007360,
+      "WorkingSet64": 75935744
+    },
+    {
+      "Id": 25828,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:39:32.5511734-04:00",
+      "PrivateMemorySize64": 827392,
+      "WorkingSet64": 2465792
+    },
+    {
+      "Id": 25856,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-22T00:18:16.5427941-04:00",
+      "PrivateMemorySize64": 819200,
+      "WorkingSet64": 3072000
+    },
+    {
+      "Id": 25940,
+      "ProcessName": "python",
+      "CPU": 7522.921875,
+      "StartTime": "2026-10-21T21:39:32.5723191-04:00",
+      "PrivateMemorySize64": 3167526912,
+      "WorkingSet64": 76406784
+    },
+    {
+      "Id": 26072,
+      "ProcessName": "python",
+      "CPU": 5454.984375,
+      "StartTime": "2026-10-22T00:18:16.5813299-04:00",
+      "PrivateMemorySize64": 3297185792,
+      "WorkingSet64": 381263872
+    },
+    {
+      "Id": 29968,
+      "ProcessName": "python",
+      "CPU": 1869.125,
+      "StartTime": "2026-10-22T00:18:16.5508425-04:00",
+      "PrivateMemorySize64": 3159498752,
+      "WorkingSet64": 283045888
+    },
+    {
+      "Id": 35560,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:51:19.7951922-04:00",
+      "PrivateMemorySize64": 815104,
+      "WorkingSet64": 3092480
+    },
+    {
+      "Id": 35808,
+      "ProcessName": "python",
+      "CPU": 1783.953125,
+      "StartTime": "2026-10-21T21:33:20.3094853-04:00",
+      "PrivateMemorySize64": 2901196800,
+      "WorkingSet64": 55992320
+    },
+    {
+      "Id": 35948,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:39:32.5309057-04:00",
+      "PrivateMemorySize64": 827392,
+      "WorkingSet64": 3043328
+    },
+    {
+      "Id": 36308,
+      "ProcessName": "python",
+      "CPU": 84.703125,
+      "StartTime": "2026-10-20T12:40:56.7357769-04:00",
+      "PrivateMemorySize64": 21446656,
+      "WorkingSet64": 11313152
+    },
+    {
+      "Id": 36720,
+      "ProcessName": "python",
+      "CPU": 1478.546875,
+      "StartTime": "2026-10-22T00:08:08.3428987-04:00",
+      "PrivateMemorySize64": 2706599936,
+      "WorkingSet64": 124432384
+    },
+    {
+      "Id": 37072,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:39:32.5150524-04:00",
+      "PrivateMemorySize64": 819200,
+      "WorkingSet64": 3080192
+    },
+    {
+      "Id": 38448,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:39:32.5227129-04:00",
+      "PrivateMemorySize64": 819200,
+      "WorkingSet64": 2469888
+    },
+    {
+      "Id": 40324,
+      "ProcessName": "python",
+      "CPU": 3245.734375,
+      "StartTime": "2026-10-20T01:07:36.4293199-04:00",
+      "PrivateMemorySize64": 61726720,
+      "WorkingSet64": 62418944
+    },
+    {
+      "Id": 42644,
+      "ProcessName": "python",
+      "CPU": 6338.78125,
+      "StartTime": "2026-10-21T21:51:22.5094877-04:00",
+      "PrivateMemorySize64": 3138117632,
+      "WorkingSet64": 404217856
+    },
+    {
+      "Id": 42940,
+      "ProcessName": "python",
+      "CPU": 1055.265625,
+      "StartTime": "2026-10-21T21:35:46.6536543-04:00",
+      "PrivateMemorySize64": 63565824,
+      "WorkingSet64": 62541824
+    },
+    {
+      "Id": 43196,
+      "ProcessName": "python",
+      "CPU": 6.671875,
+      "StartTime": "2026-10-21T21:51:19.8047216-04:00",
+      "PrivateMemorySize64": 22114304,
+      "WorkingSet64": 15622144
+    },
+    {
+      "Id": 43592,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-22T00:08:03.852215-04:00",
+      "PrivateMemorySize64": 819200,
+      "WorkingSet64": 3055616
+    },
+    {
+      "Id": 44396,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:51:19.9508696-04:00",
+      "PrivateMemorySize64": 815104,
+      "WorkingSet64": 3035136
+    },
+    {
+      "Id": 44716,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:35:46.6472336-04:00",
+      "PrivateMemorySize64": 815104,
+      "WorkingSet64": 2469888
+    },
+    {
+      "Id": 45064,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:51:22.4997914-04:00",
+      "PrivateMemorySize64": 831488,
+      "WorkingSet64": 3063808
+    },
+    {
+      "Id": 45248,
+      "ProcessName": "python",
+      "CPU": 9397.6875,
+      "StartTime": "2026-10-21T21:39:32.4962302-04:00",
+      "PrivateMemorySize64": 3481374720,
+      "WorkingSet64": 97853440
+    },
+    {
+      "Id": 45996,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:39:32.5605911-04:00",
+      "PrivateMemorySize64": 827392,
+      "WorkingSet64": 2465792
+    },
+    {
+      "Id": 47032,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-22T00:18:16.5737604-04:00",
+      "PrivateMemorySize64": 819200,
+      "WorkingSet64": 3088384
+    },
+    {
+      "Id": 48272,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:28:47.7405853-04:00",
+      "PrivateMemorySize64": 802816,
+      "WorkingSet64": 3051520
+    },
+    {
+      "Id": 48780,
+      "ProcessName": "python",
+      "CPU": 0.015625,
+      "StartTime": "2026-10-21T21:39:32.5402323-04:00",
+      "PrivateMemorySize64": 819200,
+      "WorkingSet64": 2465792
+    },
+    {
+      "Id": 49140,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:39:32.4974208-04:00",
+      "PrivateMemorySize64": 823296,
+      "WorkingSet64": 3219456
+    },
+    {
+      "Id": 49884,
+      "ProcessName": "python",
+      "CPU": 0.015625,
+      "StartTime": "2026-10-21T21:39:32.5743038-04:00",
+      "PrivateMemorySize64": 819200,
+      "WorkingSet64": 2465792
+    },
+    {
+      "Id": 50152,
+      "ProcessName": "python",
+      "CPU": 4736.015625,
+      "StartTime": "2026-10-18T20:30:17.3558897-04:00",
+      "PrivateMemorySize64": 61960192,
+      "WorkingSet64": 62570496
+    },
+    {
+      "Id": 50476,
+      "ProcessName": "python",
+      "CPU": 880.546875,
+      "StartTime": "2026-10-22T00:08:03.8599482-04:00",
+      "PrivateMemorySize64": 63496192,
+      "WorkingSet64": 64516096
+    },
+    {
+      "Id": 53116,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-21T21:39:29.9853278-04:00",
+      "PrivateMemorySize64": 798720,
+      "WorkingSet64": 2469888
+    },
+    {
+      "Id": 54420,
+      "ProcessName": "python",
+      "CPU": 12.125,
+      "StartTime": "2026-10-21T21:39:29.9943379-04:00",
+      "PrivateMemorySize64": 21385216,
+      "WorkingSet64": 10616832
+    },
+    {
+      "Id": 54580,
+      "ProcessName": "python",
+      "CPU": 0.015625,
+      "StartTime": "2026-10-22T00:18:16.6063518-04:00",
+      "PrivateMemorySize64": 827392,
+      "WorkingSet64": 2461696
+    },
+    {
+      "Id": 55228,
+      "ProcessName": "python",
+      "CPU": 9.546875,
+      "StartTime": "2026-10-22T00:18:11.7713859-04:00",
+      "PrivateMemorySize64": 916246528,
+      "WorkingSet64": 18837504
+    },
+    {
+      "Id": 55232,
+      "ProcessName": "python",
+      "CPU": 1024.140625,
+      "StartTime": "2026-10-21T21:28:47.8202026-04:00",
+      "PrivateMemorySize64": 63164416,
+      "WorkingSet64": 64040960
+    },
+    {
+      "Id": 55548,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-22T00:18:11.8709291-04:00",
+      "PrivateMemorySize64": 815104,
+      "WorkingSet64": 3080192
+    },
+    {
+      "Id": 56408,
+      "ProcessName": "python",
+      "CPU": 0.015625,
+      "StartTime": "2026-10-21T21:39:32.4889636-04:00",
+      "PrivateMemorySize64": 823296,
+      "WorkingSet64": 2473984
+    },
+    {
+      "Id": 56576,
+      "ProcessName": "python",
+      "CPU": 12.40625,
+      "StartTime": "2026-10-21T21:28:47.7494275-04:00",
+      "PrivateMemorySize64": 22335488,
+      "WorkingSet64": 14856192
+    },
+    {
+      "Id": 57216,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-22T00:08:08.3351101-04:00",
+      "PrivateMemorySize64": 823296,
+      "WorkingSet64": 3076096
+    },
+    {
+      "Id": 58044,
+      "ProcessName": "python",
+      "CPU": 1972.984375,
+      "StartTime": "2026-10-22T00:18:16.6151586-04:00",
+      "PrivateMemorySize64": 3205111808,
+      "WorkingSet64": 285683712
+    },
+    {
+      "Id": 58236,
+      "ProcessName": "python",
+      "CPU": 0.0,
+      "StartTime": "2026-10-22T00:08:03.7555491-04:00",
+      "PrivateMemorySize64": 811008,
+      "WorkingSet64": 3043328
+    },
+    {
+      "Id": 58292,
+      "ProcessName": "python",
+      "CPU": 871.25,
+      "StartTime": "2026-10-22T00:18:11.8777877-04:00",
+      "PrivateMemorySize64": 63586304,
+      "WorkingSet64": 64622592
+    }
+  ],
+  "memory": {
+    "CommittedBytes": 118949449728,
+    "CommitLimit": 120191516672,
+    "AvailableMBytes": 14846
+  }
+}

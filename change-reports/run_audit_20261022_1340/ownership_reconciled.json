@@ -1,0 +1,124 @@
+{
+  "proof": {
+    "observed_at_utc": "2026-10-22T17:48:14.1171032Z",
+    "native": {
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation11.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "created": 134371064077341978,
+      "pid": 22316
+    },
+    "worker": {
+      "created": 134371064003094853,
+      "pid": 35808
+    }
+  },
+  "previous": [
+    {
+      "pid": 51944,
+      "alive": true,
+      "created": 134371062896921613,
+      "created_at": "2026-10-22T01:31:48.072228+00:00"
+    }
+  ],
+  "current": [
+    {
+      "pid": 22316,
+      "alive": true,
+      "created": 134371064077341978,
+      "created_at": "2026-10-22T17:48:14.1171032Z",
+      "reconciled_at": "2026-10-22T17:48:14.1171032Z",
+      "evidence": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_audit_20261022_1340\\ownership_candidate.json",
+      "reason": "Previous record belonged to the completed technical process"
+    }
+  ],
+  "workers_unchanged": true,
+  "protected_workers": {
+    "42644": {
+      "pid": 42644,
+      "alive": true,
+      "created": 134371074825094877
+    },
+    "35808": {
+      "pid": 35808,
+      "alive": true,
+      "created": 134371064003094853
+    },
+    "45248": {
+      "pid": 45248,
+      "alive": true,
+      "created": 134371067724962302
+    },
+    "21212": {
+      "pid": 21212,
+      "alive": true,
+      "created": 134371067725062160
+    },
+    "15092": {
+      "pid": 15092,
+      "alive": true,
+      "created": 134371067725132924
+    },
+    "8812": {
+      "pid": 8812,
+      "alive": true,
+      "created": 134371067725215989
+    },
+    "9628": {
+      "pid": 9628,
+      "alive": true,
+      "created": 134371067725322298
+    },
+    "21748": {
+      "pid": 21748,
+      "alive": true,
+      "created": 134371067725390976
+    },
+    "23668": {
+      "pid": 23668,
+      "alive": true,
+      "created": 134371067725500989
+    },
+    "11248": {
+      "pid": 11248,
+      "alive": true,
+      "created": 134371067725610990
+    },
+    "25940": {
+      "pid": 25940,
+      "alive": true,
+      "created": 134371067725723191
+    },
+    "25660": {
+      "pid": 25660,
+      "alive": true,
+      "created": 134371067725830844
+    },
+    "22588": {
+      "pid": 22588,
+      "alive": true,
+      "created": 134371156883220647
+    },
+    "36720": {
+      "pid": 36720,
+      "alive": true,
+      "created": 134371156883428987
+    },
+    "29968": {
+      "pid": 29968,
+      "alive": true,
+      "created": 134371162965508425
+    },
+    "26072": {
+      "pid": 26072,
+      "alive": true,
+      "created": 134371162965813299
+    },
+    "58044": {
+      "pid": 58044,
+      "alive": true,
+      "created": 134371162966151586
+    }
+  },
+  "scientific_sources_changed": false,
+  "processes_signaled": 0
+}

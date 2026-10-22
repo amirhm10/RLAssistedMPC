@@ -1,0 +1,29 @@
+{
+  "actions": [
+    {
+      "pid": 54084,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "pid": 18864,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "pid": 39820,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "pid": 55512,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "pid": 10020,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "pid": 39952,
+      "result": "closed_verified_orphan"
+    }
+  ],
+  "checkpoint_retained": true
+}

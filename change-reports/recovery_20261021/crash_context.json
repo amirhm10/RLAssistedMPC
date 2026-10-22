@@ -1,0 +1,182 @@
+[
+  {
+    "pid": 22424,
+    "thread_id": 33888,
+    "exception": "0xc0000005",
+    "parameters": [
+      "0x0",
+      "0x48"
+    ],
+    "exception_address": "0x7ff9afc7ed76",
+    "registers": {
+      "rax": "0x1e5f14de9e8",
+      "rcx": "0x0",
+      "rdx": "0x1",
+      "rbx": "0x1e5fbe5f330",
+      "rsp": "0x77053e87e0",
+      "rbp": "0x77053e88e0",
+      "rsi": "0x0",
+      "rdi": "0x7ff9afefa180",
+      "r8": "0x7",
+      "r9": "0x38",
+      "r10": "0x1e5f14de9e0",
+      "r11": "0x0",
+      "r12": "0x1",
+      "r13": "0x1e5fbe5f358",
+      "r14": "0x0",
+      "r15": "0x77053e8fc0",
+      "rip": "0x7ff9afc7ed76"
+    },
+    "instruction_hex": "0f8542020000488b4708488b88c0030000488b41484885c074364c8b4f28488d",
+    "modules": [
+      {
+        "base": "0x7ff9afbb0000",
+        "size": 3821568,
+        "timestamp": "0x6a0b87f3",
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\_core\\_multiarray_umath.cp313-win_amd64.pyd",
+        "fault_rva": "0xced76"
+      },
+      {
+        "base": "0x7ff9ab710000",
+        "size": 20451328,
+        "timestamp": "0x69bef1b0",
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+        "fault_rva": null
+      },
+      {
+        "base": "0x7ff9aa3b0000",
+        "size": 20299776,
+        "timestamp": "0x691f21b8",
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+        "fault_rva": null
+      },
+      {
+        "base": "0x7ffb11e10000",
+        "size": 28426240,
+        "timestamp": "0x69eada78",
+        "path": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+        "fault_rva": null
+      }
+    ]
+  },
+  {
+    "pid": 23064,
+    "thread_id": 18832,
+    "exception": "0xc0000005",
+    "parameters": [
+      "0x0",
+      "0x48"
+    ],
+    "exception_address": "0x7ff9afc7ed76",
+    "registers": {
+      "rax": "0x1f1ab52b668",
+      "rcx": "0x0",
+      "rdx": "0x1",
+      "rbx": "0x1f1ad338b10",
+      "rsp": "0x5ecf3e8540",
+      "rbp": "0x5ecf3e8640",
+      "rsi": "0x0",
+      "rdi": "0x7ff9afefa180",
+      "r8": "0x7",
+      "r9": "0x38",
+      "r10": "0x1f1ab52b660",
+      "r11": "0x0",
+      "r12": "0x1",
+      "r13": "0x1f1ad338b38",
+      "r14": "0x0",
+      "r15": "0x5ecf3e8d20",
+      "rip": "0x7ff9afc7ed76"
+    },
+    "instruction_hex": "0f8542020000488b4708488b88c0030000488b41484885c074364c8b4f28488d",
+    "modules": [
+      {
+        "base": "0x7ff9afbb0000",
+        "size": 3821568,
+        "timestamp": "0x6a0b87f3",
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\_core\\_multiarray_umath.cp313-win_amd64.pyd",
+        "fault_rva": "0xced76"
+      },
+      {
+        "base": "0x7ff9ab710000",
+        "size": 20451328,
+        "timestamp": "0x69bef1b0",
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+        "fault_rva": null
+      },
+      {
+        "base": "0x7ff9aa3b0000",
+        "size": 20299776,
+        "timestamp": "0x691f21b8",
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+        "fault_rva": null
+      },
+      {
+        "base": "0x7ffb11e10000",
+        "size": 28426240,
+        "timestamp": "0x69eada78",
+        "path": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+        "fault_rva": null
+      }
+    ]
+  },
+  {
+    "pid": 45524,
+    "thread_id": 44648,
+    "exception": "0xc0000005",
+    "parameters": [
+      "0x0",
+      "0x4c"
+    ],
+    "exception_address": "0x7ff9afc7ed76",
+    "registers": {
+      "rax": "0x20ad04b1528",
+      "rcx": "0x4",
+      "rdx": "0x1",
+      "rbx": "0x20b4b1900f0",
+      "rsp": "0x5ecc7e8c10",
+      "rbp": "0x5ecc7e8d10",
+      "rsi": "0x0",
+      "rdi": "0x7ff9afefa180",
+      "r8": "0x2",
+      "r9": "0x10",
+      "r10": "0x20ad04b1520",
+      "r11": "0x0",
+      "r12": "0x1",
+      "r13": "0x20b4b190118",
+      "r14": "0x0",
+      "r15": "0x5ecc7e93f0",
+      "rip": "0x7ff9afc7ed76"
+    },
+    "instruction_hex": "0f8542020000488b4708488b88c0030000488b41484885c074364c8b4f28488d",
+    "modules": [
+      {
+        "base": "0x7ff9afbb0000",
+        "size": 3821568,
+        "timestamp": "0x6a0b87f3",
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy\\_core\\_multiarray_umath.cp313-win_amd64.pyd",
+        "fault_rva": "0xced76"
+      },
+      {
+        "base": "0x7ff9ab710000",
+        "size": 20451328,
+        "timestamp": "0x69bef1b0",
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll",
+        "fault_rva": null
+      },
+      {
+        "base": "0x7ff9aa3b0000",
+        "size": 20299776,
+        "timestamp": "0x691f21b8",
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\run_recovery_20261020\\runtime\\site-packages\\scipy.libs\\libscipy_openblas-64eda39e79589aedb16f58e5547eb599.dll",
+        "fault_rva": null
+      },
+      {
+        "base": "0x7ffb11e10000",
+        "size": 28426240,
+        "timestamp": "0x69eada78",
+        "path": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Library\\bin\\openblas.dll",
+        "fault_rva": null
+      }
+    ]
+  }
+]

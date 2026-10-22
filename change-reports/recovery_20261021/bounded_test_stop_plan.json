@@ -1,0 +1,275 @@
+{
+  "worker": {
+    "pid": 54084,
+    "alive": true,
+    "created": 134371068780961620
+  },
+  "command": [
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\recovery_20261021\\runtime\\env\\Scripts\\python.exe",
+    "-B",
+    "-u",
+    "change-reports/recovery_20261021/check_markov_native_restart.py",
+    "16"
+  ],
+  "case": {
+    "canonical_case": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation3.dynf",
+    "private_model": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\markov_sg\\s23\\a1\\native_0a88cc30\\C2S_SS_simulation3.dynf",
+    "source_sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4"
+  },
+  "index_sha256": "170aefe3070ab50c100c2b5be760e0a1668ed88e24f85d67719e04ff7f33f130",
+  "app": {
+    "pid": 39952,
+    "alive": true,
+    "created": 134371069910117223,
+    "name": "AspenModeler.exe",
+    "path": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+    "title": "C2S_SS_simulation3.dynf - Aspen Plus Dynamics V14 - aspenONE"
+  },
+  "descendants": [
+    {
+      "pid": 18864,
+      "alive": true,
+      "created": 134371069913945566,
+      "name": "conhost.exe",
+      "executable": "C:\\WINDOWS\\system32\\conhost.exe",
+      "parent_pid": 39820
+    },
+    {
+      "pid": 39820,
+      "alive": true,
+      "created": 134371069913866311,
+      "name": "sim_server.exe",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\sim_server.exe",
+      "parent_pid": 39952
+    },
+    {
+      "pid": 55512,
+      "alive": true,
+      "created": 134371069913995840,
+      "name": "conhost.exe",
+      "executable": "C:\\WINDOWS\\system32\\conhost.exe",
+      "parent_pid": 10020
+    },
+    {
+      "pid": 10020,
+      "alive": true,
+      "created": 134371069913921277,
+      "name": "am_task_server.exe",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\am_task_server.exe",
+      "parent_pid": 39952
+    }
+  ],
+  "protected_active_recovery": [
+    {
+      "id": "markov/sg/23",
+      "kind": "repeat",
+      "category": "markov",
+      "mode": "sg",
+      "seed": 23,
+      "aspen_number": 3,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\markov_sg\\s23\\a1",
+      "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\markov_sg\\s23\\a1\\job.json",
+      "state": "failed",
+      "attempts": [
+        {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\markov_sg\\s23\\a1",
+          "pid": 13548,
+          "started_at": "2026-10-22T01:28:50.135889+00:00",
+          "state": "failed",
+          "exit_code": 1
+        }
+      ],
+      "pid": 13548,
+      "identity": {
+        "pid": 13548,
+        "alive": true,
+        "created": 134371061301323588
+      },
+      "started_at": "2026-10-22T01:28:50.135880+00:00",
+      "exit_code": 1,
+      "finished_at": "2026-10-22T01:29:20.232581+00:00",
+      "error": null
+    },
+    {
+      "id": "residual/plain/23",
+      "kind": "repeat",
+      "category": "residual",
+      "mode": "plain",
+      "seed": 23,
+      "aspen_number": 11,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\residual_plain\\s23\\a1",
+      "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\residual_plain\\s23\\a1\\job.json",
+      "state": "running",
+      "attempts": [
+        {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\residual_plain\\s23\\a1",
+          "pid": 35808,
+          "started_at": "2026-10-22T01:33:20.306293+00:00"
+        }
+      ],
+      "pid": 35808,
+      "identity": {
+        "pid": 35808,
+        "alive": true,
+        "created": 134371064003094853
+      },
+      "started_at": "2026-10-22T01:33:20.306283+00:00",
+      "launcher_pid": 12496
+    },
+    {
+      "id": "e1/combined",
+      "kind": "e1",
+      "category": "combined",
+      "seed": 7,
+      "aspen_number": 16,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+      "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\job.json",
+      "state": "running",
+      "attempts": [
+        {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+          "pid": 56496,
+          "started_at": "2026-10-22T01:28:50.152091+00:00"
+        }
+      ],
+      "pid": 56496,
+      "identity": {
+        "pid": 56496,
+        "alive": true,
+        "created": 134371061301550667
+      },
+      "started_at": "2026-10-22T01:28:50.152083+00:00",
+      "launcher_pid": 56492
+    },
+    {
+      "id": "e1/horizon",
+      "kind": "e1",
+      "category": "horizon",
+      "seed": 7,
+      "aspen_number": 13,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1",
+      "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\job.json",
+      "state": "running",
+      "attempts": [
+        {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1",
+          "pid": 21636,
+          "started_at": "2026-10-22T01:28:50.167203+00:00"
+        }
+      ],
+      "pid": 21636,
+      "identity": {
+        "pid": 21636,
+        "alive": true,
+        "created": 134371061301694748
+      },
+      "started_at": "2026-10-22T01:28:50.167196+00:00",
+      "launcher_pid": 46200
+    },
+    {
+      "id": "e1/weights",
+      "kind": "e1",
+      "category": "weights",
+      "seed": 7,
+      "aspen_number": 14,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1",
+      "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\job.json",
+      "state": "running",
+      "attempts": [
+        {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1",
+          "pid": 11908,
+          "started_at": "2026-10-22T01:28:50.178208+00:00"
+        }
+      ],
+      "pid": 11908,
+      "identity": {
+        "pid": 11908,
+        "alive": true,
+        "created": 134371061301805698
+      },
+      "started_at": "2026-10-22T01:28:50.178198+00:00",
+      "launcher_pid": 42360
+    },
+    {
+      "id": "e1/markov",
+      "kind": "e1",
+      "category": "markov",
+      "seed": 7,
+      "aspen_number": 15,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1",
+      "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\job.json",
+      "state": "failed",
+      "attempts": [
+        {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1",
+          "pid": 36924,
+          "started_at": "2026-10-22T01:28:50.190907+00:00",
+          "state": "failed",
+          "exit_code": 1
+        }
+      ],
+      "pid": 36924,
+      "identity": {
+        "pid": 36924,
+        "alive": false,
+        "created": null
+      },
+      "started_at": "2026-10-22T01:28:50.190898+00:00",
+      "launcher_pid": 49520,
+      "exit_code": 1,
+      "finished_at": "2026-10-22T01:29:20.234085+00:00",
+      "error": "Recovery requires one top-level zero-based range(nFE) loop."
+    },
+    {
+      "id": "e1/residual",
+      "kind": "e1",
+      "category": "residual",
+      "seed": 7,
+      "aspen_number": 17,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1",
+      "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\job.json",
+      "state": "running",
+      "attempts": [
+        {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1",
+          "pid": 30000,
+          "started_at": "2026-10-22T01:28:50.203467+00:00"
+        }
+      ],
+      "pid": 30000,
+      "identity": {
+        "pid": 30000,
+        "alive": true,
+        "created": 134371061302071324
+      },
+      "started_at": "2026-10-22T01:28:50.203457+00:00",
+      "launcher_pid": 20432
+    },
+    {
+      "id": "threshold/seed7",
+      "kind": "threshold",
+      "category": "threshold",
+      "seed": 7,
+      "aspen_number": null,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\threshold\\a1",
+      "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\threshold\\a1\\job.json",
+      "state": "running",
+      "attempts": [
+        {
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\threshold\\a1",
+          "pid": 38696,
+          "started_at": "2026-10-22T01:28:50.215204+00:00"
+        }
+      ],
+      "pid": 38696,
+      "identity": {
+        "pid": 38696,
+        "alive": true,
+        "created": 134371061302181631
+      },
+      "started_at": "2026-10-22T01:28:50.215195+00:00",
+      "launcher_pid": 20384
+    }
+  ]
+}

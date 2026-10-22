@@ -1,5 +1,17 @@
 # Reviewer-run recovery — latest update October 21, 2026
 
+## NumPy and parallel E1 recovery — 2026-10-21
+
+At October 21, 21:52 Toronto (2026-10-22T01:52:01.641408+00:00), **18 remaining production jobs are active, with no current failed or queued job**: ten combined repetitions, Markov SG seed 23, residual plain seed 23, five column E1 configurations and polymer threshold recovery. Polymer repetitions remain 50/50 complete; column repetitions are 38/50 complete. The four residual workers healthy at the preceding audit finished naturally. The original coordinator retains its process creation identity and started the combined cohort automatically.
+
+New/recovered workers use a verified private NumPy 2.5.3 build with conservative single-thread numerical dispatch; the shared environment is unchanged. The E1 adapter copies all snapshot variable classes back after zero-time initialization and rechecks the original fidelity bounds. The failed step-5202 reproduction, four-channel native/learner integration and fresh-process E1, residual and Markov full-state restart checks pass. All 38 focused tests pass. Threshold saves four nonempty finite policies and complete training state. The Markov try/finally/context checkpoint incompatibilities and bounded-test stop error were corrected; historical failures and test-stop identity evidence remain saved.
+
+E1 runs five unchanged configurations concurrently on cases 13–17 (horizon 13, weights 14, Markov 15, combined 16, residual 17). Case 17 is a private byte-identical source copy. Recovery repetitions use 3 and 11; combined retains 1,2,12,4–10. There is no case overlap. Independent visible Windows sessions and a 30-second read-only progress viewer are active. The original 300-cycle/3200-pair E1 budget and all seeds, schedules and controller settings are unchanged.
+
+Multi-day numerical stability, the underlying native-crash mechanism and full production E1 validity remain unestablished. Bounded numerical agreement is not bitwise full-trajectory equivalence across runtime versions. Preserve per-bundle numerical provenance when interpreting the mixed-version campaign. Allow roughly 36–60 hours for remaining column repetitions/combined, provisionally 8–12 hours for threshold, and one to several weeks for E1 depending on branch throughput and full-load overhead. The largest E1 configuration still needs about 952000 Aspen advances (about 11 days at one second per advance before overhead). These are conditional planning estimates. No completed E1 production, causal, safety or general performance claim is promoted.
+
+Evidence and details: `change-reports/recovery_20261021/RECOVERY.md` and `recovery_assessment.json`. All 46 frozen original manuscript files verify unchanged.
+
 ## Current audit and queue handoff cleanup — October 21, 20:50 Toronto
 
 **22 production jobs remain: four running, ten queued for automatic combined launch, four E1 configurations held, and four failed.** Finished artifacts verify: polymer repetitions 50/50, column repetitions 34/50 (five residual SG runs newly complete), polymer E1 3,200 matched pairs, polymer E2 trajectories/shared analysis, all six E3 stages, and all four column E2 comparators including newly completed BO.

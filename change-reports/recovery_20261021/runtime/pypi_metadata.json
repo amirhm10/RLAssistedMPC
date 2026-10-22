@@ -1,0 +1,24 @@
+{
+  "comment_text": null,
+  "core-metadata": {
+    "sha256": "451a9b8028000588e66b0b415587b6aef0bbc51a96d8e8a0cba0dc23acf64f99"
+  },
+  "digests": {
+    "blake2b_256": "f3ec100f2b1794ede74a9b3d7ec6b9736927f56713414c1dfe19ab6c383494bf",
+    "md5": "c129003420475dd396e43374daa9a877",
+    "sha256": "71cad2b2a7451ab79d8f5e71b453485b6775963d5cf794179144a7463fe6e8ec"
+  },
+  "downloads": -1,
+  "filename": "numpy-2.5.3-cp313-cp313-win_amd64.whl",
+  "has_sig": false,
+  "md5_digest": "c129003420475dd396e43374daa9a877",
+  "packagetype": "bdist_wheel",
+  "python_version": "cp313",
+  "requires_python": ">=3.12",
+  "size": 12560965,
+  "upload_time": "2026-09-06T16:25:26",
+  "upload_time_iso_8601": "2026-09-06T16:25:26.602903Z",
+  "url": "https://files.pythonhosted.org/packages/f3/ec/100f2b1794ede74a9b3d7ec6b9736927f56713414c1dfe19ab6c383494bf/numpy-2.5.3-cp313-cp313-win_amd64.whl",
+  "yanked": false,
+  "yanked_reason": null
+}

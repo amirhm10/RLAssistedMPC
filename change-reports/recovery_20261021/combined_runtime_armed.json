@@ -1,0 +1,20 @@
+{
+  "coordinator": {
+    "pid": 36308,
+    "alive": true,
+    "created": 134369880567357769
+  },
+  "python": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\recovery_20261021\\runtime\\env\\Scripts\\python.exe",
+  "override": {
+    "numpy": "2.5.3",
+    "scipy": "1.17.1",
+    "manifest": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\recovery_20261021\\runtime\\manifest.json",
+    "sha256": "ceca2d5b0240048b4536c38c07529ee84eea0bf99f0193a4562b1d4212d67a38",
+    "bootstrap": "review_numeric_recovery.py",
+    "bootstrap_sha256": "d373768a449503d3a6163391da057ec3058f1460b8f521c98f268be1976aacee",
+    "reason": "Three recorded native NumPy crashes; new private wheel and conservative dispatch; no shared-environment change"
+  },
+  "queued_runs": 10,
+  "scientific_source_hashes_unchanged": true,
+  "model_hashes_unchanged": true
+}

@@ -1,0 +1,16 @@
+{
+  "focused_tests": {
+    "command": "python -B -m pytest tests/test_remaining_recovery.py tests/test_markov_checkpoint_recovery.py tests/test_recovery_progress.py tests/test_column_e1.py -q --basetemp=change-reports/recovery_20261021/pytest_final_a2",
+    "passed": 38,
+    "failed": 0,
+    "seconds": 15.20
+  },
+  "numerical_stress": "runtime_stress.json",
+  "e1_failure_snapshot_reproduction": "Distillation/Results/state_recovery/20261021_copyvalues_a1/result.json",
+  "e1_native_learner_restart": "Distillation/Results/column_e1/20261021_copyvalues_technical/combined/a1/training_checkpoints/last_restore.json",
+  "residual_full_native_restart": "Distillation/Results/state_recovery/20261021_remaining_active/repetitions/residual_plain/s23/a1/technical_resume_passed.json",
+  "markov_full_native_restart": "Distillation/Results/state_recovery/20261021_remaining_active/repetitions/markov_sg/s23/a1/technical_native_16_passed.json",
+  "bounded_test_stop_evidence": ["bounded_test_stop_plan.json", "bounded_test_stop_applied.json"],
+  "production_launch_assessment": "recovery_assessment.json",
+  "limitations": ["Bounded checks and startup/ongoing liveness do not establish multi-day numerical stability.", "Technical matched decisions are not completion of the production E1 budget."]
+}

@@ -1,0 +1,128 @@
+Resolved Distillation Markov parameters
+
+[Paths]
+  Repo root           : C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC
+  Data dir            : C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\Distillation\Data
+  Results dir         : C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\Distillation\Results\state_recovery\20261021_remaining_active\repetitions\markov_sg\s23\a1
+  Aspen source        : manual-path
+  Dyn path            : C:\Users\hamediaa\Desktop\FinalDocuments\FinalDocuments\C2SplitterControlFiles\AspenFiles\dynsim\Plant\C2S_SS_simulation3.dynf
+  Snaps path          : C:\Users\hamediaa\Desktop\FinalDocuments\FinalDocuments\C2SplitterControlFiles\AspenFiles\dynsim\Plant\AM_C2S_SS_simulation3
+  Baseline MPC        : C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\Distillation\Data\mpc_results_disturb_fluctuation_temperature_flip_200_100.pickle
+
+[Run setup]
+  Agent kind          : sg_td3
+  Agent mode          : sg
+  Run mode            : disturb
+  Disturbance profile : fluctuation
+  TD3 seed            : 23
+  n_tests             : 300
+  set_points_len      : 200
+  warm_start          : 10
+  max_steps           : None
+  plot_start_episode  : 2
+  compare_start_episode: 2
+
+[Controller]
+  predict_h           : 6
+  cont_h              : 3
+  decision_interval   : 1
+  basis_family        : io_pair_gain
+  state_mode          : mismatch
+  z_bound             : 0.05
+  z_safety            : {'enabled': False}
+  prediction_window   : 20
+  gain_drift_max      : 0.1
+  nominal_solver_mode : lifted_g0_prototype
+  force_td3_execute   : True
+  force_td3_respects_warm_start: True
+  markov_supervisor_mode: ls_else_mpc
+  markov_live_safety_mode: shadow_only
+  td3_controlled_authority: {'enabled': False}
+  td3_controlled_authority_enabled: False
+  td3_priority_fallback_enabled: False
+  td3_priority_scale_enabled: False
+  td3_reward_probation_enabled: False
+  td3_authority_scales: {}
+  td3_priority_fallback: {'enabled': False}
+  use_shifted_mpc_warm_start: False
+
+[Behavioral cloning]
+  enabled             : False
+  target_mode         : ls_action
+  lambda_bc_start     : 1.0
+  lambda_bc_end       : 0.05
+  decay_mode          : exp
+  active_subepisodes  : 10
+  start_after_warm_start: False
+  log_diagnostics     : True
+  coordinate_weights  : None
+  label_weight_overrides: {}
+  action_gap_tolerance: 0.0
+  release_gate        : {'enabled': False, 'diagnostic_only': False, 'window_subepisodes': 1, 'mean_action_gap_max': 0.25, 'max_coordinate_gap_max': 0.2, 'min_window_fraction': 1.0}
+  tail_anchor         : {'enabled': False}
+  handoff             : {'enabled': False, 'mode': 'raw_action_blend', 'start_authority': 1.0, 'end_authority': 1.0, 'active_subepisodes': 0, 'start_after_warm_start': True}
+
+[Supervisor gate]
+  score_uncertainty_weight: 0.5
+  score_previous_action_weight: 0.01
+  score_supervisor_action_weight: 0.02
+  advantage_margin    : 0.5
+  default_to_supervisor: True
+  actor_q_mode        : mean
+  supervisor_bc_weight: 0.0
+  supervisor_bc_temperature: 1.0
+  smooth_action_weight: 0.0
+  detach_supervisor_weight: True
+  enable_supervisor_actor_loss: False
+  min_train_steps_before_policy_gate: 0
+
+[Markov shadow safety]
+  enabled             : True
+  compute_ls_candidate: False
+  z_safety            : {'enabled': True, 'protected_cap': 0.025, 'ramp_start_cap': 0.03, 'ramp_end_cap': 0.04, 'full_cap': 0.04, 'probation_cap': 0.025, 'vector_norm_cap': {'enabled': True, 'max_norm': 0.06}}
+  td3_priority_fallback: {'enabled': True, 'protected_subepisodes': 5, 'ramp_subepisodes': 10, 'score_hard_min': None, 'gain_drift_max': 0.1, 'cost_caps': {'protected': {'absolute': 0.02, 'relative': 5.0}, 'ramp': {'absolute': 0.05, 'relative': 20.0}, 'full': {'absolute': 0.1, 'relative': 50.0}}, 'authority_ramp': {'enabled': True, 'protected_scale': 0.25, 'ramp_start_scale': 0.25, 'ramp_end_scale': 1.0, 'full_scale': 1.0}, 'reward_probation': {'enabled': False, 'reference_warm_episodes': 3, 'collapse_threshold': 5.0, 'cooldown_subepisodes': 2, 'cooldown_scale': 0.25}}
+  bc_handoff          : {'enabled': True, 'mode': 'raw_action_blend', 'start_authority': 0.1, 'end_authority': 1.0, 'active_subepisodes': 10, 'start_after_warm_start': True}
+
+[Reward]
+  k_rel               : [0.3  0.01]
+  band_floor_phys     : [0.003 0.2  ]
+  band_floor_scaled   : [0.00562241 0.0112281 ]
+  Q_diag              : [37000. 20000.]
+  R_diag              : [2500. 2500.]
+  tau_frac            : 0.7
+  gamma_out           : 0.5
+  gamma_in            : 0.5
+  beta                : 7.0
+  gate                : geom
+  lam_in              : 1.0
+  bonus_kind          : exp
+  bonus_k             : 12.0
+  bonus_p             : 0.6
+  bonus_c             : 20.0
+  reward_scale        : 1.0
+
+[Debug]
+  debug_validate_lifted: False
+  debug_run_shadow_ls : False
+Full native/Python E1 checkpoint: step 8; 297.6 MiB
+Traceback (most recent call last):
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\run_distillation_phase2_repeats.py", line 354, in run_worker
+    namespace = runpy.run_path(str(root / entrypoint), run_name="__main__")
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\distillation_RL_assisted_MPC_markov_unified.py", line 379, in <module>
+    result_bundle = run_markov_correction_supervisor(markov_cfg=markov_cfg, runtime_ctx=runtime_ctx)
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\utils\markov_runner.py", line 2848, in run_markov_correction_supervisor
+    history = run_single_closed_loop(
+        config,
+    ...<6 lines>...
+        print_progress=True,
+    )
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\revision_recovery\checkpoints.py", line 287, in run
+    manager.save(environment, session)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1\checkpoints.py", line 103, in save
+    raise CheckpointStop('Bounded native integration checkpoint stop.')
+revision_recovery.checkpoints.CheckpointStop: Bounded native integration checkpoint stop.
+PASS real Markov native/full-state checkpoint 8

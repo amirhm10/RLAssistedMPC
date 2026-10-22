@@ -64,6 +64,20 @@ def log_tail(path, count=16000):
         return ""
 
 
+def worker_pid(job, attempt, status):
+    """A Windows virtualenv launcher can have a separate interpreter child."""
+    expected = attempt.get('pid') or job.get('pid') or status.get('pid')
+    if not status.get('pid'):
+        return expected
+    try:
+        started = attempt.get('started_at') or job.get('started_at')
+        if started and datetime.fromisoformat(status['started_at']) >= datetime.fromisoformat(started):
+            return status['pid']
+    except (KeyError, ValueError, TypeError):
+        pass
+    return expected
+
+
 def snapshot(root=ROOT):
     rows = []
     studies = dict(STUDIES)
@@ -109,11 +123,12 @@ def snapshot(root=ROOT):
                 status = read_json(path/"status.json") or read_json(path/"worker_status.json")
             execution = read_json(path/"execution.json") if path and name.startswith("Polymer_remaining_") else {}
             state = (status.get("state") or execution.get("state") or job.get("state", "pending")) if execution else job.get("state", status.get("state", "pending"))
-            if state == "running" and status.get("state") in ("failed", "completed"):
+            expected_pid=worker_pid(job,attempt,status) or execution.get('pid')
+            if state == "running" and status.get("state") in ("failed", "completed") and status.get('pid') in (None,expected_pid):
                 state = status["state"]
             if e1.get("directory") and name.startswith("Column_review_") and job.get("id") == "e1_pilot":
                 state = "superseded_technical_pilot"
-            pid = attempt.get("pid", status.get("pid", execution.get("pid")))
+            pid = expected_pid
             info = process_info(pid) if state == "running" else {"alive": None, "cpu_seconds": None}
             if state == "running" and info["alive"] is False:
                 state = "stopped_without_final_status"
@@ -150,6 +165,39 @@ def snapshot(root=ROOT):
                 if captures.exists():
                     row["prediction_origins"] = sum(bool(line.strip()) for line in captures.open(encoding="utf-8"))
             rows.append(row)
+    # Independent failed-run recovery retains the original queue and its
+    # historical attempt records. Display the newest reserved scientific job.
+    independent = read_json(Path(root)/'Distillation/Results/live_recovery/latest.json')
+    manifests = ([str(Path(independent['directory'])/'manifest.json')] if independent.get('directory') else [])
+    manifests += independent.get('additional_manifests', [])
+    for manifest_path in manifests:
+        recovered = read_json(manifest_path)
+        for index,job in enumerate(recovered.get('jobs', [])):
+            study = {'repeat':'column_repeats','e1':'E1_column','threshold':'Polymer_threshold_policy_recovery'}.get(job.get('kind'))
+            name = job['category'] if job.get('kind')=='e1' else job['id']
+            row = next((r for r in rows if r['study']==study and r['job']==name), None)
+            if row is None:
+                continue
+            path=Path(job['directory'])
+            status=read_json(path/('worker_status.json' if job.get('kind')=='repeat' else 'status.json'))
+            state=job['state']
+            pid=worker_pid(job,job['attempts'][-1] if job.get('attempts') else {},status)
+            if state=='running' and status.get('state') in ('completed','failed') and status.get('pid') in (None,pid):
+                state=status['state']
+            info=process_info(pid) if state=='running' else {'alive':None,'cpu_seconds':None}
+            if state=='running' and info['alive'] is False:
+                state='stopped_without_final_status'
+            log=Path(job['log']) if job.get('log') else Path(manifest_path).parent/'logs'/f'worker_{index}.log'
+            if not log.exists():log=path/('run.log' if job.get('kind')=='repeat' else 'worker.log')
+            cycles=re.findall(r'Sub_Episode:\s*(\d+)',log_tail(log))
+            checkpoint=read_json(path/'training_checkpoints/latest.json')
+            old_attempt=row.get('directory')
+            row.update(state=state,pid=pid,**info,directory=str(path),aspen_number=job.get('aspen_number'),
+                       cycle=int(cycles[-1]) if cycles else None,error=status.get('error') or job.get('error'),
+                       superseded_attempt=old_attempt,last_log_at=datetime.fromtimestamp(log.stat().st_mtime).isoformat() if log.exists() else None,
+                       checkpoint_cycle=checkpoint.get('completed_cycles'))
+            policy=read_json(path/'policy_checkpoints/latest.json')
+            if policy:row['policy_checkpoint_cycle']=policy.get('completed_cycles')
     historical = []
     polymer_current = [r for r in rows if r["study"].startswith("Polymer_remaining_")]
     if polymer_current:

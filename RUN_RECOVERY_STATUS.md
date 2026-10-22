@@ -1,4 +1,16 @@
-# Reviewer-run recovery — latest update October 21, 2026
+# Reviewer-run recovery — latest update October 22, 2026
+
+## Reduced column E1 budget - 2026-10-22
+
+At October 22, 00:21 Toronto (2026-10-22T04:21:48.483341+00:00), all five reduced column E1 jobs are running on cases 13-17. All 13 unrelated production workers retain their original identities and the original automatic combined coordinator is preserved. There are 18 active remaining jobs, with no current failed or queued job in this verified inventory. Historical failures and replaced E1 attempts remain recorded. The 50 polymer and 38 column completed repetitions are unchanged.
+
+Column E1 now uses 20 decisions per channel in each of four original training windows, giving 640 primary paired tests instead of 3200 (80% fewer). Combined contributes 320; horizon, weights, Markov and residual contribute 80 each. All five configurations retain seed 7, the 300-cycle temperature_flip_200_100 main training schedule, 200-step primary continuations and a 10% 800-step subset. Polymer E1 remains the completed 3200-pair study.
+
+All five handoffs restore complete pre-capture native/Python checkpoints. Every migration has identical full Python learner/controller state hashes before and after the sampling change. Original checkpoints and 27 completed pre-handoff paired captures are retained under the budget manifest's originals directory as supplemental evidence, separate from the replayed primary trajectory. The combined native test advanced 4000 -> 4008, then a fresh process restored and advanced 4008 -> 4016 with the full saved Python-state hash verified. Both tests closed their owned Aspen applications. The original physical-fidelity bounds remain in force. New checkpoints include the immutable budget protocol hash and save every cycle. The 37 focused budget/progress/E1 tests passed.
+
+Counterfactual Aspen advances fall from 1664000 to 332800. Including main training, the campaign falls from 2264000 to 932800 advances. The longest configuration, combined, falls from 952000 to 286400, about 70% less. At one second per advance that is 3.3 days before startup, snapshot, checkpoint and contention overhead; roughly 4-6 days is a provisional planning allowance if that throughput holds. This is not a promised completion date. Representative full-load branch throughput and multi-day native stability remain open. Current pre-capture continuations measured 1.05-1.18 seconds per advance; this includes checkpoint overhead but does not measure the later counterfactual branches.
+
+Details and live activation evidence: `change-reports/e1_budget_20261021/RECOVERY.md` and `recovery_assessment.json`. The prior unchanged-budget statements below are historical.
 
 ## NumPy and parallel E1 recovery — 2026-10-21
 

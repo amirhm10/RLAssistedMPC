@@ -196,6 +196,9 @@ def snapshot(root=ROOT):
                        cycle=int(cycles[-1]) if cycles else None,error=status.get('error') or job.get('error'),
                        superseded_attempt=old_attempt,last_log_at=datetime.fromtimestamp(log.stat().st_mtime).isoformat() if log.exists() else None,
                        checkpoint_cycle=checkpoint.get('completed_cycles'))
+            if job.get('kind')=='e1':
+                row['expected_matched_decisions']=job.get('expected_matched_pairs',1600 if job.get('category')=='combined' else 400)
+                if job.get('protocol_id'):row['budget_protocol_id']=job['protocol_id']
             policy=read_json(path/'policy_checkpoints/latest.json')
             if policy:row['policy_checkpoint_cycle']=policy.get('completed_cycles')
     historical = []

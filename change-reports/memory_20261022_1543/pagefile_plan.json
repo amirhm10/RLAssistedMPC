@@ -1,0 +1,30 @@
+{
+  "before": {
+    "at_utc": "2026-10-22T19:51:53.142327+00:00",
+    "committed_bytes": 120337051648,
+    "commit_limit_bytes": 122362687488,
+    "headroom_bytes": 2025635840,
+    "physical_bytes": 68390989824,
+    "available_physical_bytes": 14789935104,
+    "pagefiles": [
+      {
+        "path": "C:\\pagefile.sys",
+        "allocated_bytes": 53971697664,
+        "used_bytes": 3898585088
+      }
+    ],
+    "disk_free_bytes": 405829853184,
+    "configuration": {
+      "PagingFiles": [
+        "?:\\pagefile.sys"
+      ]
+    }
+  },
+  "minimum_bytes": 103079215104,
+  "maximum_bytes": 274877906944,
+  "immediate_disk_growth_bytes": 49107517440,
+  "disk_reserve_at_maximum_bytes": 184923643904,
+  "protected_processes": 77,
+  "script_sha256": "9ad97b85fdacc45db2e0d7f48826d2a9d993d0e3b616a584c4b858d6c41d3904",
+  "scope": "Runtime-only existing paging file extension; no persistent setting, reboot or process signal"
+}

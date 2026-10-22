@@ -1,0 +1,36 @@
+{
+  "memory": {
+    "at_utc": "2026-10-22T19:54:28.729446+00:00",
+    "committed_bytes": 120512856064,
+    "commit_limit_bytes": 122362687488,
+    "headroom_bytes": 1849831424,
+    "physical_bytes": 68390989824,
+    "available_physical_bytes": 14328532992,
+    "pagefiles": [
+      {
+        "path": "C:\\pagefile.sys",
+        "allocated_bytes": 53971697664,
+        "used_bytes": 3898585088
+      }
+    ],
+    "disk_free_bytes": 405356539904,
+    "configuration": {
+      "PagingFiles": [
+        "?:\\pagefile.sys"
+      ]
+    }
+  },
+  "identities": [
+    {
+      "pid": 25280,
+      "alive": true,
+      "created": 134367346238680939
+    },
+    {
+      "pid": 9820,
+      "alive": true,
+      "created": 134367346240009170
+    }
+  ],
+  "protected_processes": 77
+}

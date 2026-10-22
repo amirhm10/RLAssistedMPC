@@ -1,0 +1,919 @@
+{
+  "reason": "Author requested closing unnecessary CMD windows",
+  "protected": {
+    "42644": {
+      "pid": 42644,
+      "alive": true,
+      "created": 134371074825094877
+    },
+    "35808": {
+      "pid": 35808,
+      "alive": true,
+      "created": 134371064003094853
+    },
+    "45248": {
+      "pid": 45248,
+      "alive": true,
+      "created": 134371067724962302
+    },
+    "21212": {
+      "pid": 21212,
+      "alive": true,
+      "created": 134371067725062160
+    },
+    "15092": {
+      "pid": 15092,
+      "alive": true,
+      "created": 134371067725132924
+    },
+    "8812": {
+      "pid": 8812,
+      "alive": true,
+      "created": 134371067725215989
+    },
+    "9628": {
+      "pid": 9628,
+      "alive": true,
+      "created": 134371067725322298
+    },
+    "21748": {
+      "pid": 21748,
+      "alive": true,
+      "created": 134371067725390976
+    },
+    "23668": {
+      "pid": 23668,
+      "alive": true,
+      "created": 134371067725500989
+    },
+    "11248": {
+      "pid": 11248,
+      "alive": true,
+      "created": 134371067725610990
+    },
+    "25940": {
+      "pid": 25940,
+      "alive": true,
+      "created": 134371067725723191
+    },
+    "25660": {
+      "pid": 25660,
+      "alive": true,
+      "created": 134371067725830844
+    },
+    "22588": {
+      "pid": 22588,
+      "alive": true,
+      "created": 134371156883220647
+    },
+    "36720": {
+      "pid": 36720,
+      "alive": true,
+      "created": 134371156883428987
+    },
+    "29968": {
+      "pid": 29968,
+      "alive": true,
+      "created": 134371162965508425
+    },
+    "26072": {
+      "pid": 26072,
+      "alive": true,
+      "created": 134371162965813299
+    },
+    "58044": {
+      "pid": 58044,
+      "alive": true,
+      "created": 134371162966151586
+    },
+    "56532": {
+      "pid": 56532,
+      "alive": true,
+      "created": 134371074897082649
+    },
+    "22316": {
+      "pid": 22316,
+      "alive": true,
+      "created": 134371064077341978
+    },
+    "36404": {
+      "pid": 36404,
+      "alive": true,
+      "created": 134371067914043481
+    },
+    "12000": {
+      "pid": 12000,
+      "alive": true,
+      "created": 134371068097923271
+    },
+    "29720": {
+      "pid": 29720,
+      "alive": true,
+      "created": 134371068283226762
+    },
+    "39372": {
+      "pid": 39372,
+      "alive": true,
+      "created": 134371068474673640
+    },
+    "48208": {
+      "pid": 48208,
+      "alive": true,
+      "created": 134371068868626924
+    },
+    "29084": {
+      "pid": 29084,
+      "alive": true,
+      "created": 134371069485545077
+    },
+    "55316": {
+      "pid": 55316,
+      "alive": true,
+      "created": 134371069697153224
+    },
+    "52360": {
+      "pid": 52360,
+      "alive": true,
+      "created": 134371068669674683
+    },
+    "41696": {
+      "pid": 41696,
+      "alive": true,
+      "created": 134371069085660642
+    },
+    "38588": {
+      "pid": 38588,
+      "alive": true,
+      "created": 134371069293369329
+    },
+    "44800": {
+      "pid": 44800,
+      "alive": true,
+      "created": 134371157414595329
+    },
+    "9316": {
+      "pid": 9316,
+      "alive": true,
+      "created": 134371158428028132
+    },
+    "46768": {
+      "pid": 46768,
+      "alive": true,
+      "created": 134371157007296173
+    },
+    "49616": {
+      "pid": 49616,
+      "alive": true,
+      "created": 134371158024338380
+    },
+    "55256": {
+      "pid": 55256,
+      "alive": true,
+      "created": 134371163072171445
+    },
+    "19256": {
+      "pid": 19256,
+      "alive": true,
+      "created": 134371164001106405
+    },
+    "46892": {
+      "pid": 46892,
+      "alive": true,
+      "created": 134371163263221178
+    },
+    "43764": {
+      "pid": 43764,
+      "alive": true,
+      "created": 134371164223339286
+    },
+    "35756": {
+      "pid": 35756,
+      "alive": true,
+      "created": 134371163478149484
+    },
+    "1016": {
+      "pid": 1016,
+      "alive": true,
+      "created": 134371164423179193
+    },
+    "56576": {
+      "pid": 56576,
+      "alive": true,
+      "created": 134371061277494275
+    },
+    "5784": {
+      "pid": 5784,
+      "alive": true,
+      "created": 134371061274847944
+    },
+    "43196": {
+      "pid": 43196,
+      "alive": true,
+      "created": 134371074798047216
+    },
+    "42560": {
+      "pid": 42560,
+      "alive": true,
+      "created": 134371074794509902
+    },
+    "12032": {
+      "pid": 12032,
+      "alive": true,
+      "created": 134371156837647431
+    },
+    "13500": {
+      "pid": 13500,
+      "alive": true,
+      "created": 134371156824880459
+    },
+    "55228": {
+      "pid": 55228,
+      "alive": true,
+      "created": 134371162917713859
+    },
+    "52596": {
+      "pid": 52596,
+      "alive": true,
+      "created": 134371162914357690
+    },
+    "36308": {
+      "pid": 36308,
+      "alive": true,
+      "created": 134369880567357769
+    },
+    "45064": {
+      "pid": 45064,
+      "alive": true,
+      "created": 134371074824997914
+    },
+    "12496": {
+      "pid": 12496,
+      "alive": true,
+      "created": 134371064002995822
+    },
+    "56408": {
+      "pid": 56408,
+      "alive": true,
+      "created": 134371067724889636
+    },
+    "54420": {
+      "pid": 54420,
+      "alive": true,
+      "created": 134371067699943379
+    },
+    "53116": {
+      "pid": 53116,
+      "alive": true,
+      "created": 134371067699853278
+    },
+    "49140": {
+      "pid": 49140,
+      "alive": true,
+      "created": 134371067724974208
+    },
+    "22232": {
+      "pid": 22232,
+      "alive": true,
+      "created": 134371067725067465
+    },
+    "37072": {
+      "pid": 37072,
+      "alive": true,
+      "created": 134371067725150524
+    },
+    "38448": {
+      "pid": 38448,
+      "alive": true,
+      "created": 134371067725227129
+    },
+    "35948": {
+      "pid": 35948,
+      "alive": true,
+      "created": 134371067725309057
+    },
+    "48780": {
+      "pid": 48780,
+      "alive": true,
+      "created": 134371067725402323
+    },
+    "25828": {
+      "pid": 25828,
+      "alive": true,
+      "created": 134371067725511734
+    },
+    "45996": {
+      "pid": 45996,
+      "alive": true,
+      "created": 134371067725605911
+    },
+    "49884": {
+      "pid": 49884,
+      "alive": true,
+      "created": 134371067725743038
+    },
+    "18548": {
+      "pid": 18548,
+      "alive": true,
+      "created": 134371156883094622
+    },
+    "57216": {
+      "pid": 57216,
+      "alive": true,
+      "created": 134371156883351101
+    },
+    "25856": {
+      "pid": 25856,
+      "alive": true,
+      "created": 134371162965427941
+    },
+    "47032": {
+      "pid": 47032,
+      "alive": true,
+      "created": 134371162965737604
+    },
+    "54580": {
+      "pid": 54580,
+      "alive": true,
+      "created": 134371162966063518
+    },
+    "1924": {
+      "pid": 1924,
+      "alive": null,
+      "created": null
+    },
+    "1716": {
+      "pid": 1716,
+      "alive": null,
+      "created": null
+    },
+    "1596": {
+      "pid": 1596,
+      "alive": null,
+      "created": null
+    },
+    "48272": {
+      "pid": 48272,
+      "alive": true,
+      "created": 134371061277405853
+    },
+    "53684": {
+      "pid": 53684,
+      "alive": true,
+      "created": 134371061276200787
+    },
+    "2524": {
+      "pid": 2524,
+      "alive": null,
+      "created": null
+    },
+    "35560": {
+      "pid": 35560,
+      "alive": true,
+      "created": 134371074797951922
+    },
+    "44940": {
+      "pid": 44940,
+      "alive": true,
+      "created": 134371074796157282
+    },
+    "58236": {
+      "pid": 58236,
+      "alive": true,
+      "created": 134371156837555491
+    },
+    "10644": {
+      "pid": 10644,
+      "alive": true,
+      "created": 134371156836158906
+    },
+    "18272": {
+      "pid": 18272,
+      "alive": true,
+      "created": 134371162917639096
+    },
+    "51116": {
+      "pid": 51116,
+      "alive": true,
+      "created": 134371162916144214
+    },
+    "13544": {
+      "pid": 13544,
+      "alive": true,
+      "created": 134369880565722436
+    },
+    "29220": {
+      "pid": 29220,
+      "alive": true,
+      "created": 134369880556807177
+    }
+  },
+  "keep_current_viewer": 53488,
+  "close": [
+    {
+      "root": 29780,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\progress.cmd",
+      "tree": [
+        {
+          "pid": 37980,
+          "parent": 29780,
+          "name": "conhost.exe",
+          "created": "2026-10-18T20:30:16.774236-04:00",
+          "command": "",
+          "private_bytes": 1523712,
+          "working_bytes": 1159168,
+          "cpu": 0.015625,
+          "depth": 1,
+          "identity": {
+            "pid": 37980,
+            "alive": true,
+            "created": 134368434167742364
+          }
+        },
+        {
+          "pid": 50152,
+          "parent": 29780,
+          "name": "python.exe",
+          "created": "2026-10-18T20:30:17.355889-04:00",
+          "command": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch",
+          "private_bytes": 61984768,
+          "working_bytes": 61968384,
+          "cpu": 4870.125,
+          "depth": 1,
+          "identity": {
+            "pid": 50152,
+            "alive": true,
+            "created": 134368434173558897
+          }
+        },
+        {
+          "pid": 29780,
+          "parent": 10628,
+          "name": "cmd.exe",
+          "created": "2026-10-18T20:30:16.768816-04:00",
+          "command": "cmd.exe /d /c call \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\progress.cmd\"",
+          "private_bytes": 4554752,
+          "working_bytes": 1114112,
+          "cpu": 0.015625,
+          "depth": 0,
+          "identity": {
+            "pid": 29780,
+            "alive": true,
+            "created": 134368434167688167
+          }
+        }
+      ],
+      "created": "2026-10-18T20:30:16.768816-04:00"
+    },
+    {
+      "root": 49160,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_openblas\\progress.cmd",
+      "tree": [
+        {
+          "pid": 18828,
+          "parent": 49160,
+          "name": "conhost.exe",
+          "created": "2026-10-20T01:07:36.203927-04:00",
+          "command": "",
+          "private_bytes": 1552384,
+          "working_bytes": 1138688,
+          "cpu": 0.03125,
+          "depth": 1,
+          "identity": {
+            "pid": 18828,
+            "alive": true,
+            "created": 134369464562039278
+          }
+        },
+        {
+          "pid": 40324,
+          "parent": 49160,
+          "name": "python.exe",
+          "created": "2026-10-20T01:07:36.429319-04:00",
+          "command": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch",
+          "private_bytes": 61726720,
+          "working_bytes": 62472192,
+          "cpu": 3381.390625,
+          "depth": 1,
+          "identity": {
+            "pid": 40324,
+            "alive": true,
+            "created": 134369464564293199
+          }
+        },
+        {
+          "pid": 49160,
+          "parent": 51704,
+          "name": "cmd.exe",
+          "created": "2026-10-20T01:07:36.194212-04:00",
+          "command": "cmd.exe /d /c call \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_openblas\\progress.cmd\"",
+          "private_bytes": 4677632,
+          "working_bytes": 1122304,
+          "cpu": 0.015625,
+          "depth": 0,
+          "identity": {
+            "pid": 49160,
+            "alive": true,
+            "created": 134369464561942120
+          }
+        }
+      ],
+      "created": "2026-10-20T01:07:36.194212-04:00"
+    },
+    {
+      "root": 44952,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\progress.cmd",
+      "tree": [
+        {
+          "pid": 34140,
+          "parent": 44952,
+          "name": "conhost.exe",
+          "created": "2026-10-20T12:40:56.586943-04:00",
+          "command": "",
+          "private_bytes": 1568768,
+          "working_bytes": 1167360,
+          "cpu": 0.046875,
+          "depth": 1,
+          "identity": {
+            "pid": 34140,
+            "alive": true,
+            "created": 134369880565869433
+          }
+        },
+        {
+          "pid": 6216,
+          "parent": 44952,
+          "name": "python.exe",
+          "created": "2026-10-20T12:40:56.760569-04:00",
+          "command": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch",
+          "private_bytes": 61521920,
+          "working_bytes": 60182528,
+          "cpu": 2835.3125,
+          "depth": 1,
+          "identity": {
+            "pid": 6216,
+            "alive": true,
+            "created": 134369880567605695
+          }
+        },
+        {
+          "pid": 44952,
+          "parent": 29220,
+          "name": "cmd.exe",
+          "created": "2026-10-20T12:40:56.579939-04:00",
+          "command": "cmd.exe /d /c call \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\progress.cmd\"",
+          "private_bytes": 4673536,
+          "working_bytes": 1122304,
+          "cpu": 0.0,
+          "depth": 0,
+          "identity": {
+            "pid": 44952,
+            "alive": true,
+            "created": 134369880565799391
+          }
+        }
+      ],
+      "created": "2026-10-20T12:40:56.579939-04:00"
+    },
+    {
+      "root": 25112,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_live_progress\\viewer.cmd",
+      "tree": [
+        {
+          "pid": 24908,
+          "parent": 25112,
+          "name": "conhost.exe",
+          "created": "2026-10-20T17:17:38.571072-04:00",
+          "command": "",
+          "private_bytes": 1511424,
+          "working_bytes": 1146880,
+          "cpu": 0.015625,
+          "depth": 1,
+          "identity": {
+            "pid": 24908,
+            "alive": true,
+            "created": 134370046585710726
+          }
+        },
+        {
+          "pid": 2748,
+          "parent": 25112,
+          "name": "python.exe",
+          "created": "2026-10-20T17:17:38.758727-04:00",
+          "command": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch --interval 30",
+          "private_bytes": 61595648,
+          "working_bytes": 62246912,
+          "cpu": 2630.296875,
+          "depth": 1,
+          "identity": {
+            "pid": 2748,
+            "alive": true,
+            "created": 134370046587587272
+          }
+        },
+        {
+          "pid": 25112,
+          "parent": 39640,
+          "name": "cmd.exe",
+          "created": "2026-10-20T17:17:38.56266-04:00",
+          "command": "cmd.exe /d /c call \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_live_progress\\viewer.cmd\"",
+          "private_bytes": 4857856,
+          "working_bytes": 1122304,
+          "cpu": 0.0625,
+          "depth": 0,
+          "identity": {
+            "pid": 25112,
+            "alive": true,
+            "created": 134370046585626607
+          }
+        }
+      ],
+      "created": "2026-10-20T17:17:38.56266-04:00"
+    },
+    {
+      "root": 20972,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\progress.cmd",
+      "tree": [
+        {
+          "pid": 12788,
+          "parent": 20972,
+          "name": "conhost.exe",
+          "created": "2026-10-21T21:28:47.63388-04:00",
+          "command": "",
+          "private_bytes": 1560576,
+          "working_bytes": 2043904,
+          "cpu": 0.015625,
+          "depth": 1,
+          "identity": {
+            "pid": 12788,
+            "alive": true,
+            "created": 134371061276338809
+          }
+        },
+        {
+          "pid": 55232,
+          "parent": 4248,
+          "name": "python.exe",
+          "created": "2026-10-21T21:28:47.820202-04:00",
+          "command": "\"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\recovery_20261021\\runtime\\env\\Scripts\\python.exe\"  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch --interval 30",
+          "private_bytes": 63246336,
+          "working_bytes": 62279680,
+          "cpu": 1167.234375,
+          "depth": 2,
+          "identity": {
+            "pid": 55232,
+            "alive": true,
+            "created": 134371061278202026
+          }
+        },
+        {
+          "pid": 4248,
+          "parent": 20972,
+          "name": "python.exe",
+          "created": "2026-10-21T21:28:47.813832-04:00",
+          "command": "\"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\recovery_20261021\\runtime\\env\\Scripts\\python.exe\"  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch --interval 30",
+          "private_bytes": 815104,
+          "working_bytes": 1212416,
+          "cpu": 0.015625,
+          "depth": 1,
+          "identity": {
+            "pid": 4248,
+            "alive": true,
+            "created": 134371061278138327
+          }
+        },
+        {
+          "pid": 20972,
+          "parent": 5784,
+          "name": "cmd.exe",
+          "created": "2026-10-21T21:28:47.628762-04:00",
+          "command": "cmd.exe /d /c call \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\progress.cmd\"",
+          "private_bytes": 4669440,
+          "working_bytes": 1556480,
+          "cpu": 0.015625,
+          "depth": 0,
+          "identity": {
+            "pid": 20972,
+            "alive": true,
+            "created": 134371061276287629
+          }
+        }
+      ],
+      "created": "2026-10-21T21:28:47.628762-04:00"
+    },
+    {
+      "root": 26100,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_markov_checkpoint\\progress.cmd",
+      "tree": [
+        {
+          "pid": 33660,
+          "parent": 26100,
+          "name": "conhost.exe",
+          "created": "2026-10-21T21:35:46.470042-04:00",
+          "command": "",
+          "private_bytes": 1478656,
+          "working_bytes": 1970176,
+          "cpu": 0.015625,
+          "depth": 1,
+          "identity": {
+            "pid": 33660,
+            "alive": true,
+            "created": 134371065464700421
+          }
+        },
+        {
+          "pid": 42940,
+          "parent": 44716,
+          "name": "python.exe",
+          "created": "2026-10-21T21:35:46.653654-04:00",
+          "command": "\"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\recovery_20261021\\runtime\\env\\Scripts\\python.exe\"  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch --interval 30",
+          "private_bytes": 63590400,
+          "working_bytes": 64266240,
+          "cpu": 1202.125,
+          "depth": 2,
+          "identity": {
+            "pid": 42940,
+            "alive": true,
+            "created": 134371065466536543
+          }
+        },
+        {
+          "pid": 44716,
+          "parent": 26100,
+          "name": "python.exe",
+          "created": "2026-10-21T21:35:46.647233-04:00",
+          "command": "\"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\recovery_20261021\\runtime\\env\\Scripts\\python.exe\"  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch --interval 30",
+          "private_bytes": 815104,
+          "working_bytes": 1212416,
+          "cpu": 0.0,
+          "depth": 1,
+          "identity": {
+            "pid": 44716,
+            "alive": true,
+            "created": 134371065466472336
+          }
+        },
+        {
+          "pid": 26100,
+          "parent": 57028,
+          "name": "cmd.exe",
+          "created": "2026-10-21T21:35:46.464249-04:00",
+          "command": "cmd.exe /d /c call \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_markov_checkpoint\\progress.cmd\"",
+          "private_bytes": 4673536,
+          "working_bytes": 1814528,
+          "cpu": 0.0,
+          "depth": 0,
+          "identity": {
+            "pid": 26100,
+            "alive": true,
+            "created": 134371065464642492
+          }
+        }
+      ],
+      "created": "2026-10-21T21:35:46.464249-04:00"
+    },
+    {
+      "root": 37912,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_markov_checkpoint_a2\\progress.cmd",
+      "tree": [
+        {
+          "pid": 57064,
+          "parent": 37912,
+          "name": "conhost.exe",
+          "created": "2026-10-21T21:51:19.62987-04:00",
+          "command": "",
+          "private_bytes": 1552384,
+          "working_bytes": 2084864,
+          "cpu": 0.03125,
+          "depth": 1,
+          "identity": {
+            "pid": 57064,
+            "alive": true,
+            "created": 134371074796298706
+          }
+        },
+        {
+          "pid": 10020,
+          "parent": 44396,
+          "name": "python.exe",
+          "created": "2026-10-21T21:51:19.959104-04:00",
+          "command": "\"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\recovery_20261021\\runtime\\env\\Scripts\\python.exe\"  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch --interval 30",
+          "private_bytes": 62922752,
+          "working_bytes": 63737856,
+          "cpu": 1163.3125,
+          "depth": 2,
+          "identity": {
+            "pid": 10020,
+            "alive": true,
+            "created": 134371074799591048
+          }
+        },
+        {
+          "pid": 44396,
+          "parent": 37912,
+          "name": "python.exe",
+          "created": "2026-10-21T21:51:19.950869-04:00",
+          "command": "\"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\recovery_20261021\\runtime\\env\\Scripts\\python.exe\"  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch --interval 30",
+          "private_bytes": 815104,
+          "working_bytes": 1208320,
+          "cpu": 0.0,
+          "depth": 1,
+          "identity": {
+            "pid": 44396,
+            "alive": true,
+            "created": 134371074799508696
+          }
+        },
+        {
+          "pid": 37912,
+          "parent": 42560,
+          "name": "cmd.exe",
+          "created": "2026-10-21T21:51:19.622425-04:00",
+          "command": "cmd.exe /d /c call \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_markov_checkpoint_a2\\progress.cmd\"",
+          "private_bytes": 4669440,
+          "working_bytes": 1847296,
+          "cpu": 0.03125,
+          "depth": 0,
+          "identity": {
+            "pid": 37912,
+            "alive": true,
+            "created": 134371074796224253
+          }
+        }
+      ],
+      "created": "2026-10-21T21:51:19.622425-04:00"
+    },
+    {
+      "root": 12428,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_e1_budget20\\progress.cmd",
+      "tree": [
+        {
+          "pid": 8220,
+          "parent": 12428,
+          "name": "conhost.exe",
+          "created": "2026-10-22T00:08:03.628758-04:00",
+          "command": "",
+          "private_bytes": 1499136,
+          "working_bytes": 1970176,
+          "cpu": 0.0,
+          "depth": 1,
+          "identity": {
+            "pid": 8220,
+            "alive": true,
+            "created": 134371156836287588
+          }
+        },
+        {
+          "pid": 50476,
+          "parent": 43592,
+          "name": "python.exe",
+          "created": "2026-10-22T00:08:03.859948-04:00",
+          "command": "\"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\recovery_20261021\\runtime\\env\\Scripts\\python.exe\"  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch --interval 30",
+          "private_bytes": 63770624,
+          "working_bytes": 64536576,
+          "cpu": 1025.421875,
+          "depth": 2,
+          "identity": {
+            "pid": 50476,
+            "alive": true,
+            "created": 134371156838599482
+          }
+        },
+        {
+          "pid": 43592,
+          "parent": 12428,
+          "name": "python.exe",
+          "created": "2026-10-22T00:08:03.852215-04:00",
+          "command": "\"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\recovery_20261021\\runtime\\env\\Scripts\\python.exe\"  -B -u \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\show_review_progress.py\" --watch --interval 30",
+          "private_bytes": 819200,
+          "working_bytes": 1208320,
+          "cpu": 0.0,
+          "depth": 1,
+          "identity": {
+            "pid": 43592,
+            "alive": true,
+            "created": 134371156838522150
+          }
+        },
+        {
+          "pid": 12428,
+          "parent": 13500,
+          "name": "cmd.exe",
+          "created": "2026-10-22T00:08:03.621566-04:00",
+          "command": "cmd.exe /d /c call \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_e1_budget20\\progress.cmd\"",
+          "private_bytes": 4837376,
+          "working_bytes": 1847296,
+          "cpu": 0.0,
+          "depth": 0,
+          "identity": {
+            "pid": 12428,
+            "alive": true,
+            "created": 134371156836215660
+          }
+        }
+      ],
+      "created": "2026-10-22T00:08:03.621566-04:00"
+    }
+  ],
+  "aspen_count": 22,
+  "stale_aspen": []
+}

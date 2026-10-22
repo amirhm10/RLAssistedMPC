@@ -1,0 +1,30 @@
+{
+  "processes": [
+    {
+      "pid": 25280,
+      "parent": 9404,
+      "created": "2026-10-17T14:17:03.8680930-04:00",
+      "path": "C:\\Program Files\\Microsoft OneDrive\\OneDrive.exe",
+      "command": " /updateInstalled /background",
+      "owner": "hamediaa",
+      "domain": "MACCDT02",
+      "private_bytes": 3341639680
+    },
+    {
+      "pid": 9820,
+      "parent": 25280,
+      "created": "2026-10-17T14:17:04.0009170-04:00",
+      "path": "C:\\Program Files\\Microsoft OneDrive\\OneDrive.exe",
+      "command": "\"C:\\Program Files\\Microsoft OneDrive\\OneDrive.exe\" /client=Personal /background",
+      "owner": "hamediaa",
+      "domain": "MACCDT02",
+      "private_bytes": 50507776
+    }
+  ],
+  "executable": "C:\\Program Files\\Microsoft OneDrive\\OneDrive.exe",
+  "signature_status": "Valid",
+  "signer": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+  "current_user": "hamediaa",
+  "approved_action": "Temporarily quit OneDrive; leave all experiments and local files intact",
+  "at": "2026-10-22T15:54:06.8121796-04:00"
+}

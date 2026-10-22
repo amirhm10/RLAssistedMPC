@@ -1,5 +1,19 @@
 # Reviewer-run recovery — latest update October 22, 2026
 
+## Memory cleanup - October 22, 15:55 Toronto
+
+Eight redundant read-only progress CMD windows were closed, retaining the newest viewer (PID 53488) and all five active experiment/queue consoles. No stale Aspen application was found: all 22 native applications match current worker ownership. With Amir's explicit approval, the two Microsoft-signed OneDrive sync-client processes were gracefully closed. This reduced system commitment by 3.32 GiB in the before/after sample, leaving 5.04 GiB of commitment headroom at 95.6% of the current limit. Cloud syncing is temporarily stopped; running jobs continue saving local files. Reopen OneDrive from Start to resume cloud syncing when memory pressure permits.
+
+At 2026-10-22 15:55 Toronto, all 17 current production jobs remain running: twelve column repetitions and five column E1 configurations. No current job is failed, stopped or queued. All 17 worker groups have positive CPU increases in the 52-second sample. All 77 queryable protected worker/Aspen/supervisor/broker/coordinator/ancestor identities are unchanged. The automatic combined coordinator and four recovery supervisors remain live; source, bootstrap, job and protocol guards pass. No new Python/Aspen crash event was recorded between the previous 13:49 audit and the 15:54 resource sample.
+
+Column E1 is running horizon, weights, Markov, combined and residual simultaneously on cases 13, 14, 15, 16 and 17 respectively. These are five configurations: combined uses the four learned horizon/weights/Markov/residual channels together. Each configuration owns two separate Aspen applications, one for main training and one for counterfactual comparisons, so E1 accounts for ten of the 22 live native applications. 155/640 primary pairs are complete (485 remaining): combined 75/320, each standalone 20/80. Zero failed/duplicate pairs were found. The original 300-cycle schedule and approved reduced sampling budget are unchanged.
+
+A guarded runtime-only paging-file increase was prepared and its read-only preflight passed. The Windows UAC launch was canceled because Amir has no administrator access; the helper was not launched and the proposed 96 GiB allocation was not applied. Paging configuration remains system-managed and unchanged. No administrator bypass, reboot, worker restart or Aspen reset was performed.
+
+This cleanup reduces memory pressure but does not repair or prove the cause of Aspen memory growth. The active combined E1 comparison application was the largest consumer, about 10.9 GiB private memory at 15:52. It was preserved. Commitment remains high and multi-day crash-free operation is not established. Memory counters fluctuate with the jobs. Do not use working-set trimming, forcibly close a live native application, or modify sealed worker sources as an in-place remedy. Any future native process recycling requires a validated full-state handoff.
+
+Evidence: `change-reports/memory_20261022_1543/STATUS.md` and `assessment.json`.
+
 ## Current run audit - October 22, 13:49 Toronto
 
 At October 22, 13:49 Toronto (2026-10-22T17:49:01.974451+00:00), **17 current jobs are running; the polymer threshold recovery has completed; zero current jobs are failed, stopped or queued.** The current pool is twelve column repetitions and five reduced column E1 jobs. Polymer repetitions remain 50/50 complete; column repetitions remain 38/50 complete, with twelve running. Combined SG repetitions are at cycles 112-113/300 and plain at 87-91/300. Markov SG seed 23 is at cycle 121/300; residual plain seed 23 is at 115/300.

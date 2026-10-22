@@ -1,0 +1,5 @@
+{
+  "state": "not_launched",
+  "error": "This command cannot be run due to the error: An error occurred trying to start process 'C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\python.exe' with working directory 'C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC'. The operation was canceled by the user.",
+  "at": "2026-10-22T15:52:25.7272822-04:00"
+}

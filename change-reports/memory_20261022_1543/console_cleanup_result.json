@@ -1,0 +1,150 @@
+{
+  "closed_viewer_windows": 8,
+  "actions": [
+    {
+      "viewer": 29780,
+      "pid": 37980,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 29780,
+      "pid": 50152,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 29780,
+      "pid": 29780,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 49160,
+      "pid": 18828,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 49160,
+      "pid": 40324,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 49160,
+      "pid": 49160,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 44952,
+      "pid": 34140,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 44952,
+      "pid": 6216,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 44952,
+      "pid": 44952,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 25112,
+      "pid": 24908,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 25112,
+      "pid": 2748,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 25112,
+      "pid": 25112,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 20972,
+      "pid": 12788,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 20972,
+      "pid": 55232,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 20972,
+      "pid": 4248,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 20972,
+      "pid": 20972,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 26100,
+      "pid": 33660,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 26100,
+      "pid": 42940,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 26100,
+      "pid": 44716,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 26100,
+      "pid": 26100,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 37912,
+      "pid": 57064,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 37912,
+      "pid": 10020,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 37912,
+      "pid": 44396,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 37912,
+      "pid": 37912,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 12428,
+      "pid": 8220,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 12428,
+      "pid": 50476,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 12428,
+      "pid": 43592,
+      "result": "closed_verified_orphan"
+    },
+    {
+      "viewer": 12428,
+      "pid": 12428,
+      "result": "closed_verified_orphan"
+    }
+  ],
+  "kept_viewer": 53488,
+  "all_protected_identities_unchanged": true,
+  "stale_aspen_count": 0,
+  "finished_project_run_consoles": 0,
+  "observed_at_utc": "2026-10-22T19:48:19.080165+00:00"
+}

@@ -1,0 +1,1828 @@
+{
+  "at_utc": "2026-10-23T17:07:42.584074+00:00",
+  "elapsed_seconds": 30.17693519592285,
+  "files_inspected": 43200,
+  "files_with_offline_or_recall_attributes": 10134,
+  "roots": [
+    {
+      "root": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC",
+      "logical_bytes": 369162250800,
+      "directories": [
+        {
+          "path": "Distillation",
+          "bytes": 254149195651,
+          "files": 12719
+        },
+        {
+          "path": "Distillation/Results",
+          "bytes": 254077836584,
+          "files": 12663
+        },
+        {
+          "path": "Distillation/Results/state_recovery",
+          "bytes": 185473541962,
+          "files": 5780
+        },
+        {
+          "path": "Polymer",
+          "bytes": 107152412467,
+          "files": 14156
+        },
+        {
+          "path": "Polymer/Results",
+          "bytes": 107037471641,
+          "files": 14145
+        },
+        {
+          "path": "Distillation/Results/column_e1",
+          "bytes": 49293069061,
+          "files": 2302
+        },
+        {
+          "path": "Polymer/Results/phase2_repeats",
+          "bytes": 23776297077,
+          "files": 2391
+        },
+        {
+          "path": "Polymer/Results/review_recovery",
+          "bytes": 11215966707,
+          "files": 2604
+        },
+        {
+          "path": "Polymer/Results/td3_markov_disturb",
+          "bytes": 8698013676,
+          "files": 324
+        },
+        {
+          "path": "Polymer/Results/combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho",
+          "bytes": 8685311154,
+          "files": 1184
+        },
+        {
+          "path": "Polymer/Results/combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho",
+          "bytes": 8627902614,
+          "files": 1494
+        },
+        {
+          "path": "Polymer/Results/sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb_mismatch",
+          "bytes": 7855739746,
+          "files": 306
+        },
+        {
+          "path": "Polymer/Results/state_recovery",
+          "bytes": 5318664118,
+          "files": 96
+        },
+        {
+          "path": "Distillation/Results/review_recovery",
+          "bytes": 4968895617,
+          "files": 871
+        },
+        {
+          "path": "Polymer/Results/sg_td3_weights_critic_warm3_conservative_disturb_mismatch",
+          "bytes": 4817783842,
+          "files": 357
+        },
+        {
+          "path": "Polymer/Results/sg_td3_residual_critic_warm3_conservative_disturb_mismatch",
+          "bytes": 4805282638,
+          "files": 425
+        },
+        {
+          "path": "Polymer/Results/td3_residual_disturb",
+          "bytes": 4565655082,
+          "files": 475
+        },
+        {
+          "path": "Polymer/Results/td3_weights_disturb",
+          "bytes": 4544361649,
+          "files": 420
+        },
+        {
+          "path": "Polymer/Results/e1",
+          "bytes": 3216531965,
+          "files": 1832
+        },
+        {
+          "path": "Distillation/Results/phase2_repeats",
+          "bytes": 2674895170,
+          "files": 772
+        },
+        {
+          "path": "Polymer/Results/horizon_disturb_unified",
+          "bytes": 2670988053,
+          "files": 440
+        },
+        {
+          "path": "Polymer/Results/horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_mismatch",
+          "bytes": 2590606214,
+          "files": 374
+        },
+        {
+          "path": "Results",
+          "bytes": 2197487426,
+          "files": 2428
+        },
+        {
+          "path": "Results/e3",
+          "bytes": 2197243380,
+          "files": 2318
+        },
+        {
+          "path": "change-reports",
+          "bytes": 2162817751,
+          "files": 5883
+        },
+        {
+          "path": "Distillation/Results/distillation_markov_sg_disturb_fluctuation",
+          "bytes": 1690550764,
+          "files": 126
+        },
+        {
+          "path": "Distillation/Results/distillation_combined_sg_disturb_fluctuation",
+          "bytes": 1526348474,
+          "files": 498
+        },
+        {
+          "path": "change-reports/review_recovery_20261015",
+          "bytes": 1494333952,
+          "files": 67
+        },
+        {
+          "path": "change-reports/review_recovery_20261015/smoke_suite",
+          "bytes": 1493981369,
+          "files": 59
+        },
+        {
+          "path": "Results/e3/20261015_042751_513bff",
+          "bytes": 1483435078,
+          "files": 1161
+        },
+        {
+          "path": ".tmp_e1_cli_combined",
+          "bytes": 1396701579,
+          "files": 43
+        },
+        {
+          "path": ".tmp_e1_cli_combined/20261013_182757_d5f87e",
+          "bytes": 1396701579,
+          "files": 43
+        },
+        {
+          "path": ".tmp_e1_cli_combined/20261013_182757_d5f87e/combined_s7",
+          "bytes": 1396690724,
+          "files": 42
+        },
+        {
+          "path": "Distillation/Results/distillation_markov_plain_disturb_fluctuation",
+          "bytes": 1291408334,
+          "files": 90
+        },
+        {
+          "path": "Polymer/Results/comparisons",
+          "bytes": 1077121331,
+          "files": 130
+        },
+        {
+          "path": "Distillation/Results/distillation_weights_sg_disturb_fluctuation",
+          "bytes": 1052863739,
+          "files": 168
+        },
+        {
+          "path": "Distillation/Results/distillation_residual_sg_disturb_fluctuation",
+          "bytes": 930111275,
+          "files": 175
+        },
+        {
+          "path": "Distillation/Results/column_review",
+          "bytes": 898639064,
+          "files": 255
+        },
+        {
+          "path": "Distillation/Results/distillation_combined_plain_disturb_fluctuation",
+          "bytes": 845795334,
+          "files": 332
+        },
+        {
+          "path": "Polymer/Results/combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho_robustness_200_100",
+          "bytes": 791627891,
+          "files": 88
+        },
+        {
+          "path": "report",
+          "bytes": 784663866,
+          "files": 1184
+        },
+        {
+          "path": ".git",
+          "bytes": 772011825,
+          "files": 762
+        },
+        {
+          "path": ".git/objects",
+          "bytes": 771820535,
+          "files": 715
+        },
+        {
+          "path": "report/figures",
+          "bytes": 756776778,
+          "files": 877
+        },
+        {
+          "path": "Polymer/Results/td3_markov_disturb_robustness_200_100",
+          "bytes": 714899024,
+          "files": 23
+        },
+        {
+          "path": "Results/e3/20261015_042751_4e03da",
+          "bytes": 713808302,
+          "files": 1157
+        },
+        {
+          "path": "Polymer/Results/sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb_mismatch_robustness_200_100",
+          "bytes": 690926356,
+          "files": 23
+        },
+        {
+          "path": ".git/objects/pack",
+          "bytes": 687193547,
+          "files": 3
+        },
+        {
+          "path": "Distillation/Results/distillation_residual_plain_disturb_fluctuation",
+          "bytes": 677016064,
+          "files": 150
+        },
+        {
+          "path": "Distillation/Results/distillation_weights_plain_disturb_fluctuation",
+          "bytes": 634369986,
+          "files": 126
+        },
+        {
+          "path": "Distillation/Results/distillation_horizon_sg_disturb_fluctuation",
+          "bytes": 468736868,
+          "files": 154
+        },
+        {
+          "path": "Polymer/Results/sg_td3_residual_critic_warm3_conservative_disturb_mismatch_robustness_200_100",
+          "bytes": 409720393,
+          "files": 30
+        },
+        {
+          "path": "Polymer/Results/sg_td3_weights_critic_warm3_conservative_disturb_mismatch_robustness_200_100",
+          "bytes": 408402076,
+          "files": 26
+        },
+        {
+          "path": "Distillation/Results/distillation_combined_sg_disturb_fluctuation_temperature_flip_200_100",
+          "bytes": 359543410,
+          "files": 88
+        },
+        {
+          "path": "Distillation/Results/distillation_markov_sg_disturb_fluctuation_temperature_flip_200_100",
+          "bytes": 355087145,
+          "files": 23
+        },
+        {
+          "path": "Distillation/Results/distillation_horizon_plain_disturb_fluctuation",
+          "bytes": 353693635,
+          "files": 132
+        },
+        {
+          "path": "Polymer/Results/td3_residual_disturb_robustness_200_100",
+          "bytes": 348881726,
+          "files": 30
+        },
+        {
+          "path": "Polymer/Results/td3_weights_disturb_robustness_200_100",
+          "bytes": 328411231,
+          "files": 26
+        },
+        {
+          "path": "report/figures/polymer_five_seed_core_study",
+          "bytes": 312324389,
+          "files": 19
+        },
+        {
+          "path": "Polymer/Results/runtime_recovery_smoke",
+          "bytes": 227906991,
+          "files": 41
+        },
+        {
+          "path": "Polymer/Results/horizon_sg_dqn_critic_warm3_default_ofmpc_eps02_002_disturb_mismatch_robustness_200_100",
+          "bytes": 212964854,
+          "files": 27
+        },
+        {
+          "path": "change-reports/run_recovery_20261020",
+          "bytes": 200750410,
+          "files": 2485
+        },
+        {
+          "path": "change-reports/run_recovery_20261020/runtime",
+          "bytes": 200287982,
+          "files": 2470
+        },
+        {
+          "path": "Distillation/Results/distillation_residual_sg_disturb_fluctuation_temperature_flip_200_100",
+          "bytes": 195534301,
+          "files": 30
+        },
+        {
+          "path": "Distillation/Results/distillation_weights_sg_disturb_fluctuation_temperature_flip_200_100",
+          "bytes": 193414638,
+          "files": 26
+        },
+        {
+          "path": "change-reports/column_comparisons_20261015",
+          "bytes": 189258330,
+          "files": 50
+        },
+        {
+          "path": "change-reports/column_parallel_20261016",
+          "bytes": 187798995,
+          "files": 26
+        },
+        {
+          "path": "change-reports/column_parallel_20261016/offline_methods_a",
+          "bytes": 187713933,
+          "files": 20
+        },
+        {
+          "path": "change-reports/column_comparisons_20261015/offline_column_checks_a2",
+          "bytes": 187709750,
+          "files": 18
+        },
+        {
+          "path": "Polymer/Results/horizon_disturb_unified_robustness_200_100",
+          "bytes": 187572829,
+          "files": 27
+        },
+        {
+          "path": "Polymer/Data",
+          "bytes": 114940826,
+          "files": 11
+        },
+        {
+          "path": "report/figures/polymer_five_seed_core_study_combined",
+          "bytes": 110092703,
+          "files": 15
+        },
+        {
+          "path": "Distillation/Results/distillation_horizon_sg_disturb_fluctuation_temperature_flip_200_100",
+          "bytes": 96513486,
+          "files": 27
+        },
+        {
+          "path": "report/figures/polymer_five_seed_core_study_weights",
+          "bytes": 74289831,
+          "files": 15
+        },
+        {
+          "path": "Distillation/Data",
+          "bytes": 71359067,
+          "files": 56
+        },
+        {
+          "path": "report/figures/polymer_five_seed_core_study_residual",
+          "bytes": 64451143,
+          "files": 15
+        },
+        {
+          "path": ".git/objects/bb",
+          "bytes": 64290685,
+          "files": 5
+        },
+        {
+          "path": "report/figures/polymer_five_seed_core_study_matrix",
+          "bytes": 58661016,
+          "files": 15
+        },
+        {
+          "path": "change-reports/recovery_20261021",
+          "bytes": 56342205,
+          "files": 1155
+        },
+        {
+          "path": "change-reports/recovery_20261021/runtime",
+          "bytes": 55072095,
+          "files": 959
+        },
+        {
+          "path": "VanDeVusse",
+          "bytes": 54015678,
+          "files": 248
+        },
+        {
+          "path": "Polymer/Results/mpc_offsetfree_disturb_robustness_200_100",
+          "bytes": 52891098,
+          "files": 17
+        },
+        {
+          "path": "VanDeVusse/Results",
+          "bytes": 52376228,
+          "files": 230
+        },
+        {
+          "path": "Polymer/Data/mpc_results_dist_robustness_200_100.pickle",
+          "bytes": 49927091,
+          "files": 1
+        },
+        {
+          "path": "report/figures/polymer_markov_correction_20260505",
+          "bytes": 37346559,
+          "files": 50
+        },
+        {
+          "path": ".tmp_phase1_smoke_runs",
+          "bytes": 34587689,
+          "files": 182
+        },
+        {
+          "path": ".tmp_e1_cli_check",
+          "bytes": 34431903,
+          "files": 19
+        },
+        {
+          "path": ".tmp_e1_cli_check/20261013_182204_c3455a",
+          "bytes": 34431903,
+          "files": 19
+        },
+        {
+          "path": ".tmp_e1_cli_check/20261013_182204_c3455a/horizon_s7",
+          "bytes": 34421050,
+          "files": 18
+        },
+        {
+          "path": "Data",
+          "bytes": 33990281,
+          "files": 17
+        },
+        {
+          "path": "Data/distillation",
+          "bytes": 33990281,
+          "files": 17
+        },
+        {
+          "path": "Data/distillation/distillation_combined_nominal_none_h-standard__m-td3-standard__w-td3-standard__r-td3-mismatch-rho_unified",
+          "bytes": 33990281,
+          "files": 17
+        },
+        {
+          "path": "Polymer/Data/mpc_results_dist.pickle",
+          "bytes": 33284435,
+          "files": 1
+        },
+        {
+          "path": "Polymer/Data/mpc_results_dist_1.pickle",
+          "bytes": 31370725,
+          "files": 1
+        },
+        {
+          "path": "Paper",
+          "bytes": 30104452,
+          "files": 20
+        },
+        {
+          "path": "Paper/td3_td7_sale_note",
+          "bytes": 30104452,
+          "files": 20
+        },
+        {
+          "path": "Distillation/Data/mpc_results_disturb_ramp.pickle",
+          "bytes": 28810708,
+          "files": 1
+        },
+        {
+          "path": "_codex_tmp_recovery_test_20261016_e",
+          "bytes": 28547055,
+          "files": 81
+        },
+        {
+          "path": "_codex_tmp_column_review_20261016_d",
+          "bytes": 28410505,
+          "files": 113
+        },
+        {
+          "path": "_codex_tmp_column_review_20261016_c",
+          "bytes": 28410482,
+          "files": 112
+        }
+      ],
+      "extensions": [
+        {
+          "extension": ".dynf",
+          "bytes": 206809898256,
+          "files": 1891
+        },
+        {
+          "extension": ".pkl",
+          "bytes": 114920592065,
+          "files": 1294
+        },
+        {
+          "extension": ".snp",
+          "bytes": 12379723582,
+          "files": 2333
+        },
+        {
+          "extension": ".gz",
+          "bytes": 11841680025,
+          "files": 151
+        },
+        {
+          "extension": ".pt",
+          "bytes": 8210362984,
+          "files": 136
+        },
+        {
+          "extension": ".csv",
+          "bytes": 6485796587,
+          "files": 479
+        },
+        {
+          "extension": ".png",
+          "bytes": 2420274860,
+          "files": 13448
+        },
+        {
+          "extension": ".bak",
+          "bytes": 1969986150,
+          "files": 329
+        },
+        {
+          "extension": ".tmp",
+          "bytes": 1410987052,
+          "files": 974
+        },
+        {
+          "extension": ".pack",
+          "bytes": 687000327,
+          "files": 1
+        },
+        {
+          "extension": ".json",
+          "bytes": 665671646,
+          "files": 5175
+        },
+        {
+          "extension": ".cpd",
+          "bytes": 498979584,
+          "files": 15
+        },
+        {
+          "extension": ".npz",
+          "bytes": 201459894,
+          "files": 7023
+        },
+        {
+          "extension": ".pickle",
+          "bytes": 187853931,
+          "files": 74
+        },
+        {
+          "extension": "<none>",
+          "bytes": 85183167,
+          "files": 784
+        },
+        {
+          "extension": ".pyd",
+          "bytes": 72256000,
+          "files": 147
+        },
+        {
+          "extension": ".dll",
+          "bytes": 62415541,
+          "files": 8
+        },
+        {
+          "extension": ".whl",
+          "bytes": 61390506,
+          "files": 4
+        },
+        {
+          "extension": ".py",
+          "bytes": 44812737,
+          "files": 2322
+        },
+        {
+          "extension": ".pdf",
+          "bytes": 43282655,
+          "files": 19
+        }
+      ]
+    },
+    {
+      "root": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper",
+      "logical_bytes": 714139991,
+      "directories": [
+        {
+          "path": "RL_assisted_paper",
+          "bytes": 706676091,
+          "files": 1367
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage",
+          "bytes": 550636779,
+          "files": 201
+        },
+        {
+          "path": "RL_assisted_paper/.git",
+          "bytes": 76925547,
+          "files": 435
+        },
+        {
+          "path": "RL_assisted_paper/.git/objects",
+          "bytes": 76783352,
+          "files": 398
+        },
+        {
+          "path": "RL_assisted_paper/literature",
+          "bytes": 30408742,
+          "files": 380
+        },
+        {
+          "path": "RL_assisted_paper/literature/private",
+          "bytes": 29381638,
+          "files": 204
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/NeurIPS-2023-for-sale-state-action-representation-learning-for-deep-reinforcement-learning-Paper-Conference.pdf",
+          "bytes": 28007250,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/NeurIPS-2023-a-long-n-step-surrogate-stage-reward-for-deep-reinforcement-learning-Paper-Conference.pdf",
+          "bytes": 20792572,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/manuscript_revised",
+          "bytes": 19298403,
+          "files": 133
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0952197626010626-main.pdf",
+          "bytes": 17032205,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0045782525003020-main.pdf",
+          "bytes": 16566703,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/2205.10330v5.pdf",
+          "bytes": 14613318,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/2506.17564v1.pdf",
+          "bytes": 11890517,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/TD3_Algorithm_Based_Reinforcement_Learning_Control_for_Multiple-Input_Multiple-Output_DCDC_Converters.pdf",
+          "bytes": 10920145,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/My paper",
+          "bytes": 10564531,
+          "files": 3
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/2510.12717v1.pdf",
+          "bytes": 10201101,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/methodology-for-detecting-model-plant-mismatches-affecting-model-predictive-control-performance.pdf",
+          "bytes": 9929046,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/a-practical-mpc-pretrained-reinforcement-learning-framework-for-complex-process-systems.pdf",
+          "bytes": 9761640,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S1474667017387694-main.pdf",
+          "bytes": 8299244,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/2502.02265v1.pdf",
+          "bytes": 8272606,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/manuscript",
+          "bytes": 8018973,
+          "files": 46
+        },
+        {
+          "path": "RL_assisted_paper/manuscript/figures",
+          "bytes": 7827125,
+          "files": 28
+        },
+        {
+          "path": "RL_assisted_paper/manuscript_revised/figures",
+          "bytes": 7827125,
+          "files": 28
+        },
+        {
+          "path": "RL_assisted_paper/compiled-pdfs",
+          "bytes": 7667104,
+          "files": 4
+        },
+        {
+          "path": "RL_assisted_paper/compiled-pdfs-revised",
+          "bytes": 7667104,
+          "files": 4
+        },
+        {
+          "path": "CACE-D-26-01415_Overleaf_2026-08-27.zip",
+          "bytes": 7407773,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/machines-13-00983-v2.pdf",
+          "bytes": 7141429,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0959152425001404-main.pdf",
+          "bytes": 6986953,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/PhysRevX.12.011059.pdf",
+          "bytes": 6966002,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S1367578826000015-main.pdf",
+          "bytes": 6749018,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135423001023-main.pdf",
+          "bytes": 6671873,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S2213138825002358-main.pdf",
+          "bytes": 6605740,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/2110.02566v1.pdf",
+          "bytes": 6352592,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/processes-13-01791-v2.pdf",
+          "bytes": 6272374,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/Real-Time_High-Precision_Nonlinear_Tracking_Control_of_Autonomous_Vehicles_Using_Fast_Iterative_Model_Predictive_Control.pdf",
+          "bytes": 5801352,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0263876223003842-main.pdf",
+          "bytes": 5541856,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135421000181-main.pdf",
+          "bytes": 5519225,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135425003990-main.pdf",
+          "bytes": 5159603,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/compiled-pdfs/main.pdf",
+          "bytes": 5139009,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/compiled-pdfs-revised/main.pdf",
+          "bytes": 5139009,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/manuscript_revised/main.pdf",
+          "bytes": 5139009,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/s10462-024-11062-0.pdf",
+          "bytes": 5005966,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/Exploring reinforcement learning in process control  a comprehensive survey.pdf",
+          "bytes": 4898102,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0920379624000140-main.pdf",
+          "bytes": 4885920,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/out.pdf",
+          "bytes": 4637404,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135425005241-main.pdf",
+          "bytes": 4633095,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/neural-network-based-model-predictive-control-framework-incorporating-first-principles-knowledge-for-process-systems.pdf",
+          "bytes": 4457198,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/artificial-neural-network-based-model-predictive-control-using-correlated-data.pdf",
+          "bytes": 4373941,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S2772508125000468-main.pdf",
+          "bytes": 4356884,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S2772508125000468-main (1).pdf",
+          "bytes": 4356713,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/p332.pdf",
+          "bytes": 4156910,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/AIChE Journal - 2023 - Hassanpour - A practically implementable reinforcement learning\u2010based process controller design.pdf",
+          "bytes": 3982717,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135420300557-main.pdf",
+          "bytes": 3980336,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135422001016-main.pdf",
+          "bytes": 3970284,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S2772508125000614-main.pdf",
+          "bytes": 3887821,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S2772508125000614-main (1).pdf",
+          "bytes": 3887547,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/MPCGPU_Real-Time_Nonlinear_Model_Predictive_Control_through_Preconditioned_Conjugate_Gradient_on_the_GPU.pdf",
+          "bytes": 3878095,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/Arthur_2025e.pdf",
+          "bytes": 3855249,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/Assessing_Grid_Penalized_Reinforcement_Learning_for_Renewable_Energy_Management_of_Power-to-X_Integrated_With_Intermediate_Storage.pdf",
+          "bytes": 3798324,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/2105.08560v3.pdf",
+          "bytes": 3688149,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1812.05506v4.pdf",
+          "bytes": 3500753,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/2309.02668v3.pdf",
+          "bytes": 3473253,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S1474667017385506-main.pdf",
+          "bytes": 3411027,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135422000692-main.pdf",
+          "bytes": 3369756,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/2406.03760v3.pdf",
+          "bytes": 3366391,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0959152414000900-main.pdf",
+          "bytes": 3302508,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135425002534-main.pdf",
+          "bytes": 3190039,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/control-informed-reinforcement-learning-for-chemical-processes.pdf",
+          "bytes": 3143572,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S2772508126000049-main.pdf",
+          "bytes": 3111020,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0065237701260037-main.pdf",
+          "bytes": 3085107,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S095915241630035X-main.pdf",
+          "bytes": 3077796,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135419304168-main.pdf",
+          "bytes": 3033673,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/2008.00030v2.pdf",
+          "bytes": 3004425,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/Robust_Nonlinear_Reduced-Order_Model_Predictive_Control.pdf",
+          "bytes": 2986600,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S2772508123000492-main.pdf",
+          "bytes": 2937233,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/figures",
+          "bytes": 2795700,
+          "files": 42
+        },
+        {
+          "path": "RL_assisted_paper/manuscript_revised/evidence",
+          "bytes": 2779083,
+          "files": 30
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/s11814-025-00428-x.pdf",
+          "bytes": 2754076,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1802.09477v3.pdf",
+          "bytes": 2744342,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/950_exploration_by_random_network_.pdf",
+          "bytes": 2667235,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S2772508125000171-main (1).pdf",
+          "bytes": 2636294,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/Efficient_Reinforcement_Learning_With_the_Novel_N-Step_Method_and_V-Network.pdf",
+          "bytes": 2635818,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0263876220301337-main.pdf",
+          "bytes": 2632942,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S2772508125000171-main.pdf",
+          "bytes": 2619408,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135422002927-main.pdf",
+          "bytes": 2612655,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/2211.11802v1.pdf",
+          "bytes": 2538757,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S1270963823001256-main.pdf",
+          "bytes": 2490287,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/AIChE Journal - 2018 - Venkatasubramanian - The promise of artificial intelligence in chemical engineering  Is it here .pdf",
+          "bytes": 2433665,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/haarnoja18b.pdf",
+          "bytes": 2407011,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135426002000-main.pdf",
+          "bytes": 2376043,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/compiled-pdfs/supporting_information.pdf",
+          "bytes": 2367259,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/compiled-pdfs-revised/supporting_information.pdf",
+          "bytes": 2367259,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/manuscript_revised/supporting_information.pdf",
+          "bytes": 2367259,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0967066121002963-main.pdf",
+          "bytes": 2356235,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1812.06298v2.pdf",
+          "bytes": 2320405,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/1-s2.0-S0098135423003812-main.pdf",
+          "bytes": 2298891,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/fujimoto18a.pdf",
+          "bytes": 2256703,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/ie6c00277_si_001.pdf",
+          "bytes": 2251475,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/Guiding_Reinforcement_Learning_with_Incomplete_System_Dynamics.pdf",
+          "bytes": 2239261,
+          "files": 1
+        },
+        {
+          "path": "RL_assisted_paper/Paper Storage/s12555-024-0990-1.pdf",
+          "bytes": 2191748,
+          "files": 1
+        }
+      ],
+      "extensions": [
+        {
+          "extension": ".pdf",
+          "bytes": 582542380,
+          "files": 232
+        },
+        {
+          "extension": ".pack",
+          "bytes": 73300228,
+          "files": 3
+        },
+        {
+          "extension": ".txt",
+          "bytes": 22072526,
+          "files": 201
+        },
+        {
+          "extension": ".png",
+          "bytes": 16852487,
+          "files": 62
+        },
+        {
+          "extension": ".zip",
+          "bytes": 7407773,
+          "files": 1
+        },
+        {
+          "extension": "<none>",
+          "bytes": 3519225,
+          "files": 422
+        },
+        {
+          "extension": ".csv",
+          "bytes": 3381942,
+          "files": 21
+        },
+        {
+          "extension": ".md",
+          "bytes": 1851692,
+          "files": 303
+        },
+        {
+          "extension": ".json",
+          "bytes": 1669994,
+          "files": 28
+        },
+        {
+          "extension": ".tex",
+          "bytes": 485558,
+          "files": 36
+        },
+        {
+          "extension": ".py",
+          "bytes": 253979,
+          "files": 19
+        },
+        {
+          "extension": ".pyc",
+          "bytes": 159096,
+          "files": 3
+        },
+        {
+          "extension": ".svg",
+          "bytes": 155040,
+          "files": 7
+        },
+        {
+          "extension": ".drawio",
+          "bytes": 107446,
+          "files": 7
+        },
+        {
+          "extension": ".log",
+          "bytes": 99174,
+          "files": 5
+        },
+        {
+          "extension": ".idx",
+          "bytes": 60664,
+          "files": 2
+        },
+        {
+          "extension": ".aux",
+          "bytes": 55690,
+          "files": 5
+        },
+        {
+          "extension": ".bib",
+          "bytes": 43727,
+          "files": 5
+        },
+        {
+          "extension": ".bbl",
+          "bytes": 28418,
+          "files": 3
+        },
+        {
+          "extension": ".sample",
+          "bytes": 25827,
+          "files": 14
+        }
+      ]
+    }
+  ],
+  "largest_files": [
+    {
+      "bytes": 1135119505,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e1_combined\\training_checkpoints\\training_state_0.pkl",
+      "modified_utc": "2026-10-18T20:50:46.807146+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 1127198076,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e1_combined\\training_checkpoints\\training_state_1.pkl",
+      "modified_utc": "2026-10-18T08:04:13.846695+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 884232477,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\threshold\\a1\\training_checkpoints\\training_state_0.pkl",
+      "modified_utc": "2026-10-22T10:44:15.937398+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 876501098,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\threshold\\a1\\training_checkpoints\\training_state_1.pkl",
+      "modified_utc": "2026-10-22T10:12:50.747276+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 778614936,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s7\\a1\\rl\\20261014_055923\\input_data.pkl",
+      "modified_utc": "2026-10-14T10:01:53.051016+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 778614936,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s53\\a1\\rl\\20261014_061000\\input_data.pkl",
+      "modified_utc": "2026-10-14T10:12:03.313771+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 778614936,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s37\\a1\\rl\\20261014_060916\\input_data.pkl",
+      "modified_utc": "2026-10-14T10:11:20.363953+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 778614936,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s23\\a1\\rl\\20261014_060354\\input_data.pkl",
+      "modified_utc": "2026-10-14T10:06:21.396020+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 778614936,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_sg\\s11\\a1\\rl\\20261014_060709\\input_data.pkl",
+      "modified_utc": "2026-10-14T10:09:15.573747+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 778612413,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho_robustness_200_100\\20260720_104410\\input_data.pkl",
+      "modified_utc": "2026-07-20T14:46:10.839899+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 778608317,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e1_combined\\training.pkl",
+      "modified_utc": "2026-10-18T20:50:49.330065+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 778607563,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_combined_s7\\a2\\training.pkl",
+      "modified_utc": "2026-10-16T11:23:19.417693+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 692679747,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_markov_s7\\a1\\training.pkl",
+      "modified_utc": "2026-10-15T10:40:30.395470+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 692679747,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\markov_s7\\a2\\training.pkl",
+      "modified_utc": "2026-10-15T00:39:05.777354+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 687000327,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\.git\\objects\\pack\\pack-a43db916494804872b6547b94c26b5d35cedcb7c.pack",
+      "modified_utc": "2026-08-18T03:32:45+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 643693339,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s7\\a1\\rl\\20261014_040837\\input_data.pkl",
+      "modified_utc": "2026-10-14T08:11:41.152229+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 643693339,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s53\\a1\\rl\\20261014_035805\\input_data.pkl",
+      "modified_utc": "2026-10-14T08:01:07.975393+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 643693339,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s37\\a1\\rl\\20261014_040445\\input_data.pkl",
+      "modified_utc": "2026-10-14T08:07:53.014264+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 643693339,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s23\\a1\\rl\\20261014_041715\\input_data.pkl",
+      "modified_utc": "2026-10-14T08:20:16.138883+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 643693339,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\combined_plain\\s11\\a1\\rl\\20261014_035353\\input_data.pkl",
+      "modified_utc": "2026-10-14T07:57:00.428794+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 604345666,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\threshold\\a1\\training.pkl",
+      "modified_utc": "2026-10-22T10:44:19.230715+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 604345563,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261014_runtime_recovery_threshold_sg\\threshold\\training.pkl",
+      "modified_utc": "2026-10-14T22:44:29.768338+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 587587388,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e2_sg\\training.pkl",
+      "modified_utc": "2026-10-17T02:05:17.206783+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 567686664,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\training_checkpoints\\training_state_0.pkl",
+      "modified_utc": "2026-10-23T17:06:32.077451+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 567320021,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\training_checkpoints\\training_state_1.pkl",
+      "modified_utc": "2026-10-23T16:58:46.150982+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260703_031817\\input_data.pkl",
+      "modified_utc": "2026-07-03T07:19:39+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260702_170646\\input_data.pkl",
+      "modified_utc": "2026-07-02T21:08:07+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260701_070229\\input_data.pkl",
+      "modified_utc": "2026-07-01T11:03:51+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260630_165303\\input_data.pkl",
+      "modified_utc": "2026-06-30T20:54:51+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260630_070127\\input_data.pkl",
+      "modified_utc": "2026-06-30T11:02:48+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260629_204423\\input_data.pkl",
+      "modified_utc": "2026-06-30T00:45:41+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260629_152353\\input_data.pkl",
+      "modified_utc": "2026-06-29T19:25:13+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260629_020956\\input_data.pkl",
+      "modified_utc": "2026-06-29T06:12:07+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260628_195022\\input_data.pkl",
+      "modified_utc": "2026-06-28T23:51:47+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260628_083514\\input_data.pkl",
+      "modified_utc": "2026-06-28T12:36:53+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260627_230908\\input_data.pkl",
+      "modified_utc": "2026-06-28T03:10:25+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260627_174916\\input_data.pkl",
+      "modified_utc": "2026-06-27T21:50:36+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260627_065546\\input_data.pkl",
+      "modified_utc": "2026-06-27T10:57:11+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260626_214809\\input_data.pkl",
+      "modified_utc": "2026-06-27T01:49:41+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 567103433,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_sg__h_sg_dqn_mismatch__markov_sg_td3_mismatch__w_sg_td3_mismatch__r_sg_td3_mismatch_no_rho\\20260626_063530\\input_data.pkl",
+      "modified_utc": "2026-06-26T10:35:30+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 528035490,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s53\\a1\\rl\\20261013_095134\\input_data.pkl",
+      "modified_utc": "2026-10-13T13:52:04.875031+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 528035490,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s37\\a1\\rl\\20261013_095433\\input_data.pkl",
+      "modified_utc": "2026-10-13T13:54:57.857096+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 528035490,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s23\\a1\\rl\\20261013_095210\\input_data.pkl",
+      "modified_utc": "2026-10-13T13:52:38.587730+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 528035490,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s11\\a1\\rl\\20261013_100031\\input_data.pkl",
+      "modified_utc": "2026-10-13T14:00:56.614722+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 528035489,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_sg\\s7\\a1\\rl\\20261013_095636\\input_data.pkl",
+      "modified_utc": "2026-10-13T13:57:01.932875+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 528035468,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s53\\a1\\rl\\20261013_094126\\input_data.pkl",
+      "modified_utc": "2026-10-13T13:41:54.294519+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 528035468,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s37\\a1\\rl\\20261013_095028\\input_data.pkl",
+      "modified_utc": "2026-10-13T13:51:02.343034+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 528035468,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s23\\a1\\rl\\20261013_095602\\input_data.pkl",
+      "modified_utc": "2026-10-13T13:56:28.024563+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 528035468,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s11\\a1\\rl\\20261013_095420\\input_data.pkl",
+      "modified_utc": "2026-10-13T13:54:48.213752+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 528035467,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\markov_plain\\s7\\a1\\rl\\20261013_095243\\input_data.pkl",
+      "modified_utc": "2026-10-13T13:53:12.787700+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 528034112,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\sg_td3_markov_critic_warm3_ls_else_mpc_shadow_disturb_mismatch_robustness_200_100\\20260720_033200\\input_data.pkl",
+      "modified_utc": "2026-07-20T07:32:22.572271+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 528034043,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\td3_markov_disturb_robustness_200_100\\20260720_154809\\input_data.pkl",
+      "modified_utc": "2026-07-20T19:48:30.765049+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260713_184356\\input_data.pkl",
+      "modified_utc": "2026-07-13T22:45:43+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260713_075332\\input_data.pkl",
+      "modified_utc": "2026-07-13T11:55:17+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260713_002924\\input_data.pkl",
+      "modified_utc": "2026-07-13T04:32:04+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260712_181212\\input_data.pkl",
+      "modified_utc": "2026-07-12T22:14:11+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260711_053810\\input_data.pkl",
+      "modified_utc": "2026-07-11T09:40:18+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260710_183854\\input_data.pkl",
+      "modified_utc": "2026-07-10T22:40:36+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260710_073503\\input_data.pkl",
+      "modified_utc": "2026-07-10T11:36:30+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260709_180942\\input_data.pkl",
+      "modified_utc": "2026-07-09T22:11:38+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260709_072734\\input_data.pkl",
+      "modified_utc": "2026-07-09T11:29:19+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260708_195631\\input_data.pkl",
+      "modified_utc": "2026-07-08T23:58:05+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260707_223928\\input_data.pkl",
+      "modified_utc": "2026-07-08T02:41:03+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260707_080304\\input_data.pkl",
+      "modified_utc": "2026-07-07T12:05:14+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260706_230403\\input_data.pkl",
+      "modified_utc": "2026-07-07T03:05:46+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741871,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260706_101743\\input_data.pkl",
+      "modified_utc": "2026-07-06T14:20:18+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741838,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260706_015030\\input_data.pkl",
+      "modified_utc": "2026-07-06T05:52:07+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741838,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260705_175943\\input_data.pkl",
+      "modified_utc": "2026-07-05T22:01:17+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741838,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260705_071918\\input_data.pkl",
+      "modified_utc": "2026-07-05T11:21:07+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 466741838,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\combined_disturb_plain__h_dqn_mismatch__markov_td3_mismatch__w_td3_mismatch__r_td3_mismatch_no_rho\\20260704_215023\\input_data.pkl",
+      "modified_utc": "2026-07-05T01:51:58+00:00",
+      "attributes": 4194336
+    },
+    {
+      "bytes": 437033193,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_98000\\review_e1_58c702bac4a8\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T17:02:07.104738+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 437033193,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\native_c10d5167\\main\\load_17e10cc5\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T17:02:06.624995+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 435570582,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_97600\\review_e1_10a57ac8d528\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T16:55:52.668398+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 434108754,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_97200\\review_e1_0d071cd73c10\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T16:49:40.753064+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 432637055,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_96800\\review_e1_33770f6f7920\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T16:43:25.040684+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 431169973,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_96400\\review_e1_0959c166a9b2\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T16:37:13.213850+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 429709328,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_96000\\review_e1_ae09526302e1\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T16:30:58.081359+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 428240411,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_95600\\review_e1_11a8bd8eaa9d\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T16:24:47.464212+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 426777648,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_95200\\review_e1_33d5ed2fb0dc\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T16:18:30.373434+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 425314876,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_94800\\review_e1_c5ea6f81ff3e\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T16:12:13.595013+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 423843629,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_94400\\review_e1_3cf8e9782327\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T16:05:37.562001+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 422368168,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_94000\\review_e1_e60f630e724d\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T15:59:19.674988+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 420913908,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_93600\\review_e1_085500512111\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T15:52:58.598688+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 419451495,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_93200\\review_e1_b0a46e49f169\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T15:46:41.207403+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 417982482,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_92800\\review_e1_79f7a9c3fc76\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T15:40:26.895241+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 417046314,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\initial_failures\\e1_combined\\training_state_1.pkl",
+      "modified_utc": "2026-10-22T01:15:42.296193+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 417046314,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_e1_budget20\\originals\\combined\\training_state_1.pkl",
+      "modified_utc": "2026-10-22T03:59:08.950233+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 416519599,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_92400\\review_e1_1e1a9eaa69a6\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T15:34:07.709267+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 415047783,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_92000\\review_e1_3ffda6c4c7fc\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T15:27:42.040695+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 413586417,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_91600\\review_e1_879de05e3da2\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T15:21:17.337701+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 412116809,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_91200\\review_e1_089463e46e0f\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T15:14:52.852185+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 410651045,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_90800\\review_e1_aa4fcb642a4a\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T15:08:29.563154+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 409186425,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_90400\\review_e1_f666b549ac7e\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T15:02:02.698175+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 407715006,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_90000\\review_e1_7f06b0b0daaa\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T14:55:37.776866+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 406253302,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_89600\\review_e1_006f9e4d5681\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T14:49:19.440063+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 404785899,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_89200\\review_e1_332d734a842f\\C2S_SS_simulation13.dynf",
+      "modified_utc": "2026-10-23T14:43:00.617993+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 404275971,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s7\\a1\\rl\\20261013_141310\\input_data.pkl",
+      "modified_utc": "2026-10-13T18:13:32.662883+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 404275971,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s53\\a1\\rl\\20261013_141314\\input_data.pkl",
+      "modified_utc": "2026-10-13T18:13:36.634834+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 404275971,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s37\\a1\\rl\\20261013_141319\\input_data.pkl",
+      "modified_utc": "2026-10-13T18:13:42.245524+00:00",
+      "attributes": 32
+    },
+    {
+      "bytes": 404275971,
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\residual_sg\\s23\\a1\\rl\\20261013_141314\\input_data.pkl",
+      "modified_utc": "2026-10-13T18:13:37.295106+00:00",
+      "attributes": 32
+    }
+  ],
+  "errors": [],
+  "disk_free_bytes": 249849229312
+}

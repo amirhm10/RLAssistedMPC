@@ -1,4 +1,20 @@
-# Reviewer-run recovery — latest update October 22, 2026
+# Reviewer-run recovery — latest update October 23, 2026
+
+## Storage archive and run audit - October 23, 2026
+
+With Amir's explicit approval, 910 obsolete native-checkpoint folders (174,583,311,764 bytes; 162.6 GiB; 3640 files) were moved outside OneDrive to `C:\Users\hamediaa\RL_MPC_local_archive\storage_20261023`. Every archived file was SHA-256 verified. All Python checkpoints, current/recent native checkpoints, scientific results and policies were retained. Original-path mappings and hashes are in the archive's restore_manifest.json; restore only a missing original path, without overwriting newer checkpoints. This same-drive move reduces the synced file set rather than freeing local disk. The 27 protected worker, Aspen and coordinator creation identities are unchanged.
+
+Current production audit at 2026-10-23T17:36:10.805110+00:00: 12 jobs running, three failed and no current queued jobs. Polymer repetitions are 50/50 complete; column repetitions are 40/50 complete, with all ten remaining combined repetitions running. Markov SG seed 23 and residual plain seed 23 have completed. E1 horizon and combined remain running. The original automatic combined coordinator is alive. Each of the twelve Python workers has a positive CPU increase since the pre-archive audit.
+
+Column E1 weights, Markov and residual failed overnight after saving cycle 190. The tracebacks show Aspen openDocument failing with RPC error -2147023170, followed by an AD application.Quit cleanup AttributeError. The underlying crash mechanism and any relationship to memory or cloud quota remain unproven. Their cycle-190 Python, native model and snapshot hashes verify; a successful restart has not been tested in this task. No failed job was restarted. Failed workers' six native applications are already gone. No NumPy failure is established by these tracebacks.
+
+The five original E1 configurations remain horizon, weights, Markov, residual and combined, with the approved 640-pair budget and 300-cycle training schedule unchanged. Verified primary pairs total 200/640: combined 80/320, horizon 60/80, and weights/Markov/residual 20/80 each. Only horizon (case 13) and combined (case 16) are currently active. Each owns two Aspen applications; comparison applications can validly be idle between capture windows. All 14 open Aspen applications match the twelve running jobs; no stale instance was found or closed.
+
+SharePoint Storage Metrics still shows 0.00 GB free of 1024.00 GB; Documents uses 752.8 GB excluding the recycle bin. Archived native folders are now visibly in the cloud recycle bin. Permanent removal of only the verified archived cloud copies is prepared and awaiting explicit action-time confirmation. No permanent cloud deletion has been performed, and quota savings have not been verified. An earlier recoverable delete attempt against 29 stale folder-list entries returned File Not Found for every entry; it is not evidence of a successful cloud deletion by that attempt. OneDrive has restarted since the prior day's temporary quit; it was not stopped in this task.
+
+NativeCheckpointManager.save alternates two Python slots but creates a new native folder for every saved step without pruning older folders. This explains the observed checkpoint accumulation; checkpoint retention has not been changed in sealed running sources. Future growth and long-term native stability remain open. File integrity does not prove native restart fidelity. Previously completed polymer threshold/E1/E2/E3 evidence is retained; E4/E5 and unseen-reference follow-ups remain separately scoped. No performance, safety, causal or statistical claim is promoted. All 46 frozen original manuscript hashes verify; no TeX or PDF was changed.
+
+Evidence: `change-reports/storage_20261023_1306/STATUS.md` and `final_assessment.json`.
 
 ## Memory cleanup - October 22, 15:55 Toronto
 

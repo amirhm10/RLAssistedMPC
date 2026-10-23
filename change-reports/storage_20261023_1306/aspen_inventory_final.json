@@ -1,0 +1,131 @@
+{
+  "at": "2026-10-23T13:34:57.5116970-04:00",
+  "aspen": [
+    {
+      "pid": 36404,
+      "parent": 1924,
+      "created": "2026-10-21T21:39:51.4043480-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation1.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 9471.625,
+      "private_bytes": 157831168
+    },
+    {
+      "pid": 12000,
+      "parent": 1924,
+      "created": "2026-10-21T21:40:09.7923270-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation2.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 9579.03125,
+      "private_bytes": 158707712
+    },
+    {
+      "pid": 29720,
+      "parent": 1924,
+      "created": "2026-10-21T21:40:28.3226760-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation12.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 9518.046875,
+      "private_bytes": 158511104
+    },
+    {
+      "pid": 39372,
+      "parent": 1924,
+      "created": "2026-10-21T21:40:47.4673640-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation4.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 9542.625,
+      "private_bytes": 159096832
+    },
+    {
+      "pid": 52360,
+      "parent": 1924,
+      "created": "2026-10-21T21:41:06.9674680-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation8.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 5389.921875,
+      "private_bytes": 157495296
+    },
+    {
+      "pid": 48208,
+      "parent": 1924,
+      "created": "2026-10-21T21:41:26.8626920-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation5.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 9564.703125,
+      "private_bytes": 159612928
+    },
+    {
+      "pid": 41696,
+      "parent": 1924,
+      "created": "2026-10-21T21:41:48.5660640-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation9.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 7846.3125,
+      "private_bytes": 157888512
+    },
+    {
+      "pid": 38588,
+      "parent": 1924,
+      "created": "2026-10-21T21:42:09.3369320-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation10.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 7546.171875,
+      "private_bytes": 158187520
+    },
+    {
+      "pid": 29084,
+      "parent": 1924,
+      "created": "2026-10-21T21:42:28.5545070-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation6.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 7631.34375,
+      "private_bytes": 159002624
+    },
+    {
+      "pid": 55316,
+      "parent": 1924,
+      "created": "2026-10-21T21:42:49.7153220-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation7.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 6709.328125,
+      "private_bytes": 158605312
+    },
+    {
+      "pid": 46768,
+      "parent": 1924,
+      "created": "2026-10-22T00:08:20.7296170-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation13.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 4992.359375,
+      "private_bytes": 271917056
+    },
+    {
+      "pid": 44800,
+      "parent": 1924,
+      "created": "2026-10-22T00:09:01.4595320-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation16.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 2150.421875,
+      "private_bytes": 267472896
+    },
+    {
+      "pid": 49616,
+      "parent": 1924,
+      "created": "2026-10-22T00:10:02.4338380-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation13.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 6317.3125,
+      "private_bytes": 22138220544
+    },
+    {
+      "pid": 9316,
+      "parent": 1924,
+      "created": "2026-10-22T00:10:42.8028130-04:00",
+      "executable": "C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe",
+      "title": "C2S_SS_simulation16.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 5168.46875,
+      "private_bytes": 12646510592
+    }
+  ]
+}

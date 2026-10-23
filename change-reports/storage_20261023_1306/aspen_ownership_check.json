@@ -1,0 +1,135 @@
+{
+  "actual_aspen": 14,
+  "owned_by_current_jobs": 14,
+  "unmatched_pids": [],
+  "missing_owned_pids": [],
+  "owned": {
+    "36404": {
+      "job": "combined/sg/7",
+      "study": "column_repeats",
+      "identity": {
+        "pid": 36404,
+        "alive": true,
+        "created": 134371067914043481
+      }
+    },
+    "12000": {
+      "job": "combined/sg/11",
+      "study": "column_repeats",
+      "identity": {
+        "pid": 12000,
+        "alive": true,
+        "created": 134371068097923271
+      }
+    },
+    "29720": {
+      "job": "combined/sg/23",
+      "study": "column_repeats",
+      "identity": {
+        "pid": 29720,
+        "alive": true,
+        "created": 134371068283226762
+      }
+    },
+    "39372": {
+      "job": "combined/sg/37",
+      "study": "column_repeats",
+      "identity": {
+        "pid": 39372,
+        "alive": true,
+        "created": 134371068474673640
+      }
+    },
+    "48208": {
+      "job": "combined/sg/53",
+      "study": "column_repeats",
+      "identity": {
+        "pid": 48208,
+        "alive": true,
+        "created": 134371068868626924
+      }
+    },
+    "29084": {
+      "job": "combined/plain/7",
+      "study": "column_repeats",
+      "identity": {
+        "pid": 29084,
+        "alive": true,
+        "created": 134371069485545077
+      }
+    },
+    "55316": {
+      "job": "combined/plain/11",
+      "study": "column_repeats",
+      "identity": {
+        "pid": 55316,
+        "alive": true,
+        "created": 134371069697153224
+      }
+    },
+    "52360": {
+      "job": "combined/plain/23",
+      "study": "column_repeats",
+      "identity": {
+        "pid": 52360,
+        "alive": true,
+        "created": 134371068669674683
+      }
+    },
+    "41696": {
+      "job": "combined/plain/37",
+      "study": "column_repeats",
+      "identity": {
+        "pid": 41696,
+        "alive": true,
+        "created": 134371069085660642
+      }
+    },
+    "38588": {
+      "job": "combined/plain/53",
+      "study": "column_repeats",
+      "identity": {
+        "pid": 38588,
+        "alive": true,
+        "created": 134371069293369329
+      }
+    },
+    "44800": {
+      "job": "combined",
+      "study": "E1_column",
+      "identity": {
+        "pid": 44800,
+        "alive": true,
+        "created": 134371157414595329
+      }
+    },
+    "9316": {
+      "job": "combined",
+      "study": "E1_column",
+      "identity": {
+        "pid": 9316,
+        "alive": true,
+        "created": 134371158428028132
+      }
+    },
+    "46768": {
+      "job": "horizon",
+      "study": "E1_column",
+      "identity": {
+        "pid": 46768,
+        "alive": true,
+        "created": 134371157007296173
+      }
+    },
+    "49616": {
+      "job": "horizon",
+      "study": "E1_column",
+      "identity": {
+        "pid": 49616,
+        "alive": true,
+        "created": 134371158024338380
+      }
+    }
+  },
+  "action": "No Aspen closed; every current application is owned by a running job"
+}

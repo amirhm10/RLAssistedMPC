@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\change-reports\e1_recovery_20261023\probe_fresh_native.py", line 42, in <module>
+    priming = runtime.import_native(p, metadata)
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1\runtime.py", line 395, in import_native
+    snap = load_project(plant, metadata)
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1_process_recovery.py", line 143, in <lambda>
+    with patch.object(runtime, 'load_project', lambda plant, metadata: load_project(plant, metadata, output)), \
+                                                                       ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1_process_recovery.py", line 117, in load_project
+    native_snapshot_sha256=digest(database), model=str(model)))
+                           ~~~~~~^^^^^^^^^^
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_review\common.py", line 37, in digest
+    with Path(path).open("rb") as stream:
+         ~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261023_e1_native_probe\\weights\\load_6cd8de6f\\AM_C2S_SS_simulation14\\snapshot.snp'

@@ -1,0 +1,153 @@
+{
+  "verified": true,
+  "backups": [
+    {
+      "category": "weights",
+      "cycle": 190,
+      "step": 76000,
+      "latest_index": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\weights\\latest.json",
+      "files": [
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_0_76000\\review_e1_79bfa94f8e44.snp",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\weights\\native_0_76000\\review_e1_79bfa94f8e44.snp",
+          "bytes": 4582764,
+          "sha256": "17086b09c703ce00fd38af0730b011ca1a22b22c344a30f7aaecbfad4e04e50b"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_0_76000\\review_e1_79bfa94f8e44\\C2S_SS_simulation14.dynf",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\weights\\native_0_76000\\review_e1_79bfa94f8e44\\C2S_SS_simulation14.dynf",
+          "bytes": 299234285,
+          "sha256": "a9a9d23a9d344220ca9d79cd12d736297a1697e9b61861a84aac8e5fd1b6f506"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_0_76000\\review_e1_79bfa94f8e44\\metadata.json",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\weights\\native_0_76000\\review_e1_79bfa94f8e44\\metadata.json",
+          "bytes": 1509,
+          "sha256": "c0d880184602f20266f44689751c9496fb648c0a0ced1740fdd6eee81667cb13"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_0_76000\\review_e1_79bfa94f8e44\\snapshot.restores.jsonl",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\weights\\native_0_76000\\review_e1_79bfa94f8e44\\snapshot.restores.jsonl",
+          "bytes": 3720,
+          "sha256": "55f6f6ffc315c3eecf57a7f46b1ab21353e6e2bab2fd0a04614a596018a5f02a"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_0_76000\\review_e1_79bfa94f8e44\\snapshot.snp",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\weights\\native_0_76000\\review_e1_79bfa94f8e44\\snapshot.snp",
+          "bytes": 6784592,
+          "sha256": "d564e9f7a93a36791ac59679444ffc1ce68e67f6008706ac0d9fcf6a6e2c2303"
+        },
+        {
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\weights\\training_state_0.pkl",
+          "bytes": 243696229,
+          "sha256": "01ac63a0dd52d4088e281dd3e5f77a2b4f2741e51fa52af72b1f8264720bcac2"
+        },
+        {
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\weights\\training_state_1.pkl",
+          "bytes": 243589602,
+          "sha256": "94d43a5b835622567031a742ed24c85a4c169f429b2cd6a4773bfdea11265227"
+        }
+      ],
+      "restoration": "Keep original latest.json unchanged as provenance. Restore its Python slot and the recorded native directory to their recorded paths only when missing; never overwrite a live/newer checkpoint."
+    },
+    {
+      "category": "markov",
+      "cycle": 190,
+      "step": 76000,
+      "latest_index": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\markov\\latest.json",
+      "files": [
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_76000\\review_e1_027c94137971.snp",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\markov\\native_1_76000\\review_e1_027c94137971.snp",
+          "bytes": 4582764,
+          "sha256": "79601c9fb02443ecfa6be74d65e156afb80cf53cbd64eeeaa527cb6564ffe306"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_76000\\review_e1_027c94137971\\C2S_SS_simulation15.dynf",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\markov\\native_1_76000\\review_e1_027c94137971\\C2S_SS_simulation15.dynf",
+          "bytes": 297725414,
+          "sha256": "1ae8032892c1577e49f7591a3b21b2aaaf070e083ca9eb745bf9a0e1af699325"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_76000\\review_e1_027c94137971\\metadata.json",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\markov\\native_1_76000\\review_e1_027c94137971\\metadata.json",
+          "bytes": 1504,
+          "sha256": "001916ee1ca4383c8ab4d456539a06b0dacff9f711cab3ff7e33e1cef17b3349"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_76000\\review_e1_027c94137971\\snapshot.restores.jsonl",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\markov\\native_1_76000\\review_e1_027c94137971\\snapshot.restores.jsonl",
+          "bytes": 2548,
+          "sha256": "6d7570f918e563414ce4620ac2e7715ca22c29b6f91dbc017c0e4e55ad570cfe"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_76000\\review_e1_027c94137971\\snapshot.snp",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\markov\\native_1_76000\\review_e1_027c94137971\\snapshot.snp",
+          "bytes": 6784592,
+          "sha256": "3c1206d31fce07cd74527201a1a73f0000bf81d33dd137dff0e65a92855f7f67"
+        },
+        {
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\markov\\training_state_0.pkl",
+          "bytes": 361017235,
+          "sha256": "64cd489f282346fbf3595edb36b15a297627cd18e9bbcec3fa9c8c9c8399e9fa"
+        },
+        {
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\markov\\training_state_1.pkl",
+          "bytes": 361123565,
+          "sha256": "dfa823e30b91e194b5ad52e55028c257e9de24e2659d34a6a3d06019501cfaea"
+        }
+      ],
+      "restoration": "Keep original latest.json unchanged as provenance. Restore its Python slot and the recorded native directory to their recorded paths only when missing; never overwrite a live/newer checkpoint."
+    },
+    {
+      "category": "residual",
+      "cycle": 190,
+      "step": 76000,
+      "latest_index": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\residual\\latest.json",
+      "files": [
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_76000\\review_e1_876c32bd93ca.snp",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\residual\\native_1_76000\\review_e1_876c32bd93ca.snp",
+          "bytes": 4582764,
+          "sha256": "18a2dfacdde63da031b7d35455bb3b9a1f5da804b3fed7dffda5d589076406f2"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_76000\\review_e1_876c32bd93ca\\C2S_SS_simulation17.dynf",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\residual\\native_1_76000\\review_e1_876c32bd93ca\\C2S_SS_simulation17.dynf",
+          "bytes": 297760715,
+          "sha256": "789a1ecf041baeda3858af260e4f078b93b7e1d9d8039f9743d6236dcae8ba77"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_76000\\review_e1_876c32bd93ca\\metadata.json",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\residual\\native_1_76000\\review_e1_876c32bd93ca\\metadata.json",
+          "bytes": 1512,
+          "sha256": "545758664ba083962054d49f8a915edda6379dc571d1ccd58926541589c42062"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_76000\\review_e1_876c32bd93ca\\snapshot.restores.jsonl",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\residual\\native_1_76000\\review_e1_876c32bd93ca\\snapshot.restores.jsonl",
+          "bytes": 2556,
+          "sha256": "ceaae8fe47a413db8e2cee804f7c4e2098791aa6d9cb5ec29c78ce25ac015b05"
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_76000\\review_e1_876c32bd93ca\\snapshot.snp",
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\residual\\native_1_76000\\review_e1_876c32bd93ca\\snapshot.snp",
+          "bytes": 6784592,
+          "sha256": "ad2a26a5540f20470fab1973e6fcdba0887022058f3077e317ef80856e880d03"
+        },
+        {
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\residual\\training_state_0.pkl",
+          "bytes": 245550498,
+          "sha256": "e545726aeff530cfe7702f45e15136a3734501c738c813178bb92b5f4ef32e6f"
+        },
+        {
+          "local_copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\residual\\training_state_1.pkl",
+          "bytes": 245657125,
+          "sha256": "38f6e1e21c9d390223c337ec8c4580708c905b748394f85a5368ebdba82f1a66"
+        }
+      ],
+      "restoration": "Keep original latest.json unchanged as provenance. Restore its Python slot and the recorded native directory to their recorded paths only when missing; never overwrite a live/newer checkpoint."
+    }
+  ],
+  "at_utc": "2026-10-23T18:34:25.959582+00:00"
+}

@@ -1,0 +1,54 @@
+{
+  "application_error_events": 4,
+  "total_error_reporting_records": 11,
+  "exact_pid_and_creation_matches": true,
+  "original_protected_processes_affected": 0,
+  "production_recovery_errors_in_this_event_sample": 0,
+  "matches": [
+    {
+      "pid": 38824,
+      "created": 134372543786618493,
+      "category": "residual",
+      "saved_step": 76008,
+      "saved_checkpoint_passed": true,
+      "fault_at": "2026-10-23T14:41:20.5271151-04:00",
+      "seconds_after_checkpoint_save": 6.6201136112213135,
+      "original_protected_process": false,
+      "fault_message": "Faulting application name: AspenModeler.exe, version: 40.0.0.359, time stamp: 0x633c0677\r\nFaulting module name: unknown, version: 0.0.0.0, time stamp: 0x00000000\r\nException code: 0xc0000409\r\nFault offset: 0x00007ffb6282728f\r\nFaulting process id: 0x97A8\r\nFaulting application start time: 0x1DD631DDBF78E7D\r\nFaulting application path: C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe\r\nFaulting module path: unknown\r\nReport Id: 27aea895-a703-4392-85db-6a99d59d7b18\r\nFaulting package full name: \r\nFaulting package-relative application ID: "
+    },
+    {
+      "pid": 45100,
+      "created": 134372541272753102,
+      "category": "markov",
+      "saved_step": 76008,
+      "saved_checkpoint_passed": true,
+      "fault_at": "2026-10-23T14:37:12.214663-04:00",
+      "seconds_after_checkpoint_save": 6.390697956085205,
+      "original_protected_process": false,
+      "fault_message": "Faulting application name: AspenModeler.exe, version: 40.0.0.359, time stamp: 0x633c0677\r\nFaulting module name: unknown, version: 0.0.0.0, time stamp: 0x00000000\r\nException code: 0xc0000005\r\nFault offset: 0x000002a400000240\r\nFaulting process id: 0xB02C\r\nFaulting application start time: 0x1DD631D462103CE\r\nFaulting application path: C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe\r\nFaulting module path: unknown\r\nReport Id: ca51f1ba-7ff1-45a0-bf3c-afc40c08788f\r\nFaulting package full name: \r\nFaulting package-relative application ID: "
+    },
+    {
+      "pid": 50736,
+      "created": 134372538651062542,
+      "category": "weights",
+      "saved_step": 76016,
+      "saved_checkpoint_passed": true,
+      "fault_at": "2026-10-23T14:32:46.1009221-04:00",
+      "seconds_after_checkpoint_save": 7.775434255599976,
+      "original_protected_process": false,
+      "fault_message": "Faulting application name: AspenModeler.exe, version: 40.0.0.359, time stamp: 0x633c0677\r\nFaulting module name: unknown, version: 0.0.0.0, time stamp: 0x00000000\r\nException code: 0xc0000005\r\nFault offset: 0x000002a400000240\r\nFaulting process id: 0xC630\r\nFaulting application start time: 0x1DD631CA9DD310E\r\nFaulting application path: C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe\r\nFaulting module path: unknown\r\nReport Id: f10476b5-da4c-4400-8563-45094ea4fd39\r\nFaulting package full name: \r\nFaulting package-relative application ID: "
+    },
+    {
+      "pid": 59052,
+      "created": 134372535447528289,
+      "category": "weights",
+      "saved_step": 76008,
+      "saved_checkpoint_passed": true,
+      "fault_at": "2026-10-23T14:27:45.4941501-04:00",
+      "seconds_after_checkpoint_save": 7.124551773071289,
+      "original_protected_process": false,
+      "fault_message": "Faulting application name: AspenModeler.exe, version: 40.0.0.359, time stamp: 0x633c0677\r\nFaulting module name: unknown, version: 0.0.0.0, time stamp: 0x00000000\r\nException code: 0xc0000005\r\nFault offset: 0x000002a400000240\r\nFaulting process id: 0xE6AC\r\nFaulting application start time: 0x1DD631BEAEB2361\r\nFaulting application path: C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe\r\nFaulting module path: unknown\r\nReport Id: a05cf54d-6f49-4f9a-8cad-588d3cdbfc17\r\nFaulting package full name: \r\nFaulting package-relative application ID: "
+    }
+  ],
+  "inference": "All four native faults occurred in disposable validation applications within 30 seconds after a verified full checkpoint save, during final cleanup. Cause remains unresolved; successful restart/trace checks do not certify clean native shutdown or multi-day stability."
+}

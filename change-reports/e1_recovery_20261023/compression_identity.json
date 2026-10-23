@@ -1,0 +1,10 @@
+{
+  "pid": 52764,
+  "parent_pid": 2524,
+  "in_windows_job": true,
+  "scheduler_service_pid": 2524,
+  "parent_is_scheduler_service": true,
+  "session_id": 2,
+  "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+  "observed_at": "2026-10-23T18:24:16.505168+00:00"
+}

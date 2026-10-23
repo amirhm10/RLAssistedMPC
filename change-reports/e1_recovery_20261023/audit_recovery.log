@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\change-reports\e1_recovery_20261023\audit_recovery.py", line 130, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\change-reports\e1_recovery_20261023\audit_recovery.py", line 111, in main
+    assert 'recorded' in app and app['current'] == app['recorded']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

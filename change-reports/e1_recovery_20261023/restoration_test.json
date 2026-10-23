@@ -1,0 +1,33 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-23T19:15:39.886685+00:00",
+  "index": 0,
+  "archive": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\compressed_storage_20261023\\0000_native_0_10000.zip",
+  "original_directory": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\storage_20261023\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\training_checkpoints\\native_0_10000",
+  "staging_directory": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\restore_test_20261023",
+  "restored_files": [
+    {
+      "path": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\restore_test_20261023\\review_e1_35a68293af56.snp",
+      "bytes": 4582764,
+      "sha256": "cb560c8ffb20d690e5448dc80fce7a414b77d93ae7a1e91e064f094c3a706aaa"
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\restore_test_20261023\\review_e1_35a68293af56\\C2S_SS_simulation16.dynf",
+      "bytes": 146824523,
+      "sha256": "39e1492b11132681015b908e5fa942a7c7aea664b5d6369ed66c60834a4eee09"
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\restore_test_20261023\\review_e1_35a68293af56\\metadata.json",
+      "bytes": 1476,
+      "sha256": "faae2dc0e5ed7a5bb85da6fd72b95ad4bc180f2f09b77319fa15886d7a03c119"
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\restore_test_20261023\\review_e1_35a68293af56\\snapshot.snp",
+      "bytes": 6784592,
+      "sha256": "1161749d3f2150b3dd81ac3e675d43449f990904076091980a5014e3bade1952"
+    }
+  ],
+  "original_files_modified": 0,
+  "original_files_deleted": 0,
+  "scope": "Staged extraction only. No simulator opened and no active/recent checkpoint replaced."
+}

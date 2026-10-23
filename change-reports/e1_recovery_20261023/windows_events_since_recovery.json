@@ -1,0 +1,73 @@
+{
+  "since_utc": "2026-10-23T18:02:45.0000000Z",
+  "at_utc": "2026-10-23T19:16:19.6505848Z",
+  "count": 11,
+  "events": [
+    {
+      "at": "2026-10-23T14:41:22.7278299-04:00",
+      "id": 1001,
+      "provider": "Windows Error Reporting",
+      "message": "Fault bucket 1707557661050411559, type 5\r\nEvent Name: BEX64\r\nResponse: Not available\r\nCab Id: 0\r\n\r\nProblem signature:\r\nP1: AspenModeler.exe\r\nP2: 40.0.0.359\r\nP3: 633c0677\r\nP4: StackHash_540e\r\nP5: 0.0.0.0\r\nP6: 00000000\r\nP7: PCH_B1_FROM_unknown+0x0000000000000000\r\nP8: c0000409\r\nP9: 000000000000000a\r\nP10: \r\n\r\nAttached files:\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\Temp\\WER.2972dd33-5ffe-4ae5-9f29-6b6c7da99a3b.tmp.dmp\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\Temp\\WER.3576e7ad-652f-428c-a7ff-50d5209d79d4.tmp.WERInternalMetadata.xml\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\Temp\\WER.23c1a375-256f-4e99-9794-24e7c8a9d931.tmp.csv\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\Temp\\WER.9448b4d1-26a6-425d-99a2-7f6797fe9dfe.tmp.txt\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\Temp\\WER.f09bd787-5077-4b3a-9714-ee3122250575.tmp.xml\r\n\r\nThese files may be available here:\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive\\AppCrash_AspenModeler.exe_8bd186486e8e3963d9b254d59078ec72b98734_d91476db_e931b7ef-1e34-4d3c-8f36-137ce93d34ed\r\n\r\nAnalysis symbol: \r\nRechecking for solution: 0\r\nReport Id: 27aea895-a703-4392-85db-6a99d59d7b18\r\nReport Status: 268435456\r\nHashed bucket: 803f21bd8071738dd7b276a54c681a27\r\nCab Guid: 0"
+    },
+    {
+      "at": "2026-10-23T14:41:20.5271151-04:00",
+      "id": 1000,
+      "provider": "Application Error",
+      "message": "Faulting application name: AspenModeler.exe, version: 40.0.0.359, time stamp: 0x633c0677\r\nFaulting module name: unknown, version: 0.0.0.0, time stamp: 0x00000000\r\nException code: 0xc0000409\r\nFault offset: 0x00007ffb6282728f\r\nFaulting process id: 0x97A8\r\nFaulting application start time: 0x1DD631DDBF78E7D\r\nFaulting application path: C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe\r\nFaulting module path: unknown\r\nReport Id: 27aea895-a703-4392-85db-6a99d59d7b18\r\nFaulting package full name: \r\nFaulting package-relative application ID: "
+    },
+    {
+      "at": "2026-10-23T14:37:15.7271878-04:00",
+      "id": 1001,
+      "provider": "Windows Error Reporting",
+      "message": "Fault bucket 2052615341227240064, type 5\r\nEvent Name: BEX64\r\nResponse: Not available\r\nCab Id: 0\r\n\r\nProblem signature:\r\nP1: AspenModeler.exe\r\nP2: 40.0.0.359\r\nP3: 633c0677\r\nP4: StackHash_7b83\r\nP5: 0.0.0.0\r\nP6: 00000000\r\nP7: PCH_B7_FROM_ntdll+0x0000000000162714\r\nP8: c0000005\r\nP9: 0000000000000008\r\nP10: \r\n\r\nAttached files:\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\Temp\\WER.d53976e3-60b9-476c-b82c-d98cca90ab39.tmp.WERInternalMetadata.xml\r\n\r\nThese files may be available here:\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive\\AppCrash_AspenModeler.exe_ffb6e698882e6fec01a9b6e709c8daa98dbb6_d91476db_25b7ffdc-e058-461b-b6dc-28b871c608bd\r\n\r\nAnalysis symbol: \r\nRechecking for solution: 0\r\nReport Id: ca51f1ba-7ff1-45a0-bf3c-afc40c08788f\r\nReport Status: 268435456\r\nHashed bucket: 4dd6455741a048f37c7c5ac7125dea80\r\nCab Guid: 0"
+    },
+    {
+      "at": "2026-10-23T14:37:14.1061573-04:00",
+      "id": 1001,
+      "provider": "Windows Error Reporting",
+      "message": "Fault bucket , type 0\r\nEvent Name: BEX64\r\nResponse: Not available\r\nCab Id: 0\r\n\r\nProblem signature:\r\nP1: AspenModeler.exe\r\nP2: 40.0.0.359\r\nP3: 633c0677\r\nP4: StackHash_7b83\r\nP5: 0.0.0.0\r\nP6: 00000000\r\nP7: PCH_B7_FROM_ntdll+0x0000000000162714\r\nP8: c0000005\r\nP9: 0000000000000008\r\nP10: \r\n\r\nAttached files:\r\n\r\nThese files may be available here:\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportQueue\\AppCrash_AspenModeler.exe_ffb6e698882e6fec01a9b6e709c8daa98dbb6_d91476db_25b7ffdc-e058-461b-b6dc-28b871c608bd\r\n\r\nAnalysis symbol: \r\nRechecking for solution: 0\r\nReport Id: ca51f1ba-7ff1-45a0-bf3c-afc40c08788f\r\nReport Status: 4\r\nHashed bucket: \r\nCab Guid: 0"
+    },
+    {
+      "at": "2026-10-23T14:37:12.214663-04:00",
+      "id": 1000,
+      "provider": "Application Error",
+      "message": "Faulting application name: AspenModeler.exe, version: 40.0.0.359, time stamp: 0x633c0677\r\nFaulting module name: unknown, version: 0.0.0.0, time stamp: 0x00000000\r\nException code: 0xc0000005\r\nFault offset: 0x000002a400000240\r\nFaulting process id: 0xB02C\r\nFaulting application start time: 0x1DD631D462103CE\r\nFaulting application path: C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe\r\nFaulting module path: unknown\r\nReport Id: ca51f1ba-7ff1-45a0-bf3c-afc40c08788f\r\nFaulting package full name: \r\nFaulting package-relative application ID: "
+    },
+    {
+      "at": "2026-10-23T14:32:48.1419509-04:00",
+      "id": 1001,
+      "provider": "Windows Error Reporting",
+      "message": "Fault bucket 2052615341227240064, type 5\r\nEvent Name: BEX64\r\nResponse: Not available\r\nCab Id: 0\r\n\r\nProblem signature:\r\nP1: AspenModeler.exe\r\nP2: 40.0.0.359\r\nP3: 633c0677\r\nP4: StackHash_7b83\r\nP5: 0.0.0.0\r\nP6: 00000000\r\nP7: PCH_B7_FROM_ntdll+0x0000000000162714\r\nP8: c0000005\r\nP9: 0000000000000008\r\nP10: \r\n\r\nAttached files:\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\Temp\\WER.00ed1e30-3723-45f4-8e6c-2e27d99cc51d.tmp.WERInternalMetadata.xml\r\n\r\nThese files may be available here:\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive\\AppCrash_AspenModeler.exe_ffb6e698882e6fec01a9b6e709c8daa98dbb6_d91476db_3f1df4a1-06d4-4f80-8969-ebf04a76487e\r\n\r\nAnalysis symbol: \r\nRechecking for solution: 0\r\nReport Id: f10476b5-da4c-4400-8563-45094ea4fd39\r\nReport Status: 268435456\r\nHashed bucket: 4dd6455741a048f37c7c5ac7125dea80\r\nCab Guid: 0"
+    },
+    {
+      "at": "2026-10-23T14:32:47.3704052-04:00",
+      "id": 1001,
+      "provider": "Windows Error Reporting",
+      "message": "Fault bucket , type 0\r\nEvent Name: BEX64\r\nResponse: Not available\r\nCab Id: 0\r\n\r\nProblem signature:\r\nP1: AspenModeler.exe\r\nP2: 40.0.0.359\r\nP3: 633c0677\r\nP4: StackHash_7b83\r\nP5: 0.0.0.0\r\nP6: 00000000\r\nP7: PCH_B7_FROM_ntdll+0x0000000000162714\r\nP8: c0000005\r\nP9: 0000000000000008\r\nP10: \r\n\r\nAttached files:\r\n\r\nThese files may be available here:\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportQueue\\AppCrash_AspenModeler.exe_ffb6e698882e6fec01a9b6e709c8daa98dbb6_d91476db_3f1df4a1-06d4-4f80-8969-ebf04a76487e\r\n\r\nAnalysis symbol: \r\nRechecking for solution: 0\r\nReport Id: f10476b5-da4c-4400-8563-45094ea4fd39\r\nReport Status: 4\r\nHashed bucket: \r\nCab Guid: 0"
+    },
+    {
+      "at": "2026-10-23T14:32:46.1009221-04:00",
+      "id": 1000,
+      "provider": "Application Error",
+      "message": "Faulting application name: AspenModeler.exe, version: 40.0.0.359, time stamp: 0x633c0677\r\nFaulting module name: unknown, version: 0.0.0.0, time stamp: 0x00000000\r\nException code: 0xc0000005\r\nFault offset: 0x000002a400000240\r\nFaulting process id: 0xC630\r\nFaulting application start time: 0x1DD631CA9DD310E\r\nFaulting application path: C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe\r\nFaulting module path: unknown\r\nReport Id: f10476b5-da4c-4400-8563-45094ea4fd39\r\nFaulting package full name: \r\nFaulting package-relative application ID: "
+    },
+    {
+      "at": "2026-10-23T14:27:48.7225498-04:00",
+      "id": 1001,
+      "provider": "Windows Error Reporting",
+      "message": "Fault bucket 2052615341227240064, type 5\r\nEvent Name: BEX64\r\nResponse: Not available\r\nCab Id: 0\r\n\r\nProblem signature:\r\nP1: AspenModeler.exe\r\nP2: 40.0.0.359\r\nP3: 633c0677\r\nP4: StackHash_7b83\r\nP5: 0.0.0.0\r\nP6: 00000000\r\nP7: PCH_B7_FROM_ntdll+0x0000000000162714\r\nP8: c0000005\r\nP9: 0000000000000008\r\nP10: \r\n\r\nAttached files:\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\Temp\\WER.ff0f0e34-e9ae-4cdb-9fdc-ca31a6b512e9.tmp.WERInternalMetadata.xml\r\n\r\nThese files may be available here:\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive\\AppCrash_AspenModeler.exe_ffb6e698882e6fec01a9b6e709c8daa98dbb6_d91476db_99846182-63a3-4c13-a5f5-88378949312e\r\n\r\nAnalysis symbol: \r\nRechecking for solution: 0\r\nReport Id: a05cf54d-6f49-4f9a-8cad-588d3cdbfc17\r\nReport Status: 268435456\r\nHashed bucket: 4dd6455741a048f37c7c5ac7125dea80\r\nCab Guid: 0"
+    },
+    {
+      "at": "2026-10-23T14:27:47.2687249-04:00",
+      "id": 1001,
+      "provider": "Windows Error Reporting",
+      "message": "Fault bucket , type 0\r\nEvent Name: BEX64\r\nResponse: Not available\r\nCab Id: 0\r\n\r\nProblem signature:\r\nP1: AspenModeler.exe\r\nP2: 40.0.0.359\r\nP3: 633c0677\r\nP4: StackHash_7b83\r\nP5: 0.0.0.0\r\nP6: 00000000\r\nP7: PCH_B7_FROM_ntdll+0x0000000000162714\r\nP8: c0000005\r\nP9: 0000000000000008\r\nP10: \r\n\r\nAttached files:\r\n\r\nThese files may be available here:\r\n\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportQueue\\AppCrash_AspenModeler.exe_ffb6e698882e6fec01a9b6e709c8daa98dbb6_d91476db_99846182-63a3-4c13-a5f5-88378949312e\r\n\r\nAnalysis symbol: \r\nRechecking for solution: 0\r\nReport Id: a05cf54d-6f49-4f9a-8cad-588d3cdbfc17\r\nReport Status: 4\r\nHashed bucket: \r\nCab Guid: 0"
+    },
+    {
+      "at": "2026-10-23T14:27:45.4941501-04:00",
+      "id": 1000,
+      "provider": "Application Error",
+      "message": "Faulting application name: AspenModeler.exe, version: 40.0.0.359, time stamp: 0x633c0677\r\nFaulting module name: unknown, version: 0.0.0.0, time stamp: 0x00000000\r\nException code: 0xc0000005\r\nFault offset: 0x000002a400000240\r\nFaulting process id: 0xE6AC\r\nFaulting application start time: 0x1DD631BEAEB2361\r\nFaulting application path: C:\\Program Files\\AspenTech\\AMSystem V14.0\\Bin\\AspenModeler.exe\r\nFaulting module path: unknown\r\nReport Id: a05cf54d-6f49-4f9a-8cad-588d3cdbfc17\r\nFaulting package full name: \r\nFaulting package-relative application ID: "
+    }
+  ]
+}

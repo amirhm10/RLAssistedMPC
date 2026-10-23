@@ -1,0 +1,16 @@
+{
+  "at_utc": "2026-10-23T19:15:13.015158+00:00",
+  "checked_zips": 910,
+  "original_files": 3640,
+  "compressed_bytes": 19781350283,
+  "seconds": 697.1305880998261,
+  "local_originals_deleted": 0,
+  "verified": true,
+  "folders": 910,
+  "original_bytes": 174583311764,
+  "all_original_paths_present": true,
+  "all_zip_hashes_rechecked": true,
+  "restored_file_hashes_verified_by_compressor": true,
+  "restoration_manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\compressed_storage_20261023\\restore_manifest.json",
+  "restoration_manifest_sha256": "97af00c0dfbf371c8f2141d417d26b4ed09e6d272a0e609cb43be208745f96a9"
+}

@@ -1,0 +1,128 @@
+{
+  "pairs": 203,
+  "groups": [
+    {
+      "category": "combined",
+      "channel": "markov",
+      "window": "release",
+      "pairs": 20,
+      "accepted": 3,
+      "harmful_accepted": 1,
+      "beneficial_rejected": 10,
+      "delta_return_sum": 9483.570144303725,
+      "regret_sum": 16223.547935784123
+    },
+    {
+      "category": "combined",
+      "channel": "weights",
+      "window": "release",
+      "pairs": 20,
+      "accepted": 13,
+      "harmful_accepted": 6,
+      "beneficial_rejected": 2,
+      "delta_return_sum": -296.20715622743836,
+      "regret_sum": 836.4190804208329
+    },
+    {
+      "category": "combined",
+      "channel": "residual",
+      "window": "release",
+      "pairs": 20,
+      "accepted": 2,
+      "harmful_accepted": 2,
+      "beneficial_rejected": 6,
+      "delta_return_sum": -9637.599381350348,
+      "regret_sum": 2055.357410988674
+    },
+    {
+      "category": "combined",
+      "channel": "horizon",
+      "window": "release",
+      "pairs": 20,
+      "accepted": 13,
+      "harmful_accepted": 11,
+      "beneficial_rejected": 3,
+      "delta_return_sum": -5018.933182240452,
+      "regret_sum": 5233.055061682011
+    },
+    {
+      "category": "horizon",
+      "channel": "horizon",
+      "window": "release",
+      "pairs": 20,
+      "accepted": 9,
+      "harmful_accepted": 5,
+      "beneficial_rejected": 6,
+      "delta_return_sum": -397.64566076094525,
+      "regret_sum": 1065.9676482757109
+    },
+    {
+      "category": "horizon",
+      "channel": "horizon",
+      "window": "prechange_mature",
+      "pairs": 20,
+      "accepted": 16,
+      "harmful_accepted": 6,
+      "beneficial_rejected": 0,
+      "delta_return_sum": 268.15678798601516,
+      "regret_sum": 113.37785761243032
+    },
+    {
+      "category": "horizon",
+      "channel": "horizon",
+      "window": "plant_change",
+      "pairs": 20,
+      "accepted": 20,
+      "harmful_accepted": 10,
+      "beneficial_rejected": 0,
+      "delta_return_sum": -506.925196148362,
+      "regret_sum": 621.8762090051838
+    },
+    {
+      "category": "weights",
+      "channel": "weights",
+      "window": "release",
+      "pairs": 20,
+      "accepted": 9,
+      "harmful_accepted": 2,
+      "beneficial_rejected": 7,
+      "delta_return_sum": 718.1398105413294,
+      "regret_sum": 585.8482364265625
+    },
+    {
+      "category": "weights",
+      "channel": "weights",
+      "window": "prechange_mature",
+      "pairs": 3,
+      "accepted": 2,
+      "harmful_accepted": 1,
+      "beneficial_rejected": 0,
+      "delta_return_sum": -20.50803806337572,
+      "regret_sum": 0.6917811842996286
+    },
+    {
+      "category": "markov",
+      "channel": "markov",
+      "window": "release",
+      "pairs": 20,
+      "accepted": 3,
+      "harmful_accepted": 0,
+      "beneficial_rejected": 7,
+      "delta_return_sum": -1349.775293350509,
+      "regret_sum": 1033.6559744516278
+    },
+    {
+      "category": "residual",
+      "channel": "residual",
+      "window": "release",
+      "pairs": 20,
+      "accepted": 2,
+      "harmful_accepted": 1,
+      "beneficial_rejected": 6,
+      "delta_return_sum": -16045.201896198907,
+      "regret_sum": 612.8145137373308
+    }
+  ],
+  "issues": []
+}
+Current captures audited: 203; immutable reviewer package remains 200 pairs.

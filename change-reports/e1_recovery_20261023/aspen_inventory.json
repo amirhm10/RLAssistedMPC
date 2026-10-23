@@ -1,0 +1,117 @@
+{
+  "at_utc": "2026-10-23T19:17:31.7147074Z",
+  "aspen": [
+    {
+      "pid": 36404,
+      "created": "2026-10-21T21:39:51.404348-04:00",
+      "title": "C2S_SS_simulation1.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 9806.203125,
+      "private_bytes": 157872128
+    },
+    {
+      "pid": 12000,
+      "created": "2026-10-21T21:40:09.792327-04:00",
+      "title": "C2S_SS_simulation2.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 9921.625,
+      "private_bytes": 158707712
+    },
+    {
+      "pid": 29720,
+      "created": "2026-10-21T21:40:28.322676-04:00",
+      "title": "C2S_SS_simulation12.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 9856.03125,
+      "private_bytes": 158683136
+    },
+    {
+      "pid": 39372,
+      "created": "2026-10-21T21:40:47.467364-04:00",
+      "title": "C2S_SS_simulation4.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 9885.84375,
+      "private_bytes": 159125504
+    },
+    {
+      "pid": 52360,
+      "created": "2026-10-21T21:41:06.967468-04:00",
+      "title": "C2S_SS_simulation8.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 5589.453125,
+      "private_bytes": 157544448
+    },
+    {
+      "pid": 48208,
+      "created": "2026-10-21T21:41:26.862692-04:00",
+      "title": "C2S_SS_simulation5.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 9902.40625,
+      "private_bytes": 159641600
+    },
+    {
+      "pid": 41696,
+      "created": "2026-10-21T21:41:48.566064-04:00",
+      "title": "C2S_SS_simulation9.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 8129.515625,
+      "private_bytes": 157917184
+    },
+    {
+      "pid": 38588,
+      "created": "2026-10-21T21:42:09.336932-04:00",
+      "title": "C2S_SS_simulation10.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 7610.796875,
+      "private_bytes": 158216192
+    },
+    {
+      "pid": 29084,
+      "created": "2026-10-21T21:42:28.554507-04:00",
+      "title": "C2S_SS_simulation6.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 7911.171875,
+      "private_bytes": 159002624
+    },
+    {
+      "pid": 55316,
+      "created": "2026-10-21T21:42:49.715322-04:00",
+      "title": "C2S_SS_simulation7.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 6920.0625,
+      "private_bytes": 158605312
+    },
+    {
+      "pid": 46768,
+      "created": "2026-10-22T00:08:20.729617-04:00",
+      "title": "C2S_SS_simulation13.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 5159.75,
+      "private_bytes": 279199744
+    },
+    {
+      "pid": 44800,
+      "created": "2026-10-22T00:09:01.459532-04:00",
+      "title": "C2S_SS_simulation16.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 2279.21875,
+      "private_bytes": 267501568
+    },
+    {
+      "pid": 49616,
+      "created": "2026-10-22T00:10:02.433838-04:00",
+      "title": "C2S_SS_simulation13.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 6334.390625,
+      "private_bytes": 22138220544
+    },
+    {
+      "pid": 9316,
+      "created": "2026-10-22T00:10:42.802813-04:00",
+      "title": "C2S_SS_simulation16.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 5184.015625,
+      "private_bytes": 12646510592
+    },
+    {
+      "pid": 53948,
+      "created": "2026-10-23T14:45:34.714488-04:00",
+      "title": "C2S_SS_simulation14.dynf - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 78.109375,
+      "private_bytes": 617254912
+    },
+    {
+      "pid": 46144,
+      "created": "2026-10-23T15:16:50.223236-04:00",
+      "title": "Untitled - Aspen Plus Dynamics V14 - aspenONE",
+      "cpu": 21.90625,
+      "private_bytes": 1268031488
+    }
+  ]
+}

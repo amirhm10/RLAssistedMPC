@@ -1,0 +1,11 @@
+{
+  "state": "verified_complete",
+  "at_utc": "2026-10-23T19:15:09.459237+00:00",
+  "verified_folders": 910,
+  "total_folders": 910,
+  "original_bytes": 174583311764,
+  "compressed_bytes": 19781350283,
+  "seconds": 3051.2662120999303,
+  "originals_deleted": 0,
+  "destination": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\compressed_storage_20261023"
+}

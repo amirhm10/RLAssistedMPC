@@ -1,0 +1,450 @@
+- link "Turn on more accessible mode":
+  - /url: "#"
+- link "Skip to main content":
+  - /url: javascript:;
+- link "Turn off Animations":
+  - /url: "#"
+- banner:
+  - button "App launcher": 
+  - link "McMaster University":
+    - /url: https://www.mcmaster.ca/
+    - img "McMaster University"
+  - link "OneDrive":
+    - /url: https://mcmasteru365-my.sharepoint.com/personal/hamedia_mcmaster_ca/_layouts/15/start.aspx#/_layouts/15/onedrive.aspx
+    - generic: OneDrive
+  - button "Settings":
+    - generic: 
+  - button "Help":
+    - generic: 
+  - button "Account manager for Amir Hossein Hamedi":
+    - generic: AH
+    - img "AH"
+  - generic: 
+- link "Focus on Content":
+  - /url: ../../personal/hamedia_mcmaster_ca/_catalogs/masterpage/#
+  - img "Focus on Content"
+- navigation:
+  - combobox "Search everything"
+  - button "Pick where to search":
+    - img "Pick where to search"
+  - button "Search":
+    - img "Search"
+  - list:
+    - link "About me":
+      - /url: /person.aspx
+      - generic: About me
+    - link "People":
+      - /url: https://mcmasteru365-my.sharepoint.com:443/MyPeople.aspx
+      - generic: People
+    - link "Apps":
+      - /url: https://mcmasteru365-my.sharepoint.com/personal/hamedia_mcmaster_ca/_layouts/15/viewlsts.aspx
+      - generic: Apps
+  - list:
+    - generic "Recent":
+      - generic: Recent
+    - list:
+      - link "notificationSubscriptionHiddenList6D1E55DA-2564-4A22-A5F9-6C4FCAFF53DE":
+        - /url: /personal/hamedia_mcmaster_ca/Lists/notificationSubscriptionHiddenList6D1E55DA25644A22/AllItems.aspx
+        - generic: notificationSubscriptionHiddenList6D1E55DA-2564-4A22-A5F9-6C4FCAFF53DE
+    - link "Edit Links":
+      - /url: "#"
+      - generic: Edit Links
+- 'heading "Site Settings : Storage Metrics Storage usage includes all file versions and metadata." [level=1]':
+  - link "Site Settings":
+    - /url: /personal/hamedia_mcmaster_ca/_layouts/15/settings.aspx
+  - img ":"
+  - text: Storage Metrics
+  - button "Storage usage includes all file versions and metadata."
+  - generic: Storage usage includes all file versions and metadata.
+- main:
+  - table:
+    - rowgroup:
+      - row "Site Collection 151.05 GB free of 1024.00 GB":
+        - cell "Site Collection":
+          - heading "Site Collection" [level=1]:
+            - link "Site Collection":
+              - /url: storman.aspx
+              - text: Site Collection
+          - heading [level=2]
+        - cell "151.05 GB free of 1024.00 GB":
+          - table:
+            - rowgroup:
+              - row "151.05 GB free of 1024.00 GB":
+                - cell "151.05 GB free of 1024.00 GB"
+                - cell:
+                  - generic "151.05 GB free of 1024.00 GB"
+                - cell
+      - row
+  - table:
+    - rowgroup:
+      - row "(Page 1 / 1)":
+        - cell "(Page 1 / 1)"
+  - table:
+    - rowgroup:
+      - row "Type Name Total SizeSort Descending % of Parent % of Site Quota Last Modified":
+        - columnheader "Type"
+        - columnheader "Name"
+        - columnheader "Total SizeSort Descending":
+          - link "Total Size":
+            - /url: storman.aspx?root=&OrderBy=0&Asc=1&Page=0
+          - img "Sort Descending"
+        - columnheader "% of Parent"
+        - columnheader
+        - columnheader "% of Site Quota"
+        - columnheader
+        - columnheader "Last Modified":
+          - link "Last Modified":
+            - /url: storman.aspx?root=&OrderBy=1&Asc=0&Page=0
+      - row "Type Folder Documents 752.8 GB 100.00% 73.52% 10/23/2026 1:35 PM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "Documents":
+          - link "Documents":
+            - /url: storman.aspx?root=Documents
+        - cell "752.8 GB"
+        - cell "100.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "73.52%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "10/23/2026 1:35 PM":
+          - generic: 10/23/2026 1:35 PM
+        - cell
+      - row "Type Folder _catalogs 1.6 MB 0.00% 0.00% 10/23/2026 1:00 PM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "_catalogs":
+          - link "_catalogs":
+            - /url: storman.aspx?root=%5Fcatalogs
+        - cell "1.6 MB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "10/23/2026 1:00 PM":
+          - generic: 10/23/2026 1:00 PM
+        - cell
+      - row "Type Folder Lists 515.1 KB 0.00% 0.00% 10/23/2026 1:24 PM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "Lists":
+          - link "Lists":
+            - /url: storman.aspx?root=Lists
+        - cell "515.1 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "10/23/2026 1:24 PM":
+          - generic: 10/23/2026 1:24 PM
+        - cell
+      - row "Type Folder Style Library 89.5 KB 0.00% 0.00% 6/12/2022 12:27 PM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "Style Library":
+          - link "Style Library":
+            - /url: storman.aspx?root=Style%20Library
+        - cell "89.5 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/12/2022 12:27 PM":
+          - generic: 6/12/2022 12:27 PM
+        - cell
+      - row "Type Folder Form Templates 43.8 KB 0.00% 0.00% 6/12/2022 12:27 PM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "Form Templates":
+          - link "Form Templates":
+            - /url: storman.aspx?root=FormServerTemplates
+        - cell "43.8 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/12/2022 12:27 PM":
+          - generic: 6/12/2022 12:27 PM
+        - cell
+      - row "Type Folder Site Pages 31 KB 0.00% 0.00% 6/23/2025 2:36 AM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "Site Pages":
+          - link "Site Pages":
+            - /url: storman.aspx?root=SitePages
+        - cell "31 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/23/2025 2:36 AM":
+          - generic: 6/23/2025 2:36 AM
+        - cell
+      - row "Type Folder _cts 30.9 KB 0.00% 0.00% 6/12/2022 12:27 PM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "_cts":
+          - link "_cts":
+            - /url: storman.aspx?root=%5Fcts
+        - cell "30.9 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/12/2022 12:27 PM":
+          - generic: 6/12/2022 12:27 PM
+        - cell
+      - row "Type Folder Social 27.5 KB 0.00% 0.00% 6/12/2022 12:27 PM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "Social":
+          - link "Social":
+            - /url: storman.aspx?root=Social
+        - cell "27.5 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/12/2022 12:27 PM":
+          - generic: 6/12/2022 12:27 PM
+        - cell
+      - row "Type Folder (Reference, ef6d7844cfb147d39e746677df07dfc6) 16.8 KB 0.00% 0.00% 4/27/2026 10:19 PM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "(Reference, ef6d7844cfb147d39e746677df07dfc6)":
+          - link "(Reference, ef6d7844cfb147d39e746677df07dfc6)":
+            - /url: storman.aspx?root=Reference%20ef6d7844cfb147d39e746677df07dfc6
+        - cell "16.8 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "4/27/2026 10:19 PM":
+          - generic: 4/27/2026 10:19 PM
+        - cell
+      - row "Type Folder Converted Forms 13.7 KB 0.00% 0.00% 6/12/2022 12:27 PM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "Converted Forms":
+          - link "Converted Forms":
+            - /url: storman.aspx?root=IWConvertedForms
+        - cell "13.7 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/12/2022 12:27 PM":
+          - generic: 6/12/2022 12:27 PM
+        - cell
+      - row "Type File blog.xsl 5.5 KB 0.00% 0.00% 6/5/2022 1:03 AM":
+        - cell "Type File":
+          - img "Type File"
+        - cell "blog.xsl"
+        - cell "5.5 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/5/2022 1:03 AM":
+          - generic: 6/5/2022 1:03 AM
+        - cell
+      - row "Type File default.aspx 5.2 KB 0.00% 0.00% 6/5/2022 1:03 AM":
+        - cell "Type File":
+          - img "Type File"
+        - cell "default.aspx"
+        - cell "5.2 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/5/2022 1:03 AM":
+          - generic: 6/5/2022 1:03 AM
+        - cell
+      - row "Type File newsfeed.aspx 4.3 KB 0.00% 0.00% 6/5/2022 1:03 AM":
+        - cell "Type File":
+          - img "Type File"
+        - cell "newsfeed.aspx"
+        - cell "4.3 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/5/2022 1:03 AM":
+          - generic: 6/5/2022 1:03 AM
+        - cell
+      - row "Type Folder _vti_pvt < 1 KB 0.00% 0.00% 6/5/2022 1:03 AM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "_vti_pvt":
+          - link "_vti_pvt":
+            - /url: storman.aspx?root=%5Fvti%5Fpvt
+        - cell "< 1 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/5/2022 1:03 AM":
+          - generic: 6/5/2022 1:03 AM
+        - cell
+      - row "Type Folder images < 1 KB 0.00% 0.00% 6/5/2022 1:03 AM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "images":
+          - link "images":
+            - /url: storman.aspx?root=images
+        - cell "< 1 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/5/2022 1:03 AM":
+          - generic: 6/5/2022 1:03 AM
+        - cell
+      - row "Type Folder _private < 1 KB 0.00% 0.00% 6/5/2022 1:03 AM":
+        - cell "Type Folder":
+          - img "Type Folder"
+        - cell "_private":
+          - link "_private":
+            - /url: storman.aspx?root=%5Fprivate
+        - cell "< 1 KB"
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "0.00%"
+        - cell:
+          - table:
+            - rowgroup:
+              - row:
+                - cell
+        - cell "6/5/2022 1:03 AM":
+          - generic: 6/5/2022 1:03 AM
+        - cell
+      - row
+  - table:
+    - rowgroup:
+      - row "(Page 1 / 1)":
+        - cell "(Page 1 / 1)"
+  - separator
+  - text: The values in the table might take a few minutes to update and do not include content in the recycle bin. If the free space shown in the upper right is lower than you expect, empty the recycle bin.

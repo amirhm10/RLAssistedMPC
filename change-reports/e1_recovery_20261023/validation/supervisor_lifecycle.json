@@ -1,0 +1,20 @@
+{
+  "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\e1_recovery_20261023\\e1_supervisor_lifecycle.py",
+  "sha256": "d854b8cb25a6cbd562397b70f8d9b2c4783cb3582bc547328330fb5927a35cef",
+  "sealed_worker_source_sha256": {
+    "run_remaining_recovery.py": "6ab6c115a1da192551b9c9d7c491ae66313a1989943b4e1404558e0f8d52e1f0",
+    "review_numeric_recovery.py": "d373768a449503d3a6163391da057ec3058f1460b8f521c98f268be1976aacee",
+    "review_training_recovery.py": "8075aa3405671ba8cb328024f2b01d7299606982011ca4f4ab93e05d42fba951",
+    "column_e1_recovery.py": "59bb58d9591d58824b43fb78a7274651e94a7feee122f33da33a4a41fac6f96d",
+    "run_markov_checkpoint_recovery.py": "bd408b634b3030d7b6f5a0cc8f4c429d8361a9db2b3adaecc1eb3ef9ceca012c",
+    "review_markov_checkpoint_recovery.py": "73eb6b4d69dff678f1c41edf97389939652b5bc58b9a7f5904cdf60e3cf29232",
+    "column_e1_budget.py": "d24ed93f6a8183bfd55ca508f4c5c799dca3bd81fbe8e85553286d0227c1761a",
+    "run_column_e1_budget.py": "97f7ef77f17207ac6382ca3c40c7742c3268fa6c1c3c889959434a4f8fe89b92",
+    "column_e1_budget_lazy_recovery.py": "570c3fd9a0dba06c321f497e0c54b7d8ba8a999092664de37cb63f6c65752446",
+    "run_column_e1_budget_lazy_recovery.py": "d79eec98525e2fa556c846d7d28ff04b298f24e76b9ce423dae56308f6db113a",
+    "column_e1_process_recovery.py": "a23cbc95ca76a99c9ba1d5dac716813fe97b0f41dddf9eee61c806d946b37d7a",
+    "run_column_e1_process_recovery.py": "67c246bf4947df14fd9be8aa8042cf002c921b91a9690ffb548fcb9bf16006d2"
+  },
+  "at_utc": "2026-10-23T18:43:12.526909+00:00",
+  "purpose": "Accept only verified natural completion of the original combined queue coordinator; no worker/source/protocol changes."
+}

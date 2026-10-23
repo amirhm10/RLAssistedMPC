@@ -1,0 +1,33 @@
+Starting fresh native restore: weights
+Loading weights 0
+Loading weights 1
+Timeout (0:03:00)!
+Thread 0x00009b98 (most recent call first):
+  File "<COMObject AD application>", line 2 in openDocument
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1_process_recovery.py", line 103 in load_project
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1_process_recovery.py", line 146 in <lambda>
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1\runtime.py", line 395 in import_native
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\change-reports\e1_recovery_20261023\probe_fresh_native.py", line 46 in <module>
+PASS fresh-process native restore and repeated continuation: weights
+Starting fresh native restore: markov
+Loading markov 0
+Loading markov 1
+Timeout (0:03:00)!
+Thread 0x00009b98 (most recent call first):
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\site-packages\win32com\client\__init__.py", line 142 in DispatchEx
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_review\common.py", line 133 in create
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1_process_recovery.py", line 97 in load_project
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1_process_recovery.py", line 146 in <lambda>
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1\runtime.py", line 395 in import_native
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\change-reports\e1_recovery_20261023\probe_fresh_native.py", line 46 in <module>
+PASS fresh-process native restore and repeated continuation: markov
+Starting fresh native restore: residual
+Loading residual 0
+Timeout (0:03:00)!
+Thread 0x00009b98 (most recent call first):
+  File "<COMObject <unknown>>", line 2 in CopyValues
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1_recovery.py", line 29 in restore_snapshot
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\column_e1\runtime.py", line 405 in import_native
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\change-reports\e1_recovery_20261023\probe_fresh_native.py", line 46 in <module>
+Loading residual 1
+PASS fresh-process native restore and repeated continuation: residual

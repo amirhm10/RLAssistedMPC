@@ -1,0 +1,87 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-23T19:10:25.429136+00:00",
+  "destination": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\healthy_e1_checkpoints_20261023",
+  "records": [
+    {
+      "category": "combined",
+      "completed_steps": 72000,
+      "completed_cycles": 180,
+      "files": [
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\training_checkpoints\\training_state_1.pkl",
+          "copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\healthy_e1_checkpoints_20261023\\combined\\training_state_1.pkl",
+          "sha256": "26be3368990010f6f28d5598828f9074b3c8399f612b2deab1dfeb765a737606",
+          "bytes": 573219515
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\training_checkpoints\\native_1_72000\\review_e1_a64e55fd8637.snp",
+          "copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\healthy_e1_checkpoints_20261023\\combined\\native_1_72000\\review_e1_a64e55fd8637.snp",
+          "sha256": "d626f1c4468428138666e902fb9231dd8aaaea9c96572f0c9ad07bf412c583fa",
+          "bytes": 4582764
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\training_checkpoints\\native_1_72000\\review_e1_a64e55fd8637\\C2S_SS_simulation16.dynf",
+          "copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\healthy_e1_checkpoints_20261023\\combined\\native_1_72000\\review_e1_a64e55fd8637\\C2S_SS_simulation16.dynf",
+          "sha256": "177ae1b779bb5cc5d5b3f487cbf47319e883811ca2a6ab9744734da29b0074d9",
+          "bytes": 373991378
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\training_checkpoints\\native_1_72000\\review_e1_a64e55fd8637\\metadata.json",
+          "copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\healthy_e1_checkpoints_20261023\\combined\\native_1_72000\\review_e1_a64e55fd8637\\metadata.json",
+          "sha256": "acf4515655b20ab084428e67331ed8caa938cdcfd93e90c976626bc11e91f83f",
+          "bytes": 1497
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\training_checkpoints\\native_1_72000\\review_e1_a64e55fd8637\\snapshot.snp",
+          "copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\healthy_e1_checkpoints_20261023\\combined\\native_1_72000\\review_e1_a64e55fd8637\\snapshot.snp",
+          "sha256": "5dfddd4d6ffb3712de1e6aa0b457a21bb73cbcb58bd11922579df26a707b6c87",
+          "bytes": 6784592
+        }
+      ],
+      "saved_checkpoint_at_unix": 1792782203.5163558
+    },
+    {
+      "category": "horizon",
+      "completed_steps": 106000,
+      "completed_cycles": 265,
+      "files": [
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\training_state_0.pkl",
+          "copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\healthy_e1_checkpoints_20261023\\horizon\\training_state_0.pkl",
+          "sha256": "247535ffdd107698a4b421211be58df4d8e151ed555777e97261ab4b74ee8e9a",
+          "bytes": 119126501
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_106000\\review_e1_138789db9642.snp",
+          "copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\healthy_e1_checkpoints_20261023\\horizon\\native_0_106000\\review_e1_138789db9642.snp",
+          "sha256": "a6a6c1c33eaf3c363e3582ed7e273e685c7e4ae4926dd99e6d58087af1e7474c",
+          "bytes": 4582764
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_106000\\review_e1_138789db9642\\C2S_SS_simulation13.dynf",
+          "copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\healthy_e1_checkpoints_20261023\\horizon\\native_0_106000\\review_e1_138789db9642\\C2S_SS_simulation13.dynf",
+          "sha256": "42165709e3233ae5601b1c5153889da47f16eab16e186a6c01b86debf92079cc",
+          "bytes": 466344618
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_106000\\review_e1_138789db9642\\metadata.json",
+          "copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\healthy_e1_checkpoints_20261023\\horizon\\native_0_106000\\review_e1_138789db9642\\metadata.json",
+          "sha256": "191e6a21794ddcd5f6aba85ab29b0500362c00312d67726cad6371eee7a4d39c",
+          "bytes": 1515
+        },
+        {
+          "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_106000\\review_e1_138789db9642\\snapshot.snp",
+          "copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\healthy_e1_checkpoints_20261023\\horizon\\native_0_106000\\review_e1_138789db9642\\snapshot.snp",
+          "sha256": "a6cd2e0f92011852680e84674328a68f501df23dafd7c6aa589fc858f24fb575",
+          "bytes": 6784592
+        }
+      ],
+      "saved_checkpoint_at_unix": 1792782582.7320204
+    }
+  ],
+  "original_files_modified": 0,
+  "live_simulator_calls": 0,
+  "restored": false,
+  "restoration": "Timestamped saved-state copies. Restore only missing files when their worker is stopped; never overwrite a newer checkpoint. latest.json retains original absolute paths as provenance; files maps original paths to verified local copies."
+}

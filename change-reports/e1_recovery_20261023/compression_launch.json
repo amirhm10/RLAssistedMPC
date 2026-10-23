@@ -1,0 +1,11 @@
+{
+  "task_name": "RLAssistedMPC-ArchiveCompression-f72ba7e459f7",
+  "current_user": true,
+  "administrator_required": false,
+  "triggers": 0,
+  "helper": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\e1_recovery_20261023\\compress_verified_archive.py",
+  "helper_sha256": "3f892c39bb424b6a73d05bf54c3c6a3dcc40726635ed4d88bcbca89d358f307d",
+  "launcher_sha256": "fd70879abb35a91841a994b7aff8a127a3710b35ce922f142d7c54a6215c6270",
+  "authorization": "User selected Compress the full local archive (Recommended)",
+  "originals_deleted": 0
+}

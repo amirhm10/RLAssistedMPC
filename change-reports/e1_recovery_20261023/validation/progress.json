@@ -1,0 +1,25 @@
+{
+  "updated_at": "2026-10-23T19:17:02.703984+00:00",
+  "jobs": [
+    {
+      "category": "weights",
+      "state": "running",
+      "pid": 28560
+    },
+    {
+      "category": "markov",
+      "state": "pending",
+      "pid": null
+    },
+    {
+      "category": "residual",
+      "state": "pending",
+      "pid": null
+    }
+  ],
+  "memory": {
+    "committed_bytes": 120349159424,
+    "limit_bytes": 125746294784,
+    "headroom_bytes": 5397135360
+  }
+}

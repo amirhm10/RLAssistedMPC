@@ -1,0 +1,9 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-23T18:53:38.771047+00:00",
+  "source_files": 151,
+  "source_package": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\scientific_sources_and_protocols.zip",
+  "source_package_sha256": "930b6284982f8a81fa89e8b251a3f7e5976239b93097130fcd6d265242546440",
+  "reviewer_package": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\e1_recovery_20261023\\reviewer_data_200_pairs.zip",
+  "reviewer_package_sha256": "7100ce197c41faa3b8030392e11a533604dfeb968c24ee762319ba71804e05ed"
+}

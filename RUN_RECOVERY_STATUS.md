@@ -1,5 +1,15 @@
 # Reviewer-run recovery — latest update October 23, 2026
 
+## Automatic Aspen retention enabled — October 23, 18:05 Toronto
+
+An independent, low-priority current-user maintenance task now retains the latest two verified complete Python/native checkpoint sets for all five E1 configurations. It losslessly compresses only obsolete native folders and old closed private load copies outside OneDrive, verifies every decompressed file hash, then removes verified duplicate sources through crash-recoverable receipts. Ten saved recovery dependencies, newest two private copies per role, active Aspen documents, selected E1 snapshots, raw traces and all scientific results remain protected. Busy or incomplete saves defer cleanup. No sealed scientific source, simulator process, queue manifest or queue/case lock is changed; no administrator access is required.
+
+At the 22:05 UTC audit, 71 old folders (7.25 GiB raw) were represented by 0.82 GiB verified ZIPs, with about 326.1 GiB free on C:. Cleanup continues automatically, including new folders beyond the repaired pending batch. The 33 safety tests and fifteen repeated concurrency checks pass. Actual native/private staged restores passed all eight file hashes. All 139 sealed source hashes and 200 frozen result-trace hashes are unchanged; all ten saved recovery dependencies remain present. Both checkpoint sets for every E1 configuration passed structural/native-hash verification and remain present.
+
+Nine original workers retain their creation identities and positive CPU deltas; the automatic combined coordinator retains its identity. E1 horizon failed at 17:44 Toronto with an Aspen openDocument RPC error followed by AD application.Quit during cleanup. Its latest two full checkpoints, at steps 116000 and 115600 (cycles 290 and 289), remain protected. The native failure cause is unproven; retention activation must not be read as all jobs healthy. No experiment was stopped or restarted by this maintenance task.
+
+Live maintenance status: `C:\Users\hamediaa\RL_MPC_local_archive\aspen_retention_20261023\STATUS.md`. Evidence and restore instructions: `change-reports/aspen_retention_20261023/STATUS.md`, `activation_audit.json`, and `actual_staged_restores.json`. Earlier statements that automatic native retention is unfixed are historical.
+
 ## Approved archive replacement and E1 storage diagnosis — 2026-10-23T20:45:55.089558+00:00
 
 Removed only the author-approved 910 historical raw duplicate folders (162.59 GiB); their 910 verified local lossless ZIPs (18.42 GiB), restoration manifests and all current/recent recovery sets remain. All original and ZIP SHA-256 hashes passed before removal, all ZIP hashes passed again afterward, and an actual post-removal staged extraction passed every restored file hash. Free C: space is about 321.7 GiB at the final check. The current preservation guide is updated; earlier records describing both forms retained are historical.

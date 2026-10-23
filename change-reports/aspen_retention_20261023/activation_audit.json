@@ -1,0 +1,213 @@
+{
+  "at_utc": "2026-10-23T22:05:35.400425+00:00",
+  "worker_identity": {
+    "pid": 58264,
+    "parent_pid": 2524,
+    "in_windows_job": true,
+    "scheduler_service_pid": 2524,
+    "parent_is_scheduler_service": true,
+    "session_id": 2,
+    "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+    "observed_at": "2026-10-23T22:01:59.964102+00:00"
+  },
+  "processes": [
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/7",
+      "current": {
+        "pid": 21748,
+        "alive": true,
+        "created": 1792633172.5390975,
+        "cpu": 23509.749999999996
+      },
+      "cpu_delta_seconds": 348.609375
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/11",
+      "current": {
+        "pid": 23668,
+        "alive": true,
+        "created": 1792633172.550099,
+        "cpu": 23723.124999999996
+      },
+      "cpu_delta_seconds": 331.0625
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/23",
+      "current": {
+        "pid": 11248,
+        "alive": true,
+        "created": 1792633172.561099,
+        "cpu": 23972.671874999996
+      },
+      "cpu_delta_seconds": 339.515625
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/37",
+      "current": {
+        "pid": 25940,
+        "alive": true,
+        "created": 1792633172.5723193,
+        "cpu": 24509.25
+      },
+      "cpu_delta_seconds": 362.3125
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/53",
+      "current": {
+        "pid": 25660,
+        "alive": true,
+        "created": 1792633172.5830843,
+        "cpu": 23099.968749999996
+      },
+      "cpu_delta_seconds": 337.625
+    },
+    {
+      "study": "E1_column",
+      "job": "combined",
+      "current": {
+        "pid": 22588,
+        "alive": true,
+        "created": 1792642088.3220649,
+        "cpu": 24416.515624999996
+      },
+      "cpu_delta_seconds": 228.328125
+    },
+    {
+      "study": "E1_column",
+      "job": "horizon",
+      "current": {
+        "pid": 36720,
+        "alive": false
+      },
+      "completion": {
+        "state": "failed",
+        "finished_at": "2026-10-23T21:44:44.416863+00:00",
+        "error": "AD application.Quit",
+        "error_type": "AttributeError",
+        "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 240, in worker\n    namespace = execute(job['category'], lambda defaults: configure(defaults, job['category'], output, active['aspen'], technical))\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 92, in execute\n    exec(compile(ast.fix_missing_locations(ast.Module(body=body, type_ignores=[])), str(path), 'exec'), namespace)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\distillation_RL_assisted_MPC_horizons_unified.py\", line 331, in <module>\n    result_bundle = run_dqn_mpc_horizon_supervisor(horizon_cfg=horizon_cfg, runtime_ctx=runtime_ctx)\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\revision_recovery\\checkpoints.py\", line 289, in run\n    session.before(compiled.sites[key], environment)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_e1\\runtime.py\", line 299, in before\n    self.native = E1NativeSnapshot(self.native_plant, {}, folder, target=self.branch_plant)\n                  ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_e1\\runtime.py\", line 110, in __init__\n    self.restored_snapshot.native = load_project(self.plant, self.metadata)\n                                    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_e1\\runtime.py\", line 61, in load_project\n    plant.ad.openDocument(str(model))\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"<COMObject AD application>\", line 2, in openDocument\npywintypes.com_error: (-2147023170, 'The remote procedure call failed.', None, None)\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 233, in worker\n    with ExitStack() as stack:\n         ~~~~~~~~~^^\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\contextlib.py\", line 619, in __exit__\n    raise exc\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\contextlib.py\", line 604, in __exit__\n    if cb(*exc_details):\n       ~~^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\contextlib.py\", line 482, in _exit_wrapper\n    callback(*args, **kwds)\n    ~~~~~~~~^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 210, in close_branch\n    branch.close(branch_paths['snaps_path'])\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_e1\\runtime.py\", line 200, in close\n    plant.ad.Quit()\n    ^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\win32com\\client\\dynamic.py\", line 631, in __getattr__\n    raise AttributeError(f\"{self._username_}.{attr}\")\nAttributeError: AD application.Quit\n"
+      }
+    },
+    {
+      "study": "E1_column",
+      "job": "weights",
+      "current": {
+        "pid": 28560,
+        "alive": true,
+        "created": 1792781006.26752,
+        "cpu": 411.734375
+      },
+      "cpu_delta_seconds": 70.046875
+    },
+    {
+      "study": "E1_column",
+      "job": "markov",
+      "current": {
+        "pid": 47812,
+        "alive": true,
+        "created": 1792784046.2860775,
+        "cpu": 856.828125
+      },
+      "cpu_delta_seconds": 177.640625
+    },
+    {
+      "study": "E1_column",
+      "job": "residual",
+      "current": {
+        "pid": 50420,
+        "alive": true,
+        "created": 1792784648.5104468,
+        "cpu": 308.953125
+      },
+      "cpu_delta_seconds": 62.5625
+    }
+  ],
+  "combined_coordinator": {
+    "pid": 36308,
+    "alive": true,
+    "created": 1792514456.735777,
+    "cpu": 136.984375
+  },
+  "scientific_source_hashes_unchanged": true,
+  "frozen_trace_hashes_unchanged": true,
+  "frozen_trace_count": 200,
+  "current_checkpoints": [
+    {
+      "job": "combined",
+      "steps": [
+        76400,
+        76000
+      ],
+      "native_directories_present": true
+    },
+    {
+      "job": "horizon",
+      "steps": [
+        116000,
+        115600
+      ],
+      "native_directories_present": true
+    },
+    {
+      "job": "weights",
+      "steps": [
+        78800,
+        78400
+      ],
+      "native_directories_present": true
+    },
+    {
+      "job": "markov",
+      "steps": [
+        78400,
+        78000
+      ],
+      "native_directories_present": true
+    },
+    {
+      "job": "residual",
+      "steps": [
+        78000,
+        77600
+      ],
+      "native_directories_present": true
+    }
+  ],
+  "completed_archives_checked": 71,
+  "completed_archive_kinds": [
+    "native",
+    "private"
+  ],
+  "live_original_workers": 9,
+  "failed_runs": [
+    {
+      "job": "horizon",
+      "study": "E1_column",
+      "state": "failed",
+      "finished_at": "2026-10-23T21:44:44.416863+00:00",
+      "error": "AD application.Quit",
+      "error_type": "AttributeError",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 240, in worker\n    namespace = execute(job['category'], lambda defaults: configure(defaults, job['category'], output, active['aspen'], technical))\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 92, in execute\n    exec(compile(ast.fix_missing_locations(ast.Module(body=body, type_ignores=[])), str(path), 'exec'), namespace)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\distillation_RL_assisted_MPC_horizons_unified.py\", line 331, in <module>\n    result_bundle = run_dqn_mpc_horizon_supervisor(horizon_cfg=horizon_cfg, runtime_ctx=runtime_ctx)\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\revision_recovery\\checkpoints.py\", line 289, in run\n    session.before(compiled.sites[key], environment)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_e1\\runtime.py\", line 299, in before\n    self.native = E1NativeSnapshot(self.native_plant, {}, folder, target=self.branch_plant)\n                  ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_e1\\runtime.py\", line 110, in __init__\n    self.restored_snapshot.native = load_project(self.plant, self.metadata)\n                                    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_e1\\runtime.py\", line 61, in load_project\n    plant.ad.openDocument(str(model))\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"<COMObject AD application>\", line 2, in openDocument\npywintypes.com_error: (-2147023170, 'The remote procedure call failed.', None, None)\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 233, in worker\n    with ExitStack() as stack:\n         ~~~~~~~~~^^\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\contextlib.py\", line 619, in __exit__\n    raise exc\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\contextlib.py\", line 604, in __exit__\n    if cb(*exc_details):\n       ~~^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\contextlib.py\", line 482, in _exit_wrapper\n    callback(*args, **kwds)\n    ~~~~~~~~^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 210, in close_branch\n    branch.close(branch_paths['snaps_path'])\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_e1\\runtime.py\", line 200, in close\n    plant.ad.Quit()\n    ^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\win32com\\client\\dynamic.py\", line 631, in __getattr__\n    raise AttributeError(f\"{self._username_}.{attr}\")\nAttributeError: AD application.Quit\n"
+    }
+  ],
+  "pinned_native_directories_preserved": 10,
+  "retention_totals": {
+    "removed_folders": 71,
+    "original_bytes": 7782388645,
+    "compressed_bytes": 884965615
+  },
+  "resources": {
+    "updated_at": "2026-10-23T22:04:17.489427+00:00",
+    "pid": 58264,
+    "rss_bytes": 39788544,
+    "threads": 2,
+    "cpu_seconds": 102.765625,
+    "last_pass_seconds": 105.10434120008722
+  },
+  "status_updated_at": "2026-10-23T22:05:31.022122+00:00",
+  "free_disk_bytes": 350142361600
+}

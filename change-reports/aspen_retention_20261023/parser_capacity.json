@@ -1,0 +1,7 @@
+{
+  "memo_entries": 23476,
+  "maximum_supported": 400000,
+  "completed_steps": 72000,
+  "elapsed_seconds": 38.44368759985082,
+  "scope": "Immutable pre-existing combined backup only; no live checkpoint opened"
+}

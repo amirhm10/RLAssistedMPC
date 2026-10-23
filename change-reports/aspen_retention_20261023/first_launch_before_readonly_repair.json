@@ -1,0 +1,14 @@
+{
+  "task_name": "RLAssistedMPC-AspenRetention-337f010bee3f",
+  "created_at": "2026-10-23T21:35:06.040587+00:00",
+  "administrator_required": false,
+  "current_user": true,
+  "execution_time_limit": "PT0S",
+  "triggers": 0,
+  "config_sha256": "1d1e1296c871410884e9b970672272a29b731426a3dd3540504982a692bb4fef",
+  "bootstrap_sha256": {
+    "aspen_retention.py": "dceaeee639b9f812fd86953900343c11e9c8bf2c63e7bc8f3b85beafe95dd8eb",
+    "aspen_retention_pickle.py": "1c31ba3737d20576f236f2d25d287c95881c49c5e03f17a7564b06430b3f43b0",
+    "run_aspen_retention.py": "4bc3da7ebaeabe3ae3607ee2164abe950f3d4c6381875c7bf03c8cf712ef6670"
+  }
+}

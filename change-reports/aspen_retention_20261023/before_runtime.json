@@ -1,0 +1,124 @@
+{
+  "at_utc": "2026-10-23T21:34:56.661275+00:00",
+  "workers": [
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/7",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s7\\a1",
+      "identity": {
+        "pid": 21748,
+        "alive": true,
+        "created": 1792633172.5390975,
+        "cpu": 23161.140624999996
+      }
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/11",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s11\\a1",
+      "identity": {
+        "pid": 23668,
+        "alive": true,
+        "created": 1792633172.550099,
+        "cpu": 23392.062499999996
+      }
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/23",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s23\\a1",
+      "identity": {
+        "pid": 11248,
+        "alive": true,
+        "created": 1792633172.561099,
+        "cpu": 23633.156249999996
+      }
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/37",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s37\\a1",
+      "identity": {
+        "pid": 25940,
+        "alive": true,
+        "created": 1792633172.5723193,
+        "cpu": 24146.9375
+      }
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/53",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s53\\a1",
+      "identity": {
+        "pid": 25660,
+        "alive": true,
+        "created": 1792633172.5830843,
+        "cpu": 22762.343749999996
+      }
+    },
+    {
+      "study": "E1_column",
+      "job": "combined",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+      "identity": {
+        "pid": 22588,
+        "alive": true,
+        "created": 1792642088.3220649,
+        "cpu": 24188.187499999996
+      }
+    },
+    {
+      "study": "E1_column",
+      "job": "horizon",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1",
+      "identity": {
+        "pid": 36720,
+        "alive": true,
+        "created": 1792642088.3428988,
+        "cpu": 5230.234375
+      }
+    },
+    {
+      "study": "E1_column",
+      "job": "weights",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1",
+      "identity": {
+        "pid": 28560,
+        "alive": true,
+        "created": 1792781006.26752,
+        "cpu": 341.6875
+      }
+    },
+    {
+      "study": "E1_column",
+      "job": "markov",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1",
+      "identity": {
+        "pid": 47812,
+        "alive": true,
+        "created": 1792784046.2860775,
+        "cpu": 679.1875
+      }
+    },
+    {
+      "study": "E1_column",
+      "job": "residual",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1",
+      "identity": {
+        "pid": 50420,
+        "alive": true,
+        "created": 1792784648.5104468,
+        "cpu": 246.390625
+      }
+    }
+  ],
+  "combined_coordinator": {
+    "pid": 36308,
+    "alive": true,
+    "created": 1792514456.735777,
+    "cpu": 136.09375
+  },
+  "frozen_trace_count": 200,
+  "frozen_trace_hashes_verified": true,
+  "scientific_files_verified": 139
+}

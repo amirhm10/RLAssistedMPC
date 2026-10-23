@@ -1,0 +1,36 @@
+test_native_writer_can_commit_while_retention_observes (test_aspen_retention.RetentionTests.test_native_writer_can_commit_while_retention_observes) ... ok
+test_native_writer_can_commit_while_retention_observes (test_aspen_retention.RetentionTests.test_native_writer_can_commit_while_retention_observes) ... ok
+test_native_writer_can_commit_while_retention_observes (test_aspen_retention.RetentionTests.test_native_writer_can_commit_while_retention_observes) ... ok
+test_native_writer_can_commit_while_retention_observes (test_aspen_retention.RetentionTests.test_native_writer_can_commit_while_retention_observes) ... ok
+test_native_writer_can_commit_while_retention_observes (test_aspen_retention.RetentionTests.test_native_writer_can_commit_while_retention_observes) ... FAIL
+
+======================================================================
+FAIL: test_native_writer_can_commit_while_retention_observes (test_aspen_retention.RetentionTests.test_native_writer_can_commit_while_retention_observes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\tests\test_aspen_retention.py", line 247, in test_native_writer_can_commit_while_retention_observes
+    self.assertEqual(errors, [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: Lists differ: ['Traceback (most recent call last):\n  Fi[1220 chars]'\n'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+Writer-only control: 10 x 40 commits, failures: 1
+Traceback (most recent call last):
+  File "<stdin>", line 10, in <module>
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\tests\test_aspen_retention.py", line 87, in checkpoint
+    retention.atomic_json(self.ck / 'latest.json', index)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\aspen_retention.py", line 141, in atomic_json
+    os.replace(temporary, path)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+'Traceback (most recent call last):\n  File "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\tests\\test_aspen_retention.py", line 234, in writer\n    self.checkpoint(0 if i % 2 else 1, step)\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\tests\\test_aspen_retention.py", line 87, in checkpoint\n    retention.atomic_json(self.ck / \'latest.json\', index)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\aspen_retention.py", line 141, in atomic_json\n    os.replace(temporary, path)\n    ~~~~~~~~~~^^^^^^^^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: \'C:\\\\Users\\\\hamediaa\\\\OneDrive - McMaster University\\\\PythonProjects\\\\RL_assisted_MPC\\\\.rt\\\\rt-u3kn708g\\\\Distillation\\\\Results\\\\e1\\\\weights\\\\a1\\\\training_checkpoints\\\\latest.json.32a3133f9e66408b894ac25b89a2611a.tmp\' -> \'C:\\\\Users\\\\hamediaa\\\\OneDrive - McMaster University\\\\PythonProjects\\\\RL_assisted_MPC\\\\.rt\\\\rt-u3kn708g\\\\Distillation\\\\Results\\\\e1\\\\weights\\\\a1\\\\training_checkpoints\\\\latest.json\'\n'
+
+PermissionError: [WinError 5] Access is denied: 'C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\.rt\\rt-uue9fbwv\\Distillation\\Results\\e1\\weights\\a1\\training_checkpoints\\latest.json.7bfaba6683f7451282f27edd79fbd45d.tmp' -> 'C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\.rt\\rt-uue9fbwv\\Distillation\\Results\\e1\\weights\\a1\\training_checkpoints\\latest.json'
+
+Diff is 1389 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 5 tests in 5.969s
+
+FAILED (failures=1)

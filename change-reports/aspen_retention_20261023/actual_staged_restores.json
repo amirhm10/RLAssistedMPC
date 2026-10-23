@@ -1,0 +1,30 @@
+{
+  "at_utc": "2026-10-23T22:02:41.179938+00:00",
+  "actual_restores": [
+    {
+      "verified": true,
+      "at_utc": "2026-10-23T22:02:41.124181+00:00",
+      "source_receipt": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\aspen_retention_20261023\\receipts\\44679cdf05cf8af87071d92e.json",
+      "original_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_0_400",
+      "staged_directory": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\aspen_retention_20261023\\restore_test_native_7637c02e",
+      "files": 4,
+      "simulator_calls": 0,
+      "existing_files_replaced": 0,
+      "kind": "native"
+    },
+    {
+      "verified": true,
+      "at_utc": "2026-10-23T22:02:41.177365+00:00",
+      "source_receipt": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\aspen_retention_20261023\\receipts\\3244d4a73f96f9e22512ef15.json",
+      "original_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\native_1abbeb01\\branch\\load_e8565397",
+      "staged_directory": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\aspen_retention_20261023\\restore_test_private_af7276e7",
+      "files": 4,
+      "simulator_calls": 0,
+      "existing_files_replaced": 0,
+      "kind": "private"
+    }
+  ],
+  "all_verified": true,
+  "files_verified": 8,
+  "experiment_process_actions": 0
+}

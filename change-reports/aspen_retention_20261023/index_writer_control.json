@@ -1,0 +1,46 @@
+{
+  "root": "C:\\Users\\hamediaa\\AppData\\Local\\Temp\\retention-writer-control-124wbeqv",
+  "control": "no observer, no threads, no links, index write only",
+  "observations": [
+    {
+      "trial": 0,
+      "completed": 100
+    },
+    {
+      "trial": 1,
+      "completed": 100
+    },
+    {
+      "trial": 2,
+      "completed": 100
+    },
+    {
+      "trial": 3,
+      "completed": 100
+    },
+    {
+      "trial": 4,
+      "completed": 100
+    },
+    {
+      "trial": 5,
+      "completed": 100
+    },
+    {
+      "trial": 6,
+      "completed": 100
+    },
+    {
+      "trial": 7,
+      "completed": 100
+    },
+    {
+      "trial": 8,
+      "completed": 100
+    },
+    {
+      "trial": 9,
+      "completed": 100
+    }
+  ]
+}

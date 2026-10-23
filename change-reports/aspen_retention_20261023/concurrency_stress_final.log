@@ -1,0 +1,20 @@
+test_native_writer_can_commit_while_retention_observes (test_aspen_retention.RetentionTests.test_native_writer_can_commit_while_retention_observes) ... ok
+test_queue_manifest_reader_does_not_block_repeated_commits (test_aspen_retention.RetentionTests.test_queue_manifest_reader_does_not_block_repeated_commits) ... ok
+test_verification_never_opens_live_slot_or_index_by_original_name (test_aspen_retention.RetentionTests.test_verification_never_opens_live_slot_or_index_by_original_name) ... ok
+test_native_writer_can_commit_while_retention_observes (test_aspen_retention.RetentionTests.test_native_writer_can_commit_while_retention_observes) ... ok
+test_queue_manifest_reader_does_not_block_repeated_commits (test_aspen_retention.RetentionTests.test_queue_manifest_reader_does_not_block_repeated_commits) ... ok
+test_verification_never_opens_live_slot_or_index_by_original_name (test_aspen_retention.RetentionTests.test_verification_never_opens_live_slot_or_index_by_original_name) ... ok
+test_native_writer_can_commit_while_retention_observes (test_aspen_retention.RetentionTests.test_native_writer_can_commit_while_retention_observes) ... ok
+test_queue_manifest_reader_does_not_block_repeated_commits (test_aspen_retention.RetentionTests.test_queue_manifest_reader_does_not_block_repeated_commits) ... ok
+test_verification_never_opens_live_slot_or_index_by_original_name (test_aspen_retention.RetentionTests.test_verification_never_opens_live_slot_or_index_by_original_name) ... ok
+test_native_writer_can_commit_while_retention_observes (test_aspen_retention.RetentionTests.test_native_writer_can_commit_while_retention_observes) ... ok
+test_queue_manifest_reader_does_not_block_repeated_commits (test_aspen_retention.RetentionTests.test_queue_manifest_reader_does_not_block_repeated_commits) ... ok
+test_verification_never_opens_live_slot_or_index_by_original_name (test_aspen_retention.RetentionTests.test_verification_never_opens_live_slot_or_index_by_original_name) ... ok
+test_native_writer_can_commit_while_retention_observes (test_aspen_retention.RetentionTests.test_native_writer_can_commit_while_retention_observes) ... ok
+test_queue_manifest_reader_does_not_block_repeated_commits (test_aspen_retention.RetentionTests.test_queue_manifest_reader_does_not_block_repeated_commits) ... ok
+test_verification_never_opens_live_slot_or_index_by_original_name (test_aspen_retention.RetentionTests.test_verification_never_opens_live_slot_or_index_by_original_name) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 18.099s
+
+OK

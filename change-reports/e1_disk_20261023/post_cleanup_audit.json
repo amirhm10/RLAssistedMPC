@@ -1,0 +1,158 @@
+{
+  "at_utc": "2026-10-23T20:45:55.089558+00:00",
+  "retained_zips_verified": 910,
+  "historical_native_files_in_zips": 3640,
+  "raw_folders_removed": 910,
+  "original_path_manifest_retained": true,
+  "immutable_compression_manifest_sha256": "97af00c0dfbf371c8f2141d417d26b4ed09e6d272a0e609cb43be208745f96a9",
+  "current_e1_checkpoints": [
+    {
+      "job": "combined",
+      "completed_steps": 76000,
+      "latest_python_and_native_hashes_verified": true,
+      "both_python_slots_present": true
+    },
+    {
+      "job": "horizon",
+      "completed_steps": 112000,
+      "latest_python_and_native_hashes_verified": true,
+      "both_python_slots_present": true
+    },
+    {
+      "job": "weights",
+      "completed_steps": 77200,
+      "latest_python_and_native_hashes_verified": true,
+      "both_python_slots_present": true
+    },
+    {
+      "job": "markov",
+      "completed_steps": 76800,
+      "latest_python_and_native_hashes_verified": true,
+      "both_python_slots_present": true
+    },
+    {
+      "job": "residual",
+      "completed_steps": 76400,
+      "latest_python_and_native_hashes_verified": true,
+      "both_python_slots_present": true
+    }
+  ],
+  "preserved_workers": [
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/7",
+      "pid": 21748,
+      "state": "running",
+      "created": 1792633172.5390975,
+      "cpu_delta_seconds": 3.921875
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/11",
+      "pid": 23668,
+      "state": "running",
+      "created": 1792633172.550099,
+      "cpu_delta_seconds": 2.84375
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/23",
+      "pid": 11248,
+      "state": "running",
+      "created": 1792633172.561099,
+      "cpu_delta_seconds": 3.359375
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/37",
+      "pid": 25940,
+      "state": "running",
+      "created": 1792633172.5723193,
+      "cpu_delta_seconds": 3.296875
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/plain/53",
+      "pid": 25660,
+      "state": "running",
+      "created": 1792633172.5830843,
+      "cpu_delta_seconds": 3.65625
+    },
+    {
+      "study": "E1_column",
+      "job": "combined",
+      "pid": 22588,
+      "state": "running",
+      "created": 1792642088.3220649,
+      "cpu_delta_seconds": 2.875
+    },
+    {
+      "study": "E1_column",
+      "job": "horizon",
+      "pid": 36720,
+      "state": "running",
+      "created": 1792642088.3428988,
+      "cpu_delta_seconds": 1.078125
+    },
+    {
+      "study": "E1_column",
+      "job": "weights",
+      "pid": 28560,
+      "state": "running",
+      "created": 1792781006.26752,
+      "cpu_delta_seconds": 1.125
+    },
+    {
+      "study": "E1_column",
+      "job": "markov",
+      "pid": 47812,
+      "state": "running",
+      "created": 1792784046.2860775,
+      "cpu_delta_seconds": 1.828125
+    },
+    {
+      "study": "E1_column",
+      "job": "residual",
+      "pid": 50420,
+      "state": "running",
+      "created": 1792784648.5104468,
+      "cpu_delta_seconds": 1.46875
+    }
+  ],
+  "natural_completions": [
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/7",
+      "finished_at": "2026-10-23T20:10:47.309939+00:00",
+      "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s7\\a1\\rl\\20261023_160831\\input_data.pkl"
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/11",
+      "finished_at": "2026-10-23T19:43:47.905231+00:00",
+      "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s11\\a1\\rl\\20261023_154131\\input_data.pkl"
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/23",
+      "finished_at": "2026-10-23T20:01:27.320476+00:00",
+      "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s23\\a1\\rl\\20261023_155908\\input_data.pkl"
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/37",
+      "finished_at": "2026-10-23T19:47:06.414482+00:00",
+      "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s37\\a1\\rl\\20261023_154448\\input_data.pkl"
+    },
+    {
+      "study": "column_repeats",
+      "job": "combined/sg/53",
+      "finished_at": "2026-10-23T19:33:46.052472+00:00",
+      "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s53\\a1\\rl\\20261023_153130\\input_data.pkl"
+    }
+  ],
+  "combined_coordinator_identity_preserved": true,
+  "free_bytes": 347198713856,
+  "automatic_retention_enabled": false,
+  "live_simulator_calls": 0
+}

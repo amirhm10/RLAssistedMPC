@@ -1,0 +1,13 @@
+{
+  "at_utc": "2026-10-23T20:44:50.2098617Z",
+  "removed_folders": 910,
+  "removed_files": 3640,
+  "removed_bytes": 174583311764,
+  "kept_zip_count": 910,
+  "kept_zip_bytes": 19781350283.0,
+  "free_bytes_before": 173523824640,
+  "free_bytes_after": 346567966720,
+  "live_simulator_calls": 0,
+  "process_termination_calls": 0,
+  "current_checkpoints_modified": 0
+}

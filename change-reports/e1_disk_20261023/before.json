@@ -1,0 +1,278 @@
+{
+  "at_utc": "2026-10-23T20:40:47.4527779Z",
+  "free_bytes": 173523824640,
+  "processes": [
+    {
+      "pid": 9316,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-22T04:10:42.8028132Z"
+    },
+    {
+      "pid": 9592,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-23T19:46:21.4228683Z"
+    },
+    {
+      "pid": 29084,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-22T01:42:28.5545077Z"
+    },
+    {
+      "pid": 32760,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-23T20:38:10.6622533Z"
+    },
+    {
+      "pid": 37572,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-23T20:37:52.0321568Z"
+    },
+    {
+      "pid": 38588,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-22T01:42:09.3369329Z"
+    },
+    {
+      "pid": 41696,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-22T01:41:48.5660642Z"
+    },
+    {
+      "pid": 42312,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-23T19:36:20.1414179Z"
+    },
+    {
+      "pid": 44800,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-22T04:09:01.4595329Z"
+    },
+    {
+      "pid": 46768,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-22T04:08:20.7296173Z"
+    },
+    {
+      "pid": 49616,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-22T04:10:02.4338380Z"
+    },
+    {
+      "pid": 52360,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-22T01:41:06.9674683Z"
+    },
+    {
+      "pid": 53948,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-23T18:45:34.7144880Z"
+    },
+    {
+      "pid": 55316,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-22T01:42:49.7153224Z"
+    },
+    {
+      "pid": 58380,
+      "name": "AspenModeler",
+      "created_utc": "2026-10-23T20:21:25.9971195Z"
+    },
+    {
+      "pid": 4820,
+      "name": "AspenTech.HybridModel.Desktop.Service",
+      "created_utc": null
+    },
+    {
+      "pid": 5132,
+      "name": "AspenTech.OdataSimService",
+      "created_utc": null
+    },
+    {
+      "pid": 11248,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:32.5610990Z"
+    },
+    {
+      "pid": 12032,
+      "name": "python",
+      "created_utc": "2026-10-22T04:08:03.7647431Z"
+    },
+    {
+      "pid": 18548,
+      "name": "python",
+      "created_utc": "2026-10-22T04:08:08.3094622Z"
+    },
+    {
+      "pid": 21748,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:32.5390976Z"
+    },
+    {
+      "pid": 22588,
+      "name": "python",
+      "created_utc": "2026-10-22T04:08:08.3220647Z"
+    },
+    {
+      "pid": 23668,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:32.5500989Z"
+    },
+    {
+      "pid": 25660,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:32.5830844Z"
+    },
+    {
+      "pid": 25828,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:32.5511734Z"
+    },
+    {
+      "pid": 25940,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:32.5723191Z"
+    },
+    {
+      "pid": 28560,
+      "name": "python",
+      "created_utc": "2026-10-23T18:43:26.2675199Z"
+    },
+    {
+      "pid": 35496,
+      "name": "python",
+      "created_utc": "2026-10-23T18:43:26.2582569Z"
+    },
+    {
+      "pid": 35948,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:32.5309057Z"
+    },
+    {
+      "pid": 36308,
+      "name": "python",
+      "created_utc": "2026-10-20T16:40:56.7357769Z"
+    },
+    {
+      "pid": 36720,
+      "name": "python",
+      "created_utc": "2026-10-22T04:08:08.3428987Z"
+    },
+    {
+      "pid": 45860,
+      "name": "python",
+      "created_utc": "2026-10-23T19:44:08.5011425Z"
+    },
+    {
+      "pid": 45996,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:32.5605911Z"
+    },
+    {
+      "pid": 47812,
+      "name": "python",
+      "created_utc": "2026-10-23T19:34:06.2860776Z"
+    },
+    {
+      "pid": 48780,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:32.5402323Z"
+    },
+    {
+      "pid": 49884,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:32.5743038Z"
+    },
+    {
+      "pid": 50420,
+      "name": "python",
+      "created_utc": "2026-10-23T19:44:08.5104468Z"
+    },
+    {
+      "pid": 50676,
+      "name": "python",
+      "created_utc": "2026-10-23T18:43:23.2492584Z"
+    },
+    {
+      "pid": 53116,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:29.9853278Z"
+    },
+    {
+      "pid": 53548,
+      "name": "python",
+      "created_utc": "2026-10-23T19:34:06.2772464Z"
+    },
+    {
+      "pid": 54420,
+      "name": "python",
+      "created_utc": "2026-10-22T01:39:29.9943379Z"
+    },
+    {
+      "pid": 54528,
+      "name": "python",
+      "created_utc": "2026-10-23T18:43:23.2398219Z"
+    },
+    {
+      "pid": 55548,
+      "name": "python",
+      "created_utc": "2026-10-22T04:18:11.8709291Z"
+    },
+    {
+      "pid": 57216,
+      "name": "python",
+      "created_utc": "2026-10-22T04:08:08.3351101Z"
+    },
+    {
+      "pid": 58236,
+      "name": "python",
+      "created_utc": "2026-10-22T04:08:03.7555491Z"
+    },
+    {
+      "pid": 58292,
+      "name": "python",
+      "created_utc": "2026-10-22T04:18:11.8777877Z"
+    },
+    {
+      "pid": 13500,
+      "name": "pythonw",
+      "created_utc": "2026-10-22T04:08:02.4880459Z"
+    },
+    {
+      "pid": 29220,
+      "name": "pythonw",
+      "created_utc": "2026-10-20T16:40:55.6807177Z"
+    },
+    {
+      "pid": 41660,
+      "name": "pythonw",
+      "created_utc": "2026-10-23T18:43:22.4417690Z"
+    }
+  ],
+  "current_e1_recovery": [
+    {
+      "job": "combined",
+      "completed_steps": 76000,
+      "checkpoint": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\training_checkpoints\\latest.json"
+    },
+    {
+      "job": "horizon",
+      "completed_steps": 111600,
+      "checkpoint": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\latest.json"
+    },
+    {
+      "job": "weights",
+      "completed_steps": 77200,
+      "checkpoint": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\latest.json"
+    },
+    {
+      "job": "markov",
+      "completed_steps": 76800,
+      "checkpoint": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\latest.json"
+    },
+    {
+      "job": "residual",
+      "completed_steps": 76400,
+      "checkpoint": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\latest.json"
+    }
+  ]
+}

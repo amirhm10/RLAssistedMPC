@@ -1,5 +1,13 @@
 # Reviewer-run recovery — latest update October 23, 2026
 
+## Approved archive replacement and E1 storage diagnosis — 2026-10-23T20:45:55.089558+00:00
+
+Removed only the author-approved 910 historical raw duplicate folders (162.59 GiB); their 910 verified local lossless ZIPs (18.42 GiB), restoration manifests and all current/recent recovery sets remain. All original and ZIP SHA-256 hashes passed before removal, all ZIP hashes passed again afterward, and an actual post-removal staged extraction passed every restored file hash. Free C: space is about 321.7 GiB at the final check. The current preservation guide is updated; earlier records describing both forms retained are historical.
+
+Five E1 and five combined/plain workers retained their identities and positive CPU deltas; five combined/SG repetitions naturally completed, with final result files verified. All five latest full E1 checkpoint hashes pass and both Python slots remain. The automatic combined coordinator is preserved. No simulator call, process termination or sealed-source edit was used. Automatic Aspen checkpoint retention remains unfixed: only Python slots rotate while native/working copies accumulate. This cleanup does not stop future growth.
+
+Evidence: `change-reports/e1_disk_20261023/STATUS.md`, `removal_result.json`, `post_cleanup_audit.json` and `restore_after_cleanup.json`.
+
 ## E1 recovery, interim evidence and verified compression - October 23, 2026
 
 At 2026-10-23T19:17:32.555519+00:00, the current inventory has 13 running jobs, 2 pending jobs and 0 failed jobs. The original live workers retain their process identities and positive CPU deltas; natural completion is allowed only with final completion records. The original automatic combined coordinator remains protected. Polymer repetitions are 50/50 complete and column repetitions 40/50 complete. The three recovery states are: weights running; markov pending; residual pending. Cases are weights 14, Markov 15 and residual 17. Pending entries start automatically when memory permits. Do not describe pending jobs as active workers. The supervisor requires 6 GiB commitment headroom, staggers launches and waits for each full restore before another start. Its independently owned Windows session has no execution time limit or recurring trigger and requires no administrator access.

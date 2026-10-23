@@ -1,0 +1,67 @@
+Verified 25/910 folders; 4.50 GiB
+Verified 50/910 folders; 10.71 GiB
+Verified 75/910 folders; 16.76 GiB
+Verified 100/910 folders; 21.44 GiB
+Verified 125/910 folders; 27.82 GiB
+Verified 150/910 folders; 33.10 GiB
+Verified 175/910 folders; 35.83 GiB
+Verified 200/910 folders; 40.27 GiB
+Verified 225/910 folders; 45.92 GiB
+Verified 250/910 folders; 53.77 GiB
+Verified 275/910 folders; 57.51 GiB
+Verified 300/910 folders; 61.22 GiB
+Verified 325/910 folders; 66.43 GiB
+Verified 350/910 folders; 73.17 GiB
+Verified 375/910 folders; 79.65 GiB
+Verified 400/910 folders; 82.59 GiB
+Verified 425/910 folders; 87.22 GiB
+Verified 450/910 folders; 92.62 GiB
+Verified 475/910 folders; 94.97 GiB
+Verified 500/910 folders; 99.03 GiB
+Verified 525/910 folders; 104.57 GiB
+Verified 550/910 folders; 107.64 GiB
+Verified 575/910 folders; 111.05 GiB
+Verified 600/910 folders; 115.96 GiB
+Verified 625/910 folders; 120.43 GiB
+Verified 650/910 folders; 123.26 GiB
+Verified 675/910 folders; 127.80 GiB
+Verified 700/910 folders; 133.55 GiB
+Verified 725/910 folders; 135.80 GiB
+Verified 750/910 folders; 139.76 GiB
+Verified 775/910 folders; 144.96 GiB
+Verified 800/910 folders; 148.54 GiB
+Verified 825/910 folders; 151.78 GiB
+Verified 850/910 folders; 156.72 GiB
+Verified 875/910 folders; 161.37 GiB
+Verified 900/910 folders; 162.24 GiB
+Removed 50/910 verified duplicate folders
+Removed 100/910 verified duplicate folders
+Removed 150/910 verified duplicate folders
+Removed 200/910 verified duplicate folders
+Removed 250/910 verified duplicate folders
+Removed 300/910 verified duplicate folders
+Removed 350/910 verified duplicate folders
+Removed 400/910 verified duplicate folders
+Removed 450/910 verified duplicate folders
+Removed 500/910 verified duplicate folders
+Removed 550/910 verified duplicate folders
+Removed 600/910 verified duplicate folders
+Removed 650/910 verified duplicate folders
+Removed 700/910 verified duplicate folders
+Removed 750/910 verified duplicate folders
+Removed 800/910 verified duplicate folders
+Removed 850/910 verified duplicate folders
+Removed 900/910 verified duplicate folders
+{
+  "at_utc": "2026-10-23T20:44:50.2098617Z",
+  "removed_folders": 910,
+  "removed_files": 3640,
+  "removed_bytes": 174583311764,
+  "kept_zip_count": 910,
+  "kept_zip_bytes": 19781350283.0,
+  "free_bytes_before": 173523824640,
+  "free_bytes_after": 346567966720,
+  "live_simulator_calls": 0,
+  "process_termination_calls": 0,
+  "current_checkpoints_modified": 0
+}

@@ -1,5 +1,13 @@
 # Hourly experiment check — October 24, 2026
 
+## 21:32 heartbeat — verified at21:33UTC (17:33Toronto)
+
+Unchanged healthy accepted parallel production: combined207/320, total527/640,113remaining, checkpoint cycle206. Parent59504 and case15/17 workers38188/46276 retain their accepted creation identities. Both child CPU counters advanced7.19/6.67seconds; they have three requests/two responses and are executing the next pair, so a waiting parent or paused owned native window is expected. Production manifest remains running with validation passed and no error. Native CPU also advanced; every live native app has ownership. All four standalone configurations/repetitions/coordinator/horizon remain completed. The newly audited trace passesCRC/SHA and all143 seals pass; no observation needs review.
+
+Headroom45.8GiB, disk300.2GiB. Original retention58264 and retired-side helper4480 retain their creation identities and are live. Completed configurations each retain their two verified complete checkpoints; combined cleanup conservatively defers after native activity and keeps everything. The side helper correctly keeps both completed production pairs unpacked and waits for a third before archiving an older retired copy. All results, inputs, checkpoints and archives remain. No repair, launch/restart, signal, source/queue/global setting change, deletion or new numerical test was necessary. Existing viewer and hourly monitoring stay active;26–32-hour planning range remains appropriate. This is routine unchanged health after the previous user update, so no new alert is required.
+
+Inspected: current root/accepted manifests, all five stable status/checkpoint/ownership sets, accepted parent/child creation identities and CPU changes, append-only progress, current native ownership, completed result sizes, source seals, coordinator/horizon and both retention services. Changed only concise recovery notes and `audit_20261024T2132.json`, `parallel_20261024T2132_sample.json`, `parallel_20261024T2132_followup.json`. Unrelated dirty polymer source, all scientific sources/results and manuscript remain untouched.
+
 ## Authorized parallel migration — verified at 21:24 UTC (17:24 Toronto)
 
 21:29UTC follow-up:207combined/527total pairs,113remaining. A second live production horizon pair at82432 verifies by primary CRC/SHA and full live-state equality (399.19seconds total,387.87paired). Parent/branches/retention/archive helper remain healthy; all143 seals match. `../combined_parallel_20261024/final_health.json` and `final_trace_checks.json` preserve this newer evidence; the full audit below retains its17:24 counts.

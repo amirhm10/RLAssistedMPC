@@ -1,0 +1,70 @@
+{
+  "at_utc": "2026-10-24T21:34:10.548912+00:00",
+  "children": [
+    {
+      "case": 15,
+      "identity": {
+        "pid": 38188,
+        "created": 134373499744270962,
+        "alive": true
+      },
+      "cpu_delta_seconds": 7.1875
+    },
+    {
+      "case": 17,
+      "identity": {
+        "pid": 46276,
+        "created": 134373499745265459,
+        "alive": true
+      },
+      "cpu_delta_seconds": 6.671875
+    }
+  ],
+  "parent": {
+    "pid": 59504,
+    "alive": true,
+    "created": 134373496370785599,
+    "cpu_seconds": 76.75,
+    "private_bytes": 6470647808,
+    "rss_bytes": 409669632
+  },
+  "native_cpu_delta_seconds": 1.625,
+  "native": {
+    "10704": {
+      "pid": 10704,
+      "alive": true,
+      "created": 134373497422336127,
+      "cpu_seconds": 3.734375,
+      "private_bytes": 58834944,
+      "rss_bytes": 86315008
+    },
+    "28892": {
+      "pid": 28892,
+      "alive": true,
+      "created": 134373509095165117,
+      "cpu_seconds": 109.90625,
+      "private_bytes": 1082433536,
+      "rss_bytes": 1068179456
+    },
+    "50232": {
+      "pid": 50232,
+      "alive": true,
+      "created": 134373497797957783,
+      "cpu_seconds": 126.796875,
+      "private_bytes": 1080627200,
+      "rss_bytes": 1066930176
+    },
+    "58436": {
+      "pid": 58436,
+      "alive": true,
+      "created": 134373508911403053,
+      "cpu_seconds": 114.53125,
+      "private_bytes": 1083154432,
+      "rss_bytes": 1069289472
+    }
+  },
+  "archive_service_live": true,
+  "no_job_signals": true,
+  "no_checkpoint_or_queue_edits": true,
+  "all_results_and_archives_retained": true
+}

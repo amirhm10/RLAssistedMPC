@@ -1,0 +1,168 @@
+{
+  "at_utc": "2026-10-24T21:33:19.572644+00:00",
+  "manifest": {
+    "state": "running",
+    "stage": "production",
+    "validation_passed": true,
+    "error": null
+  },
+  "children": [
+    {
+      "case": 15,
+      "expected": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962
+      },
+      "actual": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962,
+        "cpu_seconds": 135.703125,
+        "private_bytes": 4309262336,
+        "rss_bytes": 1159766016
+      },
+      "requests": 3,
+      "responses": 2,
+      "native": [
+        {
+          "recorded": {
+            "pid": 58436,
+            "alive": true,
+            "created": 134373508911403053,
+            "created_at": "2026-10-24T21:28:29.517797+00:00"
+          },
+          "current": {
+            "pid": 58436,
+            "alive": true,
+            "created": 134373508911403053,
+            "cpu_seconds": 113.75,
+            "private_bytes": 1083154432,
+            "rss_bytes": 1069285376
+          }
+        }
+      ]
+    },
+    {
+      "case": 17,
+      "expected": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459
+      },
+      "actual": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459,
+        "cpu_seconds": 135.90625,
+        "private_bytes": 4314034176,
+        "rss_bytes": 1290592256
+      },
+      "requests": 3,
+      "responses": 2,
+      "native": [
+        {
+          "recorded": {
+            "pid": 28892,
+            "alive": true,
+            "created": 134373509095165117,
+            "created_at": "2026-10-24T21:28:47.811632+00:00"
+          },
+          "current": {
+            "pid": 28892,
+            "alive": true,
+            "created": 134373509095165117,
+            "cpu_seconds": 109.265625,
+            "private_bytes": 1082429440,
+            "rss_bytes": 1067925504
+          }
+        }
+      ]
+    }
+  ],
+  "archive_service": {
+    "expected": {
+      "pid": 4480,
+      "alive": true,
+      "created": 134373504924160382,
+      "cpu_seconds": 0.140625,
+      "private_bytes": 25391104,
+      "rss_bytes": 42872832
+    },
+    "actual": {
+      "pid": 4480,
+      "alive": true,
+      "created": 134373504924160382,
+      "cpu_seconds": 0.1875,
+      "private_bytes": 25235456,
+      "rss_bytes": 43261952
+    },
+    "status": {
+      "state": "running",
+      "updated_at": "2026-10-24T21:32:47.736494+00:00",
+      "pid": 4480,
+      "identity": {
+        "pid": 4480,
+        "alive": true,
+        "created": 134373504924160382,
+        "cpu_seconds": 0.1875,
+        "private_bytes": 25235456,
+        "rss_bytes": 43261952
+      },
+      "archived_working_folders": 0,
+      "duplicate_bytes_removed": 0,
+      "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips",
+      "newest_two_primary_comparisons_unpacked": true,
+      "all_results_checkpoints_and_inputs_retained": true,
+      "free_disk_bytes": 322297929728
+    }
+  },
+  "first_sample_native": {
+    "10704": {
+      "pid": 10704,
+      "alive": true,
+      "created": 134373497422336127,
+      "cpu_seconds": 3.625,
+      "private_bytes": 58834944,
+      "rss_bytes": 86315008
+    },
+    "28892": {
+      "pid": 28892,
+      "alive": true,
+      "created": 134373509095165117,
+      "cpu_seconds": 109.265625,
+      "private_bytes": 1082429440,
+      "rss_bytes": 1067925504
+    },
+    "50232": {
+      "pid": 50232,
+      "alive": true,
+      "created": 134373497797957783,
+      "cpu_seconds": 126.703125,
+      "private_bytes": 1080569856,
+      "rss_bytes": 1066897408
+    },
+    "58436": {
+      "pid": 58436,
+      "alive": true,
+      "created": 134373508911403053,
+      "cpu_seconds": 113.75,
+      "private_bytes": 1083154432,
+      "rss_bytes": 1069285376
+    }
+  },
+  "first_sample_parent": {
+    "pid": 59504,
+    "alive": true,
+    "created": 134373496370785599,
+    "cpu_seconds": 76.640625,
+    "private_bytes": 6470647808,
+    "rss_bytes": 412770304
+  },
+  "memory": {
+    "committed_bytes": 48376594432,
+    "limit_bytes": 97452056576,
+    "headroom_bytes": 49075462144
+  },
+  "free_disk_bytes": 322293784576
+}

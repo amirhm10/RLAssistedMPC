@@ -1,0 +1,15 @@
+{
+  "id": "residual-owned-document-open-retry-v1",
+  "prepared_at": "2026-10-24T17:06:00.503665+00:00",
+  "case": 17,
+  "seed": 7,
+  "expected_matched_pairs": 80,
+  "main_training_cycles": 300,
+  "decisions_per_window": 20,
+  "validation_steps": 8,
+  "minimum_headroom_bytes": 6442450944,
+  "document_open_max_attempts": 3,
+  "retry_hresult": -2147417851,
+  "retry_call": "sealed fresh.load_project plant.ad.openDocument only",
+  "scientific_checkpoint_source_map": "unchanged; operational retry receipt only"
+}

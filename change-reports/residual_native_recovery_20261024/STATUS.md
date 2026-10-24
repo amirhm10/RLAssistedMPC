@@ -1,5 +1,9 @@
 # Residual E1 recovery — October 24, 2026
 
+## Superseded generation; new recovery accepted at 17:33 UTC
+
+This report's accepted PID 46740 later genuinely failed at 16:36:38 UTC in the sealed loader's document-open call, COM -2147417851. Its complete later 118400/118000 checkpoints, all 77 comparisons and pinned dependencies are independently preserved in 307 read-back files outside OneDrive. The new attempt passed actual 118400-to-118408 continuation and separate production cold restoration with full Python/native verification. Current accepted PID 36256, creation 134373364563544644, is documented in `../residual_native_retry2_20261024/STATUS.md` and its immutable acceptance receipt. The old task, manifest and acceptance here remain historical; do not restart this superseded generation or mistake it for an unrecovered current failure. No healthy peer was interrupted.
+
 Final follow-up at 15:26 UTC: the same accepted production worker is progressing (+0.484375 Python CPU seconds over the final sample), and its active count has returned to 69 after replaying its one saved suffix comparison. Both original versions remain preserved. Combined is also accepted in production after its four-learner bounded check/cold restore, with all four receipt/hash/identity baselines now registered. No current scientific failure or queued recovery remains. The campaign's active primary count is 463/640, including seven still-preserved combined suffix comparisons to replay. Retention conservatively defers residual cleanup after native restoration/activity, keeping every file; its restored full checkpoint and original external pair remain independently verified. Hourly monitoring continues.
 
 ## Accepted production recovery — 15:12 UTC (11:12 Toronto)

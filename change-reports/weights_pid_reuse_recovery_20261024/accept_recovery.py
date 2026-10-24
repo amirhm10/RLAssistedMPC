@@ -12,11 +12,17 @@ sys.path.insert(0, str(ROOT / 'change-reports/hourly_run_checks_20261024'))
 import collect_hourly as hourly
 
 
-def accept(category):
+def accept(category, residual_attempt=1):
+    if residual_attempt != 1 and category != 'residual':
+        raise ValueError('A residual attempt selector applies only to residual')
     if category == 'combined':
         sys.path.insert(0, str(ROOT / 'change-reports/combined_native_recovery_20261024'))
         import recover_combined
         recovery = recover_combined.engine
+    elif category == 'residual' and residual_attempt == 2:
+        sys.path.insert(0, str(ROOT / 'change-reports/residual_native_retry2_20261024'))
+        import recover_residual_retry2
+        recovery = recover_residual_retry2.engine
     elif category == 'residual':
         sys.path.insert(0, str(ROOT / 'change-reports/residual_native_recovery_20261024'))
         import recover_residual
@@ -85,6 +91,9 @@ def accept(category):
                      production_restore=restored, validation=validation, full_python_native_checks=checks,
                      current_checkpoint_steps=index['completed_steps'], current_agents=index['agents'],
                      bounded_agent_training_deltas=learner_deltas,
+                     bounded_document_open_retry_policy=plan.get('document_open_retry'),
+                     document_open_retry_events=[event for event in events
+                         if event.get('event', '').startswith('document_open_retry')],
                      checkpoint_protocols_unchanged=True, all_143_source_hashes_verified=True,
                      original_completed_pairs_preserved=plan['original_pairs'], current_primary_pairs=len(records),
                      replay_archive=replay_archive, original_trace_backups_verified=len(plan['traces']),
@@ -102,4 +111,6 @@ def accept(category):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--category', required=True, choices=('weights','markov','residual','combined'))
-    accept(parser.parse_args().category)
+    parser.add_argument('--residual-attempt', type=int, choices=(1,2), default=1)
+    args = parser.parse_args()
+    accept(args.category, args.residual_attempt)

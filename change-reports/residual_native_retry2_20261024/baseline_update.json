@@ -1,0 +1,18 @@
+{
+  "at_utc": "2026-10-24T17:34:12.566692+00:00",
+  "only_changed_category": "residual",
+  "before_sha256": "df9068ed0145d87e82fad2315693b7129779691e20a61f4cefd811afe18293b8",
+  "after_sha256": "7cd47829bcdb70b36fbb45556cae97948b4e3000a16f7373870ac7d88f428377",
+  "unchanged_categories": [
+    "weights",
+    "markov",
+    "combined"
+  ],
+  "current_identity": {
+    "pid": 36256,
+    "created": 134373364563544644,
+    "alive": true
+  },
+  "acceptance_sha256": "484b7f639bd4fb8cddbe7a3dfc6965e397d9523fadadcd50bf0b2f252cc3af28",
+  "prior_index": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\residual_native_retry2_20261024\\accepted_worker_index_before.json"
+}

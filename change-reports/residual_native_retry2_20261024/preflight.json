@@ -1,0 +1,26 @@
+{
+  "at_utc": "2026-10-24T17:06:09.210461+00:00",
+  "full_source_seals_verified": 143,
+  "tests_passed": 15,
+  "original_pairs": 77,
+  "checkpoint_steps": [
+    118400,
+    118000
+  ],
+  "post_checkpoint_pairs": 2,
+  "case_lease_available": true,
+  "old_residual_control_retired": true,
+  "weights_completion_verified": true,
+  "live_peer_categories": [
+    "markov",
+    "combined"
+  ],
+  "document_open_line": 103,
+  "memory": {
+    "committed_bytes": 42108387328,
+    "limit_bytes": 97559683072,
+    "headroom_bytes": 55451295744
+  },
+  "numerical_bootstrap_imported": false,
+  "simulator_calls": 0
+}

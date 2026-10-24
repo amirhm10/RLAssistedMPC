@@ -1,0 +1,20 @@
+test_case17_original_budget_only (__main__.LaunchScope.test_case17_original_budget_only) ... ok
+test_duplicate_launch_is_refused_before_task_registration (__main__.LaunchScope.test_duplicate_launch_is_refused_before_task_registration) ... ok
+test_invalid_validation_length_precedes_worker_or_simulator_work (__main__.LaunchScope.test_invalid_validation_length_precedes_worker_or_simulator_work) ... ok
+test_memory_gate_retains_six_gib_threshold (__main__.LaunchScope.test_memory_gate_retains_six_gib_threshold) ... ok
+test_new_task_does_not_replace_old_recovery_history (__main__.LaunchScope.test_new_task_does_not_replace_old_recovery_history) ... ok
+test_worker_refusal_imports_no_numerical_runtime (__main__.LaunchScope.test_worker_refusal_imports_no_numerical_runtime) ... ok
+test_exact_server_fault_retries_same_model_in_owned_generations (__main__.RetryContract.test_exact_server_fault_retries_same_model_in_owned_generations) ... ok
+test_modified_attempt_limit_is_refused (__main__.RetryContract.test_modified_attempt_limit_is_refused) ... ok
+test_non_com_failure_is_not_retried (__main__.RetryContract.test_non_com_failure_is_not_retried) ... ok
+test_other_hresult_is_not_retried (__main__.RetryContract.test_other_hresult_is_not_retried) ... ok
+test_ownership_refusal_blocks_retry_before_sleep_or_record (__main__.RetryContract.test_ownership_refusal_blocks_retry_before_sleep_or_record) ... ok
+test_repeated_fault_exhausts_after_three_without_a_fourth_call (__main__.RetryContract.test_repeated_fault_exhausts_after_three_without_a_fourth_call) ... ok
+test_same_hresult_at_a_different_loader_line_is_not_retried (__main__.RetryContract.test_same_hresult_at_a_different_loader_line_is_not_retried) ... ok
+test_success_is_not_retried_or_subject_to_extra_ownership_queries (__main__.RetryContract.test_success_is_not_retried_or_subject_to_extra_ownership_queries) ... ok
+test_wrong_loader_contract_is_refused_before_any_native_call (__main__.RetryContract.test_wrong_loader_contract_is_refused_before_any_native_call) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.004s
+
+OK

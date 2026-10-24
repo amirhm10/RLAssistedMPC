@@ -1,5 +1,11 @@
 # Residual late-state recovery with bounded document-open retry
 
+## Completed — 18:37 UTC (14:37 Toronto), independently verified at 18:46
+
+Residual completed all 300 cycles/120000 steps and 80/80 comparisons with zero failed pairs. The immutable `completion.json` verifies final trajectory SHA-256 `5d43df293acca3e1865e11da8ecdd10e6a486d290dce9992c8de77b42d90f4ad`, final Python/native checkpoint hashes and unchanged scientific source map, all 80 trace CRC/SHA-256 checks, four windows of 20, final capture/analysis summaries and all 143 source seals. Its empty prediction CSV is expected because this category has no prediction groups. Accepted PID 36256/creation 134373364563544644 and all its owned native apps are retired. No current supervisor error is recorded. The case-17 canonical lease is available and was probed/released without opening Aspen.
+
+The final 18:48 campaign audit confirms completion and live retention verifying both 120000/119600 checkpoints. No residual recovery or restart is needed. All original failed-attempt results, suffix archives, external complete backups and retained lossless archives remain intact. Only combined is unfinished. Details, inspected/changed files and the no-interruption capacity assessment: `../combined_eta_capacity_20261024/STATUS.md` and `../hourly_run_checks_20261024/audit_20261024T184833.json`. No scientific source/result or running worker was changed.
+
 ## Accepted at 17:33 UTC (13:33 Toronto)
 
 The real eight-step continuation from 118400 to 118408 passed. Both expensive scheduled comparisons at 118406/118407 were replayed and saved, restoring the active count to 77 while every original version remains preserved. A separate production process cold-restored 118408 with verified native/Python checksums and identical complete learner/controller Python digests across native import. Production PID 36256, creation 134373364563544644, accrued 1.25 CPU seconds during acceptance. The immutable `acceptance.json` also verifies all 143 source seals, the original scientific checkpoint source map, every original result backup and the suffix replay archive. No natural document-open retry occurred; the injected fault tests verify the retry contract, not elimination of an unproven Aspen internal cause.

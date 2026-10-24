@@ -1,5 +1,11 @@
 # Markov E1 native recovery — October 24, 2026
 
+## Completed — 18:36 UTC (14:36 Toronto), independently verified at 18:46
+
+Markov completed all 300 cycles/120000 steps and 80/80 comparisons with zero failed pairs. The immutable `completion.json` verifies final trajectory SHA-256 `b968a0c62b02078eb5258b868667c647c51a084e23b824f438c5c22e8758213e`, final Python/native checkpoint hashes and unchanged scientific source map, all 80 trace CRC/SHA-256 checks, four windows of 20, final capture/analysis summaries and all 143 source seals. Accepted worker PID 2104/creation 134373249643501265 and all owned native applications are retired. Its case-15 canonical lease is available and was probed/released without opening Aspen.
+
+The supervisor's 18:36:20 diagnostic concerns the superseded original combined identity after Markov had already saved complete scientific outputs and a completed manifest. This is preserved in the receipt and is not an unsuccessful Markov result. No restart/recovery is needed. The final campaign audit at 18:48 confirms completion, active retention and both final 120000/119600 checkpoints. Only combined is unfinished. Details: `../combined_eta_capacity_20261024/STATUS.md` and `../hourly_run_checks_20261024/audit_20261024T184833.json`. Inspected completion sources/files and updated records are listed in that assessment. No scientific output, active worker or source was changed.
+
 ## Current state: production recovery accepted
 
 Markov passed the actual 116000-to-116008 continuation and then a separate production cold restore of 116008. `acceptance.json` at 14:22:29 UTC verifies native/Python checksums, full Python learner/controller digest equality across both native imports, unchanged checkpoint protocol maps, all sixty original trace backups/prefixes and all 143 source hashes. Production PID 2104, creation 134373249643501265, remains live and accrued CPU time during acceptance. Its active primary count reached 61 by 14:35. This is verified operational recovery, not completed training or a performance claim.

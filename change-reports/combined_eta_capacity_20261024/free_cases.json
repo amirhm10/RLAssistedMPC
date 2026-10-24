@@ -1,0 +1,51 @@
+{
+  "at_utc": "2026-10-24T18:48:30.699084+00:00",
+  "cases": [
+    {
+      "case": 15,
+      "source_model": "C:\\Users\\hamediaa\\Desktop\\FinalDocuments\\FinalDocuments\\C2SplitterControlFiles\\AspenFiles\\dynsim\\Plant\\C2S_SS_simulation15.dynf",
+      "source_sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4",
+      "completion_receipt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\markov_native_recovery_20261024\\completion.json",
+      "completion_sha256": "0b75f8802275a9b48d0d9c34627e02fda9a9b1f74570d145d32b376104a2ebaf",
+      "canonical_lease_available": true
+    },
+    {
+      "case": 17,
+      "source_model": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\private_sources\\C2S_SS_simulation17.dynf",
+      "source_sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4",
+      "completion_receipt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\residual_native_retry2_20261024\\completion.json",
+      "completion_sha256": "4b55eb7de6767baf5af23d2461fc1f77a45b36fe970f1187fb2ac0deab5cbac5",
+      "canonical_lease_available": true
+    }
+  ],
+  "leases_released_after_probe": true,
+  "native_apps": {
+    "34608": {
+      "pid": 34608,
+      "alive": true,
+      "created": 134373410824843132,
+      "cpu_seconds": 73.46875,
+      "private_bytes": 1042055168,
+      "rss_bytes": 1030721536
+    },
+    "48948": {
+      "pid": 48948,
+      "alive": true,
+      "created": 134373289183812762,
+      "cpu_seconds": 162.890625,
+      "private_bytes": 1006936064,
+      "rss_bytes": 1003540480
+    }
+  },
+  "memory": {
+    "committed_bytes": 36358197248,
+    "limit_bytes": 97452056576,
+    "headroom_bytes": 61093859328
+  },
+  "cpu_logical": 24,
+  "cpu_load_percent": 3.5,
+  "physical_memory_bytes": 68390989824,
+  "simulator_launches": 0,
+  "process_signals": 0,
+  "scientific_result_edits": 0
+}

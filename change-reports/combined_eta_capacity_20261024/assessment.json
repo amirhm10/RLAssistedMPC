@@ -1,0 +1,351 @@
+{
+  "at_utc": "2026-10-24T18:46:36.880446+00:00",
+  "completed_pairs": 192,
+  "expected_pairs": 320,
+  "remaining_pairs": 128,
+  "completed_windows": {
+    "release": 80,
+    "prechange_mature": 80,
+    "plant_change": 32
+  },
+  "checkpoint_cycles": 204,
+  "latest_captured_step": 81582,
+  "remaining_training_steps_upper_bound": 38417,
+  "remaining_long_pairs": 14,
+  "remaining_branch_steps": 68000,
+  "timing_since_utc": "2026-10-24T15:26:00+00:00",
+  "timing_observations": [
+    {
+      "channel": "horizon",
+      "step": 80816,
+      "branch_steps": 400,
+      "timestamp": 1792855977.6919656
+    },
+    {
+      "channel": "weights",
+      "step": 80835,
+      "branch_steps": 400,
+      "timestamp": 1792856543.1297648
+    },
+    {
+      "channel": "weights",
+      "step": 80985,
+      "branch_steps": 400,
+      "timestamp": 1792857236.4672563
+    },
+    {
+      "channel": "markov",
+      "step": 80986,
+      "branch_steps": 400,
+      "timestamp": 1792857765.2948463
+    },
+    {
+      "channel": "weights",
+      "step": 81001,
+      "branch_steps": 400,
+      "timestamp": 1792858316.023656
+    },
+    {
+      "channel": "residual",
+      "step": 81007,
+      "branch_steps": 400,
+      "timestamp": 1792858857.7420874
+    },
+    {
+      "channel": "horizon",
+      "step": 81020,
+      "branch_steps": 400,
+      "timestamp": 1792859389.6933138
+    },
+    {
+      "channel": "markov",
+      "step": 81060,
+      "branch_steps": 400,
+      "timestamp": 1792859961.4365232
+    },
+    {
+      "channel": "markov",
+      "step": 81207,
+      "branch_steps": 400,
+      "timestamp": 1792860665.950949
+    },
+    {
+      "channel": "horizon",
+      "step": 81228,
+      "branch_steps": 400,
+      "timestamp": 1792861217.273483
+    },
+    {
+      "channel": "horizon",
+      "step": 81352,
+      "branch_steps": 400,
+      "timestamp": 1792861915.7123792
+    },
+    {
+      "channel": "weights",
+      "step": 81406,
+      "branch_steps": 400,
+      "timestamp": 1792862512.6980891
+    },
+    {
+      "channel": "weights",
+      "step": 81412,
+      "branch_steps": 1600,
+      "timestamp": 1792864221.212062
+    },
+    {
+      "channel": "markov",
+      "step": 81420,
+      "branch_steps": 400,
+      "timestamp": 1792864814.9280381
+    },
+    {
+      "channel": "residual",
+      "step": 81461,
+      "branch_steps": 400,
+      "timestamp": 1792865456.2212603
+    },
+    {
+      "channel": "horizon",
+      "step": 81492,
+      "branch_steps": 400,
+      "timestamp": 1792866090.778378
+    },
+    {
+      "channel": "weights",
+      "step": 81500,
+      "branch_steps": 400,
+      "timestamp": 1792866670.3023314
+    },
+    {
+      "channel": "residual",
+      "step": 81582,
+      "branch_steps": 400,
+      "timestamp": 1792867322.8971434
+    }
+  ],
+  "timing_intervals": [
+    {
+      "main_steps": 19,
+      "branch_steps": 400,
+      "seconds": 565.4377992153168,
+      "channel": "weights",
+      "step": 80835
+    },
+    {
+      "main_steps": 150,
+      "branch_steps": 400,
+      "seconds": 693.3374915122986,
+      "channel": "weights",
+      "step": 80985
+    },
+    {
+      "main_steps": 1,
+      "branch_steps": 400,
+      "seconds": 528.8275899887085,
+      "channel": "markov",
+      "step": 80986
+    },
+    {
+      "main_steps": 15,
+      "branch_steps": 400,
+      "seconds": 550.728809595108,
+      "channel": "weights",
+      "step": 81001
+    },
+    {
+      "main_steps": 6,
+      "branch_steps": 400,
+      "seconds": 541.7184314727783,
+      "channel": "residual",
+      "step": 81007
+    },
+    {
+      "main_steps": 13,
+      "branch_steps": 400,
+      "seconds": 531.9512264728546,
+      "channel": "horizon",
+      "step": 81020
+    },
+    {
+      "main_steps": 40,
+      "branch_steps": 400,
+      "seconds": 571.74320936203,
+      "channel": "markov",
+      "step": 81060
+    },
+    {
+      "main_steps": 147,
+      "branch_steps": 400,
+      "seconds": 704.5144257545471,
+      "channel": "markov",
+      "step": 81207
+    },
+    {
+      "main_steps": 21,
+      "branch_steps": 400,
+      "seconds": 551.3225340843201,
+      "channel": "horizon",
+      "step": 81228
+    },
+    {
+      "main_steps": 124,
+      "branch_steps": 400,
+      "seconds": 698.4388961791992,
+      "channel": "horizon",
+      "step": 81352
+    },
+    {
+      "main_steps": 54,
+      "branch_steps": 400,
+      "seconds": 596.9857099056244,
+      "channel": "weights",
+      "step": 81406
+    },
+    {
+      "main_steps": 6,
+      "branch_steps": 1600,
+      "seconds": 1708.5139727592468,
+      "channel": "weights",
+      "step": 81412
+    },
+    {
+      "main_steps": 8,
+      "branch_steps": 400,
+      "seconds": 593.7159762382507,
+      "channel": "markov",
+      "step": 81420
+    },
+    {
+      "main_steps": 41,
+      "branch_steps": 400,
+      "seconds": 641.2932221889496,
+      "channel": "residual",
+      "step": 81461
+    },
+    {
+      "main_steps": 31,
+      "branch_steps": 400,
+      "seconds": 634.5571177005768,
+      "channel": "horizon",
+      "step": 81492
+    },
+    {
+      "main_steps": 8,
+      "branch_steps": 400,
+      "seconds": 579.5239534378052,
+      "channel": "weights",
+      "step": 81500
+    },
+    {
+      "main_steps": 82,
+      "branch_steps": 400,
+      "seconds": 652.5948119163513,
+      "channel": "residual",
+      "step": 81582
+    }
+  ],
+  "timing_model": {
+    "main_seconds_per_step": 1.0788626475735112,
+    "branch_seconds_per_step": 0.9591613102662522,
+    "fixed_seconds_per_pair": 167.38270044780228,
+    "normal_pairs": 16,
+    "long_pairs": 1,
+    "normal_fit_residual_seconds_rms": 25.368268587934665
+  },
+  "serial_estimate_hours": {
+    "training": 11.512962869953217,
+    "branch_rollouts": 18.117491416140318,
+    "pair_overhead": 5.951384904810748,
+    "total": 35.58183919090428
+  },
+  "serial_planning_range_hours": [
+    30,
+    40
+  ],
+  "planning_range_is_not_a_confidence_interval": true,
+  "two_branch_projection_hours": {
+    "fixed_pair_overhead_unchanged": 26.523093482834124,
+    "all_comparison_cost_halved": 23.54740103042875
+  },
+  "parallel_speedup_benchmarked": false,
+  "uncertainty": [
+    "Only one extended pair in the current-generation interval sample.",
+    "Trace timestamps include native restore/checkpoint/export/serialization costs.",
+    "Training coefficient is inferred from short within-window step gaps and extrapolated.",
+    "The long no-capture training interval can have a different rate.",
+    "Markov/residual retirement may improve available resources.",
+    "Future Aspen failures or a retrofit/replay delay are not included."
+  ],
+  "current_identity": {
+    "pid": 15940,
+    "alive": true,
+    "created": 134373287822018420,
+    "cpu_seconds": 1845.125,
+    "private_bytes": 5160448000,
+    "rss_bytes": 1701400576
+  },
+  "native_apps": [
+    {
+      "pid": 34608,
+      "alive": true,
+      "created": 134373410824843132,
+      "cpu_seconds": 70.671875,
+      "private_bytes": 1042141184,
+      "rss_bytes": 1030766592
+    },
+    {
+      "pid": 48948,
+      "alive": true,
+      "created": 134373289183812762,
+      "cpu_seconds": 162.578125,
+      "private_bytes": 1006907392,
+      "rss_bytes": 1003524096
+    }
+  ],
+  "memory": {
+    "committed_bytes": 36397899776,
+    "limit_bytes": 97452056576,
+    "headroom_bytes": 61054156800
+  },
+  "free_disk_bytes": 360101384192,
+  "execution": {
+    "policy_and_supervisor_branches": "serial",
+    "main_training": "one coupled four-learner trajectory",
+    "hot_worker_attachment": false,
+    "retrofitting_requires": "new isolated worker pool and guarded combined checkpoint migration"
+  },
+  "jobs_launched": 0,
+  "process_signals": 0,
+  "simulator_calls": 0,
+  "scientific_source_edits": 0,
+  "queue_plan_edits": 0,
+  "newly_verified_completions": [
+    {
+      "verified": true,
+      "category": "markov",
+      "finished_at": "2026-10-24T18:36:12.700114+00:00",
+      "matched_pairs": 80,
+      "failed_pairs": 0,
+      "completed_cycles": 300,
+      "trajectory": {
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training.pkl",
+        "bytes": 356072328,
+        "sha256": "b968a0c62b02078eb5258b868667c647c51a084e23b824f438c5c22e8758213e"
+      }
+    },
+    {
+      "verified": true,
+      "category": "residual",
+      "finished_at": "2026-10-24T18:37:57.850855+00:00",
+      "matched_pairs": 80,
+      "failed_pairs": 0,
+      "completed_cycles": 300,
+      "trajectory": {
+        "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training.pkl",
+        "bytes": 190927656,
+        "sha256": "5d43df293acca3e1865e11da8ecdd10e6a486d290dce9992c8de77b42d90f4ad"
+      }
+    }
+  ]
+}

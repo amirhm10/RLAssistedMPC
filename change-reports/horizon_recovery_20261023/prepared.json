@@ -1,0 +1,11 @@
+{
+  "at_utc": "2026-10-24T02:49:11.849754+00:00",
+  "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261023_horizon_native_process",
+  "backup": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\horizon_recovery_20261023",
+  "checkpoint_steps": [
+    116000,
+    115600
+  ],
+  "backup_files": 78,
+  "protected_workers": 8
+}

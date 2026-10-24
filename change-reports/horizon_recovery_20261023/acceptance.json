@@ -1,0 +1,98 @@
+{
+  "at_utc": "2026-10-24T02:59:24.629181+00:00",
+  "worker": {
+    "pid": 38752,
+    "alive": true,
+    "created": 134372841472070240
+  },
+  "worker_state": "running",
+  "supervisor": {
+    "pid": 50020,
+    "parent_pid": 2524,
+    "in_windows_job": true,
+    "scheduler_service_pid": 2524,
+    "parent_is_scheduler_service": true,
+    "session_id": 2,
+    "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+    "observed_at": "2026-10-24T02:49:45.875526+00:00"
+  },
+  "validation_passed": true,
+  "initial_checkpoint_step": 116000,
+  "validation_checkpoint_step": 116008,
+  "production_restored_step": 116008,
+  "initial_comparisons": 60,
+  "original_trace_hashes_preserved": 60,
+  "verified_backup_files": 78,
+  "full_python_restore_checks": 2,
+  "protected_processes_verified": 10,
+  "protected_workers": [
+    {
+      "job": "combined/plain/7",
+      "identity": {
+        "pid": 21748,
+        "alive": true,
+        "created": 134371067725390976
+      }
+    },
+    {
+      "job": "combined/plain/11",
+      "identity": {
+        "pid": 23668,
+        "alive": false,
+        "created": null
+      }
+    },
+    {
+      "job": "combined/plain/37",
+      "identity": {
+        "pid": 25940,
+        "alive": false,
+        "created": null
+      }
+    },
+    {
+      "job": "combined/plain/53",
+      "identity": {
+        "pid": 25660,
+        "alive": true,
+        "created": 134371067725830844
+      }
+    },
+    {
+      "job": "combined",
+      "identity": {
+        "pid": 22588,
+        "alive": true,
+        "created": 134371156883220647
+      }
+    },
+    {
+      "job": "weights",
+      "identity": {
+        "pid": 28560,
+        "alive": true,
+        "created": 134372546062675199
+      }
+    },
+    {
+      "job": "markov",
+      "identity": {
+        "pid": 47812,
+        "alive": true,
+        "created": 134372576462860776
+      }
+    },
+    {
+      "job": "residual",
+      "identity": {
+        "pid": 50420,
+        "alive": true,
+        "created": 134372582485104468
+      }
+    }
+  ],
+  "source_hashes_verified": 143,
+  "queue_pointer_fields_preserved": true,
+  "retention_state": "running",
+  "free_disk_bytes": 426033123328
+}

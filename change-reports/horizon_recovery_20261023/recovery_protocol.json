@@ -1,0 +1,12 @@
+{
+  "id": "column-e1-horizon-fresh-owned-process-v1",
+  "prepared_at": "2026-10-24T02:49:11.835074+00:00",
+  "budget_protocol_sha256": "089b5c6a7df66af5c319563b3f1110a7dfe078a93f74f706a0152be31f9c59ab",
+  "seed": 7,
+  "case": 13,
+  "main_training_cycles": 300,
+  "expected_matched_pairs": 80,
+  "validation_steps": 8,
+  "start_headroom_bytes": 6442450944,
+  "scope": "Existing fresh-owned-process loader and complete Python restore; scientific schedule unchanged"
+}

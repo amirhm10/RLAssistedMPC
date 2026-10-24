@@ -1,0 +1,27 @@
+# Horizon recovery — October 23, 2026
+
+**Accepted:** Horizon resumed production on case 13 as worker PID 38752. The actual eight-step continuation saved step 116008; a second full native/Python import from that checkpoint passed. All sixty previous comparison traces and all 78 offline backup files retain their hashes. All 143 sealed source hashes and the protected peer/coordinator/retention checks pass. See `acceptance.json` for the timestamp and identities. Training continues toward the original 300 cycles and eighty comparisons.
+
+This recovery targets only the failed column E1 horizon run on case 13. The failure originated in Aspen `openDocument` with RPC error -2147023170; `AD application.Quit` then masked it during cleanup. Both old horizon applications and its old Python worker had exited before recovery preparation.
+
+The existing fresh-owned-process loader, already used by weights/Markov/residual, is installed only in the new horizon process. Native restores open verified private model/snapshot copies in a fresh owned application. Ownership and process-creation checks restrict cleanup to this horizon worker's applications. The full Python learner/controller state is compared before and after native import. This mitigates the observed document-reuse failure; it does not establish the underlying Aspen crash mechanism or multi-day stability.
+
+## Preservation and launch
+
+Both complete native/Python checkpoint sets at steps 116000 and 115600 (cycles 290 and 289) passed their prior checksum anchors, current structural checks and model/snapshot hashes. All 78 backup files (1.18 GiB) were copied and independently hash-verified outside OneDrive at `C:\Users\hamediaa\RL_MPC_local_archive\horizon_recovery_20261023`. The preservation manifest maps every copy to its original path. The sixty existing completed horizon trace files and comparison records are preserved; selected snapshots remain in the original result directory.
+
+The original seed 7, 300-cycle training profile, 80-comparison horizon budget, selected sampling points and fidelity bounds are unchanged. The new wrapper uses the pinned private numerical runtime; no installed package or sealed scientific source is edited. The first remaining selected comparison is at step 116028.
+
+Ten focused ownership/checkpoint/horizon-boundary tests passed (`tests.log`). A separate current-user task, `RLAssistedMPC-HorizonRecovery-20261023`, has no administrator requirement, recurring trigger, execution time limit or additional CMD viewer. It starts each stage only with at least 6 GiB commitment headroom. The validation advances eight real resumed steps to a durable checkpoint at 116008 and exits its own applications before production resumes that checkpoint. No active peer is stopped to make capacity.
+
+The existing progress pointer gained this recovery's manifest, preserving its queue and other fields. The live stage is recorded in `Distillation/Results/state_recovery/20261023_horizon_native_process/manifest.json`; progress is registered in the existing viewer. At preparation, eight peer workers, the combined coordinator and the retention worker were protected. Verified natural completion is accepted without treating it as interruption. Native process rotation by the other recovered workers remains under their existing ownership journals.
+
+## Acceptance
+
+The short validation and subsequent production restore are checked separately by `audit_recovery.py`. Its final `acceptance.json` requires a successful 116000 → 116008 continuation, production restoration from at least 116008, unchanged full Python state across both native imports, unchanged original horizon trace hashes, verified local backup hashes, unchanged source guards, protected peer lifetimes or verified completion, the retained queue pointer fields, and a live automatic retention worker. Consult that receipt for final acceptance; launch alone is not proof of a successful restore.
+
+The validation worker returned zero and closed its owned applications before production started. Its logs, and the production restore log, include Windows 0x800706ba diagnostics while collecting retired COM proxies. They did not prevent the verified continuation or second restore. This recovery does not certify clean native shutdown or eliminate every Aspen-internal fault. Combined/plain seeds 11, 23 and 37 completed naturally during preparation/recovery; their saved result files verify, and the two other repetition workers plus the four peer E1 workers retain their identities.
+
+Full training resumption requires matching Python and native files; never restore a backup over a newer checkpoint or running job. Keep the preservation manifest with the backup. No historical result or checkpoint ZIP is removed by this recovery.
+
+Inspected: `run_column_e1.py`, `column_e1/checkpoints.py`, `column_e1/runtime.py`, `column_e1_budget.py`, `run_column_e1_budget.py`, existing process-recovery and numerical-runtime wrappers, horizon's failure record/checkpoint pair/sampling plan, current ownership records, and retention guards. Changed: new `run_column_e1_horizon_recovery.py`, its focused test file, new recovery/preservation/audit metadata, the viewer's additional-manifest pointer, this report and the root recovery-status addendum. Existing scientific/queue/worker sources and the unrelated `run_polymer_phase2_repeats.py` edit are preserved. The verified change is saved in a local commit; no remote push is performed.

@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "aggregation_and_recovery_rows_checked": 1932,
+  "steady_state_decisions_checked": 960,
+  "steady_state_group_summaries_checked": 8,
+  "repeated_runs": 100,
+  "reference_runs": 2,
+  "e2_controller_trajectories": 12,
+  "e1_raw_pairs": 3733,
+  "e3_reproduced_summary_rows": 576,
+  "all_episode_metric_windows_and_censoring_checked": true,
+  "analysis_source_sha256": {
+    "analyze.py": "a28b654cd559c723a3dee6526a1ab84bd50f41fafe6d4ecd455170549f4a249f",
+    "package_figures.py": "6dbe3abd15ca26579effb29011a084fc082008c846765bfca35f75bfb329a20d",
+    "plot_results.py": "1ec89c65332287f6db9f974887711530a403c57ca88e651c1b2c634025356091",
+    "recovery_analysis.py": "cf658705123fcac22dcf87fab9862ec27122347b089b0a50b5b2f46b3e308d52",
+    "reward_check.py": "36b552ad14003cb571736508efeee99c991bd25ec3e5f274f53869a57b747e8d",
+    "steady_state_analysis.py": "1575cdb05976e69050da7a0b099066ed9119715f753ca2e49a9c972e96216afd",
+    "verify_analysis.py": "e2c8955660a48e0c02a6ba44b5612bac957f9abee4f714f45167b06cb556d93e",
+    "verify_comparators.py": "27cf09b4fb862858b6147121c71a94ed1a1a2c0aeac3c8dc88a1d80fabef4d61"
+  }
+}

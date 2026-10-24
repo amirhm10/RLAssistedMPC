@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "pdf_pages": 20,
+  "rendered_pages": 20,
+  "figures": 19,
+  "zip_all_members_independently_sha256_verified": true,
+  "zip_bytes": 11910454,
+  "pdf_sha256": "58f1b8305998798ae72a2b5ff9e6a545f4812cadfc8208df04f52d451dc89d94",
+  "zip_sha256": "c1928664fcd904777669b0e3633376295696edd9d443028986be1047937007ca",
+  "report_table_shapes": [
+    {
+      "rows": 8,
+      "columns": 6
+    },
+    {
+      "rows": 12,
+      "columns": 4
+    },
+    {
+      "rows": 10,
+      "columns": 5
+    },
+    {
+      "rows": 8,
+      "columns": 4
+    },
+    {
+      "rows": 6,
+      "columns": 6
+    },
+    {
+      "rows": 6,
+      "columns": 4
+    }
+  ],
+  "python_sources_parse": true,
+  "raw_results_checkpoints_or_manuscript_changes": 0
+}

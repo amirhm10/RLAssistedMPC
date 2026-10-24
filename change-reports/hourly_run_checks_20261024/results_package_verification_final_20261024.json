@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "pdf_pages": 20,
+  "rendered_pages": 20,
+  "figures": 19,
+  "zip_all_members_independently_sha256_verified": true,
+  "zip_bytes": 11910497,
+  "pdf_sha256": "83825811c8137726ad03e4d45901c11d3c802507d4c63ed7dcb496c0ae1133b1",
+  "zip_sha256": "37748bab056d70f50ec6a63e5694a5ec4aa290351282ebb57859c2e103fdf89f",
+  "supersedes": "results_package_verification_20261024.json",
+  "final_change": "Git attributes now preserve exact CRLF bytes and mark PDF/ZIP/PNG as binary; scientific values and figure pixels unchanged.",
+  "raw_results_checkpoints_or_manuscript_changes": 0
+}

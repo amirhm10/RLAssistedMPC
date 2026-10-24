@@ -1,0 +1,14 @@
+{
+  "primary_consecutive_episodes": 3,
+  "sensitivity_consecutive_episodes": [
+    1,
+    5
+  ],
+  "reward": "Mean step reward at least matched nominal MPC in each qualifying episode.",
+  "both_output_rmse": "Each of the two output RMSEs no worse than matched nominal MPC in each qualifying episode.",
+  "timing": "First qualifying episode minus event episode; recovery is confirmed only after the next dwell-1 episodes.",
+  "handoff_window": "14--200; censor at the next operating change, never substitute an observed recovery time.",
+  "operating_change_window": "201--299; exclude deterministic evaluation episode 300.",
+  "deficit": "Sum of positive episode-mean reward deficits against matched MPC across the entire fixed window; not area under physical error.",
+  "qualification": "Performance recovery relative to a benchmark, not a mathematical stability or physical settling-time test."
+}

@@ -1,0 +1,171 @@
+{
+  "at_utc": "2026-10-24T22:27:49.946375+00:00",
+  "manifest": {
+    "state": "running",
+    "stage": "production",
+    "validation_passed": true
+  },
+  "job_error": null,
+  "children": [
+    {
+      "case": 15,
+      "expected": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962
+      },
+      "actual": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962,
+        "cpu_seconds": 510.90625,
+        "private_bytes": 3727613952,
+        "rss_bytes": 860364800
+      },
+      "requests": 7,
+      "responses": 7,
+      "native": [
+        {
+          "pid": 47668,
+          "alive": true,
+          "created": 134373540855404602,
+          "created_at": "2026-10-24T22:21:43.963255+00:00"
+        }
+      ]
+    },
+    {
+      "case": 17,
+      "expected": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459
+      },
+      "actual": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459,
+        "cpu_seconds": 515.046875,
+        "private_bytes": 3727908864,
+        "rss_bytes": 828833792
+      },
+      "requests": 7,
+      "responses": 7,
+      "native": [
+        {
+          "pid": 57284,
+          "alive": true,
+          "created": 134373540672413269,
+          "created_at": "2026-10-24T22:21:25.541358+00:00"
+        }
+      ]
+    }
+  ],
+  "parent": {
+    "pid": 59504,
+    "alive": true,
+    "created": 134373496370785599,
+    "cpu_seconds": 212.84375,
+    "private_bytes": 8333553664,
+    "rss_bytes": 1517039616
+  },
+  "native": {
+    "10704": {
+      "pid": 10704,
+      "alive": true,
+      "created": 134373497422336127,
+      "cpu_seconds": 9.203125,
+      "private_bytes": 58810368,
+      "rss_bytes": 86384640
+    },
+    "47668": {
+      "pid": 47668,
+      "alive": true,
+      "created": 134373540855404602,
+      "cpu_seconds": 115.46875,
+      "private_bytes": 1092009984,
+      "rss_bytes": 1078374400
+    },
+    "50232": {
+      "pid": 50232,
+      "alive": true,
+      "created": 134373497797957783,
+      "cpu_seconds": 161.578125,
+      "private_bytes": 1081880576,
+      "rss_bytes": 1069457408
+    },
+    "57284": {
+      "pid": 57284,
+      "alive": true,
+      "created": 134373540672413269,
+      "cpu_seconds": 117.484375,
+      "private_bytes": 1092239360,
+      "rss_bytes": 1077448704
+    }
+  },
+  "archive": {
+    "identity": {
+      "lifetime": {
+        "pid": 4480,
+        "parent_pid": 2524,
+        "in_windows_job": true,
+        "scheduler_service_pid": 2524,
+        "parent_is_scheduler_service": true,
+        "session_id": 2,
+        "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+        "observed_at": "2026-10-24T21:21:32.592143+00:00"
+      },
+      "identity": {
+        "pid": 4480,
+        "alive": true,
+        "created": 134373504924160382,
+        "cpu_seconds": 0.140625,
+        "private_bytes": 25391104,
+        "rss_bytes": 42872832
+      },
+      "source_sha256": "7abdfc436206e968e3696e56b13ed5ba6a7634a02c92bccaa0a23d9809d861df",
+      "administrator_required": false
+    },
+    "actual": {
+      "pid": 4480,
+      "alive": true,
+      "created": 134373504924160382,
+      "cpu_seconds": 60.625,
+      "private_bytes": 29851648,
+      "rss_bytes": 47517696
+    },
+    "status": {
+      "state": "running",
+      "updated_at": "2026-10-24T22:26:54.688990+00:00",
+      "pid": 4480,
+      "identity": {
+        "pid": 4480,
+        "alive": true,
+        "created": 134373504924160382,
+        "cpu_seconds": 50.484375,
+        "private_bytes": 26652672,
+        "rss_bytes": 44093440
+      },
+      "archived_working_folders": 8,
+      "duplicate_bytes_removed": 4869596604,
+      "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips",
+      "newest_two_primary_comparisons_unpacked": true,
+      "all_results_checkpoints_and_inputs_retained": true,
+      "free_disk_bytes": 318164226048
+    },
+    "pruned_folders": 9,
+    "latest_verified": [
+      {
+        "path": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips\\d08db65450c9fb5d1aa149c2.zip",
+        "expected_sha256": "c6998061bc3a53015f36613260297c90c901d39533a202d99f7512ab6ae8bc51",
+        "sha256": "c6998061bc3a53015f36613260297c90c901d39533a202d99f7512ab6ae8bc51",
+        "bytes": 95810051
+      }
+    ]
+  },
+  "memory": {
+    "committed_bytes": 49128161280,
+    "limit_bytes": 97452056576,
+    "headroom_bytes": 48323895296
+  },
+  "free_disk_bytes": 318583414784
+}

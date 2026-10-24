@@ -1,0 +1,20 @@
+{
+  "at_utc": "2026-10-24T23:23:50.325058+00:00",
+  "remaining_pairs": 102,
+  "remaining_long_pairs": 12,
+  "main_steps": 37086,
+  "completed_primary_pairs": 218,
+  "observed_production_decisions": 13,
+  "main_training_hours": 11.114083374419788,
+  "comparison_hours": 14.938638981339148,
+  "estimated_remaining_hours": 26.052722355758938,
+  "planning_range_hours": [
+    25,
+    31
+  ],
+  "comparison_physics_coefficient": 0.9591613102662522,
+  "worst_observed_fixed_allowance_seconds": 267.70831538698405,
+  "basis": "Earlier measured main/branch physics coefficients; half the branch steps and worst actual fixed overhead across 13 production comparisons.",
+  "limitation": "Planning estimate, not a confidence bound; changing Aspen solver costs and later-channel behavior remain uncertain.",
+  "additional_cases": "Current synchronous interface has two concurrent branches. Additional cases require new asynchronous ordering/checkpoint/recovery validation; no new migration is warranted by this read-only assessment."
+}

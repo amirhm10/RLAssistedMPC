@@ -1,0 +1,9 @@
+plant,category,quasi_steady,pairs,different_proposals,different_and_negligible_first_move,differing_proposals_immediate_reward_ties,differing_proposals_200_return_ties,supervisor_among_200_return_ties,policy_among_200_return_ties,supervisor_among_different_proposals,observed_source_codes,differing_proposals_median_abs_return_difference,negligible_first_moves,median_first_move_input_range_fraction,median_abs_return_difference,harmful_acceptances,harmful_but_negligible,harmful_at_steady_near_target
+polymer,horizon,False,168,160,9,116,34,4,30,14,"[1, 2]",0.3987402961364017,17,0.010307411211746144,0.3562115044990546,51,5,0
+polymer,horizon,True,232,167,55,167,156,27,129,30,"[1, 2]",0.06250277298147466,120,7.619883449194731e-05,0.03282894402924841,65,16,14
+polymer,weights,False,192,192,1,150,109,72,37,116,"[1, 2]",0.2022573751226986,1,0.010386306005771218,0.2022573751226986,26,0,0
+polymer,weights,True,208,208,48,204,197,169,28,180,"[1, 2]",0.011782023484240511,48,0.0003163657410382825,0.011782023484240511,9,3,9
+column,horizon,True,30,23,15,9,10,0,10,0,[2],4.760659576400485,22,1.5083877777942689e-05,2.6898857547044486,13,6,13
+column,horizon,False,50,42,3,4,13,1,12,2,"[1, 2]",28.184972006983458,11,0.0008528286472210311,7.358442858637204,19,1,0
+column,weights,False,51,51,3,4,22,7,15,16,"[1, 2]",4.4325884977597525,3,0.0016651669197320492,4.4325884977597525,10,0,0
+column,weights,True,29,29,19,10,22,4,18,5,"[1, 2]",0.3619976953951891,19,2.862118154880591e-05,0.3619976953951891,14,8,14

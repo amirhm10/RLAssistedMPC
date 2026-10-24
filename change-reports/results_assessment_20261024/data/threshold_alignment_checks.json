@@ -1,0 +1,18 @@
+[
+  {
+    "plant": "polymer",
+    "before_release_cycles": 13,
+    "pre_release_output_max_abs_difference": 0.000554394379093992,
+    "pre_release_input_max_abs_difference": 0.06008148193359375,
+    "references_identical": true,
+    "interpretation": "End-to-end separately trained controllers; after choices differ, subsequent replay and policies can differ."
+  },
+  {
+    "plant": "column",
+    "before_release_cycles": 13,
+    "pre_release_output_max_abs_difference": 0.0,
+    "pre_release_input_max_abs_difference": 0.0,
+    "references_identical": true,
+    "interpretation": "End-to-end separately trained controllers; after choices differ, subsequent replay and policies can differ."
+  }
+]

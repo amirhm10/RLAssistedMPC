@@ -1,0 +1,285 @@
+{
+  "at_utc": "2026-10-24T22:32:05.121962+00:00",
+  "parent": {
+    "pid": 59504,
+    "alive": true,
+    "created": 134373496370785599,
+    "cpu_seconds": 222.875,
+    "private_bytes": 8542863360,
+    "rss_bytes": 1295187968
+  },
+  "children": [
+    {
+      "case": 15,
+      "identity": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962,
+        "cpu_seconds": 533.140625,
+        "private_bytes": 4848263168,
+        "rss_bytes": 1973125120
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_seconds": 22.234375,
+      "requests": 8,
+      "responses": 0
+    },
+    {
+      "case": 17,
+      "identity": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459,
+        "cpu_seconds": 540.140625,
+        "private_bytes": 4850499584,
+        "rss_bytes": 1956163584
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_seconds": 25.09375,
+      "requests": 8,
+      "responses": 0
+    }
+  ],
+  "archive_status": {
+    "state": "running",
+    "updated_at": "2026-10-24T22:31:37.547080+00:00",
+    "pid": 4480,
+    "identity": {
+      "pid": 4480,
+      "alive": true,
+      "created": 134373504924160382,
+      "cpu_seconds": 63.078125,
+      "private_bytes": 26763264,
+      "rss_bytes": 44478464
+    },
+    "archived_working_folders": 10,
+    "duplicate_bytes_removed": 6094320902,
+    "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips",
+    "newest_two_primary_comparisons_unpacked": true,
+    "all_results_checkpoints_and_inputs_retained": true,
+    "free_disk_bytes": 317135462400
+  },
+  "pruned_folders": 10,
+  "duplicate_bytes_removed": 6094320902,
+  "zip_bytes": 953503327,
+  "net_disk_bytes_saved": 5140817575,
+  "all_pruned_archives_present_and_sizes_match": true,
+  "latest_zip_independent_verification": {
+    "receipt": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips\\5abdfd0031b69b072f0c0246.pruned.json",
+    "archive": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips\\5abdfd0031b69b072f0c0246.zip",
+    "archive_sha256": "24e91e93dd9b754ea9b5be3ec7c1e36cbe77c71892934cd9717b5c387fc95561",
+    "source_bytes": 612362149,
+    "archive_bytes": 95810052,
+    "only_verified_duplicates": true,
+    "all_results_retained": true,
+    "actual_sha256": "24e91e93dd9b754ea9b5be3ec7c1e36cbe77c71892934cd9717b5c387fc95561",
+    "crc_passed": true
+  },
+  "newest_two_primary_comparisons": [
+    {
+      "channel": "residual",
+      "step": 82540,
+      "case": 15,
+      "native_identity": {
+        "pid": 39528,
+        "alive": true,
+        "created": 134373535330055197
+      },
+      "folder": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_227c5f85",
+      "unpacked": true,
+      "native_model_exists": true
+    },
+    {
+      "channel": "residual",
+      "step": 82540,
+      "case": 17,
+      "native_identity": {
+        "pid": 54280,
+        "alive": true,
+        "created": 134373535512664553
+      },
+      "folder": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_bd729a68",
+      "unpacked": true,
+      "native_model_exists": true
+    },
+    {
+      "channel": "weights",
+      "step": 82633,
+      "case": 15,
+      "native_identity": {
+        "pid": 47668,
+        "alive": true,
+        "created": 134373540855404602
+      },
+      "folder": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_45b3a398",
+      "unpacked": true,
+      "native_model_exists": true
+    },
+    {
+      "channel": "weights",
+      "step": 82633,
+      "case": 17,
+      "native_identity": {
+        "pid": 57284,
+        "alive": true,
+        "created": 134373540672413269
+      },
+      "folder": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_66d8d550",
+      "unpacked": true,
+      "native_model_exists": true
+    }
+  ],
+  "newest_two_unpacked": true,
+  "production_decisions": [
+    {
+      "channel": "residual",
+      "step": 82425,
+      "keys": [
+        "at_utc",
+        "channel",
+        "step",
+        "steps",
+        "elapsed_seconds",
+        "input_receipt",
+        "full_python_state_before",
+        "full_python_state_after",
+        "source_map_unchanged",
+        "consumed_sources",
+        "batches",
+        "primary_result"
+      ],
+      "elapsed_seconds": 445.66940419981256,
+      "rollout_steps": null
+    },
+    {
+      "channel": "horizon",
+      "step": 82432,
+      "keys": [
+        "at_utc",
+        "channel",
+        "step",
+        "steps",
+        "elapsed_seconds",
+        "input_receipt",
+        "full_python_state_before",
+        "full_python_state_after",
+        "source_map_unchanged",
+        "consumed_sources",
+        "batches",
+        "primary_result"
+      ],
+      "elapsed_seconds": 399.1869311002083,
+      "rollout_steps": null
+    },
+    {
+      "channel": "markov",
+      "step": 82442,
+      "keys": [
+        "at_utc",
+        "channel",
+        "step",
+        "steps",
+        "elapsed_seconds",
+        "input_receipt",
+        "full_python_state_before",
+        "full_python_state_after",
+        "source_map_unchanged",
+        "consumed_sources",
+        "batches",
+        "primary_result"
+      ],
+      "elapsed_seconds": 398.1057692000177,
+      "rollout_steps": null
+    },
+    {
+      "channel": "horizon",
+      "step": 82460,
+      "keys": [
+        "at_utc",
+        "channel",
+        "step",
+        "steps",
+        "elapsed_seconds",
+        "input_receipt",
+        "full_python_state_before",
+        "full_python_state_after",
+        "source_map_unchanged",
+        "consumed_sources",
+        "batches",
+        "primary_result"
+      ],
+      "elapsed_seconds": 1035.0373635999858,
+      "rollout_steps": null
+    },
+    {
+      "channel": "weights",
+      "step": 82463,
+      "keys": [
+        "at_utc",
+        "channel",
+        "step",
+        "steps",
+        "elapsed_seconds",
+        "input_receipt",
+        "full_python_state_before",
+        "full_python_state_after",
+        "source_map_unchanged",
+        "consumed_sources",
+        "batches",
+        "primary_result"
+      ],
+      "elapsed_seconds": 1023.8029979001731,
+      "rollout_steps": null
+    },
+    {
+      "channel": "residual",
+      "step": 82540,
+      "keys": [
+        "at_utc",
+        "channel",
+        "step",
+        "steps",
+        "elapsed_seconds",
+        "input_receipt",
+        "full_python_state_before",
+        "full_python_state_after",
+        "source_map_unchanged",
+        "consumed_sources",
+        "batches",
+        "primary_result"
+      ],
+      "elapsed_seconds": 411.7373577998951,
+      "rollout_steps": null
+    },
+    {
+      "channel": "weights",
+      "step": 82633,
+      "keys": [
+        "at_utc",
+        "channel",
+        "step",
+        "steps",
+        "elapsed_seconds",
+        "input_receipt",
+        "full_python_state_before",
+        "full_python_state_after",
+        "source_map_unchanged",
+        "consumed_sources",
+        "batches",
+        "primary_result"
+      ],
+      "elapsed_seconds": 409.6469473000616,
+      "rollout_steps": null
+    }
+  ],
+  "remaining_pairs": 108,
+  "remaining_long_pairs": 12,
+  "remaining_hours_same_planning_model": 26.486399660202387,
+  "eta_limit": "Reuses prior two-decision timing coefficients; later channels/long pairs remain uncertain",
+  "memory": {
+    "committed_bytes": 51560472576,
+    "limit_bytes": 97452056576,
+    "headroom_bytes": 45891584000
+  },
+  "free_disk_bytes": 317130194944
+}

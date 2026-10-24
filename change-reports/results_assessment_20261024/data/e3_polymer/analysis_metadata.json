@@ -1,0 +1,26 @@
+{
+  "horizons": [
+    1,
+    4,
+    8
+  ],
+  "aggregation": "one signed error at lead h per origin, separately for each output",
+  "normalization": "fixed identification output range; no validation-statistic normalization",
+  "forecast_scope": "known actual future inputs; decision-time fixed coefficients; no future output updates",
+  "evidence_scope": "single training seed; dependent windows; descriptive results without seed confidence intervals",
+  "nominal_scope": "shared OF-MPC dataset; checkpoint corrections only; not full-controller evaluation",
+  "limitations": [
+    "Dynamic-matrix corrections retain nominal observer/free response.",
+    "Combined tracking improvement does not establish better predictions or causal channel contributions.",
+    "Native distillation temperature unit has not been verified; no Kelvin conversion is inferred."
+  ],
+  "input_directories": [
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_markov_s7\\a1\\capture",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\analysis\\20261016_112339_43cb78\\nominal_checkpoints\\polymer_markov_s7",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\polymer_combined_s7\\a2\\capture",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Results\\e3\\20261015_042751_513bff\\analysis\\20261016_112339_43cb78\\nominal_checkpoints\\polymer_combined_s7"
+  ],
+  "summary_rows": 288,
+  "analysis_source_sha256": "8245c93e53d6a2d8fe78a3e4c77ad97589db326cdc0472f3106aa91dfda454be",
+  "numpy_version": "2.5.3"
+}

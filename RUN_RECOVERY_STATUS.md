@@ -1,4 +1,12 @@
-# Reviewer-run recovery — latest update October 23, 2026
+# Reviewer-run recovery — latest update October 24, 2026
+
+## Hourly check — October 24, 00:34 Toronto
+
+**Column repetitions are complete: 50/50 latest results verified. Five E1 configurations remain running, with 377/640 completed comparisons and no current scientific worker failure or queued launch.** All five workers have unchanged creation identities and positive CPU changes. Horizon has 68/80 pairs at checkpoint cycle 293; weights 60/80 at 227; Markov 60/80 at 213; residual 60/80 at 217; combined 129/320 at 195. These are progress counts, not a scientific performance assessment or completed E1 claim.
+
+The combined coordinator finished dispatching all twenty queued runs and exited after the final repetition completed. Its original final aggregate retained two historical seed-23 failures, although the independent Markov SG and residual plain recoveries completed on October 23. All fifty current completion records and saved result files have now been checked, including SHA-256 hashes. The retired coordinator's status was backed up and reconciled to completed with explicit recovery provenance. Its original history and both queue plan/manifest files remain unchanged. The existing progress view can now display completion, and the horizon supervisor's protected-process guard passes. No running job was stopped or restarted.
+
+Automatic retention is live with two verified complete matched checkpoints for every E1 configuration. About 392 GiB is free and commitment headroom is about 9.1 GiB; the active combined comparison application remains the largest memory consumer. All ten open Aspen simulation instances match active E1 ownership. All 143 sealed source hashes pass. Hourly checks remain active for the five unfinished E1 runs. Evidence and the original coordinator record: `change-reports/hourly_run_checks_20261024/STATUS.md`, `audit.json`, and `coordinator_reconciliation.json`.
 
 ## Horizon recovered on case 13 — October 23, 22:59 Toronto
 

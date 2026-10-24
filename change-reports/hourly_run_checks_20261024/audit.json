@@ -1,0 +1,2888 @@
+{
+  "at_utc": "2026-10-24T04:34:37.124540+00:00",
+  "column_repetitions": {
+    "completed": 50,
+    "total": 50,
+    "current_failures": 0,
+    "pending": 0,
+    "results": [
+      {
+        "category": "horizon",
+        "mode": "sg",
+        "seed": 7,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s7\\a1",
+        "pid": 26860,
+        "state": "completed",
+        "finished_at": "2026-10-15T21:14:42.136891+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s7\\a1\\rl\\20261015_171418\\input_data.pkl",
+        "result_bytes": 91602764,
+        "sha256": "338eef60ec5dc16901996f5b777a4d116aa19d9f5c05defa5fe5a1c928d74a97",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "horizon",
+        "mode": "sg",
+        "seed": 11,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s11\\a1",
+        "pid": 24716,
+        "state": "completed",
+        "finished_at": "2026-10-15T21:46:20.974014+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s11\\a1\\rl\\20261015_174558\\input_data.pkl",
+        "result_bytes": 91602764,
+        "sha256": "a5d07ef1da3b8d5b4ec55ae7996b5512b607bd5749eb528408449ab2bff16912",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "horizon",
+        "mode": "sg",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s23\\a1",
+        "pid": 10676,
+        "state": "completed",
+        "finished_at": "2026-10-15T21:47:22.446034+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s23\\a1\\rl\\20261015_174659\\input_data.pkl",
+        "result_bytes": 91602764,
+        "sha256": "87ccce07d828b46ae9a688ff28798096f34516aa21de498275e07eb41fd04cb5",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "horizon",
+        "mode": "sg",
+        "seed": 37,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s37\\a1",
+        "pid": 45464,
+        "state": "completed",
+        "finished_at": "2026-10-15T21:40:45.341066+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s37\\a1\\rl\\20261015_174022\\input_data.pkl",
+        "result_bytes": 91602764,
+        "sha256": "51299e105fa8d05ad089bc8edfade9c46ee1a67b7bb1f283078424805db9bc73",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "horizon",
+        "mode": "sg",
+        "seed": 53,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s53\\a1",
+        "pid": 22492,
+        "state": "completed",
+        "finished_at": "2026-10-15T21:45:44.011771+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s53\\a1\\rl\\20261015_174522\\input_data.pkl",
+        "result_bytes": 91602764,
+        "sha256": "51f6fdfbe7bf2abdf321a0542ea83690af4a0839c449c2364d76e1975ba15f56",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "horizon",
+        "mode": "plain",
+        "seed": 7,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s7\\a1",
+        "pid": 47208,
+        "state": "completed",
+        "finished_at": "2026-10-15T21:55:17.710035+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s7\\a1\\rl\\20261015_175455\\input_data.pkl",
+        "result_bytes": 80401319,
+        "sha256": "d8d0f7dbbfa4398f96915acf5f77f97257155abf55aaff26aef4025129c2b0c0",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "horizon",
+        "mode": "plain",
+        "seed": 11,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s11\\a1",
+        "pid": 29724,
+        "state": "completed",
+        "finished_at": "2026-10-15T21:22:35.632227+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s11\\a1\\rl\\20261015_172212\\input_data.pkl",
+        "result_bytes": 80401319,
+        "sha256": "10bede697bc9cd51dbe3b40417c206b7e17621e63f364c31897bf800431c1843",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "horizon",
+        "mode": "plain",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s23\\a1",
+        "pid": 46136,
+        "state": "completed",
+        "finished_at": "2026-10-15T21:42:32.115446+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s23\\a1\\rl\\20261015_174209\\input_data.pkl",
+        "result_bytes": 80401319,
+        "sha256": "fed78c1efc0d55263bd82e8bdec1a18388e26a3deac723110f513a000f0c9ee0",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "horizon",
+        "mode": "plain",
+        "seed": 37,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s37\\a1",
+        "pid": 16888,
+        "state": "completed",
+        "finished_at": "2026-10-15T21:58:13.603350+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s37\\a1\\rl\\20261015_175751\\input_data.pkl",
+        "result_bytes": 80401319,
+        "sha256": "2aa6522796aae2b03f6bce93eb0a27f2d629375f1bf4ff2830dd44469978ae69",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "horizon",
+        "mode": "plain",
+        "seed": 53,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s53\\a1",
+        "pid": 37016,
+        "state": "completed",
+        "finished_at": "2026-10-15T21:55:16.754717+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_plain\\s53\\a1\\rl\\20261015_175454\\input_data.pkl",
+        "result_bytes": 80401319,
+        "sha256": "372d6eddae805331324b3ed80aa9f8f3b426d231a604ecac49c3d7b4dbb8f169",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "weights",
+        "mode": "sg",
+        "seed": 7,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s7\\a1",
+        "pid": 43012,
+        "state": "completed",
+        "finished_at": "2026-10-17T03:41:12.440577+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s7\\a1\\rl\\20261016_234050\\input_data.pkl",
+        "result_bytes": 188511630,
+        "sha256": "1118ac1457a7a93d5fdea67748f140f3f13a166a8d44067b8e20afdd32d5ce1f",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "weights",
+        "mode": "sg",
+        "seed": 11,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s11\\a1",
+        "pid": 47732,
+        "state": "completed",
+        "finished_at": "2026-10-17T03:35:38.501486+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s11\\a1\\rl\\20261016_233515\\input_data.pkl",
+        "result_bytes": 188511630,
+        "sha256": "8aa7e5c4d62db1e6d77bb7a92c637fece01c68bf36c49e2a02374e17d03352ff",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "weights",
+        "mode": "sg",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s23\\a1",
+        "pid": 46060,
+        "state": "completed",
+        "finished_at": "2026-10-17T04:05:38.893366+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s23\\a1\\rl\\20261017_000517\\input_data.pkl",
+        "result_bytes": 188511630,
+        "sha256": "29f9b560f494becea514615f72433bebac46a8708736c0bc02b3264570988df8",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "weights",
+        "mode": "sg",
+        "seed": 37,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s37\\a1",
+        "pid": 32904,
+        "state": "completed",
+        "finished_at": "2026-10-17T03:35:59.162148+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s37\\a1\\rl\\20261016_233536\\input_data.pkl",
+        "result_bytes": 188511630,
+        "sha256": "fbe3bd5eeab18b4345e13e87d34e1e5e078ce5791338237a0ce825ae34816c46",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "weights",
+        "mode": "sg",
+        "seed": 53,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s53\\a1",
+        "pid": 34084,
+        "state": "completed",
+        "finished_at": "2026-10-17T03:39:06.989938+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_sg\\s53\\a1\\rl\\20261016_233843\\input_data.pkl",
+        "result_bytes": 188511630,
+        "sha256": "fe5e61f4bda20fc724e0327dfbf7024a65eb8b678cf2a9f9a488046db1a8c54a",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "weights",
+        "mode": "plain",
+        "seed": 7,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s7\\a1",
+        "pid": 43516,
+        "state": "completed",
+        "finished_at": "2026-10-17T03:20:00.348115+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s7\\a1\\rl\\20261016_231936\\input_data.pkl",
+        "result_bytes": 150804080,
+        "sha256": "270206bb383cc2480e6de2b32d206a33ee5c46cf217b011708445285ec208f11",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "weights",
+        "mode": "plain",
+        "seed": 11,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s11\\a1",
+        "pid": 15260,
+        "state": "completed",
+        "finished_at": "2026-10-17T03:06:49.570425+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s11\\a1\\rl\\20261016_230623\\input_data.pkl",
+        "result_bytes": 150804080,
+        "sha256": "f83137f7bf3b279649690d0fac528143646803d3577bf6694274c8a5f0901578",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "weights",
+        "mode": "plain",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s23\\a1",
+        "pid": 40928,
+        "state": "completed",
+        "finished_at": "2026-10-17T03:32:18.935905+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s23\\a1\\rl\\20261016_233155\\input_data.pkl",
+        "result_bytes": 150804080,
+        "sha256": "0b49d7e636d86d499014bd9f164e32ccae2461a48bc6ea53f02d8114bd8c0316",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "weights",
+        "mode": "plain",
+        "seed": 37,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s37\\a1",
+        "pid": 48508,
+        "state": "completed",
+        "finished_at": "2026-10-17T03:17:46.108977+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s37\\a1\\rl\\20261016_231721\\input_data.pkl",
+        "result_bytes": 150804080,
+        "sha256": "a1941e355d7ece91e425cd6920e8e380415ce88eca01ddc0d1b86c13706d1f7c",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "weights",
+        "mode": "plain",
+        "seed": 53,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s53\\a1",
+        "pid": 49892,
+        "state": "completed",
+        "finished_at": "2026-10-17T03:16:20.535102+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\weights_plain\\s53\\a1\\rl\\20261016_231555\\input_data.pkl",
+        "result_bytes": 150804080,
+        "sha256": "d06261fe2d2d27dc04367ea18eeb3f6599f1cca04896a3c30d7d6bd0ec6d2257",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "markov",
+        "mode": "sg",
+        "seed": 7,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s7\\a2",
+        "pid": 764,
+        "state": "completed",
+        "finished_at": "2026-10-20T10:16:49.704668+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s7\\a2\\rl\\20261020_061606\\input_data.pkl",
+        "result_bytes": 258274313,
+        "sha256": "f39c471d2b62f4e1ab7eb6a613664814fada2d5d6997165ea1a593eae34df3b1",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "markov",
+        "mode": "sg",
+        "seed": 11,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s11\\a2",
+        "pid": 9864,
+        "state": "completed",
+        "finished_at": "2026-10-20T10:16:34.117410+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s11\\a2\\rl\\20261020_061549\\input_data.pkl",
+        "result_bytes": 258274314,
+        "sha256": "9d2e17c53196d9d72c000d1310a9bfde98bbd71faed043bad5875f6ab2edf4df",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "markov",
+        "mode": "sg",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\markov_sg\\s23\\a1",
+        "pid": 42644,
+        "state": "completed",
+        "finished_at": "2026-10-23T15:31:50.915161+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\markov_sg\\s23\\a1\\rl\\20261023_113052\\input_data.pkl",
+        "result_bytes": 258274780,
+        "sha256": "234e87f7f1ae31a2c1497187bbae26c59282864243d8373a5dff9a705ad713ec",
+        "superseded_queue_failure": true
+      },
+      {
+        "category": "markov",
+        "mode": "sg",
+        "seed": 37,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s37\\a2",
+        "pid": 44212,
+        "state": "completed",
+        "finished_at": "2026-10-20T09:59:44.510368+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s37\\a2\\rl\\20261020_055859\\input_data.pkl",
+        "result_bytes": 258274314,
+        "sha256": "cba30135aba6b360f52f5c40e37b62049988817119c5027388d80a0442063dde",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "markov",
+        "mode": "sg",
+        "seed": 53,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s53\\a2",
+        "pid": 34080,
+        "state": "completed",
+        "finished_at": "2026-10-20T10:02:21.667920+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_sg\\s53\\a2\\rl\\20261020_060138\\input_data.pkl",
+        "result_bytes": 258274314,
+        "sha256": "834131469fe94d7999785cf46c8961ee02e052ae64aa7b07f79f4481fc95fd90",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "markov",
+        "mode": "plain",
+        "seed": 7,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s7\\a2",
+        "pid": 49728,
+        "state": "completed",
+        "finished_at": "2026-10-20T12:08:20.723200+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s7\\a2\\rl\\20261020_080744\\input_data.pkl",
+        "result_bytes": 258274294,
+        "sha256": "7927eaabc8c05d48e07bea2e575b77061478461c233ddadee27043cfa45a2423",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "markov",
+        "mode": "plain",
+        "seed": 11,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s11\\a2",
+        "pid": 46532,
+        "state": "completed",
+        "finished_at": "2026-10-20T12:12:46.978820+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s11\\a2\\rl\\20261020_081206\\input_data.pkl",
+        "result_bytes": 258274295,
+        "sha256": "6c51edebbaac9e16b098a689240eeb2ebe6177338de122e91542928c54021a3b",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "markov",
+        "mode": "plain",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s23\\a2",
+        "pid": 43244,
+        "state": "completed",
+        "finished_at": "2026-10-20T11:51:49.750148+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s23\\a2\\rl\\20261020_075108\\input_data.pkl",
+        "result_bytes": 258274295,
+        "sha256": "5a65bfea541199c143f8ece5638ff2a8068e334e4ae2d3a0cf1b210d0e04338a",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "markov",
+        "mode": "plain",
+        "seed": 37,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s37\\a2",
+        "pid": 30536,
+        "state": "completed",
+        "finished_at": "2026-10-20T12:07:46.649278+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s37\\a2\\rl\\20261020_080706\\input_data.pkl",
+        "result_bytes": 258274295,
+        "sha256": "ee2ce586b47557ce289b132270d31441961aa86b1beed824b4f38d9d651b3fc8",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "markov",
+        "mode": "plain",
+        "seed": 53,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s53\\a2",
+        "pid": 50752,
+        "state": "completed",
+        "finished_at": "2026-10-20T12:28:15.941103+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261018\\repeats\\markov_plain\\s53\\a2\\rl\\20261020_082734\\input_data.pkl",
+        "result_bytes": 258274295,
+        "sha256": "6abafb0a2db0508f5c7d1fdaa67d417b18ee464d5dc01d2fa842f48e0282ec06",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "residual",
+        "mode": "sg",
+        "seed": 7,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s7\\a1",
+        "pid": 27384,
+        "state": "completed",
+        "finished_at": "2026-10-21T23:36:06.933346+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s7\\a1\\rl\\20261021_193534\\input_data.pkl",
+        "result_bytes": 189974532,
+        "sha256": "c95c5b60590bec32f6a817b72b0edc6b602de2766abc39ad3d574f108ab93d47",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "residual",
+        "mode": "sg",
+        "seed": 11,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s11\\a1",
+        "pid": 50820,
+        "state": "completed",
+        "finished_at": "2026-10-21T23:31:19.038383+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s11\\a1\\rl\\20261021_193043\\input_data.pkl",
+        "result_bytes": 189974532,
+        "sha256": "e3f900d4e8afeaed25ceb0dfa5c8a138bb15f1caa66a0a0bd35910f8967d6edd",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "residual",
+        "mode": "sg",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s23\\a1",
+        "pid": 15472,
+        "state": "completed",
+        "finished_at": "2026-10-21T23:28:54.890110+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s23\\a1\\rl\\20261021_192814\\input_data.pkl",
+        "result_bytes": 189974532,
+        "sha256": "9e3192bdbb03453fc1d87a0f6fb88cb7c8789ef6df8e4a93caae36ec08e3d6cb",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "residual",
+        "mode": "sg",
+        "seed": 37,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s37\\a1",
+        "pid": 44812,
+        "state": "completed",
+        "finished_at": "2026-10-21T23:36:54.502498+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s37\\a1\\rl\\20261021_193621\\input_data.pkl",
+        "result_bytes": 189974532,
+        "sha256": "e9383f146344135e2511e9e8a4d43522c94d2a77d5cffd2fd0ef00f9b8d4819f",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "residual",
+        "mode": "sg",
+        "seed": 53,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s53\\a1",
+        "pid": 42188,
+        "state": "completed",
+        "finished_at": "2026-10-21T23:29:01.638153+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_sg\\s53\\a1\\rl\\20261021_192823\\input_data.pkl",
+        "result_bytes": 189974532,
+        "sha256": "a0ed2fa5050c8d116f7ed0b6978afdf282cbe3bce806afafd556c38b7f4246af",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "residual",
+        "mode": "plain",
+        "seed": 7,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s7\\a1",
+        "pid": 32632,
+        "state": "completed",
+        "finished_at": "2026-10-22T01:09:21.220757+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s7\\a1\\rl\\20261021_210846\\input_data.pkl",
+        "result_bytes": 160906982,
+        "sha256": "86599d10f1629aa32e3769d1bef36f76dd2a6c203b584e6ba381815f0376a0ae",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "residual",
+        "mode": "plain",
+        "seed": 11,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s11\\a1",
+        "pid": 47360,
+        "state": "completed",
+        "finished_at": "2026-10-22T01:39:12.055964+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s11\\a1\\rl\\20261021_213831\\input_data.pkl",
+        "result_bytes": 160906982,
+        "sha256": "b48efc32a7b03e9da0916768ee5e15bc51477f80ee8bc0bc4dbdc11dd9eeaa98",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "residual",
+        "mode": "plain",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\residual_plain\\s23\\a1",
+        "pid": 35808,
+        "state": "completed",
+        "finished_at": "2026-10-23T15:35:49.356296+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\residual_plain\\s23\\a1\\rl\\20261023_113500\\input_data.pkl",
+        "result_bytes": 165707938,
+        "sha256": "164beb7169e09bc727378e5a84484278374ec3bee476dd03af1be63c1f1d67f7",
+        "superseded_queue_failure": true
+      },
+      {
+        "category": "residual",
+        "mode": "plain",
+        "seed": 37,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s37\\a1",
+        "pid": 29360,
+        "state": "completed",
+        "finished_at": "2026-10-22T01:15:03.580612+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s37\\a1\\rl\\20261021_211427\\input_data.pkl",
+        "result_bytes": 160906982,
+        "sha256": "50816bdbbc584181beec0d05043f521c2c55a27e78ef1ca810886d1290bb395c",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "residual",
+        "mode": "plain",
+        "seed": 53,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s53\\a1",
+        "pid": 31656,
+        "state": "completed",
+        "finished_at": "2026-10-22T01:01:39.218812+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\residual\\residual_plain\\s53\\a1\\rl\\20261021_210102\\input_data.pkl",
+        "result_bytes": 160906982,
+        "sha256": "41692eca60ba7f4ff94af09033b114649cb6b0db681255775b1641512b27b4ba",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "combined",
+        "mode": "sg",
+        "seed": 7,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s7\\a1",
+        "pid": 45248,
+        "state": "completed",
+        "finished_at": "2026-10-23T20:10:47.309939+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s7\\a1\\rl\\20261023_160831\\input_data.pkl",
+        "result_bytes": 345130526,
+        "sha256": "bb714de3cde34368927c7da6d4dbf0be2ce0f548b25997ffdd1393e831e4e152",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "combined",
+        "mode": "sg",
+        "seed": 11,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s11\\a1",
+        "pid": 21212,
+        "state": "completed",
+        "finished_at": "2026-10-23T19:43:47.905231+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s11\\a1\\rl\\20261023_154131\\input_data.pkl",
+        "result_bytes": 345130526,
+        "sha256": "66cb124bada340b576572393add8274d95967cdb953a032a58fc7ab1d4e3021f",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "combined",
+        "mode": "sg",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s23\\a1",
+        "pid": 15092,
+        "state": "completed",
+        "finished_at": "2026-10-23T20:01:27.320476+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s23\\a1\\rl\\20261023_155908\\input_data.pkl",
+        "result_bytes": 345130526,
+        "sha256": "dc412d0bf6d9e96a411bc90e17b12f8fe194c89bf604f6eaafe99b6170bbdafc",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "combined",
+        "mode": "sg",
+        "seed": 37,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s37\\a1",
+        "pid": 8812,
+        "state": "completed",
+        "finished_at": "2026-10-23T19:47:06.414482+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s37\\a1\\rl\\20261023_154448\\input_data.pkl",
+        "result_bytes": 345130526,
+        "sha256": "4a48a025f88190ef4413947dd6dc5d6a10b1d8caba02a5aa89b7a02edb5f7c85",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "combined",
+        "mode": "sg",
+        "seed": 53,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s53\\a1",
+        "pid": 9628,
+        "state": "completed",
+        "finished_at": "2026-10-23T19:33:46.052472+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_sg\\s53\\a1\\rl\\20261023_153130\\input_data.pkl",
+        "result_bytes": 345130526,
+        "sha256": "cf7051c7d1502db0aee38fa38631153669e1123a10668853d6b98cde2842ce1f",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "combined",
+        "mode": "plain",
+        "seed": 7,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s7\\a1",
+        "pid": 21748,
+        "state": "completed",
+        "finished_at": "2026-10-24T03:25:18.568578+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s7\\a1\\rl\\20261023_232256\\input_data.pkl",
+        "result_bytes": 284948185,
+        "sha256": "5b066db76e21f32a415faab6e4d4b4bc7a978c007b9c68a861e6b1640954b0cf",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "combined",
+        "mode": "plain",
+        "seed": 11,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s11\\a1",
+        "pid": 23668,
+        "state": "completed",
+        "finished_at": "2026-10-24T02:52:54.930019+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s11\\a1\\rl\\20261023_225010\\input_data.pkl",
+        "result_bytes": 284948185,
+        "sha256": "ec85ec2a64184ddd581cf26ccba513998964f79d66f7b60579e4f5752b0db376",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "combined",
+        "mode": "plain",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s23\\a1",
+        "pid": 11248,
+        "state": "completed",
+        "finished_at": "2026-10-24T02:38:02.739871+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s23\\a1\\rl\\20261023_223523\\input_data.pkl",
+        "result_bytes": 284948185,
+        "sha256": "0b66036cf10885a4d6f16a0fe7c5d203de2db9c424f2039a4e52051b4cfa1b8f",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "combined",
+        "mode": "plain",
+        "seed": 37,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s37\\a1",
+        "pid": 25940,
+        "state": "completed",
+        "finished_at": "2026-10-24T02:51:37.042674+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s37\\a1\\rl\\20261023_224852\\input_data.pkl",
+        "result_bytes": 284948185,
+        "sha256": "ced09ee31f36f4656d9311dff339fc5ed3601e958b2c6f43002aaffc7d0639af",
+        "superseded_queue_failure": false
+      },
+      {
+        "category": "combined",
+        "mode": "plain",
+        "seed": 53,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s53\\a1",
+        "pid": 25660,
+        "state": "completed",
+        "finished_at": "2026-10-24T04:11:16.667146+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\combined\\combined_plain\\s53\\a1\\rl\\20261024_000849\\input_data.pkl",
+        "result_bytes": 284948185,
+        "sha256": "7c4539638a6b07916f1f2e80ffe3d001999f8a3506cf4a8f3dd52ffc1553d046",
+        "superseded_queue_failure": false
+      }
+    ]
+  },
+  "E1": [
+    {
+      "category": "horizon",
+      "state": "running",
+      "identity": {
+        "pid": 38752,
+        "alive": true,
+        "created": 134372841472070240
+      },
+      "case": 13,
+      "checkpoint_cycles": 293,
+      "checkpoint_steps": 117200,
+      "completed_pairs": 68,
+      "expected_pairs": 80,
+      "last_pair_step": 117232,
+      "last_pair_episode": 294,
+      "cpu_delta_seconds": 0.296875,
+      "native_pids": [
+        56624,
+        23416
+      ],
+      "trace_files": [
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0005316.npz",
+          "sha256": "a418c4b154b86fd2bd8434487f9ef8abae3f675ab0f45897ab7e396640dea769",
+          "bytes": 26212
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0005624.npz",
+          "sha256": "e45e2af80c38d157ef5439ee5ed69f2a424abbaf34e953f4f3957c227dcca70f",
+          "bytes": 26458
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0005808.npz",
+          "sha256": "4e82894d03165bf6b424c6c8b4ecd240d714bdc6e4f74a6fcf92428269dffd8a",
+          "bytes": 25264
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0005828.npz",
+          "sha256": "54d1fb2affae4577cd4e8e771fa900d4a72aa5df1708d5ec09d7c9314ad976ba",
+          "bytes": 85030
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0005980.npz",
+          "sha256": "0b2e0245c612fe047d0e832d1d5d165efd1efc9ec083651c9094f0aec8ca5e60",
+          "bytes": 26298
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0006040.npz",
+          "sha256": "64115124632d75624b16ab814b71be1c99d8c0119342df72dcec75b2aca70d7e",
+          "bytes": 26713
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0006072.npz",
+          "sha256": "27e348a782c7289e5888ad9aa7fd1ee718f83746956fadf16d86c6bb99bf29a0",
+          "bytes": 26676
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0006208.npz",
+          "sha256": "40e0bcb59302732e2bf055c223109a1a5f6c8841c4f752df5d70284d61e6d636",
+          "bytes": 25272
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0006528.npz",
+          "sha256": "56efaece17f381de8c93f3157c0f3f543166b14d5e38938b52110c279ea06250",
+          "bytes": 26294
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0006612.npz",
+          "sha256": "06121768e7db5e38d0e2c4c4faeb52b4ff15f121579841acd1c5345d3dbea6d7",
+          "bytes": 25250
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0006652.npz",
+          "sha256": "7a98de2b1ae107f2156c2d4c0632e62fe5dfdcb43c4e81d79badae7043358202",
+          "bytes": 25159
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0006820.npz",
+          "sha256": "d9908f9d2b7567c321ae3066c143bbfdfe0409a57f31198c268cb438dc7920df",
+          "bytes": 26694
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0007032.npz",
+          "sha256": "4e482198a4678e4cb78780b59afe9d9e115141bc43c17e982945a3877cf13cb5",
+          "bytes": 25027
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0007076.npz",
+          "sha256": "4abc5b1cf0848843a78e33480f46219808399afef72b02eda09e4322f8f50181",
+          "bytes": 25111
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0007152.npz",
+          "sha256": "e1070790e5181e705bd07a2e8af71f946f0ca18c561f91a4cead62a781746569",
+          "bytes": 25713
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0007200.npz",
+          "sha256": "c14206008501c22fe0462cad3176ded116e5eb9eb359a41fc19eed9b6e647602",
+          "bytes": 84780
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0007228.npz",
+          "sha256": "cae3d823b71757d7c30af2bb52c314a22f14fff797b1a38c3a6183f2104a9061",
+          "bytes": 26488
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0007404.npz",
+          "sha256": "3d0dd1652e915d1d44200e0dd27b7d6966478ea8e925d0a7cbc5446bdce060a1",
+          "bytes": 25208
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0007664.npz",
+          "sha256": "251850acf022b3d7ec71944e67a4f9cbd9dba972bfa24ae633628287c2024fd0",
+          "bytes": 26795
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_release_0007956.npz",
+          "sha256": "387440104ef941e2bcccfbd7fdad4fd58a14c5385b80af88d86bbc5afe042627",
+          "bytes": 26052
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0076028.npz",
+          "sha256": "7ec5a8e0d042cae750467ccd3414d605da0f9736b67ab313f5e51382c76f3746",
+          "bytes": 25914
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0076064.npz",
+          "sha256": "c49ca82fe9f2dd388d26cc3f055e07fb0377cc390e831d39b0ac36c655ce192b",
+          "bytes": 25897
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0076120.npz",
+          "sha256": "cd73af10660631c10633be577514273e9b06866176f88dd62d7d92072343dddb",
+          "bytes": 25843
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0076624.npz",
+          "sha256": "f6f237291df73eac20949b545d7d9705a21d0bea495591d9ec665c27662bd06e",
+          "bytes": 25271
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0076628.npz",
+          "sha256": "5612cdf461c5752a77cb567af1a6f2d7d97295fbaba516ea4c8e04838f47ce4d",
+          "bytes": 25312
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0077040.npz",
+          "sha256": "ecab680a01251397eeba2d7e28b115aad7130cb6ab360042bd0e005acbf2bfb2",
+          "bytes": 83651
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0077200.npz",
+          "sha256": "db4aef0960406a7e7395183f161ee2fe730cc8b8ef3d7c5575cb5fc94e410459",
+          "bytes": 25886
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0077940.npz",
+          "sha256": "279dcc39593e9d69ee027ad9ea2fa654d51a02a3d432bd54c0804ec7546d2e1e",
+          "bytes": 25408
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0078032.npz",
+          "sha256": "987272c69139f5f1844defbba39aef6c9be8b5e9e3f9915d46b6dda6b73c3fc7",
+          "bytes": 25934
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0078336.npz",
+          "sha256": "8d79cdbece6802020a3601bf330040692e970de9524a71c539063f9dcda5366a",
+          "bytes": 25848
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0078408.npz",
+          "sha256": "1f54b7ba502ae6d7016a1e3a48cecc116e9ba7bb56d3292622753e8c717f1bb4",
+          "bytes": 25792
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0078496.npz",
+          "sha256": "3ce46dae56ba0cdf0aaaeb7ca0389e3b67cd6cac82be8ad4e6c3ec57960cf95e",
+          "bytes": 25854
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0078612.npz",
+          "sha256": "8fb81fc5419774216fc4216cf02e482aa8e99fc16e0be8a07f1ccb53f2e1787c",
+          "bytes": 25288
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0078724.npz",
+          "sha256": "6f3c7e911e7623aab2f05aee15d337bb944c208d5556ba83c27173a35a1f50b2",
+          "bytes": 25481
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0078968.npz",
+          "sha256": "e826e51f58f58550610c10969e5be509278215a7b7c745efd5d4483fed0cd487",
+          "bytes": 25689
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0079020.npz",
+          "sha256": "dd3b07496eef67d8202af9eb7a4c098e8e4418fabf6957b81888b332fa0c6b91",
+          "bytes": 25316
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0079036.npz",
+          "sha256": "f1723362bffbf1916746eec5345e70a907f5f28d241e5e0c00a714a1ba39460e",
+          "bytes": 84065
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0079076.npz",
+          "sha256": "d102a7f26050db2fe3a33231c5e34781bea88fb276347720f235c82765f64ca9",
+          "bytes": 25450
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0079256.npz",
+          "sha256": "ca0e43a3e2c0ccd75f64fa12740388586fd0e6f3286fb95ac85402b898e0cff6",
+          "bytes": 26178
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_prechange_mature_0079412.npz",
+          "sha256": "b6ed3b6c95dee3a61d8f7a59288de879feeda074b69c3621ef683c7f1fb6936a",
+          "bytes": 25297
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0080104.npz",
+          "sha256": "2bf9ba9352e31ec5b91c68a41000cb1d446c4d97d96fa6e6374df3dd370ccffa",
+          "bytes": 84569
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0080428.npz",
+          "sha256": "6222169fb4273bbfa9f633c961cec9a30a01a766ba0825da7aebe4734329fcee",
+          "bytes": 25930
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0080476.npz",
+          "sha256": "c3deb2956a8fd8006096af7fd0b729664f6353f0cd1767b7c328d54ca0d70fe9",
+          "bytes": 25347
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0080636.npz",
+          "sha256": "dfcfdeaa0c28c5660ba2800bf28384359c88942e44db352932e85d68a8df74d1",
+          "bytes": 25562
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0081176.npz",
+          "sha256": "43cf70c41dc6ba2bc60da3f90ea4018978f0936a336182e26c07bfad9e73c6e0",
+          "bytes": 26304
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0081348.npz",
+          "sha256": "b0272cdd5fc1bbdceeeaa1b649c8b0bfed60883da6b78841133a0f0ad34f8bfc",
+          "bytes": 25697
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0081424.npz",
+          "sha256": "8795d819b1eec2f51532ce42788b72ae2c28671821f2ecff7bca932970710e6d",
+          "bytes": 25679
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0081436.npz",
+          "sha256": "30dda2b157787b1f1c69c98da6af2b4fb97ab4bdfce50930572df606ad97bd9a",
+          "bytes": 25707
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0081492.npz",
+          "sha256": "eecddbd851e5392bdc8961f5e6b655c262c54e0382cf1a5c170571a5e5bc441e",
+          "bytes": 25727
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0081688.npz",
+          "sha256": "d7bcf61071a41e79a86c5f7fc28dc3ad074b28e6c947917a394c80b6f7504099",
+          "bytes": 25701
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0081800.npz",
+          "sha256": "9f1d1a5cf8e81a43097ce9b9f5ed94eb27ba8642a5469299d05817fc33160d4d",
+          "bytes": 25904
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0082016.npz",
+          "sha256": "c8d68516360508afcf76c04d17b0eac4d62c705a2f36f9989a5588a0985617d1",
+          "bytes": 25846
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0082236.npz",
+          "sha256": "63a53127f37b226f609845c59f8e124e8d6b7de9320e00bfcdc0b6d3a856df28",
+          "bytes": 25999
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0082300.npz",
+          "sha256": "07530a57fd578198d05dce2e83e6182084f124f7c071c62e7cdd3e60151bea90",
+          "bytes": 26035
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0082624.npz",
+          "sha256": "f23aff84a702bb2dc5240bf0121220d1c0845a4656bc9be9c12cf8510020a65d",
+          "bytes": 84949
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0082836.npz",
+          "sha256": "75cdeb71a38750d73c50732c0bdd206c0184bd13ce9c19363499d6b29cb12da2",
+          "bytes": 25859
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0083240.npz",
+          "sha256": "3ea968573158fc50ecb5837926c5ac7cd0cfadfe7acccdbfe133c789b3eb587c",
+          "bytes": 26079
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0083296.npz",
+          "sha256": "133a697f327af67bb9f38187ea98d529dac10a82bd3b03bd2f25b6fa69e7e60a",
+          "bytes": 26025
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0083784.npz",
+          "sha256": "1a61af4b33932e9f8b135033a853a4f30a512f874c26aa0771fc158bfc953a44",
+          "bytes": 25889
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_plant_change_0083828.npz",
+          "sha256": "f89c8464d29d166c6b184bacebcd081b53f81fbebf43ac3b041f313901c4dced",
+          "bytes": 25858
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0116028.npz",
+          "sha256": "ae8301e46401b90b1e7658031d80cca599d89a1be6bfbc1abfe510fb206548d0",
+          "bytes": 26263
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0116088.npz",
+          "sha256": "c503efa2468587a4ef38bda4755517c8f54e01ae61c01a316ee398aa13a0cf90",
+          "bytes": 26276
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0116420.npz",
+          "sha256": "543744a0e68df1f470b3a6958a226339fc04427264b26907387fa7d90998e1da",
+          "bytes": 84372
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0116520.npz",
+          "sha256": "cb823229ad6c408513b36cb9e4cbadaaffb6b64a0b8d1fa6d28ebcbb9b2378aa",
+          "bytes": 25758
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0116884.npz",
+          "sha256": "670e8b532adc84854b947e3905fc83c3c9b84daebfd4e7bc2a5af76edea2db69",
+          "bytes": 25746
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0116956.npz",
+          "sha256": "18ee697db81bd1f7e60bcf6bc703c6a07da4a18ba5c22df80bf5c037f901680b",
+          "bytes": 25530
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0117200.npz",
+          "sha256": "9c4ea0c8d1050f9cca92b887a343e10be1a4595c5d0164afdca54db0e51c37a2",
+          "bytes": 25816
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0117232.npz",
+          "sha256": "bb562f4e4e176008d6b121f238b4e5421f9d9c0e22e51fab0085de1d077d9546",
+          "bytes": 26041
+        }
+      ]
+    },
+    {
+      "category": "weights",
+      "state": "running",
+      "identity": {
+        "pid": 28560,
+        "alive": true,
+        "created": 134372546062675199
+      },
+      "case": 14,
+      "checkpoint_cycles": 227,
+      "checkpoint_steps": 90800,
+      "completed_pairs": 60,
+      "expected_pairs": 80,
+      "last_pair_step": 83873,
+      "last_pair_episode": 210,
+      "cpu_delta_seconds": 0.96875,
+      "native_pids": [
+        53948,
+        53356
+      ],
+      "trace_files": [
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0005401.npz",
+          "sha256": "8d0341372f40b3a32a09e766fe70b9bc0e18dcc3fbeebda4ed3f06f7e44b8448",
+          "bytes": 31442
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0005453.npz",
+          "sha256": "d262e7595f41049bafaa5dc93cde19f33dc0bd1f612c7a03962ac246089be2b3",
+          "bytes": 29486
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0005679.npz",
+          "sha256": "38adaa27b54f204586503739e224bb5d3bc3b6fd7067837f5e4735d718d3ba57",
+          "bytes": 27597
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0005740.npz",
+          "sha256": "74ee184b8d944f596366403fed256a25c5551520ef4d3eb9c74c57d23d9efcbb",
+          "bytes": 29104
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0005835.npz",
+          "sha256": "fb9f3744551f65d35ce6599162ca261d081b3f9599f6848267b7ffaf26e208aa",
+          "bytes": 97535
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0006283.npz",
+          "sha256": "85fc15c5cf887df1f1782160e87db977a66ca13d9f74dbaa1984423e08de4409",
+          "bytes": 33759
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0006403.npz",
+          "sha256": "f1039fbcbf3814aa8eb308cfb20175843a1cdf89c6d5b68729529d6c1c695525",
+          "bytes": 26269
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0006498.npz",
+          "sha256": "846ef91860ed5cc458c39f9ac77ab0d417b85e2006274aa9cf765a3fb389b407",
+          "bytes": 32722
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0006538.npz",
+          "sha256": "82b6fba2b49eeb9251e7398cd2ede7a67ee835710005d98168c486f9bfa4fea7",
+          "bytes": 35433
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0006545.npz",
+          "sha256": "4cc196d5af399c2775676167e85c96ce48e3d2174608b701e111eb8f05b4c0c0",
+          "bytes": 38872
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0006602.npz",
+          "sha256": "106f62aa08d57cd80533b9771025ce5572bbbb42176d6f5a8cd83cbd3fb6a1da",
+          "bytes": 39752
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0007007.npz",
+          "sha256": "213e64382223985b303c048d23e4830c5c4f762eab8d5db9facc92cf38d78277",
+          "bytes": 40033
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0007234.npz",
+          "sha256": "d7fe3fea9eab3e1a36a4ffee779cbc65b38c48905c80232b76d6b0594011fe79",
+          "bytes": 34215
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0007418.npz",
+          "sha256": "759487cafbd478521c6e32746cb52b4c92d25091c2f2ed85e9da08491e3c3468",
+          "bytes": 40175
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0007521.npz",
+          "sha256": "ce565cd28d7f490cb27eb58258c8b1e64ee438e38c1cf85c939ee7af92fc3573",
+          "bytes": 39237
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0007613.npz",
+          "sha256": "f4e78d93ce08f23760ba38808327109c333e56543753e3be23d63e5733e9dd27",
+          "bytes": 38215
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0007614.npz",
+          "sha256": "686c4f4a60af2c855066f87ff4fcaae24dac41188ad1bdb808997c38c7258ba8",
+          "bytes": 39139
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0007680.npz",
+          "sha256": "7726e3454f5ed33276d882f81dd195ed3f1b466da3b9f417fd7933d0894e8b3f",
+          "bytes": 38840
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0007806.npz",
+          "sha256": "6d458ed50f8f89b43c6f4c9a0efc74a4790966ff683e75e94dea1d5d801d8275",
+          "bytes": 129770
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_release_0007976.npz",
+          "sha256": "fdf70442bb16e860b7f1ee5a529250adfa0956ada027306dc0b6eb0b851e9bb1",
+          "bytes": 32889
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0076099.npz",
+          "sha256": "7e09e39e35157b287abf7f49af2b9e075ddd2323a46c65b96b47bf9eb034aaf7",
+          "bytes": 34605
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0076198.npz",
+          "sha256": "669bf6d405c385a4a749eba419fc270e5f00f710ce68ba3158b8b63054b43f20",
+          "bytes": 38233
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0076233.npz",
+          "sha256": "cf2430b5ea4965ed275baa2dfecc2905c4852d43342f0f9e743cb4b38e1f2d26",
+          "bytes": 41121
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0076436.npz",
+          "sha256": "042ba4706ed33d56abfb519efe5016ef2370b927276e7d768426f1532bfd3e76",
+          "bytes": 35370
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0076866.npz",
+          "sha256": "b74a9cc118094c164e46a5067146ca700fec44ad3044e25a3b1cfb0d86b8ce12",
+          "bytes": 33460
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0076942.npz",
+          "sha256": "d684d5064f938b056dd4a0ef694bc5fc2cdc4ab3ff88e7132161cf14f838d53c",
+          "bytes": 36992
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0077397.npz",
+          "sha256": "7994fa14250e0ad6f6e1afc236886e3a15e94cb8036ccdf5c862825b10d3d689",
+          "bytes": 31685
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0077413.npz",
+          "sha256": "c3f93c0ef248214bf4f4ee6897f528dff5bb165ee04f7c51820e689b9fa92ef7",
+          "bytes": 41546
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0077420.npz",
+          "sha256": "8ce8614432befcd2b92697e806473654766fcba300e6505f6f3e30f254c8cd65",
+          "bytes": 41717
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0077424.npz",
+          "sha256": "bc10c8a478c89a5240115fddab48733eabe3d704fb54ff01103b5317c96a509c",
+          "bytes": 131192
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0077488.npz",
+          "sha256": "2f1b7b8b73a9cc85bac1c13dbc4c0c527b53a8aa8825fb178c945a5cdfd2f0f9",
+          "bytes": 32648
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0077635.npz",
+          "sha256": "9e5279d2f6cd94069ee07e186957dbf1d996b03f2b9a4df5c73a644e569390f8",
+          "bytes": 35706
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0077835.npz",
+          "sha256": "aea45a68d7b7d94ee9ad313b495f2d8a835c2c005572d734626590f229ac6f14",
+          "bytes": 41355
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0078234.npz",
+          "sha256": "e9a0c0a106045922501e9b7a2417f6eb3ff33aa99807de1866296edaf4e81ef7",
+          "bytes": 39192
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0078384.npz",
+          "sha256": "54a3a51a9e0975109e600fd0b6ce5b6188fc84f6815ad44353c5d22eaf02bfcd",
+          "bytes": 37243
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0078821.npz",
+          "sha256": "34543384340899e5fa77d827957b1c8f2cc57b8700a4caa4ef3269e8052dcf4b",
+          "bytes": 36920
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0078847.npz",
+          "sha256": "15842c374a9b0c3ed3a076d1ecac2db14cf9c39d9a19d1b7d16348b8ad0b0847",
+          "bytes": 36051
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0078971.npz",
+          "sha256": "1312ecfc21b38b14912f0c1bfa7bd8cd001ea57ec46d971c73d7cd7f79ed6559",
+          "bytes": 130570
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0079049.npz",
+          "sha256": "09c050e9f7f0baeae3d147d9168039386373aed7464ca2fca96b9a687a38795a",
+          "bytes": 32940
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_prechange_mature_0079424.npz",
+          "sha256": "401e1906aa5912c6fe2740179d77b227ffe027874b26647dbb4ca42dd598c089",
+          "bytes": 41340
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0080000.npz",
+          "sha256": "913e966f387c49525e1699fffd6a482e5775ca896c66a1f1390cbd9439eb4541",
+          "bytes": 129130
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0080601.npz",
+          "sha256": "2a352da6462cf9cc10441336a8d7931511f9339e21c38921b028a846f0b63611",
+          "bytes": 44545
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0080908.npz",
+          "sha256": "04f5a288d88226dd90b3e0259bfb907c19c69ac75093ac9b1feed4c408fae00c",
+          "bytes": 38677
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0080988.npz",
+          "sha256": "93da9db1b513842e527c690b895c547775cee46b4c9e177f893581d5b84c5f64",
+          "bytes": 43975
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0081013.npz",
+          "sha256": "de4eb522d9df31941cf6cf07a2745402adea70a717d58d3b7d13aeb64dc14afa",
+          "bytes": 42344
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0081255.npz",
+          "sha256": "e714b3001366b6a6f249091db33252ff8e1694c0ec488e763d83cdf494ee8f3a",
+          "bytes": 34028
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0081298.npz",
+          "sha256": "435132a63554f9c762aa5c98630f6a1e76c5fa537a22525b1f0c8ccead600139",
+          "bytes": 37431
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0081830.npz",
+          "sha256": "f2fad13d5d3b08d2108cb911de65dfe0b2f6312ee410740cff89e625d6534471",
+          "bytes": 43148
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0082002.npz",
+          "sha256": "60c522bc81ffbadf46a1f920926736cc5991242436609f93671e82c5d1e0e651",
+          "bytes": 33215
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0082214.npz",
+          "sha256": "105bd93756f3906389a134e8c409de8f6316bba0db2e912cc124cfed61c6fd08",
+          "bytes": 44143
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0082315.npz",
+          "sha256": "0ed87490d6183d97174b291510a9a7c569e7a81b0667efb987fc5bf2c98cc812",
+          "bytes": 40695
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0082645.npz",
+          "sha256": "4abe2a955d6b866a1a35b1545400eaeb59ed88b28de2b0b45654f4f411d30a45",
+          "bytes": 44390
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0083166.npz",
+          "sha256": "566cab9aa983c0d2766355e299034fce6931a61ccc625b83d7129d570f75a323",
+          "bytes": 37796
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0083213.npz",
+          "sha256": "be05b6e8275de24b2a19f3cd597b42038e4e320d9d5d75965490672f40a48729",
+          "bytes": 35304
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0083435.npz",
+          "sha256": "e44a9d606c700ccbe5f72f3296d832b714201a4e2bfa6148560dd9d253afd381",
+          "bytes": 43666
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0083476.npz",
+          "sha256": "57523a098abc3a33e137e9141df4b47cde3711716e7a3c8d42e7c7bb4752b4f1",
+          "bytes": 138652
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0083610.npz",
+          "sha256": "7841c8e12a1b4278ad9047cee597865a77598479493322de56080771f141508c",
+          "bytes": 35514
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0083745.npz",
+          "sha256": "d2fb87738c49df7b86ab62087d3b0775b13fa4e5cb135c25c3863072574d8dad",
+          "bytes": 39011
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0083821.npz",
+          "sha256": "1f53d431969f54b4ab3f857116a7ed42cb6741183332106e468564eb1091cf5c",
+          "bytes": 43632
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\traces\\weights_plant_change_0083873.npz",
+          "sha256": "9a020114a3ae28b6995ba8ac8527d60e04d3b5a4834017400a00144655488dcf",
+          "bytes": 45434
+        }
+      ]
+    },
+    {
+      "category": "markov",
+      "state": "running",
+      "identity": {
+        "pid": 47812,
+        "alive": true,
+        "created": 134372576462860776
+      },
+      "case": 15,
+      "checkpoint_cycles": 213,
+      "checkpoint_steps": 85200,
+      "completed_pairs": 60,
+      "expected_pairs": 80,
+      "last_pair_step": 83835,
+      "last_pair_episode": 210,
+      "cpu_delta_seconds": 1.796875,
+      "native_pids": [
+        42312,
+        16336
+      ],
+      "trace_files": [
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0005252.npz",
+          "sha256": "0f21441e94ac17f526c030b09d668e7ba4632573175bdbd258bbc7d44bf477d8",
+          "bytes": 35693
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0005428.npz",
+          "sha256": "9aa1077b4f119a9cd23dfb51f56376a77393f487b8e0b93644a4a874d863e3a0",
+          "bytes": 34157
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0005597.npz",
+          "sha256": "666f220a6fea9d56c85c6a23b0fe60839bf8f3b3ad9dde1964822021ad8d6fd2",
+          "bytes": 34489
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0005605.npz",
+          "sha256": "e8451e418a34bd98e4dba29a83408d719029b15632983620f2cd10f277269193",
+          "bytes": 34279
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0005817.npz",
+          "sha256": "3f8655344c0e09db3f00160de317e8010837c2a5a7bb9d7ca203064e0afd6616",
+          "bytes": 37346
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0005867.npz",
+          "sha256": "16a63a41e8ac64bac8988a2b4fb25400a1c78707bdc6623a260166c190d2e1bb",
+          "bytes": 36063
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0005910.npz",
+          "sha256": "f2e7127e855b5c056fea18aa4d93bf6aad8dcd5f9add04c46e138266dab8bde3",
+          "bytes": 36898
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0006017.npz",
+          "sha256": "021c3fef96f1e4c1f390acd753e4e19bf5cc79aeaf603f8074f9e1cc430f255b",
+          "bytes": 27568
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0006029.npz",
+          "sha256": "8fe1e99b9170b84314e21e8f79b2567751a98d41988a19adb847e61f6fd28c59",
+          "bytes": 36215
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0006088.npz",
+          "sha256": "6b4c8b58990bbcfb8ce8dcf4c5a30e4dcc60fce4f9ee36cb2ee65e1ffed86aef",
+          "bytes": 36731
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0006370.npz",
+          "sha256": "f6a413f618e14c64b71f2432ce59ac59f49c6db697e1ba18ad65bb262b2d8f2b",
+          "bytes": 28518
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0006624.npz",
+          "sha256": "26c8e9af7aff4507bc27988e499f057af456b50b2f687f4062c0e393c365ee88",
+          "bytes": 36931
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0006640.npz",
+          "sha256": "8f2e7bfee2907bae93da4f2847970659ab48e5f51bd5da60e9055682d6b43050",
+          "bytes": 120685
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0007037.npz",
+          "sha256": "e41960a011d8f771b422ac553020faaed73e0443bd5944e7064ca76c8d0b7678",
+          "bytes": 36877
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0007223.npz",
+          "sha256": "b62fd2e93d576cf6b8146fa7126b805a6cee2b682cf2600faa04287e2e23f61e",
+          "bytes": 36018
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0007236.npz",
+          "sha256": "027a10910b18298be8b19a69a034466941f148035456f337f7fdd72c467573ca",
+          "bytes": 36542
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0007292.npz",
+          "sha256": "ae6781f3023d8ce3f0cec11e2dbe90008f6dc1966c4edc7fdb2e276e8666d797",
+          "bytes": 37304
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0007374.npz",
+          "sha256": "4918f1e208a92e89e4df9a72bb860e6e1f328d778da9fde9e9f1acac8408df4b",
+          "bytes": 37107
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0007434.npz",
+          "sha256": "f843049990b270bad4caf0ea77bd1c6bd9a05dbd3a173fc7bc64c08c666b51f4",
+          "bytes": 111944
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_release_0007584.npz",
+          "sha256": "67cb0b1cc3ad8c373f31427f215d026ee921b18e4af152968bc890bc0db5b974",
+          "bytes": 36331
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0076035.npz",
+          "sha256": "c3aa43c5d406ee19ef623829fbb30f6b2c2cfa044722bb9c83ae191acd6b94d8",
+          "bytes": 37535
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0076254.npz",
+          "sha256": "9aaf8b801f826093a9a1a0cd567b842e826f16cbe4d0fb569abb1dc2ed1d90cd",
+          "bytes": 32216
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0076410.npz",
+          "sha256": "a32c742a188b20550d798b7758aaff3e7dfc625dad7517d37ac9c100356f1b9b",
+          "bytes": 35626
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0076599.npz",
+          "sha256": "c8b414ebc3c6644a477c5064cdc6392d886c997f8316501939ee5c4684fe7349",
+          "bytes": 31403
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0077020.npz",
+          "sha256": "1ce8ed80402e293cb216f8929026c5b4266801e37bd7a2030dc26d10c97ded73",
+          "bytes": 35379
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0077152.npz",
+          "sha256": "e450328e11ad805ecb977d128d13f2b8471b70eb747e8db999218c2e9761dd6e",
+          "bytes": 31325
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0077243.npz",
+          "sha256": "b19faf78a64016a34bb48a4b5f5624f4f6bd6c711cc9d24846960d9d49358823",
+          "bytes": 31070
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0077366.npz",
+          "sha256": "dbc81d0bb65dfec1b6419aaaebb07e4a19389d3ee99ccefbd6195721c4c32fff",
+          "bytes": 35546
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0077499.npz",
+          "sha256": "ec039c2ee3691dd36db4d8d3b8b5ff415631c6a1f81884a0427880257e0a4885",
+          "bytes": 29120
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0077625.npz",
+          "sha256": "992f719c6053637d568c76e438d8ecc20c61a2851f068c836bcb4ca827e29555",
+          "bytes": 29007
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0078174.npz",
+          "sha256": "09de222c26dfece1edb4ec97e1456fd3b67926eb57ea5ecd5f9565f50714419c",
+          "bytes": 35193
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0078400.npz",
+          "sha256": "85da4ba6da81f1f7268fe281cc84bcb5a384c4130ab949fdb2041a7f641a906d",
+          "bytes": 31118
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0078438.npz",
+          "sha256": "987f90c78217b6d54a9cd5078e6cd0bee38ee4ccfb0e913c2fb7ba460de19891",
+          "bytes": 100118
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0078838.npz",
+          "sha256": "df64990057d9efd11b9d1fa6099005a2f0ead5967a84ea32f41087dae2bf0715",
+          "bytes": 37613
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0078849.npz",
+          "sha256": "149da0a2b3dde743f9959fa21e0367bc3e02639087e0d88813b6578ccdc879e4",
+          "bytes": 29782
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0079039.npz",
+          "sha256": "ccc47b1d4a4c6d169bcd35c3f94d8ca9e8c66ba636396fc66db15e060f7ab409",
+          "bytes": 35831
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0079249.npz",
+          "sha256": "d297b2cf488012d816e49fd099aaf92d881e70292a7e58f151f0a510b70c6b6d",
+          "bytes": 36392
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0079383.npz",
+          "sha256": "77225fe5547ff583c0da05df33de0adb1d498bbfbccb7462bb1f53932fd020d1",
+          "bytes": 36178
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0079428.npz",
+          "sha256": "dccfe8b1f1a17f9f8682e2cf5b1cf3f897485cd34be3d798ba6c70d6290a7764",
+          "bytes": 35068
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_prechange_mature_0079439.npz",
+          "sha256": "d73cc657c552f36715ed77a9de5c0d4fc1bd1880e1e8d72341ab3a1f6c1b48e8",
+          "bytes": 111426
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0080280.npz",
+          "sha256": "046a6434004c05a3ca026bf78d801044eea47fce8aa151dd42a049f3dc1c3c11",
+          "bytes": 29948
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0080404.npz",
+          "sha256": "257af4715da3a9b046b487ac550760a375cfdb045b24ed78eb48def7153b186a",
+          "bytes": 37195
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0080793.npz",
+          "sha256": "fd86400a5173045f0269b957921651fe7254c167441469e95eb024ffff4d99ff",
+          "bytes": 37560
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0081003.npz",
+          "sha256": "aaaa10510f12f6f5b78c32cd170e9200ab55fc7f150aa0668a4e738bb652f581",
+          "bytes": 122954
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0081035.npz",
+          "sha256": "6bc8ee14a0a49837f5b8692c9d12353bd734645fc177789212f407a8865ce8ed",
+          "bytes": 35803
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0081244.npz",
+          "sha256": "e7c716a25f214be804e1ddf7556397bdd4e4134a20dbf6d871a46d1a29475142",
+          "bytes": 34020
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0081328.npz",
+          "sha256": "413fcc76e5bf8b69b14356fd612c2430a2947563e4607850f77ec4d0e2d88945",
+          "bytes": 33155
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0081422.npz",
+          "sha256": "79b55fb0ad10bcd3826e37fa8ebf53fd277e28d67d6426871cd52864d18a4fa8",
+          "bytes": 33211
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0081612.npz",
+          "sha256": "b4a9e2a8f9a865a0bcc9a7afc26f6c181862c420693717b397d79841778a4e06",
+          "bytes": 35057
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0081678.npz",
+          "sha256": "f5e97694e5a01633ae192fb75498304b358e3c9969c65ed6e8300c304b8f412b",
+          "bytes": 37073
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0082160.npz",
+          "sha256": "3b6c3537c9bbd8d58af0bfd2983e0a2000e391de2387ef6b3369cd484a05c239",
+          "bytes": 36719
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0082206.npz",
+          "sha256": "899aa70e1a2a83538614743070e3526a8b4d9131762ca5018ab233af4aed0c0c",
+          "bytes": 35636
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0083246.npz",
+          "sha256": "3ca71ed4e8c7c94d49b82b1f22b4ddf4fd08d51001b70f79e919d5ba45d749cb",
+          "bytes": 36747
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0083349.npz",
+          "sha256": "636ff7eace25545ea695f1cf6f0311fc9fc690fae20e7280a289c32cb8ab2aeb",
+          "bytes": 33236
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0083494.npz",
+          "sha256": "8c73038f1108d380857377ca40e8f1b48b358eee93eef19d6f015aecc73fe5d7",
+          "bytes": 33964
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0083635.npz",
+          "sha256": "4204840a13e3fd63d83ae43052bd508ad9db67c881d838f787ef2f3c8eece2b5",
+          "bytes": 36871
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0083639.npz",
+          "sha256": "ede8bcda9c1290d23c8bf29b13c2690979953968649eaa57ac5eee2b6897a604",
+          "bytes": 122433
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0083742.npz",
+          "sha256": "3225fd8fe4afbfc1d8be0c31f33cf952f49a5d4e853016ad795b095b7aa4c980",
+          "bytes": 36648
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0083817.npz",
+          "sha256": "5ef8c1255bc6917777bf528b8452cf1258d5372c4475bb3a881ae2006ecd64bf",
+          "bytes": 35173
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\traces\\markov_plant_change_0083835.npz",
+          "sha256": "219cae57205354d60ca43c30bdfe9ae71db520d96c5df6db561f6627c1d05c96",
+          "bytes": 35350
+        }
+      ]
+    },
+    {
+      "category": "residual",
+      "state": "running",
+      "identity": {
+        "pid": 50420,
+        "alive": true,
+        "created": 134372582485104468
+      },
+      "case": 17,
+      "checkpoint_cycles": 217,
+      "checkpoint_steps": 86800,
+      "completed_pairs": 60,
+      "expected_pairs": 80,
+      "last_pair_step": 83938,
+      "last_pair_episode": 210,
+      "cpu_delta_seconds": 1.03125,
+      "native_pids": [
+        9592,
+        54480
+      ],
+      "trace_files": [
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0005223.npz",
+          "sha256": "a7f6da9e1e85cd606c604f4d3cf47b08a41f71a0f866248bbf12e6f1e61ea283",
+          "bytes": 30232
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0005248.npz",
+          "sha256": "4110ffdc1e9f76bdf6a910dd952affcaad2d3c4b43dc68f4932d6ec3c5b6b0e5",
+          "bytes": 97891
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0005764.npz",
+          "sha256": "a336fdc634f6409c29ee6d108fda4c7dbc05638ba9319e37fd071ab528fd71fc",
+          "bytes": 29412
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0005992.npz",
+          "sha256": "d2af2eeb80e13faca85242d107cbd15032e76182fdf36e855a150ec9d144c6e0",
+          "bytes": 30805
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0006252.npz",
+          "sha256": "d3b00bea306091b5943dfaae0c50e71cafd4f40098b77acd6e063253b772764c",
+          "bytes": 30316
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0006412.npz",
+          "sha256": "b7286b2946e056907d1c0f38e676d3f4b5a9a4189ad3bef4749230b0a5a1b784",
+          "bytes": 99899
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0006435.npz",
+          "sha256": "fb1606961d6e568b5f0037a59b25d55f0c9ffd36184295921faa498dbe494db7",
+          "bytes": 30853
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0006625.npz",
+          "sha256": "369bfe664249cb4807f8671382fb59a72ce3622e56de7e1020527448c3c7fce4",
+          "bytes": 29440
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0006656.npz",
+          "sha256": "ff7e883720e89362200e3a444669d064c0beb4b5f3cfdc3d0c9b311025b91617",
+          "bytes": 30571
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0006733.npz",
+          "sha256": "e33f23957bd9b2425509c2221658b5f6aea6fe7b656431d17103c85d70cffd46",
+          "bytes": 30438
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0006807.npz",
+          "sha256": "9a8ead180d9b2ee03fdc3e65c5aab7b7dfb47abf7fa823f35d2da8381fb542cf",
+          "bytes": 30727
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0007002.npz",
+          "sha256": "c4eb8680e21d02bc062838addc8009e58a633026a9519794e410306537511675",
+          "bytes": 29025
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0007097.npz",
+          "sha256": "1ea73d3022bffed6e50c29e52a110211a056fa3980eab27df717d53b57676a9f",
+          "bytes": 30463
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0007121.npz",
+          "sha256": "5259d984ce9d119cb40de2681a36702f5e4dfe60af8b63f4f0267dfd0bfbba78",
+          "bytes": 30565
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0007401.npz",
+          "sha256": "fe1ecc4553ff6d717d1232ec9049040caa6cede2ff918ed311668afe4dbe827e",
+          "bytes": 29892
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0007435.npz",
+          "sha256": "8ab882d45f2c74cbfbfca254c2a8876f3026dcec733b9c1fc68e7768b40ebf76",
+          "bytes": 29426
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0007638.npz",
+          "sha256": "06d68d7fb90a844eb61c77ad1c598fa5ad9039de8a747cc3345b045dba897c77",
+          "bytes": 30508
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0007815.npz",
+          "sha256": "6fb9a31862a4ebef0f1e5c99053735aadf75d6e0fd5dc24e75ff5c8619539fe6",
+          "bytes": 29972
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0007858.npz",
+          "sha256": "e788385e8ab14c3f3a290998ab35d0618647e4baf30c8f1bc73826d44d7f4845",
+          "bytes": 30125
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_release_0007934.npz",
+          "sha256": "bccd03ea73acc1bd1667ac902dae37ed022e83c3bd2fa61ab933dd66de117b8b",
+          "bytes": 30385
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0076211.npz",
+          "sha256": "b584f12a2d585d02d106ec6822e06f44e662f3088d32486f3ecd469834f3e672",
+          "bytes": 102498
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0076220.npz",
+          "sha256": "a44cc19266a62eba0b3e1579281222a1af2a98876b44cf3f587c02a84089f62c",
+          "bytes": 29842
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0076523.npz",
+          "sha256": "da11afc63f508d7d978f20a6afa98978cf769884d454b2d11acfa2c0fe252fc1",
+          "bytes": 29711
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0076655.npz",
+          "sha256": "833579b302bb28dfad699847a81b79633bb652fd3a797d734696286b49f2ed30",
+          "bytes": 29650
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0076657.npz",
+          "sha256": "403f94031bb6e654b75930e5f56b709617d3e24924bc300f993153c42a9041dd",
+          "bytes": 29640
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0077034.npz",
+          "sha256": "c9bf96b3cf342866cf7fbe2140a72440ca565b5d374a0d3eac59e90bd7a1b46e",
+          "bytes": 29318
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0077625.npz",
+          "sha256": "4d6609ed2abf44d6a5b05490975bc2257d2b4fd379ddaa53124f6a53af116472",
+          "bytes": 29591
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0077726.npz",
+          "sha256": "772f221c2801b68eb089fde75954dd69ee895b4f4588115fb080755971efb481",
+          "bytes": 29363
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0077796.npz",
+          "sha256": "7e07df5f90d4f60eb1f793ba35a5d63d6023538ceb4052d3e58432d12a544c57",
+          "bytes": 29765
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0077801.npz",
+          "sha256": "1580c295fc981737878efddfb9610bdccd83813088783db07c4bb9643ff57fa5",
+          "bytes": 29704
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0078008.npz",
+          "sha256": "0ef5f52ddb4fb70ee3be4a6986fb94667e56c1ad75c07e441e683d74e4d90ba0",
+          "bytes": 29671
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0078027.npz",
+          "sha256": "1758ebfc39ec295e052425e4b8e5efa004148f8b9566e02b14d23fab77d2a692",
+          "bytes": 29670
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0078040.npz",
+          "sha256": "61cb92bbecc1bf56ae96f9be2f8b2470907ae58c23bb43a157e918cfd43ddb63",
+          "bytes": 29854
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0078222.npz",
+          "sha256": "ba4ad4cb9be908b73bb451a719ac07e942ec2fcf2330fc7bb1f3ae6399158137",
+          "bytes": 102209
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0078483.npz",
+          "sha256": "edf44dd4ed75269e249cc0b6ba384541e05aacada1be6e20b9b3f577c8501796",
+          "bytes": 29942
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0078831.npz",
+          "sha256": "b4d26258ae280ca6e2d5159584293db3b201551805169a17a559f2232141236d",
+          "bytes": 29773
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0078970.npz",
+          "sha256": "d5ddb5acf01e021f6e1627f41e7f5ff7adc3d03b587b4c46b432f2c006c9b723",
+          "bytes": 30059
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0079125.npz",
+          "sha256": "1225b5879ee464a839a912d36baf19a8c2f944223b5dd1c7042357f784c1eb73",
+          "bytes": 29766
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0079424.npz",
+          "sha256": "ce15f5c91e5bc9ef7fe2eb9f5c4a1a541e69349366e53c2435c8d3daf4aa4241",
+          "bytes": 29680
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_prechange_mature_0079458.npz",
+          "sha256": "dce4797e82140bd2a94eefb674527840fd834c93bcdc88ce94e94043adf62901",
+          "bytes": 29507
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0080507.npz",
+          "sha256": "301e591381fabaf71c67bdf5b5642a6fdc856ce637f52a0bc6927fa4d19b3708",
+          "bytes": 24391
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0080616.npz",
+          "sha256": "f6d7a1f69439c530ddfb2a7c786dad5096e67780e6b0c31efccdd602ce9c4efe",
+          "bytes": 24171
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0080858.npz",
+          "sha256": "95b20f1dea2b6bff69c4e679deaf1bfa68fa7c89ecf790def8e915008e1eeb7e",
+          "bytes": 31027
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0081270.npz",
+          "sha256": "9fd2a82e90c53e9e166eb098ee023e583bbf14a83a2c2fb8c46dcaaf5a1531d2",
+          "bytes": 30402
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0081340.npz",
+          "sha256": "1b99fdc1843cefc0ad9bae43835bb2d2b5212006bdb3bcdcd6001fd41362321c",
+          "bytes": 30777
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0081606.npz",
+          "sha256": "083e10f09801aaaa8004fce426b82daf984c4693ed2b5591c4a67f0c63d0a9b2",
+          "bytes": 30509
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0081880.npz",
+          "sha256": "4c3d57f1fca219295566affdf170440fd34528a15feb0f364c0dcb134fed6274",
+          "bytes": 30674
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0082002.npz",
+          "sha256": "e577717b0557afe48cbc4ef5b4566fccaa7ff880b3dd20d050a08149e39b9f8a",
+          "bytes": 29836
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0082549.npz",
+          "sha256": "32133e22fefb55795387776f40f6fc5a13d94d043712752e5ef3ba6fd2d99399",
+          "bytes": 30790
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0082579.npz",
+          "sha256": "873adb4158dc5565aaeeb86eb10eec913363cf990e1f4e7702044e6545fdb437",
+          "bytes": 30964
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0082616.npz",
+          "sha256": "f71ec1e59b1b2547d0f2811aeea0b1ad33499cab5a592d72579994a420867315",
+          "bytes": 30898
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0082822.npz",
+          "sha256": "4d4b9065eadcd18ebf2fddd44a2386a40675ef3ca09b95847f3b5c4317710091",
+          "bytes": 30341
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0083019.npz",
+          "sha256": "910ad91824006411893aa909e22fcef61c87cc34ccd5276db14d51a1fc6e53d8",
+          "bytes": 104086
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0083211.npz",
+          "sha256": "852be16c4deb94faad3bacaafe27641d2584ea9c6e159dda06c98b4d9d290124",
+          "bytes": 30210
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0083249.npz",
+          "sha256": "3b58039272cfc88f189883cd865ee2f76c780337aeb6bbb7ad8507a7c3a78a93",
+          "bytes": 30172
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0083614.npz",
+          "sha256": "ab6c255252d17614584d7190fa04ce7c9853a4e089d080fc5c07f7a54c3d0aac",
+          "bytes": 106215
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0083630.npz",
+          "sha256": "a0b10dc7593b59e5f79c4613afd0b11c975c369ae41b3cfb543dc0d4bda18c55",
+          "bytes": 30407
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0083677.npz",
+          "sha256": "eb1259590e6178ddfbefccb8d0e79311712e3e58c453cf4789ee6559dcb3414d",
+          "bytes": 30966
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0083822.npz",
+          "sha256": "a9bf2d1bdcd747deace2747ec86b404ae56de131cb5a3c78a191323a37d6146b",
+          "bytes": 31102
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\traces\\residual_plant_change_0083938.npz",
+          "sha256": "c5c8d354559dc37a87b3d355d1f1d33db364be602643737358bfb292d0513524",
+          "bytes": 30809
+        }
+      ]
+    },
+    {
+      "category": "combined",
+      "state": "running",
+      "identity": {
+        "pid": 22588,
+        "alive": true,
+        "created": 134371156883220647
+      },
+      "case": 16,
+      "checkpoint_cycles": 195,
+      "checkpoint_steps": 78000,
+      "completed_pairs": 129,
+      "expected_pairs": 320,
+      "last_pair_step": 78217,
+      "last_pair_episode": 196,
+      "cpu_delta_seconds": 1.140625,
+      "native_pids": [
+        44800,
+        9316
+      ],
+      "trace_files": [
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0005205.npz",
+          "sha256": "d3b8943270480b3ee2e829d26be34806a00714e04dd72ef775de9bfbc5fd3464",
+          "bytes": 30722
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0005233.npz",
+          "sha256": "f8f231c4fae5b8724fd3efb53fbf89870d6641087408e41c65cc873ca892ef3d",
+          "bytes": 33960
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0005284.npz",
+          "sha256": "4d7393aace562190e0a9feed019ef6337811344885910367fa5940ac7115bc8f",
+          "bytes": 44784
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0005299.npz",
+          "sha256": "ec4a3b4e8ba33170b2c26853f639adb9dedeac18702ed4e1f6f440bd81c7f183",
+          "bytes": 45108
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0005364.npz",
+          "sha256": "1d6ff750fb85a17246779b5421c8935d8b77cc263908b3bc9f5bc11051944bab",
+          "bytes": 39706
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0005394.npz",
+          "sha256": "d0583f8e0223e89ca5a285bf2619c742c4c0b93b349313cd4597c718c3c21f86",
+          "bytes": 37914
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0005412.npz",
+          "sha256": "7c1f2bc6fec3c803e63f9872f609f0c26ba6b3583d6f325de1e0b72d0b22cd0e",
+          "bytes": 40124
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0005419.npz",
+          "sha256": "1aff17dd671b3705df75b5bd72bd9178d6d29f49899fbb9bbfd5f772f2d6c5ac",
+          "bytes": 34590
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0005424.npz",
+          "sha256": "1a84db9b5a6c48be0b42f31e109e5c262a5190a5c9135048a283f722c85df875",
+          "bytes": 42942
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0005474.npz",
+          "sha256": "e2e824a81409d7479ccadeced59909e170c0145a899e4de4b19cb26b145a1abb",
+          "bytes": 41785
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0005488.npz",
+          "sha256": "372561b48cfa6d942606b962733107cf81a71d054dbae99d1a1e308be820aaa3",
+          "bytes": 136974
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0005614.npz",
+          "sha256": "339e511a0a801a61ad81617b6a0ed9de828f5a1dbde0d137344980d77fa25475",
+          "bytes": 38814
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0005668.npz",
+          "sha256": "4b2d5fc0933961a0e28622e1f947533cd145aaada02e059936f196a12dfe040b",
+          "bytes": 37803
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0005745.npz",
+          "sha256": "1381f702689845f6a6613b35dabb69c0ce81b36b3aeaaef94598ce3b2f72c8c0",
+          "bytes": 36458
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0005760.npz",
+          "sha256": "8b58538dc4415faed245c4fc9674739b47b6aaaf3a25f553053fd6d53b14a79a",
+          "bytes": 34818
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0005793.npz",
+          "sha256": "c6c80bbd9c1d27430de6f5e20ebc037070f0717196e9e2312a290b1a3081671b",
+          "bytes": 36497
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0005807.npz",
+          "sha256": "0b9cb473b3b3a5b5f31f5db8a9d96b624c381f80455ac40c6110b1ccfc014f2e",
+          "bytes": 36924
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0005817.npz",
+          "sha256": "21edca06bc73adbaf4e041f27e5eb2ee63ee33a0d95493365a0dd89624a24317",
+          "bytes": 39385
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0005820.npz",
+          "sha256": "613a7737df6e3f69763e7dc40cfa701b213aa34ab3b01ee1b34e2e8e4a2301db",
+          "bytes": 35797
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0006029.npz",
+          "sha256": "aba0695e003d84294b00c3ca11a186e456b15382a9ff69bb5f4e4addd2614221",
+          "bytes": 107318
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0006032.npz",
+          "sha256": "b41d1059c166b14d80940c30f120252c132bc8f338b68245238a8ec03dafcd7f",
+          "bytes": 38156
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0006049.npz",
+          "sha256": "cd0c2009dd809d62d97a6c68d80566acb4a11adbcb9270f0f8ea31884096b055",
+          "bytes": 36293
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0006049.npz",
+          "sha256": "fd3fb89bcafc60207eb12ba1e1882c4a72c6a26695f585e0addd0d92cac6ca4c",
+          "bytes": 38502
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0006092.npz",
+          "sha256": "3f6209b0cfb34de8c84888937ce9d0817e740aec602daba73a0e9b21742202cc",
+          "bytes": 35357
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0006138.npz",
+          "sha256": "838c436bd65f6a577dbb92811272a15e594d5137b4b6cbcbd8941528db716435",
+          "bytes": 34926
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0006211.npz",
+          "sha256": "cb12bd2aff1404c58f30c02488b0a841675a3d1c7115b831c08922f5cdba585e",
+          "bytes": 34192
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0006219.npz",
+          "sha256": "3d4c383522b76008ad3e6b44ea36960d1fa6b3dc8fd75dad4a06750eb412d4bc",
+          "bytes": 34788
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0006362.npz",
+          "sha256": "1c429ac1c788674c5ef3673fe09320877cc8b393751c846091cb0b3d3a521e68",
+          "bytes": 38352
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0006432.npz",
+          "sha256": "c4e87374088c8a843105c6d054ee482f68aa82fc6d0e9cb7f460f82c1f7dc07a",
+          "bytes": 36959
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0006444.npz",
+          "sha256": "49a15ef362c545fc0b045be009b6d512a277bc7ae12843ab703ff3ba03e1a816",
+          "bytes": 35304
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0006473.npz",
+          "sha256": "e19778087b0de78cf948ed31fd656ac3e83b3014b09aa5d93780d4d1574ad1d5",
+          "bytes": 36041
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0006508.npz",
+          "sha256": "b74355c382023943408f9895226670f0b9b38491f3d35bf1d2cfd9c51b3557e0",
+          "bytes": 34703
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0006556.npz",
+          "sha256": "b86a78a13b89e036884d50f42049d6ca1d69c7367a97ff920fd95c99e04aba39",
+          "bytes": 35031
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0006616.npz",
+          "sha256": "0a2d274b122b51e947581bd93139a5195a6a8f1e054ab7448fe1aec31a8d9aec",
+          "bytes": 34934
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0006620.npz",
+          "sha256": "7420b0dca976576075b789e871d18ec479884cbaaa20b4a7a054e7236dfe9883",
+          "bytes": 98122
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0006632.npz",
+          "sha256": "5d778be3e66bb3f77c08227c050e770b0cdd4e9506ea8b3fee72069bd0c451e1",
+          "bytes": 34952
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0006650.npz",
+          "sha256": "d0599d6b07334786a2cd8e775ae2a548c7750ed8109b295cc65aaa5c81118930",
+          "bytes": 33437
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0006696.npz",
+          "sha256": "b55e078af574a7d332f41dd186d3e9f51da2927c9c3e68e94e6bf0ee8d36e879",
+          "bytes": 40330
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0006705.npz",
+          "sha256": "4b371ff464212e85ee0359f34cae35a0bb3ceacc6f86ed99a1d7edfc583e8b10",
+          "bytes": 41366
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0006711.npz",
+          "sha256": "37311d918d99f993f6afe4b333d70b34f813f725ee6752f235512732a65ab88c",
+          "bytes": 39483
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0006800.npz",
+          "sha256": "b603a6b8a03defa907181d83d76206ec0ec561b0732164bc007efa2f76d43b55",
+          "bytes": 41521
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0006813.npz",
+          "sha256": "bac2b9655d86dfa244bb0d9dc3f1e48f47828fcb4698b2f199b372219593c641",
+          "bytes": 41132
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0006835.npz",
+          "sha256": "b78f2fa09c478e0c11b75656e2224e0bdbf100647bf5f2709f98ef2ba70ff1a1",
+          "bytes": 34259
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0006909.npz",
+          "sha256": "cb590646529d2ff909db1a3bdfe84f012d407044e349072e2023c79af2f25903",
+          "bytes": 38272
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0007001.npz",
+          "sha256": "de3925600a53aec5756960a8b8a93f4b84c8ae6b93f5aabd5846767fe9dfbf3c",
+          "bytes": 37191
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0007012.npz",
+          "sha256": "1d466c92d560d115f7f1a9ebf5dc5f4f3b2887968de1bbcfb5aadaa3b5e74b1d",
+          "bytes": 34451
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0007020.npz",
+          "sha256": "3ac7b0aaf65366d93ece0fd343ffc3217df13769086ea26d7dc4de39106019df",
+          "bytes": 35293
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0007025.npz",
+          "sha256": "a8ffe2fc4586c3e8be9ae9f015e52a20444861425ae50408e72c273f032e4953",
+          "bytes": 34597
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0007026.npz",
+          "sha256": "d4774b1a002b6627dbfa4d49df82f1f736767da1350bca14920af4fd3975a5f0",
+          "bytes": 36612
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0007087.npz",
+          "sha256": "03b1e2d3da2440bf33477be1b9d6b05ad24ce59a0742354dcdc089743e3f15d6",
+          "bytes": 33816
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0007149.npz",
+          "sha256": "15514e7e5439b6d6b0a1591d3696fbca9e5ff501588dcbf19a483029204bbfc7",
+          "bytes": 43432
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0007206.npz",
+          "sha256": "3c6165ef899c657ecf8e56f6bf63c8e02da9f82c8d3571afd1432866af6704c5",
+          "bytes": 39908
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0007207.npz",
+          "sha256": "6ede779686b30f56dbb69fa5c3c7da342164dcc51499731303a022d0b62a6d97",
+          "bytes": 39140
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0007235.npz",
+          "sha256": "cfc89394365b58b0ff634b2d2f49a65eae969a88d862f63c8b05cd41d791793e",
+          "bytes": 40182
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0007328.npz",
+          "sha256": "ad9a3b02f1578ccea90774b4d58439b291e245947e32a4ef5a2e7a0774c841a5",
+          "bytes": 37028
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0007340.npz",
+          "sha256": "e54f666731f1031dc893be01b576e431e344765ce7095333b2b6593495f01079",
+          "bytes": 36068
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0007391.npz",
+          "sha256": "e7b204250433e2586512001da7f4e9edd70b728ef5171d8b20bbf199ce79e988",
+          "bytes": 35458
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0007400.npz",
+          "sha256": "45688592923d3fa75380b059c79b3d0365bd7cfa1bb846350e6c36c3fe872360",
+          "bytes": 34657
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0007444.npz",
+          "sha256": "20e00d7258529ad2e8f83257663a5f2870610085832fbee1b4362a4383a3d645",
+          "bytes": 34649
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0007446.npz",
+          "sha256": "4146fc619605366bd4d0b8f1fd9c280a2bd471fbada74f72d4252bb16fc08c71",
+          "bytes": 34017
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0007455.npz",
+          "sha256": "8a314030f25f9538626d3ba8994787c0423d43964317dc10c648ec9711d4fa89",
+          "bytes": 98001
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0007490.npz",
+          "sha256": "2339fc7eafc8273a78f9d8329ef88084663ad6475491c02c56a2b1124cc6d0dd",
+          "bytes": 39622
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0007544.npz",
+          "sha256": "d369f55363159d705ae85f3f61af04e7f02b07bda3832cf641df05bc8e5e1ccd",
+          "bytes": 39715
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0007610.npz",
+          "sha256": "6ec8f553afcbe31978a0a8c025eea62a95b2222bbda6d769aac5c23ed53b89ed",
+          "bytes": 37285
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0007630.npz",
+          "sha256": "93fcd7adca6a8759950abe3e4f7c518670bdfb8dda119f965caea4c44f814426",
+          "bytes": 34778
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0007632.npz",
+          "sha256": "46bcd8877c29105c380381e30b936602289e4145426e06176fb4376d4cd21314",
+          "bytes": 39441
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0007648.npz",
+          "sha256": "82e47a8efbb6b39427f7278895d92c5028ef123cbd7a2e4cf4f67095db7c6cf9",
+          "bytes": 35438
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0007689.npz",
+          "sha256": "b0ce73c19f39098314c0ca693f1225687840fed9d62dc08ea879ab155020f5c5",
+          "bytes": 125701
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0007739.npz",
+          "sha256": "6fd3a7a3d79d72f00595ac74960f7d3949bc5817f99b7fa1d274cc85a3186e79",
+          "bytes": 40699
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0007749.npz",
+          "sha256": "a41ecb8dfc3ff26802871d806cfb75eaae51d1107b60614516054bf70332aba2",
+          "bytes": 38823
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0007800.npz",
+          "sha256": "5e33c3390bad39abf547645b1061d34f9779510a749512d26970b7589ed9175d",
+          "bytes": 33464
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0007806.npz",
+          "sha256": "f08b7e41ecf1a859424876fd8181c4465d5e311036e3695113e59b42ea26c00b",
+          "bytes": 36079
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0007812.npz",
+          "sha256": "33cfc4c2008cb98be80c7bcf5b9f4dc9d944e7c953357959e5646517e95f464f",
+          "bytes": 36879
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0007820.npz",
+          "sha256": "4cf7bf83fb3c8bf02373a90bdc95bee378900342a24df2791f149bc67764bdb3",
+          "bytes": 45903
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_release_0007824.npz",
+          "sha256": "8fbf200d34d96022923a17f7f4143890c35b7c73c331e54e195ac0d172371d09",
+          "bytes": 39568
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0007824.npz",
+          "sha256": "0cf6f10046fd1a2a38a84be3bbbca03bdfd2c497b84cdb35499b671d14e3a469",
+          "bytes": 115720
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_release_0007833.npz",
+          "sha256": "3a09ad14e44eb50eb7a85bb3ff8730bbe1c0175be83fd9220cab424a7f47792e",
+          "bytes": 118452
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0007835.npz",
+          "sha256": "5378ada5dc2b62b9269964a004107323d61b97461ac550b49b643b72759fa6cf",
+          "bytes": 43762
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_release_0007848.npz",
+          "sha256": "ae3f17bd79b6ce875df9332368fd450d397ddc1818fcdaeef08fab3a267444a1",
+          "bytes": 39112
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_release_0007900.npz",
+          "sha256": "f645386b05dcef9ba02c761e8b3230cdf7880d115260a0ccf2833904e59b6b29",
+          "bytes": 123350
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0076039.npz",
+          "sha256": "70ce1cbc1f3e84dc55d6aae3877990717e0ff1de1199354a3fae0ade137fa3b0",
+          "bytes": 44815
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_prechange_mature_0076072.npz",
+          "sha256": "9bd9f6102777e2116ed4f62e368a73dc076c0fa3f9206b13b06bb67508d05071",
+          "bytes": 38736
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0076198.npz",
+          "sha256": "ba44d2be52150deb7959d288f473f9a17c7154c035581625779f7bcfae17be4c",
+          "bytes": 43170
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0076206.npz",
+          "sha256": "42e0c9afc188e35cfcfbbb25f0ca1439b66840b5916e53e726279e122299b376",
+          "bytes": 43932
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0076207.npz",
+          "sha256": "43581c6eccd5bdcffe4523cf595d5ffb5dcfbfd363f69bae278d73c35062c61a",
+          "bytes": 46095
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0076250.npz",
+          "sha256": "6b69b8842ff235771e33398d8c91a49c8f5812f88552d312a0429f7acf78fe7f",
+          "bytes": 40919
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_prechange_mature_0076340.npz",
+          "sha256": "c00512d6dc5b5b48ce0d3444168f194f1b3ac778f938a249f67ab47a6f104bf2",
+          "bytes": 40568
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0076415.npz",
+          "sha256": "cc12fde5225c74677cd7581dd03d90e597ace162e2865c19b109484d1b9120a3",
+          "bytes": 38912
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0076425.npz",
+          "sha256": "bb130673336123df352ede19c64af175b1f3bb9476adb180f5d00859037eaf9c",
+          "bytes": 40367
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0076437.npz",
+          "sha256": "fc4223849e3afbce3f5843082fb20d420509df2728978f727f2d6dee8ab66f36",
+          "bytes": 41875
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0076589.npz",
+          "sha256": "5a19ba211be07d40822e333f137a308b2811dec8652d19ecfcfc815b7bcf387d",
+          "bytes": 38731
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0076620.npz",
+          "sha256": "a9b82a1dbe7b579d117e4ac8bf656e9d2f26d7471eccd90b26a7040cf92ff758",
+          "bytes": 38979
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0076683.npz",
+          "sha256": "eb3bbe9f63f2a435dc42f390bf4e1b396dc48e93690aa7939e6b3c2e377db1db",
+          "bytes": 42439
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0076691.npz",
+          "sha256": "01fad16a69f65767cfa2e5af4db77587d5a3992d5cdc7e527c07acf7dc807cf7",
+          "bytes": 40480
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0076747.npz",
+          "sha256": "7221df32d76f1929987e8c6db4404da51a93ea3db8ea3db013f73a64010e36ee",
+          "bytes": 42482
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0076752.npz",
+          "sha256": "1d2ff1a6188842310dccfc27e07f8d5d2ab9248b7390e8980de5ecfd389abb7a",
+          "bytes": 42202
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_prechange_mature_0076800.npz",
+          "sha256": "cdbafebeb9bb4fbb5e9c1b4ca0daa7fc8e0b7cc38f69694b4df9f1e2bb3efc9a",
+          "bytes": 42772
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0076806.npz",
+          "sha256": "68566658b3bc68a5efb68179bd0a03c68b528cf2f5866d681a20567942f3d968",
+          "bytes": 42012
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0076828.npz",
+          "sha256": "e6fbaf651bec95ece841576ccedbf2f59376473dfbef9c36f207d0c1ec21a23e",
+          "bytes": 134550
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0076896.npz",
+          "sha256": "7f99074790d388358161397fe66057135b21f7073face98fea2e1f7708941b29",
+          "bytes": 46325
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_prechange_mature_0076916.npz",
+          "sha256": "8c962502a345098e8f6edeb4d69f982b1c4a88355d1901108832c03c5b1361da",
+          "bytes": 44893
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0076997.npz",
+          "sha256": "ea9e8ec396206b4d43b576eab45ce80d127ec95a56822ce774b92c73b839fbbc",
+          "bytes": 41830
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0077002.npz",
+          "sha256": "7e7ce611761b82f5708f5dc5b6a1751e5e521c55e2e020316ba0409ee8759a32",
+          "bytes": 41425
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0077013.npz",
+          "sha256": "9f7dc5f8cddfb2d6cb87091ddd968482f1465d6bd4ec8edcd9ca95c29f9e5ca2",
+          "bytes": 40781
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0077149.npz",
+          "sha256": "1573ad5898ec06eb8e37a096c6497605c60178031323f60f05e382fa8039104a",
+          "bytes": 46315
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0077218.npz",
+          "sha256": "a632376c32bc640263d623f5019475d11fdd028ed9c1e9ec5b55f024739c4b01",
+          "bytes": 140837
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0077260.npz",
+          "sha256": "5a9183fe714b5c0e23047cb20c2fe294b3bb3d44d4bb42ed43e6e15948aceec7",
+          "bytes": 38590
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0077266.npz",
+          "sha256": "48f6f32d8cafcc9e2cffb2351ad804d6dafb2969e744fa10e7e7103dc7672bfc",
+          "bytes": 43176
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0077397.npz",
+          "sha256": "457cdf049db88f1aaa1a9526d7cc5a59410b9a57f7e3e4983eb3843bd3e18ea0",
+          "bytes": 45438
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0077407.npz",
+          "sha256": "de844ed74c818e0b9bd63b103c7aa8e0f5d081fdd561f3495b807534d9d95083",
+          "bytes": 40567
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0077412.npz",
+          "sha256": "a12e2babc76ad1d88009f5087401459469bf3c3500f9851219f58466f7c47f72",
+          "bytes": 41014
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_prechange_mature_0077424.npz",
+          "sha256": "92b2135945639282af91ad0af751f22b4f9b87aebf36d94cf2751e7f944b40db",
+          "bytes": 40583
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0077467.npz",
+          "sha256": "d0f5bac8105e8218745a8c42b5101db9c417b6759f74b41b29b8b1d585498f05",
+          "bytes": 42388
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0077572.npz",
+          "sha256": "2bfe69631a4af8783fa1c824c9de15aee4659b76381b5de7a80365ddee67c626",
+          "bytes": 38254
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0077635.npz",
+          "sha256": "81558a0e5185731bd70140edac8eaea6fb38b70959045294f93fcd49589a1b61",
+          "bytes": 45313
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_prechange_mature_0077816.npz",
+          "sha256": "ed6d3ffd5e46016cdc5a6dfe096e4eb7b42623fd26ae5212deccfc9490958090",
+          "bytes": 38589
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0077818.npz",
+          "sha256": "4cbe709d37acae1b76ee59692bae7bb31938a5464853670556a618e3ceeb8def",
+          "bytes": 45297
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_prechange_mature_0077836.npz",
+          "sha256": "d9efc56ed77abcd470daf2f2da5dd41b6938e5fb7865ff86fed13bbec393f25d",
+          "bytes": 39976
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_prechange_mature_0077864.npz",
+          "sha256": "0627ce84bb1c6e05f387829b226fe9d3dd366c7b91e65a2c6d15529b583ffc2f",
+          "bytes": 42850
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0077865.npz",
+          "sha256": "7fef4c9c5fca7c2c24fe1a71e7f1245d0551c4ebbd45ced151b0476dc015b5dc",
+          "bytes": 141282
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0077913.npz",
+          "sha256": "60c10046c8c79583c8b23b615e02ca10ae4a458d90ee46193d79db2b37d72b03",
+          "bytes": 42687
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_prechange_mature_0077920.npz",
+          "sha256": "f866695153b5f3ff7234be2477518f89b4744e98fcc2d5618ec44309ee5acc65",
+          "bytes": 40957
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0078008.npz",
+          "sha256": "938f724c233d7aa7a6af9a548dac66e396faee1059b5ff34a4b19ef6f6cfe0fb",
+          "bytes": 39001
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0078013.npz",
+          "sha256": "36bbf93ab9e8a736dafd62a1e6da30dafbc9b5b1cce679554e9dbce2e9c9887b",
+          "bytes": 40652
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_prechange_mature_0078024.npz",
+          "sha256": "da9de13b4e1b6dc5bfe2c04440703a7f89c621055bc07443bc353916bde01faf",
+          "bytes": 44472
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0078044.npz",
+          "sha256": "d70e6dabd5d38794e12bb0b38377328ac1b9694f25392382283448b9b688ddec",
+          "bytes": 39879
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_prechange_mature_0078136.npz",
+          "sha256": "1423cc924be33cc461dab044722e7b74230270fee8abb169f1deec7632ace25f",
+          "bytes": 40979
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0078204.npz",
+          "sha256": "9f23bc49f754fde05903d5659c77a08d77964eb37ec8b38686bfc8db4e9ffe92",
+          "bytes": 41511
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0078217.npz",
+          "sha256": "98a75d7d5f7ac17eced73c0b89470f47304281bedf29f60082f0ca8d93eb7e67",
+          "bytes": 40149
+        }
+      ]
+    }
+  ],
+  "completed_pairs": 377,
+  "expected_pairs": 640,
+  "current_scientific_failures": 0,
+  "remaining_scientific_runs": 5,
+  "queued_runs": 0,
+  "horizon_supervisor": {
+    "pid": 50020,
+    "alive": true,
+    "created": 134372837852309834
+  },
+  "horizon_stage": "production",
+  "sources_verified": 143,
+  "native_processes": [
+    {
+      "pid": 9316,
+      "owner": "combined",
+      "identity": {
+        "pid": 9316,
+        "alive": true,
+        "created": 134371158428028132
+      },
+      "cpu_seconds": 9503.96875,
+      "private_bytes": 42893660160
+    },
+    {
+      "pid": 9592,
+      "owner": "residual",
+      "identity": {
+        "pid": 9592,
+        "alive": true,
+        "created": 134372583814228683
+      },
+      "cpu_seconds": 472.984375,
+      "private_bytes": 620814336
+    },
+    {
+      "pid": 16336,
+      "owner": "markov",
+      "identity": {
+        "pid": 16336,
+        "alive": true,
+        "created": 134372880924620106
+      },
+      "cpu_seconds": 58.171875,
+      "private_bytes": 739328000
+    },
+    {
+      "pid": 23416,
+      "owner": "horizon",
+      "identity": {
+        "pid": 23416,
+        "alive": true,
+        "created": 134372894809316343
+      },
+      "cpu_seconds": 72.609375,
+      "private_bytes": 954486784
+    },
+    {
+      "pid": 42312,
+      "owner": "markov",
+      "identity": {
+        "pid": 42312,
+        "alive": true,
+        "created": 134372577801414179
+      },
+      "cpu_seconds": 456.265625,
+      "private_bytes": 621879296
+    },
+    {
+      "pid": 44800,
+      "owner": "combined",
+      "identity": {
+        "pid": 44800,
+        "alive": true,
+        "created": 134371157414595329
+      },
+      "cpu_seconds": 2569.34375,
+      "private_bytes": 283959296
+    },
+    {
+      "pid": 53356,
+      "owner": "weights",
+      "identity": {
+        "pid": 53356,
+        "alive": true,
+        "created": 134372831300110495
+      },
+      "cpu_seconds": 64.09375,
+      "private_bytes": 744439808
+    },
+    {
+      "pid": 53948,
+      "owner": "weights",
+      "identity": {
+        "pid": 53948,
+        "alive": true,
+        "created": 134372547347144880
+      },
+      "cpu_seconds": 577.484375,
+      "private_bytes": 625827840
+    },
+    {
+      "pid": 54480,
+      "owner": "residual",
+      "identity": {
+        "pid": 54480,
+        "alive": true,
+        "created": 134372868677791576
+      },
+      "cpu_seconds": 58.59375,
+      "private_bytes": 739336192
+    },
+    {
+      "pid": 56624,
+      "owner": "horizon",
+      "identity": {
+        "pid": 56624,
+        "alive": true,
+        "created": 134372842517488642
+      },
+      "cpu_seconds": 122.9375,
+      "private_bytes": 938983424
+    }
+  ],
+  "unowned_native_processes": 0,
+  "retention": {
+    "pid": 58264,
+    "updated_at": "2026-10-24T04:34:00.775051+00:00",
+    "state": "running",
+    "totals": {
+      "removed_folders": 604,
+      "original_bytes": 163864594193,
+      "compressed_bytes": 18539449742
+    },
+    "verified_checkpoint_steps": {
+      "combined": [
+        78000,
+        77600
+      ],
+      "horizon": [
+        117200,
+        116800
+      ],
+      "weights": [
+        90800,
+        90400
+      ],
+      "markov": [
+        85200,
+        84800
+      ],
+      "residual": [
+        86800,
+        86400
+      ]
+    }
+  },
+  "memory": {
+    "committed_bytes": 102729011200,
+    "limit_bytes": 112521437184,
+    "headroom_bytes": 9792425984
+  },
+  "free_disk_bytes": 420585603072,
+  "coordinator": {
+    "original_status": {
+      "state": "failed",
+      "stage": "finished",
+      "pid": 36308,
+      "finished_at": "2026-10-24T04:11:30.038453+00:00",
+      "queued_runs_dispatched": 20
+    },
+    "current_identity": {
+      "pid": 36308,
+      "alive": false,
+      "created": null
+    },
+    "effective_campaign_state": "completed",
+    "historical_failed_attempts_recovered": 2,
+    "queued_runs_dispatched": 20,
+    "all_50_latest_outputs_verified": true,
+    "raw_history_preserved": true,
+    "reconciled_status": {
+      "state": "completed",
+      "stage": "finished",
+      "pid": 36308,
+      "finished_at": "2026-10-24T04:11:30.038453+00:00",
+      "queued_runs_dispatched": 20,
+      "reconciled_at_utc": "2026-10-24T04:35:38.204232+00:00",
+      "effective_latest_attempts_completed": 50,
+      "original_process_final_state": "failed",
+      "historical_failed_attempts_recovered": [
+        {
+          "category": "markov",
+          "mode": "sg",
+          "seed": 23,
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\markov_sg\\s23\\a1",
+          "finished_at": "2026-10-23T15:31:50.915161+00:00",
+          "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\markov_sg\\s23\\a1\\rl\\20261023_113052\\input_data.pkl",
+          "sha256": "234e87f7f1ae31a2c1497187bbae26c59282864243d8373a5dff9a705ad713ec"
+        },
+        {
+          "category": "residual",
+          "mode": "plain",
+          "seed": 23,
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\residual_plain\\s23\\a1",
+          "finished_at": "2026-10-23T15:35:49.356296+00:00",
+          "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\residual_plain\\s23\\a1\\rl\\20261023_113500\\input_data.pkl",
+          "sha256": "164beb7169e09bc727378e5a84484278374ec3bee476dd03af1be63c1f1d67f7"
+        }
+      ],
+      "original_status_backup": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\hourly_run_checks_20261024\\coordinator_status_before.json",
+      "original_status_sha256": "64bd78adfa28617d8734a74fa277c6b01396f14aa71218ab761f3d52f92cc3d2",
+      "reconciliation_audit": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\hourly_run_checks_20261024\\audit.json",
+      "reconciliation_note": "All 50 latest scientific repetitions completed and their result files verified; original aggregate retained the superseded Markov SG and residual plain seed-23 failures. Original process history is preserved."
+    },
+    "horizon_protected_check_passed": true,
+    "raw_status_backup": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\hourly_run_checks_20261024\\coordinator_status_before.json"
+  },
+  "mutations": {
+    "scientific_sources": 0,
+    "queue_plans": 0,
+    "live_simulator_calls": 0,
+    "process_signals": 0,
+    "results": 0
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "at_utc": "2026-10-24T04:35:40.318156+00:00",
+  "status_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\coordinator_status.json",
+  "original_status": {
+    "state": "failed",
+    "stage": "finished",
+    "pid": 36308,
+    "finished_at": "2026-10-24T04:11:30.038453+00:00",
+    "queued_runs_dispatched": 20
+  },
+  "updated_status": {
+    "state": "completed",
+    "stage": "finished",
+    "pid": 36308,
+    "finished_at": "2026-10-24T04:11:30.038453+00:00",
+    "queued_runs_dispatched": 20,
+    "reconciled_at_utc": "2026-10-24T04:35:38.204232+00:00",
+    "effective_latest_attempts_completed": 50,
+    "original_process_final_state": "failed",
+    "historical_failed_attempts_recovered": [
+      {
+        "category": "markov",
+        "mode": "sg",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\markov_sg\\s23\\a1",
+        "finished_at": "2026-10-23T15:31:50.915161+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\markov_sg\\s23\\a1\\rl\\20261023_113052\\input_data.pkl",
+        "sha256": "234e87f7f1ae31a2c1497187bbae26c59282864243d8373a5dff9a705ad713ec"
+      },
+      {
+        "category": "residual",
+        "mode": "plain",
+        "seed": 23,
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\residual_plain\\s23\\a1",
+        "finished_at": "2026-10-23T15:35:49.356296+00:00",
+        "result_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\repetitions\\residual_plain\\s23\\a1\\rl\\20261023_113500\\input_data.pkl",
+        "sha256": "164beb7169e09bc727378e5a84484278374ec3bee476dd03af1be63c1f1d67f7"
+      }
+    ],
+    "original_status_backup": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\hourly_run_checks_20261024\\coordinator_status_before.json",
+    "original_status_sha256": "64bd78adfa28617d8734a74fa277c6b01396f14aa71218ab761f3d52f92cc3d2",
+    "reconciliation_audit": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\hourly_run_checks_20261024\\audit.json",
+    "reconciliation_note": "All 50 latest scientific repetitions completed and their result files verified; original aggregate retained the superseded Markov SG and residual plain seed-23 failures. Original process history is preserved."
+  },
+  "original_backup_sha256": "64bd78adfa28617d8734a74fa277c6b01396f14aa71218ab761f3d52f92cc3d2",
+  "finished_queue_plan_and_manifest_unchanged": {
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\manifest.json": "28a4ce93b96a0f931eebbafde5d0a23dec2c5045f546801853a3b0069c6c9ab7",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\review_recovery\\20261020_queue_case12\\plan.json": "1ee38cefbc22192284b5747aef2d0554126431a09eb05e7cde0c9b022d34ef17"
+  },
+  "horizon_protected_check_passed": true,
+  "all_50_latest_results_verified": true,
+  "workers_or_native_apps_restarted": 0
+}

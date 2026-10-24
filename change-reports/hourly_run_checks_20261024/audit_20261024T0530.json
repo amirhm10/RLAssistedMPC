@@ -1,0 +1,552 @@
+{
+  "at_utc": "2026-10-24T05:32:19.913103+00:00",
+  "previous_audit": "audit.json",
+  "column_repetitions": {
+    "completed": 50,
+    "current_failures": 0,
+    "all_50_prior_outputs_present_same_size": true,
+    "prior_hashes_in": "audit.json"
+  },
+  "E1": [
+    {
+      "category": "horizon",
+      "state": "running",
+      "error": null,
+      "before": {
+        "pid": 38752,
+        "alive": true,
+        "created": 134372841472070240,
+        "cpu_seconds": 332.53125,
+        "private_bytes": 3054678016,
+        "rss_bytes": 230723584
+      },
+      "after": {
+        "pid": 38752,
+        "alive": true,
+        "created": 134372841472070240,
+        "cpu_seconds": 333.296875,
+        "private_bytes": 3054678016,
+        "rss_bytes": 213979136
+      },
+      "cpu_delta_seconds": 0.765625,
+      "checkpoint_cycles": 295,
+      "checkpoint_steps": 118000,
+      "completed_pairs": 74,
+      "expected_pairs": 80,
+      "last_pair_step": 118212,
+      "last_pair_episode": 296,
+      "unique": true,
+      "other_pair_states": []
+    },
+    {
+      "category": "weights",
+      "state": "running",
+      "error": null,
+      "before": {
+        "pid": 28560,
+        "alive": true,
+        "created": 134372546062675199,
+        "cpu_seconds": 1765.5625,
+        "private_bytes": 3378483200,
+        "rss_bytes": 101507072
+      },
+      "after": {
+        "pid": 28560,
+        "alive": true,
+        "created": 134372546062675199,
+        "cpu_seconds": 1766.765625,
+        "private_bytes": 3378483200,
+        "rss_bytes": 93683712
+      },
+      "cpu_delta_seconds": 1.203125,
+      "checkpoint_cycles": 236,
+      "checkpoint_steps": 94400,
+      "completed_pairs": 60,
+      "expected_pairs": 80,
+      "last_pair_step": 83873,
+      "last_pair_episode": 210,
+      "unique": true,
+      "other_pair_states": []
+    },
+    {
+      "category": "markov",
+      "state": "running",
+      "error": null,
+      "before": {
+        "pid": 47812,
+        "alive": true,
+        "created": 134372576462860776,
+        "cpu_seconds": 3711.0625,
+        "private_bytes": 3343048704,
+        "rss_bytes": 74969088
+      },
+      "after": {
+        "pid": 47812,
+        "alive": true,
+        "created": 134372576462860776,
+        "cpu_seconds": 3712.625,
+        "private_bytes": 3343048704,
+        "rss_bytes": 72081408
+      },
+      "cpu_delta_seconds": 1.5625,
+      "checkpoint_cycles": 221,
+      "checkpoint_steps": 88400,
+      "completed_pairs": 60,
+      "expected_pairs": 80,
+      "last_pair_step": 83835,
+      "last_pair_episode": 210,
+      "unique": true,
+      "other_pair_states": []
+    },
+    {
+      "category": "residual",
+      "state": "running",
+      "error": null,
+      "before": {
+        "pid": 50420,
+        "alive": true,
+        "created": 134372582485104468,
+        "cpu_seconds": 1594.046875,
+        "private_bytes": 3281092608,
+        "rss_bytes": 355418112
+      },
+      "after": {
+        "pid": 50420,
+        "alive": true,
+        "created": 134372582485104468,
+        "cpu_seconds": 1595.09375,
+        "private_bytes": 3281092608,
+        "rss_bytes": 343425024
+      },
+      "cpu_delta_seconds": 1.046875,
+      "checkpoint_cycles": 226,
+      "checkpoint_steps": 90400,
+      "completed_pairs": 60,
+      "expected_pairs": 80,
+      "last_pair_step": 83938,
+      "last_pair_episode": 210,
+      "unique": true,
+      "other_pair_states": []
+    },
+    {
+      "category": "combined",
+      "state": "running",
+      "error": null,
+      "before": {
+        "pid": 22588,
+        "alive": true,
+        "created": 134371156883220647,
+        "cpu_seconds": 27772.984375,
+        "private_bytes": 4516245504,
+        "rss_bytes": 1051152384
+      },
+      "after": {
+        "pid": 22588,
+        "alive": true,
+        "created": 134371156883220647,
+        "cpu_seconds": 27772.984375,
+        "private_bytes": 4516245504,
+        "rss_bytes": 1051152384
+      },
+      "cpu_delta_seconds": 0.0,
+      "checkpoint_cycles": 196,
+      "checkpoint_steps": 78400,
+      "completed_pairs": 133,
+      "expected_pairs": 320,
+      "last_pair_step": 78334,
+      "last_pair_episode": 196,
+      "unique": true,
+      "other_pair_states": []
+    }
+  ],
+  "completed_pairs": 387,
+  "pairs_by_category": {
+    "horizon": 74,
+    "weights": 60,
+    "markov": 60,
+    "residual": 60,
+    "combined": 133
+  },
+  "expected_pairs": 640,
+  "new_trace_hashes": [
+    {
+      "category": "horizon",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0117556.npz",
+      "bytes": 26116,
+      "sha256": "594bc0c8aa248a39c1a203ddb14e31581ac189ea0f9e5cb803de98334ed74f97"
+    },
+    {
+      "category": "horizon",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0117812.npz",
+      "bytes": 25512,
+      "sha256": "896d3f7c39a6b1c52aa81c66bce7dc7f5cb7c318e5b18cb672c55966f2dd4f53"
+    },
+    {
+      "category": "horizon",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0117832.npz",
+      "bytes": 25596,
+      "sha256": "d71d66d14f1e8398745b21307306cbbdc7d2d0effec8dfbfb0250cf4fd6c773d"
+    },
+    {
+      "category": "horizon",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0118044.npz",
+      "bytes": 26104,
+      "sha256": "b99458e69273d99e9fa2634e2e84d793f1e9da3569391cbb3a4ff7d3fb9cb260"
+    },
+    {
+      "category": "horizon",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0118188.npz",
+      "bytes": 25592,
+      "sha256": "97ab766e0919cd94408b4ccf23f5bcb9ce5ac6933e975128e2576d4f1be974b4"
+    },
+    {
+      "category": "horizon",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\traces\\horizon_adapted_0118212.npz",
+      "bytes": 25403,
+      "sha256": "cbae47d39b73cebfe7b65a7fd3137c56347f63e4dedb30d5ade7bd0abf08c8af"
+    },
+    {
+      "category": "combined",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0078239.npz",
+      "bytes": 38674,
+      "sha256": "ee50613a1533f0cacc9074418f6d9a4d0b9f93416f80cf3d611d99922528fe26"
+    },
+    {
+      "category": "combined",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_prechange_mature_0078248.npz",
+      "bytes": 41798,
+      "sha256": "6acb0345e817cec61876cc8498c728f63c64faadaa7b4a25ebf48204ee2f4736"
+    },
+    {
+      "category": "combined",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_prechange_mature_0078317.npz",
+      "bytes": 41226,
+      "sha256": "a063da49b1e4ab8f5455bcc85a84713631c5ed7403ead0da5b102a587019b6a7"
+    },
+    {
+      "category": "combined",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_prechange_mature_0078334.npz",
+      "bytes": 132364,
+      "sha256": "bf07e334ce5ba7efdacf4f02ca73366d839cb8c4f71ea8f09e202800cc25918e"
+    }
+  ],
+  "previous_trace_hashes_in": "audit.json",
+  "logs": {
+    "combined": {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_e1_budget20\\logs\\combined.log",
+      "version": [
+        "C:\\",
+        134371156883074108,
+        125680,
+        1792819742649007100
+      ],
+      "last_cycle": 196,
+      "last_checkpoint_step": 78400,
+      "last_lines": [
+        "Sub_Episode: 195 | avg. reward: 32.95184957263007 | Hp,Hc: (np.int64(11), np.int64(3)) | h sg src: policy=99,supervisor=1,warm=0,held=300,fallback=0 | avg z: [ 0.00110358 -0.00112326  0.00184536 -0.00026999] | m exec src: td3=156,sg_ls=65,sg_mpc=179,solver_fb=0,ls_fb=0,nom_fb=0 | m sg src: policy=156,supervisor=244,warm=0,held=0,fallback=0 | alpha: off | avg weights: [0.9727358  0.98951471 0.98531697 0.97623417] | w sg src: policy=239,supervisor=161,warm=0,held=0,fallback=0 | avg residual: [0.00071281 0.00010395] | r sg src: policy=203,supervisor=197,warm=0,held=0,fallback=0",
+        "Full native/Python E1 checkpoint: step 78000; 552.2 MiB",
+        "E1 combined: 130 matched decisions saved; step 78239",
+        "Sub_Episode: 196 | avg. reward: 34.57844827076191 | Hp,Hc: (np.int64(8), np.int64(8)) | h sg src: policy=97,supervisor=3,warm=0,held=300,fallback=0 | avg z: [ 0.0018087  -0.00046629  0.00146194 -0.0005045 ] | m exec src: td3=156,sg_ls=38,sg_mpc=206,solver_fb=0,ls_fb=0,nom_fb=0 | m sg src: policy=156,supervisor=244,warm=0,held=0,fallback=0 | alpha: off | avg weights: [0.98419315 0.9938842  0.98087004 0.98008977] | w sg src: policy=201,supervisor=199,warm=0,held=0,fallback=0 | avg residual: [0.00069753 0.00016712] | r sg src: policy=175,supervisor=225,warm=0,held=0,fallback=0",
+        "Full native/Python E1 checkpoint: step 78400; 552.6 MiB"
+      ]
+    },
+    "horizon": {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261023_horizon_native_process\\logs\\production.log",
+      "version": [
+        "C:\\",
+        134372841471810720,
+        189029,
+        1792819869333988600
+      ],
+      "last_cycle": null,
+      "last_checkpoint_step": null,
+      "last_lines": [
+        "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 92 in execute",
+        "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 240 in worker",
+        "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1_budget.py\", line 202 in worker",
+        "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1_horizon_recovery.py\", line 233 in worker",
+        "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1_horizon_recovery.py\", line 365 in <module>"
+      ]
+    },
+    "weights": {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261023_e1_native_process\\logs\\weights.log",
+      "version": [
+        "C:\\",
+        134372546062567492,
+        531787,
+        1792819898684222200
+      ],
+      "last_cycle": 237,
+      "last_checkpoint_step": 94800,
+      "last_lines": [
+        "Full native/Python E1 checkpoint: step 94000; 237.2 MiB",
+        "Sub_Episode: 236 | avg. reward: 3.0060813875591 | avg multipliers: [0.90185727 1.22862189 1.26783327 1.11034078]",
+        "Full native/Python E1 checkpoint: step 94400; 237.3 MiB",
+        "Sub_Episode: 237 | avg. reward: 5.542483147441626 | avg multipliers: [0.90012405 1.26136815 1.26011257 1.16134545]",
+        "Full native/Python E1 checkpoint: step 94800; 237.4 MiB"
+      ]
+    },
+    "markov": {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261023_e1_native_process\\logs\\markov.log",
+      "version": [
+        "C:\\",
+        134372576462608333,
+        588753,
+        1792819859106436200
+      ],
+      "last_cycle": 222,
+      "last_checkpoint_step": 88800,
+      "last_lines": [
+        "Full native/Python E1 checkpoint: step 88000; 347.7 MiB",
+        "Sub_Episode: 221 | avg. reward: 13.010462801432118 | accepted (subepisode): 0.6975 | SG policy executed (subepisode): 0.55 | SG LS supervisor (subepisode): 0.1475 | SG MPC supervisor (subepisode): 0.3025 | SG solver fallback (subepisode): 0.0 | SG policy/LSsup/MPCsup/fallback post-warm cumulative: (0.3173141861870401, 0.08893470301780827, 0.5937511107951516, 0.0) | avg z: [ 0.00289815  0.00212882 -0.00128693 -0.00427275]",
+        "Full native/Python E1 checkpoint: step 88400; 347.8 MiB",
+        "Sub_Episode: 222 | avg. reward: 20.39884835859354 | accepted (subepisode): 0.6925 | SG policy executed (subepisode): 0.61 | SG LS supervisor (subepisode): 0.0825 | SG MPC supervisor (subepisode): 0.3075 | SG solver fallback (subepisode): 0.0 | SG policy/LSsup/MPCsup/fallback post-warm cumulative: (0.3186947959291973, 0.08890435028714962, 0.5924008537836531, 0.0) | avg z: [ 0.00608765  0.00342016 -0.00061415 -0.00018658]",
+        "Full native/Python E1 checkpoint: step 88800; 347.9 MiB"
+      ]
+    },
+    "residual": {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261023_e1_native_process\\logs\\residual.log",
+      "version": [
+        "C:\\",
+        134372582484947754,
+        528831,
+        1792819700275242200
+      ],
+      "last_cycle": 226,
+      "last_checkpoint_step": 90400,
+      "last_lines": [
+        "Full native/Python E1 checkpoint: step 89600; 237.9 MiB",
+        "Sub_Episode: 225 | avg. reward: 19.02794497023629 | avg residual: [-9.73411276e-05  1.25739125e-03]",
+        "Full native/Python E1 checkpoint: step 90000; 238.0 MiB",
+        "Sub_Episode: 226 | avg. reward: 20.9395490688727 | avg residual: [-0.00018651  0.00072325]",
+        "Full native/Python E1 checkpoint: step 90400; 238.1 MiB"
+      ]
+    }
+  },
+  "retention": {
+    "state": "running",
+    "identity": {
+      "pid": 58264,
+      "alive": true,
+      "created": 134372665192525684
+    },
+    "updated_at": "2026-10-24T05:32:16.772061+00:00",
+    "totals": {
+      "removed_folders": 645,
+      "original_bytes": 182191090740,
+      "compressed_bytes": 20611007391
+    },
+    "jobs": [
+      {
+        "category": "combined",
+        "state": "two complete checkpoints verified",
+        "reason": null,
+        "checkpoints": [
+          {
+            "slot": 1,
+            "completed_steps": 78400,
+            "sha256": "212df4d0c8990a80663d767a75ee689d1d86d5b461064331ce95d8c1aa67346d"
+          },
+          {
+            "slot": 0,
+            "completed_steps": 78000,
+            "sha256": "6a92a6b2c54ddbb4f00fa9f2883a94f4d43a0e71be944f8cbfd59fc6700e2b6e"
+          }
+        ]
+      },
+      {
+        "category": "horizon",
+        "state": "two complete checkpoints verified",
+        "reason": null,
+        "checkpoints": [
+          {
+            "slot": 1,
+            "completed_steps": 118000,
+            "sha256": "ea0672cd31b172192e5758300b976ffe09ea932ab2e3d508c6ce269eebc1220a"
+          },
+          {
+            "slot": 0,
+            "completed_steps": 117600,
+            "sha256": "4a721569c6612a24fc9970d24deb6fa2037c9732addd1c5c1e188221ad705352"
+          }
+        ]
+      },
+      {
+        "category": "weights",
+        "state": "deferred; all files retained",
+        "reason": "Waiting for a stable committed checkpoint before snapshot acquisition",
+        "checkpoints": []
+      },
+      {
+        "category": "markov",
+        "state": "two complete checkpoints verified",
+        "reason": null,
+        "checkpoints": [
+          {
+            "slot": 0,
+            "completed_steps": 88800,
+            "sha256": "d1b02c58bc52b5d5185e46804b6173402960568d99dcd7235f65af0f7467ee1a"
+          },
+          {
+            "slot": 1,
+            "completed_steps": 88400,
+            "sha256": "b85abb5a6e34c4a9d8bdb58c1bdfb40a035b1ac68659fb3b3af9e035c01d1f61"
+          }
+        ]
+      },
+      {
+        "category": "residual",
+        "state": "two complete checkpoints verified",
+        "reason": null,
+        "checkpoints": [
+          {
+            "slot": 0,
+            "completed_steps": 90400,
+            "sha256": "b4a409dada92588632ada77ea49fb6f34daaba523c3356d750bbe2c6ef2a36f4"
+          },
+          {
+            "slot": 1,
+            "completed_steps": 90000,
+            "sha256": "87d43c15d7d298a5317df410be168d4d90f69d41e24a3bec30305650452d0e2c"
+          }
+        ]
+      }
+    ]
+  },
+  "native_activity": [
+    {
+      "pid": 9316,
+      "owner": "combined",
+      "identity": {
+        "pid": 9316,
+        "alive": true,
+        "created": 134371158428028132
+      },
+      "cpu_seconds": 9967.296875,
+      "cpu_delta_since_first_sample": 49.953125,
+      "private_bytes": 46262611968
+    },
+    {
+      "pid": 9592,
+      "owner": "residual",
+      "identity": {
+        "pid": 9592,
+        "alive": true,
+        "created": 134372583814228683
+      },
+      "cpu_seconds": 552.015625,
+      "cpu_delta_since_first_sample": 1.21875,
+      "private_bytes": 622239744
+    },
+    {
+      "pid": 16336,
+      "owner": "markov",
+      "identity": {
+        "pid": 16336,
+        "alive": true,
+        "created": 134372880924620106
+      },
+      "cpu_seconds": 60.65625,
+      "cpu_delta_since_first_sample": 0.21875,
+      "private_bytes": 739454976
+    },
+    {
+      "pid": 42312,
+      "owner": "markov",
+      "identity": {
+        "pid": 42312,
+        "alive": true,
+        "created": 134372577801414179
+      },
+      "cpu_seconds": 532.71875,
+      "cpu_delta_since_first_sample": 4.875,
+      "private_bytes": 622833664
+    },
+    {
+      "pid": 44800,
+      "owner": "combined",
+      "identity": {
+        "pid": 44800,
+        "alive": true,
+        "created": 134371157414595329
+      },
+      "cpu_seconds": 2593.390625,
+      "cpu_delta_since_first_sample": 0.1875,
+      "private_bytes": 283967488
+    },
+    {
+      "pid": 53356,
+      "owner": "weights",
+      "identity": {
+        "pid": 53356,
+        "alive": true,
+        "created": 134372831300110495
+      },
+      "cpu_seconds": 67.03125,
+      "cpu_delta_since_first_sample": 0.296875,
+      "private_bytes": 744411136
+    },
+    {
+      "pid": 53948,
+      "owner": "weights",
+      "identity": {
+        "pid": 53948,
+        "alive": true,
+        "created": 134372547347144880
+      },
+      "cpu_seconds": 663.65625,
+      "cpu_delta_since_first_sample": 5.96875,
+      "private_bytes": 626716672
+    },
+    {
+      "pid": 54480,
+      "owner": "residual",
+      "identity": {
+        "pid": 54480,
+        "alive": true,
+        "created": 134372868677791576
+      },
+      "cpu_seconds": 61.578125,
+      "cpu_delta_since_first_sample": 0.296875,
+      "private_bytes": 739397632
+    },
+    {
+      "pid": 56624,
+      "owner": "horizon",
+      "identity": {
+        "pid": 56624,
+        "alive": true,
+        "created": 134372842517488642
+      },
+      "cpu_seconds": 165.53125,
+      "cpu_delta_since_first_sample": 3.9375,
+      "private_bytes": 940904448
+    }
+  ],
+  "all_initial_native_apps_owned": true,
+  "current_failures": 0,
+  "queued_runs": 0,
+  "sources_verified": 143,
+  "horizon_supervisor": {
+    "pid": 50020,
+    "alive": true,
+    "created": 134372837852309834
+  },
+  "coordinator_state": "completed",
+  "memory": {
+    "committed_bytes": 105508421632,
+    "limit_bytes": 112521437184,
+    "headroom_bytes": 7013015552
+  },
+  "free_disk_bytes": 416345948160,
+  "OneDrive_clients": [],
+  "actions": {
+    "jobs_launched": 0,
+    "jobs_stopped": 0,
+    "process_signals": 0,
+    "live_simulator_calls": 0,
+    "scientific_source_edits": 0,
+    "queue_plan_edits": 0,
+    "data_deletions": 0
+  }
+}

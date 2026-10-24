@@ -1,5 +1,13 @@
 # Reviewer-run recovery — latest update October 24, 2026
 
+## Hourly check — October 24, 01:32 Toronto
+
+**All five E1 workers are progressing, with 387/640 completed comparisons; no current scientific failure or queued launch was found.** Horizon has 74/80 pairs at checkpoint cycle 295; weights 60/80 at 236; Markov 60/80 at 221; residual 60/80 at 226; combined 133/320 at 196. Later append-only log/checkpoint evidence reached weights 237 and Markov 222 during the check. The ten new trace files pass CRC and SHA-256 checks. All fifty previously verified column repetition outputs remain present at their recorded sizes; the completed coordinator status is intact. The five E1 creation identities and all 143 sealed source hashes remain unchanged.
+
+The combined Python worker happened to accrue no CPU in the short sample while waiting on Aspen, but its owned native application accrued nearly fifty CPU seconds during follow-up and four more comparisons completed since the previous audit. It is active. All ten Aspen simulation instances in the initial ownership inventory were accounted for. Horizon's supervisor remains live in production. No process was closed, restarted or signalled.
+
+Retention is active. Its temporary combined-checkpoint deferral cleared and both combined checkpoints verified; a later weights save caused the expected brief deferral with all files retained. C: has about 387.8 GiB free. Commitment headroom decreased to about 6.5 GiB; the owned combined comparison application remains the main memory consumer, at about 43.1 GiB private memory in the follow-up. This check found no stale simulation instance to release. No additional launch or in-place manipulation of an active simulator was attempted. Evidence: `change-reports/hourly_run_checks_20261024/audit_20261024T0530.json` and the latest entry in `STATUS.md` there. Hourly monitoring continues.
+
 ## Hourly check — October 24, 00:34 Toronto
 
 **Column repetitions are complete: 50/50 latest results verified. Five E1 configurations remain running, with 377/640 completed comparisons and no current scientific worker failure or queued launch.** All five workers have unchanged creation identities and positive CPU changes. Horizon has 68/80 pairs at checkpoint cycle 293; weights 60/80 at 227; Markov 60/80 at 213; residual 60/80 at 217; combined 129/320 at 195. These are progress counts, not a scientific performance assessment or completed E1 claim.

@@ -1,5 +1,13 @@
 # Reviewer-run recovery — latest update October 24, 2026
 
+## Hourly check — October 24, 03:35 Toronto
+
+**Column E1 horizon is complete: 300 cycles and 80/80 comparisons, with zero failed pairs.** Its production worker returned zero and its supervisor recorded completion at about 02:55 Toronto; the final trajectory SHA-256, all eighty raw traces and the generated summary tables verify. Both processes have exited, and cleanup confirms that no horizon native application remains. Four E1 configurations remain running, with 404/640 completed comparisons overall: weights 60/80, Markov 60/80, residual 60/80 and combined 144/320. Their checkpoint cycles were 256, 240, 246 and 197 in the initial sample, with unchanged creation identities and positive CPU changes. No current scientific job is failed or queued. Column repetitions remain complete at 50/50, with the coordinator's completed status intact.
+
+Horizon has eighty unique comparison states; its twenty summary rows reuse those states across rollout lengths and do not represent extra independent pairs. CSV and JSON counts were checked against the actual metric horizons in the raw records. The empty optional prediction-summary CSV is expected because horizon has no Markov prediction-diagnostic groups. All 143 source hashes pass. All eight remaining Aspen simulation instances match active ownership. No job, helper or native process was signalled or restarted during this check.
+
+Retention remains active with the latest two verified complete checkpoints for all five configurations, including horizon's final 120000/119600 pair. At 03:35 Toronto, memory commitment headroom was about 7.18 GiB and C: had about 382.2 GiB free. The active combined comparison application remains large (about 50.2 GiB private memory); its memory pressure remains a monitoring concern. OneDrive syncing stays closed. Evidence: `change-reports/hourly_run_checks_20261024/audit_20261024T0731.json` and its latest `STATUS.md` entry. Hourly monitoring continues for the four unfinished runs.
+
 ## Hourly check — October 24, 02:34 Toronto
 
 **All five E1 workers remain running; 398/640 comparisons are complete, including horizon 79/80 and combined 139/320.** Weights, Markov and residual remain at 60/80 each while training advances. Initial verified checkpoint cycles were horizon 297, weights 245, Markov 230, residual 235 and combined 196. All five workers have unchanged creation identities and positive CPU changes. Eleven new saved traces passed CRC/SHA-256 checks. Column repetitions remain complete at 50/50 with their saved outputs present, and the completed queue coordinator and horizon supervisor states are intact. No scientific worker failed, stopped or restarted.

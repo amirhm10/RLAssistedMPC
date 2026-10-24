@@ -1,5 +1,11 @@
 # Reviewer-run recovery — latest update October 24, 2026
 
+## Hourly follow-up — October 24, 14:56 Toronto
+
+Combined remains accepted and progressing as PID 15940/creation 134373287822018420, at cycle 204 and **193/320 comparisons**; total **513/640, 127 remaining**. Its current manifest confirms production, passed validation, the original two attempts and no error. One additional closed trace verifies by CRC/SHA-256 and all 143 source seals pass. The short Python sample was quiet while owned native CPU increased; both native apps are combined-owned. The four completed standalones, completed repetition outputs/coordinator and horizon supervisor remain consistent. No new failure or recovery is pending.
+
+Headroom is 56.1 GiB, free disk 335.4 GiB and largest native private allocation 2.23 GiB. Retention is live and verifies two complete checkpoints for every configuration: combined 81600/81200 and all standalones 120000/119600. The 30–40-hour planning estimate remains applicable at this short follow-up. No restart, extra worker, source/queue/global setting change, simulator call, process signal or deletion was needed. All results/pins/archives and existing viewer registration remain available. Monitoring continues for combined alone. This is routine progress shortly after the 14:48 update, with no new alert required. Evidence: `change-reports/hourly_run_checks_20261024/audit_20261024T185602.json`.
+
 ## Current verified state and combined ETA — October 24, 14:48 Toronto
 
 **Markov and residual have finished; combined is the only unfinished configuration.** Markov completed at 14:36 Toronto and residual at 14:37, each with all 300 cycles, 80/80 comparisons and zero failed pairs. Their new immutable completion receipts verify final trajectory and Python/native hashes/source maps, all 160 saved traces, four-window counts, final analysis and all 143 source seals; their workers/native apps are retired. Markov's later old-peer supervisor diagnostic occurred after successful scientific completion and does not require recovery. Combined remains accepted and progressing as PID 15940, creation 134373287822018420, at cycle 204 and **192/320** comparisons. Campaign total **512/640; 128 remain**. No current failure or queued recovery was found; repetitions/coordinator/horizon remain completed.

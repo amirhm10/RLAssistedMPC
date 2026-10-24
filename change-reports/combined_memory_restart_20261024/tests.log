@@ -1,0 +1,18 @@
+test_adaptation_preserves_other_rows_and_original (__main__.LaunchGuards.test_adaptation_preserves_other_rows_and_original) ... ok
+test_duplicate_scientific_row_is_rejected (__main__.LaunchGuards.test_duplicate_scientific_row_is_rejected) ... ok
+test_exact_threshold_accepts_only_retired_empty_case (__main__.LaunchGuards.test_exact_threshold_accepts_only_retired_empty_case) ... ok
+test_inaccessible_original_blocks_launch (__main__.LaunchGuards.test_inaccessible_original_blocks_launch) ... ok
+test_inaccessible_owned_application_is_not_assumed_closed (__main__.LaunchGuards.test_inaccessible_owned_application_is_not_assumed_closed) ... ok
+test_insufficient_commitment_headroom_blocks_launch (__main__.LaunchGuards.test_insufficient_commitment_headroom_blocks_launch) ... ok
+test_invalid_validation_budget_is_rejected_before_verification (__main__.LaunchGuards.test_invalid_validation_budget_is_rejected_before_verification) ... ok
+test_live_original_is_never_duplicated (__main__.LaunchGuards.test_live_original_is_never_duplicated) ... ok
+test_remaining_owned_application_blocks_launch (__main__.LaunchGuards.test_remaining_owned_application_blocks_launch) ... ok
+test_reused_pid_blocks_launch (__main__.LaunchGuards.test_reused_pid_blocks_launch) ... ok
+test_review_plan_refuses_before_resource_or_process_access (__main__.LaunchGuards.test_review_plan_refuses_before_resource_or_process_access) ... ok
+test_review_worker_cannot_import_numerical_runtime (__main__.LaunchGuards.test_review_worker_cannot_import_numerical_runtime) ... ok
+test_wrong_case_or_budget_is_rejected (__main__.LaunchGuards.test_wrong_case_or_budget_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.001s
+
+OK

@@ -1,0 +1,26 @@
+{
+  "at_utc": "2026-10-24T09:52:08.276585+00:00",
+  "review_plan_refused": true,
+  "live_original_worker_refused": true,
+  "refusal_reasons": [
+    "The restart is prepared for review only; execution is not authorized",
+    "The former worker is live, reused or inaccessible; do not launch"
+  ],
+  "all_protected_peers_and_retention_verified": true,
+  "all_154_frozen_trace_hashes_verified": true,
+  "numerical_imports": 0,
+  "simulator_calls": 0,
+  "recovery_state_created": false,
+  "checkpoint_cold_restore_validation": "pending; cannot run while the original worker owns the case",
+  "unit_tests_passed": 13,
+  "current_worker": {
+    "pid": 22588,
+    "alive": true,
+    "created": 134371156883220647
+  },
+  "memory": {
+    "committed_bytes": 111999352832,
+    "limit_bytes": 113600692224,
+    "headroom_bytes": 1601339392
+  }
+}

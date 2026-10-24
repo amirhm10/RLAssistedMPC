@@ -1,0 +1,12 @@
+{
+  "id": "combined-e1-fresh-owned-process-v1",
+  "seed": 7,
+  "case": 16,
+  "training_cycles": 300,
+  "matched_pairs": 320,
+  "decisions_per_window": 20,
+  "validation_steps": 8,
+  "adapter_sha256": "c21418d068a237d5a64f887fc4750bb367b3110110617b0eed2c43731d0dcbf1",
+  "existing_loader_sha256": "a23cbc95ca76a99c9ba1d5dac716813fe97b0f41dddf9eee61c806d946b37d7a",
+  "job_sha256": "eb2a26b7e488ba82614cbc7318230093bf141e26ad49b5c552716c2ff7ed3b09"
+}

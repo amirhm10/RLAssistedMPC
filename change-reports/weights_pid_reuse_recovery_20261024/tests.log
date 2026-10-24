@@ -1,0 +1,22 @@
+test_committed_prefix_must_remain_at_original_path (__main__.EvidencePreservation.test_committed_prefix_must_remain_at_original_path) ... ok
+test_post_checkpoint_trace_must_exist_in_verified_replay_archive (__main__.EvidencePreservation.test_post_checkpoint_trace_must_exist_in_verified_replay_archive) ... ok
+test_dead_ambiguous_generation_is_refused (__main__.OwnershipGeneration.test_dead_ambiguous_generation_is_refused) ... ok
+test_exact_reproduction_old_code_refuses_correct_recycled_generation (__main__.OwnershipGeneration.test_exact_reproduction_old_code_refuses_correct_recycled_generation) ... ok
+test_journal_order_does_not_change_matching_generation (__main__.OwnershipGeneration.test_journal_order_does_not_change_matching_generation) ... ok
+test_no_remembered_identity_still_requires_current_generation (__main__.OwnershipGeneration.test_no_remembered_identity_still_requires_current_generation) ... ok
+test_old_proxy_cannot_retire_reused_live_pid (__main__.OwnershipGeneration.test_old_proxy_cannot_retire_reused_live_pid) ... ok
+test_remembered_dead_generation_can_complete_cleanup (__main__.OwnershipGeneration.test_remembered_dead_generation_can_complete_cleanup) ... ok
+test_unowned_and_inaccessible_processes_are_refused (__main__.OwnershipGeneration.test_unowned_and_inaccessible_processes_are_refused) ... ok
+test_guard_refusal_precedes_numerical_import (__main__.RecoveryGuards.test_guard_refusal_precedes_numerical_import) ... ok
+test_invalid_continuation_stops_before_verification (__main__.RecoveryGuards.test_invalid_continuation_stops_before_verification) ... ok
+test_live_or_inaccessible_old_worker_refused (__main__.RecoveryGuards.test_live_or_inaccessible_old_worker_refused) ... ok
+test_markov_wrapper_scope_is_separate_from_weights (__main__.RecoveryGuards.test_markov_wrapper_scope_is_separate_from_weights) ... ok
+test_memory_threshold_and_exact_boundary (__main__.RecoveryGuards.test_memory_threshold_and_exact_boundary) ... ok
+test_other_live_worker_blocks_duplicate_even_before_native_creation (__main__.RecoveryGuards.test_other_live_worker_blocks_duplicate_even_before_native_creation) ... ok
+test_owned_native_application_blocks_launch (__main__.RecoveryGuards.test_owned_native_application_blocks_launch) ... ok
+test_wrong_case_budget_or_authorization_is_refused (__main__.RecoveryGuards.test_wrong_case_budget_or_authorization_is_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.017s
+
+OK

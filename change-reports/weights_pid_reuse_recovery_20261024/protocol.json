@@ -1,0 +1,14 @@
+{
+  "id": "weights-owned-generation-recovery-v1",
+  "at_utc": "2026-10-24T12:47:39.044014+00:00",
+  "category": "weights",
+  "case": 14,
+  "seed": 7,
+  "expected_matched_pairs": 80,
+  "main_training_cycles": 300,
+  "decisions_per_window": 20,
+  "bounded_validation_steps": 8,
+  "minimum_headroom_bytes": 6442450944,
+  "original_process_protocol_sha256": "da06badf964553aa12249ff892e0de9f193db7c8e06211c05b5fd189cb5a8902",
+  "scope": "Patch only ownership lookup in the new worker; retain all existing scientific/budget/lazy/process checkpoint protocol markers; preserve and replay post-checkpoint suffix through the sealed reconciliation code"
+}

@@ -1,0 +1,11 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-24T13:01:34.632490+00:00",
+  "backup": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\markov_native_recovery_20261024",
+  "manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\markov_native_recovery_20261024\\preservation.json",
+  "manifest_sha256": "eacee7e1b32cb5e938f8cde90b4fac68168a4e26e46b2aeb19eb6f06162f1b5c",
+  "files": 235,
+  "bytes": 3643451770,
+  "completed_pairs": 60,
+  "post_checkpoint_pairs": 0
+}

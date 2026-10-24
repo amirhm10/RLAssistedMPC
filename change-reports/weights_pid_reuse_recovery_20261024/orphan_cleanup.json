@@ -1,0 +1,39 @@
+{
+  "state": "closed",
+  "at_utc": "2026-10-24T12:48:15.285552+00:00",
+  "failed_worker": {
+    "pid": 28560,
+    "created": 134372546062675199,
+    "alive": true
+  },
+  "target": {
+    "pid": 37392,
+    "alive": true,
+    "created": 134373167992691453,
+    "created_at": "2026-10-24T12:00:18.022214+00:00"
+  },
+  "verified_backup_files": 259,
+  "before_memory": {
+    "committed_bytes": 119594156032,
+    "limit_bytes": 124457947136,
+    "headroom_bytes": 4863791104
+  },
+  "actions": [
+    {
+      "target": {
+        "pid": 37392,
+        "alive": true,
+        "created": 134373167992691453,
+        "created_at": "2026-10-24T12:00:18.022214+00:00"
+      },
+      "result": "closed_verified_orphan"
+    }
+  ],
+  "finished_at": "2026-10-24T12:48:19.595125+00:00",
+  "after_memory": {
+    "committed_bytes": 118422556672,
+    "limit_bytes": 124457947136,
+    "headroom_bytes": 6035390464
+  },
+  "all_peer_and_retention_identities_preserved": true
+}

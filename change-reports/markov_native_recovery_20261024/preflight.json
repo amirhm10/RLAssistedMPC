@@ -1,0 +1,23 @@
+{
+  "at_utc": "2026-10-24T13:15:42.981361+00:00",
+  "full_source_seals_verified": 143,
+  "tests_passed": 17,
+  "checkpoint_steps": [
+    116000,
+    115600
+  ],
+  "original_pairs": 60,
+  "case_lease_available": true,
+  "live_peer_categories": [
+    "residual",
+    "combined",
+    "weights"
+  ],
+  "memory": {
+    "committed_bytes": 121118322688,
+    "limit_bytes": 125538566144,
+    "headroom_bytes": 4420243456
+  },
+  "numerical_bootstrap_imported": false,
+  "simulator_calls": 0
+}

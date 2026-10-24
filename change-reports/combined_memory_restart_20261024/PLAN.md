@@ -1,5 +1,7 @@
 # Combined E1 memory restart prepared for review
 
+Later reconciliation at 13:36 UTC: the user approval remains pending and this plan is still review-only. The weights/Markov creation identities below are superseded: weights now has accepted production PID 47172, and Markov has an independent memory-gated recovery. Combined's complete checkpoint pair has advanced to 80400/80000. Before any approved pause, refresh the full backups, trace hashes and actual peer identities and apply the tested generation-safe ownership helper from `../weights_pid_reuse_recovery_20261024/ownership_fix.py` in the new combined worker. Re-seal and test that adaptation and require actual eight-step four-learner/native validation before production. Do not execute the older prepared adapter/plan unchanged. No combined worker has been interrupted by this reconciliation.
+
 At 09:56 UTC on October 24 (05:56 Toronto), the four remaining E1 workers are progressing with unchanged creation identities. Combined has 154/320 completed comparisons; the campaign has 414/640. No current scientific failure is established. The combined comparison application, PID 9316, uses 60,991,504,384 private bytes (56.8 GiB). Commitment headroom is 1,519,091,712 bytes (1.41 GiB), below the 6 GiB recovery launch threshold. All eight current Aspen applications belong to active workers; none is an unowned stale instance.
 
 ## Decision and scope

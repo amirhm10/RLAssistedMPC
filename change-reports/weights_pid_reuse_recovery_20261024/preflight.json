@@ -1,0 +1,19 @@
+{
+  "at_utc": "2026-10-24T12:51:38.239400+00:00",
+  "full_source_seals_verified": 143,
+  "tests_passed": 16,
+  "all_67_original_trace_backups_verified": true,
+  "checkpoint_prefix_traces_verified": true,
+  "failed_worker_dead": true,
+  "owned_native_apps_remaining": 0,
+  "all_peer_and_retention_identities_preserved": true,
+  "actual_worker_guard_blocker": "At least 6 GiB commitment headroom is required",
+  "memory": {
+    "committed_bytes": 118663413760,
+    "limit_bytes": 124457947136,
+    "headroom_bytes": 5794533376
+  },
+  "production_requires_eight_step_validation": true,
+  "numerical_bootstrap_imported": false,
+  "simulator_calls": 0
+}

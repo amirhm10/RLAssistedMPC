@@ -1,0 +1,129 @@
+test_committed_prefix_must_remain_at_original_path (__main__.EvidencePreservation.test_committed_prefix_must_remain_at_original_path) ... ERROR
+test_post_checkpoint_trace_must_exist_in_verified_replay_archive (__main__.EvidencePreservation.test_post_checkpoint_trace_must_exist_in_verified_replay_archive) ... ERROR
+test_dead_ambiguous_generation_is_refused (__main__.OwnershipGeneration.test_dead_ambiguous_generation_is_refused) ... ok
+test_exact_reproduction_old_code_refuses_correct_recycled_generation (__main__.OwnershipGeneration.test_exact_reproduction_old_code_refuses_correct_recycled_generation) ... ok
+test_journal_order_does_not_change_matching_generation (__main__.OwnershipGeneration.test_journal_order_does_not_change_matching_generation) ... ok
+test_no_remembered_identity_still_requires_current_generation (__main__.OwnershipGeneration.test_no_remembered_identity_still_requires_current_generation) ... ok
+test_old_proxy_cannot_retire_reused_live_pid (__main__.OwnershipGeneration.test_old_proxy_cannot_retire_reused_live_pid) ... ok
+test_remembered_dead_generation_can_complete_cleanup (__main__.OwnershipGeneration.test_remembered_dead_generation_can_complete_cleanup) ... ok
+test_unowned_and_inaccessible_processes_are_refused (__main__.OwnershipGeneration.test_unowned_and_inaccessible_processes_are_refused) ... ok
+test_guard_refusal_precedes_numerical_import (__main__.RecoveryGuards.test_guard_refusal_precedes_numerical_import) ... ok
+test_invalid_continuation_stops_before_verification (__main__.RecoveryGuards.test_invalid_continuation_stops_before_verification) ... ok
+test_live_or_inaccessible_old_worker_refused (__main__.RecoveryGuards.test_live_or_inaccessible_old_worker_refused) ... ok
+test_memory_threshold_and_exact_boundary (__main__.RecoveryGuards.test_memory_threshold_and_exact_boundary) ... ok
+test_other_live_worker_blocks_duplicate_even_before_native_creation (__main__.RecoveryGuards.test_other_live_worker_blocks_duplicate_even_before_native_creation) ... ok
+test_owned_native_application_blocks_launch (__main__.RecoveryGuards.test_owned_native_application_blocks_launch) ... ok
+test_wrong_case_budget_or_authorization_is_refused (__main__.RecoveryGuards.test_wrong_case_budget_or_authorization_is_refused) ... ok
+
+======================================================================
+ERROR: test_committed_prefix_must_remain_at_original_path (__main__.EvidencePreservation.test_committed_prefix_must_remain_at_original_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\change-reports\weights_pid_reuse_recovery_20261024\test_recovery.py", line 123, in test_committed_prefix_must_remain_at_original_path
+    original.write_bytes(b'trace'); backup.write_bytes(b'trace')
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\pathlib\_abc.py", line 641, in write_bytes
+    with self.open(mode='wb') as f:
+         ~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\hamediaa\\AppData\\Local\\Packages\\sandbox.{3a8650e4-3ecd-48fe-ae85-012d3f834890}\\AC\\Temp\\tmpu582z22g\\trace.npz'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\shutil.py", line 631, in _rmtree_unsafe
+    os.rmdir(path)
+    ~~~~~~~~^^^^^^
+PermissionError: [WinError 5] Access is denied: 'C:\\Users\\hamediaa\\AppData\\Local\\Packages\\sandbox.{3a8650e4-3ecd-48fe-ae85-012d3f834890}\\AC\\Temp\\tmpu582z22g'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\change-reports\weights_pid_reuse_recovery_20261024\test_recovery.py", line 121, in test_committed_prefix_must_remain_at_original_path
+    with tempfile.TemporaryDirectory() as folder:
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 946, in __exit__
+    self.cleanup()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 950, in cleanup
+    self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 930, in _rmtree
+    _shutil.rmtree(name, onexc=onexc)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\shutil.py", line 790, in rmtree
+    return _rmtree_unsafe(path, onexc)
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\shutil.py", line 635, in _rmtree_unsafe
+    onexc(os.rmdir, path, err)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 902, in onexc
+    _resetperms(path)
+    ~~~~~~~~~~~^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 286, in _resetperms
+    _dont_follow_symlinks(_os.chmod, path, 0o700)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 275, in _dont_follow_symlinks
+    func(path, *args, follow_symlinks=False)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied: 'C:\\Users\\hamediaa\\AppData\\Local\\Packages\\sandbox.{3a8650e4-3ecd-48fe-ae85-012d3f834890}\\AC\\Temp\\tmpu582z22g'
+
+======================================================================
+ERROR: test_post_checkpoint_trace_must_exist_in_verified_replay_archive (__main__.EvidencePreservation.test_post_checkpoint_trace_must_exist_in_verified_replay_archive)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\change-reports\weights_pid_reuse_recovery_20261024\test_recovery.py", line 132, in test_post_checkpoint_trace_must_exist_in_verified_replay_archive
+    root=Path(folder); backup=root/'saved.npz'; backup.write_bytes(b'trace')
+                                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\pathlib\_abc.py", line 641, in write_bytes
+    with self.open(mode='wb') as f:
+         ~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\hamediaa\\AppData\\Local\\Packages\\sandbox.{3a8650e4-3ecd-48fe-ae85-012d3f834890}\\AC\\Temp\\tmp520ot3ft\\saved.npz'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\shutil.py", line 631, in _rmtree_unsafe
+    os.rmdir(path)
+    ~~~~~~~~^^^^^^
+PermissionError: [WinError 5] Access is denied: 'C:\\Users\\hamediaa\\AppData\\Local\\Packages\\sandbox.{3a8650e4-3ecd-48fe-ae85-012d3f834890}\\AC\\Temp\\tmp520ot3ft'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\RL_assisted_MPC\change-reports\weights_pid_reuse_recovery_20261024\test_recovery.py", line 131, in test_post_checkpoint_trace_must_exist_in_verified_replay_archive
+    with tempfile.TemporaryDirectory() as folder:
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 946, in __exit__
+    self.cleanup()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 950, in cleanup
+    self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 930, in _rmtree
+    _shutil.rmtree(name, onexc=onexc)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\shutil.py", line 790, in rmtree
+    return _rmtree_unsafe(path, onexc)
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\shutil.py", line 635, in _rmtree_unsafe
+    onexc(os.rmdir, path, err)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 902, in onexc
+    _resetperms(path)
+    ~~~~~~~~~~~^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 286, in _resetperms
+    _dont_follow_symlinks(_os.chmod, path, 0o700)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamediaa\AppData\Local\PythonEnvs\rl-assisted-env\Lib\tempfile.py", line 275, in _dont_follow_symlinks
+    func(path, *args, follow_symlinks=False)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied: 'C:\\Users\\hamediaa\\AppData\\Local\\Packages\\sandbox.{3a8650e4-3ecd-48fe-ae85-012d3f834890}\\AC\\Temp\\tmp520ot3ft'
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.061s
+
+FAILED (errors=2)

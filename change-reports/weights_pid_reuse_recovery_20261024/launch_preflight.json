@@ -1,0 +1,20 @@
+{
+  "at_utc": "2026-10-24T13:02:41.248273+00:00",
+  "source_seals_verified": 143,
+  "tests_passed": 17,
+  "full_state_and_all_67_traces_preserved": true,
+  "live_peer_categories": [
+    "residual",
+    "combined"
+  ],
+  "failed_markov_transition_preserved": true,
+  "owned_native_remaining": 0,
+  "memory": {
+    "committed_bytes": 113987948544,
+    "limit_bytes": 125538566144,
+    "headroom_bytes": 11550617600
+  },
+  "worker_guard_passed": true,
+  "numerical_imports": 0,
+  "simulator_calls": 0
+}

@@ -1,0 +1,13 @@
+{
+  "workers": {
+    "weights": {
+      "identity": {
+        "pid": 47172,
+        "created": 134373209624632740,
+        "alive": true
+      },
+      "acceptance": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\weights_pid_reuse_recovery_20261024\\acceptance.json",
+      "sha256": "4c55ab577ab3e2708b350eddabfb9a4424589f29d9af0cc4fa0a98f1a3eb90da"
+    }
+  }
+}

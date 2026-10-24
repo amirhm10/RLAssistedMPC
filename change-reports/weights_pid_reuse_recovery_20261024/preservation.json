@@ -1,0 +1,11 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-24T12:40:15.588241+00:00",
+  "backup": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\weights_pid_reuse_recovery_20261024",
+  "manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\weights_pid_reuse_recovery_20261024\\preservation.json",
+  "manifest_sha256": "6d227de6a5665392bc0dfee9ba16d29764f88554e965a0f1115178300d7a52c8",
+  "files": 259,
+  "bytes": 3375147820,
+  "completed_pairs": 67,
+  "post_checkpoint_pairs": 3
+}

@@ -87,9 +87,40 @@ def previous_evidence():
     base = json.loads((HERE / 'audit.json').read_text(encoding='utf-8'))
     traces = {trace['path'] for row in base['E1'] for trace in row['trace_files']}
     anchors = json.loads((HERE / 'reconciliation_inputs.json').read_text(encoding='utf-8'))
+    checked_generations = set()
     for path in sorted(HERE.glob('audit_*.json')):
         saved = json.loads(path.read_text(encoding='utf-8'))
-        traces.update(row['path'] for row in saved.get('new_trace_hashes', []))
+        checked = saved.get('new_trace_hashes', []) + saved.get('final_check', {}).get('new_trace_hashes', [])
+        traces.update(row['path'] for row in checked)
+        checked_generations.update((row['path'], row.get('recovery_acceptance_sha256')) for row in checked)
+    current = HERE / 'accepted_current_workers.json'
+    if current.exists():
+        overrides = stable_batch({'accepted_workers': current})['accepted_workers']['workers']
+        for category, item in overrides.items():
+            if category not in OUTPUTS:
+                raise RuntimeError('Unrecognized accepted worker category')
+            receipt = Path(item['acceptance']).resolve()
+            if not receipt.is_relative_to((ROOT / 'change-reports').resolve()) or digest(receipt) != item['sha256']:
+                raise RuntimeError('Accepted recovery receipt path/hash differs')
+            accepted = json.loads(receipt.read_text(encoding='utf-8'))
+            if (not accepted.get('passed') or accepted['category'] != category
+                    or Path(accepted['output']).resolve() != OUTPUTS[category].resolve()
+                    or accepted['production_identity'] != item['identity']
+                    or not accepted['all_143_source_hashes_verified']
+                    or not accepted['checkpoint_protocols_unchanged']
+                    or accepted['production_restore']['completed_steps'] != accepted['bounded_completed_steps']
+                    or not accepted['production_restore']['native_checksum_verified']
+                    or not accepted['production_restore']['python_checksum_verified']):
+                raise RuntimeError('Recovery baseline lacks verified full-state production acceptance')
+            next(row for row in base['E1'] if row['category'] == category)['identity'] = item['identity']
+            overrides[category] = dict(item, production_log=str(Path(accepted['recovery_manifest']).parent / 'logs/production.log'))
+            # A saved post-checkpoint suffix can be archived and replayed at
+            # the same primary filename. Hash that new generation once.
+            for archived in accepted.get('replay_archive', []):
+                active = str((OUTPUTS[category] / 'capture/traces' / Path(archived).name).resolve())
+                if (active, item['sha256']) not in checked_generations:
+                    traces.discard(active)
+        base['accepted_identity_baselines'] = overrides
     return base, traces, anchors['metadata']['horizon']['source_sha256']
 
 
@@ -129,7 +160,8 @@ def collect(sample_seconds):
                 with zipfile.ZipFile(path) as archive:
                     if archive.testzip() is not None:
                         raise RuntimeError('Trace CRC mismatch: ' + str(path))
-                new_traces.append(dict(category=name, path=str(path), bytes=size, sha256=digest(path)))
+                new_traces.append(dict(category=name, path=str(path), bytes=size, sha256=digest(path),
+                                  recovery_acceptance_sha256=baseline.get('accepted_identity_baselines', {}).get(name, {}).get('sha256')))
         for recorded in metadata[name + '/owned_aspen_apps.json']:
             actual = process_identity(recorded['pid'])
             if actual['alive'] is True and actual['created'] == recorded['created']:
@@ -137,6 +169,8 @@ def collect(sample_seconds):
         log = HORIZON / 'logs/production.log' if name == 'horizon' else ROOT / (
             'Distillation/Results/state_recovery/20261021_e1_budget20/logs/combined.log' if name == 'combined'
             else 'Distillation/Results/state_recovery/20261023_e1_native_process/logs/' + name + '.log')
+        if name in baseline.get('accepted_identity_baselines', {}):
+            log = Path(baseline['accepted_identity_baselines'][name]['production_log'])
         with open_read(log) as stream:
             stream.seek(max(0, attributes(log)['size'] - 16000))
             tail = stream.read().decode('utf-8', errors='replace')
@@ -199,6 +233,7 @@ def collect(sample_seconds):
                                             checkpoint_steps=[p['completed_steps'] for p in j.get('checkpoints', [])])
                                        for j in retention['jobs']]),
                   native_apps=native, logs=logs, sources_verified=len(sources), memory_before=memory_before,
+                  accepted_identity_baselines=baseline.get('accepted_identity_baselines', {}),
                   memory=memory(), free_disk_bytes=shutil.disk_usage(ROOT.anchor).free,
                   OneDrive_processes=onedrive, observations_needing_review=issues,
                   actions=dict(jobs_launched=0, jobs_stopped=0, process_signals=0,

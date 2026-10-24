@@ -1,0 +1,20 @@
+test_disk_reserve_boundary (__main__.ParallelContracts.test_disk_reserve_boundary) ... ok
+test_frozen_input_mutation_must_fail (__main__.ParallelContracts.test_frozen_input_mutation_must_fail) ... ok
+test_generation_requires_pid_creation_and_access (__main__.ParallelContracts.test_generation_requires_pid_creation_and_access) ... ok
+test_log_redirect_changes_only_path_and_restores_on_error (__main__.ParallelContracts.test_log_redirect_changes_only_path_and_restores_on_error) ... ok
+test_other_training_category_refuses (__main__.ParallelContracts.test_other_training_category_refuses) ... ok
+test_parallel_submits_both_before_waiting (__main__.ParallelContracts.test_parallel_submits_both_before_waiting) ... ok
+test_parent_generation_change_refuses (__main__.ParallelContracts.test_parent_generation_change_refuses) ... ok
+test_protected_training_change_refuses (__main__.ParallelContracts.test_protected_training_change_refuses) ... ok
+test_result_checksum_must_match (__main__.ParallelContracts.test_result_checksum_must_match) ... ok
+test_scientific_or_adapter_change_refuses (__main__.ParallelContracts.test_scientific_or_adapter_change_refuses) ... ok
+test_serial_benchmark_waits_between_sources (__main__.ParallelContracts.test_serial_benchmark_waits_between_sources) ... ok
+test_six_gib_boundary (__main__.ParallelContracts.test_six_gib_boundary) ... ok
+test_wrong_branch_identity_must_fail (__main__.ParallelContracts.test_wrong_branch_identity_must_fail) ... ok
+test_wrong_case_refuses_before_any_process_access (__main__.ParallelContracts.test_wrong_case_refuses_before_any_process_access) ... ok
+test_wrong_model_hash_refuses (__main__.ParallelContracts.test_wrong_model_hash_refuses) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.008s
+
+OK

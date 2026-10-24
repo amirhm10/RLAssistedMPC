@@ -1,0 +1,32 @@
+{
+  "at_utc": "2026-10-24T21:22:29.756107+00:00",
+  "remaining_pairs": 114,
+  "remaining_long_pairs": 14,
+  "main_training_hours": 11.260329199979752,
+  "serial_remaining_hours": 33.18624409210853,
+  "parallel_remaining_hours": 27.61123672359507,
+  "projected_gross_future_hours_saved": 5.575007368513461,
+  "observed_fixed_allowance_seconds_per_pair": 253.83714214656212,
+  "comparison_physics_coefficient": 0.9591613102662522,
+  "real_parent_decisions": [
+    {
+      "channel": "horizon",
+      "step": 82404,
+      "horizon": 200,
+      "total_seconds": 394.6508134000469
+    },
+    {
+      "channel": "residual",
+      "step": 82425,
+      "horizon": 200,
+      "total_seconds": 445.66940419981256
+    }
+  ],
+  "planning_range_hours": [
+    26,
+    32
+  ],
+  "basis": "Half the remaining branch steps, unchanged measured physics cost, worst real parent fixed overhead charged to every future pair",
+  "limitation": "Only two real 200-step channel decisions; longer and later-channel solver costs remain uncertain",
+  "case15_17_benchmark_speedup": 1.8759720020331756
+}

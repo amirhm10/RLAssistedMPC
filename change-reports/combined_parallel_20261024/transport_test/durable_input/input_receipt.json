@@ -1,0 +1,23 @@
+{
+  "at_utc": "2026-10-24T20:37:17.780454+00:00",
+  "channel": "weights",
+  "step": 80621,
+  "snapshot": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\transport_test\\durable_input\\frozen.pkl.gz",
+  "snapshot_sha256": "cc974130139a9437c9c656a97e49e09b2eda4c453974e51a0892ed1a88179d90",
+  "snapshot_bytes": 168474515,
+  "native_inputs": [
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\transport_test\\durable_input\\snapshot.snp",
+      "bytes": 6784592,
+      "sha256": "ea3e356657d9abccd8c9c6c3c1de9a2b3cf1e32c350f12af3c2f1559e97556e1"
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\transport_test\\durable_input\\C2S_SS_simulation16.dynf",
+      "bytes": 538144618,
+      "sha256": "3b26143e04a466f75fe5083829e865fe63d8d04200fe9d5cb5f3ae635cf10942"
+    }
+  ],
+  "elapsed_seconds": 7.186418900033459,
+  "all_inputs_retained": true,
+  "scientific_source_map_unchanged": true
+}

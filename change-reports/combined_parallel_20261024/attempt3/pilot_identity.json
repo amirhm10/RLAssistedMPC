@@ -1,0 +1,11 @@
+{
+  "identity": {
+    "pid": 27640,
+    "alive": true,
+    "created": 134373461940905119,
+    "cpu_seconds": 3.640625,
+    "private_bytes": 916111360,
+    "rss_bytes": 520220672
+  },
+  "at_utc": "2026-10-24T20:09:57.988405+00:00"
+}

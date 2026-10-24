@@ -1,0 +1,18 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-24T21:17:39.910735+00:00",
+  "checkpoint_steps": [
+    82400,
+    82000
+  ],
+  "before_manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\before_2026-10-24T205043_539323+0000\\preservation.json",
+  "before_manifest_sha256": "e289fa79e4ba1c57daaf91bfd96e878a1ceea8159de8cff80f373552b5c79c4b",
+  "before_files": 1190,
+  "before_bytes": 10338765073,
+  "released_working_manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\before_2026-10-24T205043_539323+0000\\retired_working\\preservation.json",
+  "released_working_manifest_sha256": "b651962428a6d5369bd65877930068ff8f2b237ac3cf702d3340f4cb135f4e78",
+  "released_working_files": 422,
+  "released_working_bytes": 1215350697,
+  "formerly_locked_files_verified": 5,
+  "all_originals_retained": true
+}

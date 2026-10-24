@@ -1,0 +1,32 @@
+{
+  "at_utc": "2026-10-24T21:29:24.505248+00:00",
+  "matched_pairs": 207,
+  "total_pairs": 527,
+  "remaining_pairs": 113,
+  "production_comparisons": [
+    {
+      "channel": "residual",
+      "step": 82425,
+      "parent_seconds": 445.66940419981256,
+      "paired_seconds": [
+        386.1277059998829
+      ],
+      "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_plant_change_0082425.npz",
+      "sha256": "4c0830bd2a73c878acfdfec923dbee205783e244e317e714f385938ab75d4be0",
+      "crc_verified": true,
+      "full_python_unchanged": true
+    },
+    {
+      "channel": "horizon",
+      "step": 82432,
+      "parent_seconds": 399.1869311002083,
+      "paired_seconds": [
+        387.8715723999776
+      ],
+      "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_plant_change_0082432.npz",
+      "sha256": "d74def8a216b6da7deddeffda6837277522e4c4c937e2f619b738dd89581d756",
+      "crc_verified": true,
+      "full_python_unchanged": true
+    }
+  ]
+}

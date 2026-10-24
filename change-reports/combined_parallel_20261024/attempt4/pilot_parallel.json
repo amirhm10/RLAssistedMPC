@@ -1,0 +1,410 @@
+{
+  "passed": true,
+  "at_utc": "2026-10-24T20:36:30.982157+00:00",
+  "result": {
+    "elapsed_seconds": 334.2445558998734,
+    "branches": {
+      "policy": {
+        "state": "completed",
+        "at_utc": "2026-10-24T20:36:15.235499+00:00",
+        "source": "policy",
+        "steps": 200,
+        "elapsed_seconds": 318.03011850011535,
+        "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\attempt4\\pilot_runtime\\case15\\result_c696e9630b0245e9973713dc15078e78\\trace.npz",
+        "trace_sha256": "7d3b1a9f1a7aba37e3179ffa43fe54bffeecfd57dc623f1ce4b2c801e2782951",
+        "result": {
+          "state": "completed",
+          "completed_steps": 200,
+          "controller_stdout": "Sub_Episode: 202 | avg. reward: 4.537247855178336 | Hp,Hc: (np.int64(10), np.int64(8)) | h sg src: policy=95,supervisor=5,warm=0,held=300,fallback=0 | avg z: [ 4.60957971e-05 -8.79050523e-03 -6.70640689e-03  7.35441208e-03] | m exec src: td3=292,sg_ls=23,sg_mpc=85,solver_fb=0,ls_fb=0,nom_fb=0 | m sg src: policy=292,supervisor=108,warm=0,held=0,fallback=0 | alpha: off | avg weights: [0.82417545 0.95818299 1.01386783 0.84061511] | w sg src: policy=326,supervisor=74,warm=0,held=0,fallback=0 | avg residual: [0.00360347 0.00343018] | r sg src: policy=225,supervisor=175,warm=0,held=0,fallback=0\n"
+        },
+        "native_restore": [
+          {
+            "before": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909128498761063,
+              0.0008067716866244152,
+              -31.223714853509975,
+              0.006606109007929385,
+              -30.661649878926593,
+              0.026782635249114457,
+              -28.44642152889816,
+              0.12371189137656058,
+              -24.13919496333881,
+              0.30897852641198675,
+              -22.851408821369805,
+              0.3532198010671198
+            ],
+            "primed": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909107701293728,
+              0.0008067713529070656,
+              -31.223695458829173,
+              0.0066060716260406,
+              -30.66164364593674,
+              0.02678208183186403,
+              -28.446566742642624,
+              0.12370622040375978,
+              -24.139258776520993,
+              0.3089764101401048,
+              -22.85133826373881,
+              0.35322173157280295
+            ],
+            "after": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909128498761063,
+              0.0008067716866244152,
+              -31.223714853509975,
+              0.006606109007929385,
+              -30.661649878926593,
+              0.026782635249114457,
+              -28.44642152889816,
+              0.12371189137656058,
+              -24.13919496333881,
+              0.30897852641198675,
+              -22.851408821369805,
+              0.3532198010671198
+            ],
+            "difference": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "priming_difference": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              2.0797467335853526e-05,
+              -3.3371734954427967e-10,
+              1.9394680801809727e-05,
+              -3.738188878495835e-08,
+              6.232989854026982e-06,
+              -5.534172504290114e-07,
+              -0.0001452137444637458,
+              -5.670972800797536e-06,
+              -6.381318218373622e-05,
+              -2.116271881957843e-06,
+              7.055763099472756e-05,
+              1.930505683145345e-06
+            ],
+            "full_variable_copy": true
+          }
+        ],
+        "frozen_state_before": "1d8634d19c292aad40069fb32cf865cd4ca4381b6a7137fdf857210f894d8f2b",
+        "frozen_state_after": "1d8634d19c292aad40069fb32cf865cd4ca4381b6a7137fdf857210f894d8f2b",
+        "snapshot_sha256": "0ae7455d6c243c164ee841809b6688821ba7e8ab475b818b69c56ffddf0673df",
+        "worker_identity": {
+          "pid": 16116,
+          "alive": true,
+          "created": 134373466249856830,
+          "cpu_seconds": 88.109375,
+          "private_bytes": 4350046208,
+          "rss_bytes": 2772557824
+        },
+        "native_identity": {
+          "pid": 4948,
+          "alive": true,
+          "created": 134373474736177419
+        }
+      },
+      "supervisor": {
+        "state": "completed",
+        "at_utc": "2026-10-24T20:36:30.884963+00:00",
+        "source": "supervisor",
+        "steps": 200,
+        "elapsed_seconds": 333.4699265998788,
+        "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\attempt4\\pilot_runtime\\case17\\result_44b0e873e8bf4aefb245474a9a73d1c0\\trace.npz",
+        "trace_sha256": "203db3353cad2f9767679304cb2fdf96fea74237979cc7b316d4761187718385",
+        "result": {
+          "state": "completed",
+          "completed_steps": 200,
+          "controller_stdout": "Sub_Episode: 202 | avg. reward: 4.568312344334978 | Hp,Hc: (np.int64(10), np.int64(8)) | h sg src: policy=95,supervisor=5,warm=0,held=300,fallback=0 | avg z: [ 0.0002198  -0.00850517 -0.00618725  0.00721964] | m exec src: td3=290,sg_ls=27,sg_mpc=83,solver_fb=0,ls_fb=0,nom_fb=0 | m sg src: policy=290,supervisor=110,warm=0,held=0,fallback=0 | alpha: off | avg weights: [0.82757533 0.95899405 1.00955011 0.8412972 ] | w sg src: policy=324,supervisor=76,warm=0,held=0,fallback=0 | avg residual: [0.00347734 0.00333525] | r sg src: policy=217,supervisor=183,warm=0,held=0,fallback=0\n"
+        },
+        "native_restore": [
+          {
+            "before": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909128498761063,
+              0.0008067716866244152,
+              -31.223714853509975,
+              0.006606109007929385,
+              -30.661649878926593,
+              0.026782635249114457,
+              -28.44642152889816,
+              0.12371189137656058,
+              -24.13919496333881,
+              0.30897852641198675,
+              -22.851408821369805,
+              0.3532198010671198
+            ],
+            "primed": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909107701293728,
+              0.0008067713529070656,
+              -31.223695458829173,
+              0.0066060716260406,
+              -30.66164364593674,
+              0.02678208183186403,
+              -28.446566742642624,
+              0.12370622040375978,
+              -24.139258776520993,
+              0.3089764101401048,
+              -22.85133826373881,
+              0.35322173157280295
+            ],
+            "after": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909128498761063,
+              0.0008067716866244152,
+              -31.223714853509975,
+              0.006606109007929385,
+              -30.661649878926593,
+              0.026782635249114457,
+              -28.44642152889816,
+              0.12371189137656058,
+              -24.13919496333881,
+              0.30897852641198675,
+              -22.851408821369805,
+              0.3532198010671198
+            ],
+            "difference": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "priming_difference": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              2.0797467335853526e-05,
+              -3.3371734954427967e-10,
+              1.9394680801809727e-05,
+              -3.738188878495835e-08,
+              6.232989854026982e-06,
+              -5.534172504290114e-07,
+              -0.0001452137444637458,
+              -5.670972800797536e-06,
+              -6.381318218373622e-05,
+              -2.116271881957843e-06,
+              7.055763099472756e-05,
+              1.930505683145345e-06
+            ],
+            "full_variable_copy": true
+          }
+        ],
+        "frozen_state_before": "1d8634d19c292aad40069fb32cf865cd4ca4381b6a7137fdf857210f894d8f2b",
+        "frozen_state_after": "1d8634d19c292aad40069fb32cf865cd4ca4381b6a7137fdf857210f894d8f2b",
+        "snapshot_sha256": "0ae7455d6c243c164ee841809b6688821ba7e8ab475b818b69c56ffddf0673df",
+        "worker_identity": {
+          "pid": 51972,
+          "alive": true,
+          "created": 134373466250742027,
+          "cpu_seconds": 89.28125,
+          "private_bytes": 4350222336,
+          "rss_bytes": 2769825792
+        },
+        "native_identity": {
+          "pid": 13584,
+          "alive": true,
+          "created": 134373474921350747
+        }
+      }
+    },
+    "parallel": true
+  },
+  "trace_checks": {
+    "policy": {
+      "Hc": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "Hp": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "current_Hc": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "current_Hp": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "existing_observer_yhat_next_scaled_deviation": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "markov_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "previous_input": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "reference": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "residual_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "reward": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "sol0_success": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "sol_success": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "u": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_executed_action_raw_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_mult": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "y": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "z_exec": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      }
+    },
+    "supervisor": {
+      "Hc": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "Hp": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "current_Hc": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "current_Hp": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "existing_observer_yhat_next_scaled_deviation": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "markov_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "previous_input": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "reference": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "residual_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "reward": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "sol0_success": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "sol_success": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "u": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_executed_action_raw_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_mult": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "y": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "z_exec": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+.F.........                                                              [100%]
+================================== FAILURES ===================================
+_______ test_replaced_source_cannot_be_certified_as_original_generation _______
+
+tmp_path = WindowsPath('C:/Users/hamediaa/OneDrive - McMaster University/PythonProjects/RL_assisted_MPC/change-reports/combined_parallel_20261024/pytest_final_guards/test_replaced_source_cannot_be0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000028C8B135810>
+
+    def test_replaced_source_cannot_be_certified_as_original_generation(tmp_path,monkeypatch):
+        from contextlib import contextmanager
+        @contextmanager
+        def replacing_snapshot(path,aliases):
+            with Path(path).open('rb') as stream:yield stream
+            Path(path).write_bytes(b'new-generation')
+        monkeypatch.setattr(preserve,'private_snapshot',replacing_snapshot)
+        source=tmp_path/'latest.json';source.write_bytes(b'old-generation')
+>       with pytest.raises(preserve.Deferred):preserve.copied_generation(source,tmp_path/'backup',attempts=1)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE Deferred
+
+change-reports\combined_parallel_20261024\test_preservation.py:29: Failed
+=========================== short test summary info ===========================
+FAILED change-reports/combined_parallel_20261024/test_preservation.py::test_replaced_source_cannot_be_certified_as_original_generation
+1 failed, 10 passed in 0.52s

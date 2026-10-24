@@ -1,0 +1,780 @@
+{
+  "passed": true,
+  "at_utc": "2026-10-24T21:20:38.355872+00:00",
+  "category": "combined",
+  "output": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+  "recovery_manifest": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\manifest.json",
+  "production_identity": {
+    "pid": 59504,
+    "alive": true,
+    "created": 134373496370785599
+  },
+  "initial_completed_steps": 82400,
+  "bounded_completed_steps": 82408,
+  "production_restore": {
+    "completed_steps": 82408,
+    "native_checksum_verified": true,
+    "python_checksum_verified": true,
+    "zero_time_initializations": [
+      {
+        "before": [
+          13774.694216000002,
+          150872.13507937797,
+          376149.2347717285,
+          128.84271681308746,
+          -31.147960583690914,
+          0.0010409575862789192,
+          -30.418135494886986,
+          0.007970557017634527,
+          -29.79385761503088,
+          0.031047900103015395,
+          -27.4531123951809,
+          0.13339955620778116,
+          -23.299886161664695,
+          0.3108763008007015,
+          -20.85075380354412,
+          0.4084480866290084
+        ],
+        "primed": [
+          13774.694216000002,
+          150872.13507937797,
+          376149.2347717285,
+          128.84271681308746,
+          -31.147956289280874,
+          0.0010409639938257261,
+          -30.418127419514803,
+          0.007970671458349397,
+          -29.79380828173153,
+          0.03104936122851492,
+          -27.452683237805907,
+          0.13341267323996048,
+          -23.2996932888812,
+          0.3108808567939621,
+          -20.851608479382072,
+          0.40842392918237025
+        ],
+        "after": [
+          13774.694216000002,
+          150872.13507937797,
+          376149.2347717285,
+          128.84271681308746,
+          -31.147960583690914,
+          0.0010409575862789192,
+          -30.418135494886986,
+          0.007970557017634527,
+          -29.79385761503088,
+          0.031047900103015395,
+          -27.4531123951809,
+          0.13339955620778116,
+          -23.299886161664695,
+          0.3108763008007015,
+          -20.85075380354412,
+          0.4084480866290084
+        ],
+        "difference": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "priming_difference": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          4.294410040017738e-06,
+          6.407546806943415e-09,
+          8.075372182503315e-06,
+          1.1444071486982343e-07,
+          4.933329935141728e-05,
+          1.4611254995251788e-06,
+          0.0004291573749917177,
+          1.3117032179321697e-05,
+          0.00019287278349366943,
+          4.555993260602076e-06,
+          -0.0008546758379530672,
+          -2.4157446638140012e-05
+        ],
+        "full_variable_copy": true
+      }
+    ],
+    "agents": {
+      "active_agent": {
+        "train_steps": 78408,
+        "replay_size": 40000
+      },
+      "weight_agent": {
+        "train_steps": 78408,
+        "replay_size": 40000
+      },
+      "horizon_agent": {
+        "train_steps": 78408,
+        "replay_size": 40000
+      },
+      "markov_agent": {
+        "train_steps": 78407,
+        "replay_size": 40000
+      }
+    },
+    "full_python_state_sha256": "4f50ebada6ef27d2db1ab825929caee9a96c48f9e6ac175fa9188ea09bf87e5f"
+  },
+  "full_python_restore": {
+    "event": "full_python_restore_verified",
+    "before": "4f50ebada6ef27d2db1ab825929caee9a96c48f9e6ac175fa9188ea09bf87e5f",
+    "after": "4f50ebada6ef27d2db1ab825929caee9a96c48f9e6ac175fa9188ea09bf87e5f",
+    "completed_steps": 82408
+  },
+  "initial_agents": {
+    "active_agent": {
+      "train_steps": 78400,
+      "replay_size": 40000
+    },
+    "weight_agent": {
+      "train_steps": 78400,
+      "replay_size": 40000
+    },
+    "horizon_agent": {
+      "train_steps": 78400,
+      "replay_size": 40000
+    },
+    "markov_agent": {
+      "train_steps": 78399,
+      "replay_size": 40000
+    }
+  },
+  "bounded_agents": {
+    "active_agent": {
+      "train_steps": 78408,
+      "replay_size": 40000
+    },
+    "weight_agent": {
+      "train_steps": 78408,
+      "replay_size": 40000
+    },
+    "horizon_agent": {
+      "train_steps": 78408,
+      "replay_size": 40000
+    },
+    "markov_agent": {
+      "train_steps": 78407,
+      "replay_size": 40000
+    }
+  },
+  "checkpoint_protocols_unchanged": true,
+  "all_143_source_hashes_verified": true,
+  "tests_passed": 42,
+  "parallel_branches": [
+    {
+      "case": 15,
+      "identity": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962
+      },
+      "journal": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\owned_aspen_apps.json"
+    },
+    {
+      "case": 17,
+      "identity": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459
+      },
+      "journal": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\owned_aspen_apps.json"
+    }
+  ],
+  "first_parallel_primary": {
+    "at_utc": "2026-10-24T21:20:09.995573+00:00",
+    "channel": "residual",
+    "step": 82425,
+    "steps": 200,
+    "elapsed_seconds": 445.66940419981256,
+    "input_receipt": {
+      "at_utc": "2026-10-24T21:12:54.142986+00:00",
+      "channel": "residual",
+      "step": 82425,
+      "snapshot": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\frozen_decisions\\residual_82425_0d332ed4\\frozen.pkl.gz",
+      "snapshot_sha256": "c990cf8c5fd3e3741887b6b336443bd09c0a1bbd4a79cd07fdb00225c2e3d817",
+      "snapshot_bytes": 170398429,
+      "native_inputs": [
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\frozen_decisions\\residual_82425_0d332ed4\\snapshot.snp",
+          "bytes": 6784592,
+          "sha256": "94afe390e3a969df745b53483eff32100d35653f90ee2f6012dc542561e38c67"
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\frozen_decisions\\residual_82425_0d332ed4\\C2S_SS_simulation16.dynf",
+          "bytes": 599713344,
+          "sha256": "7fb6990cce0defb623c1cc59c994a7bd17ae599ba0d1151d18f1af467766a6c8"
+        }
+      ],
+      "elapsed_seconds": 9.676779299974442,
+      "all_inputs_retained": true,
+      "scientific_source_map_unchanged": true
+    },
+    "full_python_state_before": "422ae7d23c6ad238052643902b881606496405dd43d6f8f31a019e9b9a075a43",
+    "full_python_state_after": "422ae7d23c6ad238052643902b881606496405dd43d6f8f31a019e9b9a075a43",
+    "source_map_unchanged": true,
+    "consumed_sources": {
+      "policy": 1,
+      "supervisor": 1
+    },
+    "batches": {
+      "0": {
+        "elapsed_seconds": 386.1277059998829,
+        "branches": {
+          "policy": {
+            "state": "completed",
+            "at_utc": "2026-10-24T21:19:49.085055+00:00",
+            "source": "policy",
+            "steps": 200,
+            "elapsed_seconds": 365.8828094000928,
+            "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\result_0a7811ee93884e738f9e670b8500cef1\\trace.npz",
+            "trace_sha256": "fd923a9cd719306408e010f5cbf942330517722feff1f8c3137d911703a4692e",
+            "result": {
+              "state": "completed",
+              "completed_steps": 200,
+              "controller_stdout": ""
+            },
+            "native_restore": [
+              {
+                "before": [
+                  13777.527555000002,
+                  150872.91796931636,
+                  389067.84534454346,
+                  133.32306623458862,
+                  -31.39330528313076,
+                  0.0005122430508238948,
+                  -30.69391107618866,
+                  0.0042501788434876646,
+                  -30.2487119573058,
+                  0.01832448977722258,
+                  -28.42520342885765,
+                  0.09653719094047354,
+                  -23.77111362965754,
+                  0.29795321292089627,
+                  -20.729719304614132,
+                  0.42261014326070695
+                ],
+                "primed": [
+                  13777.527555000002,
+                  150872.91796931636,
+                  389067.84534454346,
+                  133.32306623458862,
+                  -31.39335321380037,
+                  0.0005122435271477547,
+                  -30.693957730911293,
+                  0.004250202803063545,
+                  -30.248746479429087,
+                  0.018324923797095896,
+                  -28.425021857948842,
+                  0.09654457077008144,
+                  -23.770974199396676,
+                  0.2979579675321609,
+                  -20.729600378731117,
+                  0.4226135108758642
+                ],
+                "after": [
+                  13777.527555000002,
+                  150872.91796931636,
+                  389067.84534454346,
+                  133.32306623458862,
+                  -31.39330528313076,
+                  0.0005122430508238948,
+                  -30.69391107618866,
+                  0.0042501788434876646,
+                  -30.2487119573058,
+                  0.01832448977722258,
+                  -28.42520342885765,
+                  0.09653719094047354,
+                  -23.77111362965754,
+                  0.29795321292089627,
+                  -20.729719304614132,
+                  0.42261014326070695
+                ],
+                "difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "priming_difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  -4.793066960928627e-05,
+                  4.763238599121006e-10,
+                  -4.665472263454262e-05,
+                  2.395957588059716e-08,
+                  -3.452212328625137e-05,
+                  4.340198733153444e-07,
+                  0.00018157090880777105,
+                  7.37982960789807e-06,
+                  0.0001394302608623832,
+                  4.754611264645714e-06,
+                  0.00011892588301520846,
+                  3.3676151572348267e-06
+                ],
+                "full_variable_copy": true
+              }
+            ],
+            "frozen_state_before": "e7d4de7d5b5c1261322246ea695885ee5b4d3477062aaee477c355416ca18a57",
+            "frozen_state_after": "e7d4de7d5b5c1261322246ea695885ee5b4d3477062aaee477c355416ca18a57",
+            "snapshot_sha256": "c990cf8c5fd3e3741887b6b336443bd09c0a1bbd4a79cd07fdb00225c2e3d817",
+            "worker_identity": {
+              "pid": 38188,
+              "alive": true,
+              "created": 134373499744270962,
+              "cpu_seconds": 51.296875,
+              "private_bytes": 4116226048,
+              "rss_bytes": 1255272448
+            },
+            "native_identity": {
+              "pid": 35892,
+              "alive": true,
+              "created": 134373500371945904
+            }
+          },
+          "supervisor": {
+            "state": "completed",
+            "at_utc": "2026-10-24T21:20:06.416650+00:00",
+            "source": "supervisor",
+            "steps": 200,
+            "elapsed_seconds": 383.0523161999881,
+            "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\result_74e0d59fd44547068ce0b1a6773b8615\\trace.npz",
+            "trace_sha256": "6e0af9256f698a10b6beaf5bd560a888ce0251626ad248613aad9ba36fda21b8",
+            "result": {
+              "state": "completed",
+              "completed_steps": 200,
+              "controller_stdout": ""
+            },
+            "native_restore": [
+              {
+                "before": [
+                  13777.527555000002,
+                  150872.91796931636,
+                  389067.84534454346,
+                  133.32306623458862,
+                  -31.39330528313076,
+                  0.0005122430508238948,
+                  -30.69391107618866,
+                  0.0042501788434876646,
+                  -30.2487119573058,
+                  0.01832448977722258,
+                  -28.42520342885765,
+                  0.09653719094047354,
+                  -23.77111362965754,
+                  0.29795321292089627,
+                  -20.729719304614132,
+                  0.42261014326070695
+                ],
+                "primed": [
+                  13777.527555000002,
+                  150872.91796931636,
+                  389067.84534454346,
+                  133.32306623458862,
+                  -31.39335321380037,
+                  0.0005122435271477547,
+                  -30.693957730911293,
+                  0.004250202803063545,
+                  -30.248746479429087,
+                  0.018324923797095896,
+                  -28.425021857948842,
+                  0.09654457077008144,
+                  -23.770974199396676,
+                  0.2979579675321609,
+                  -20.729600378731117,
+                  0.4226135108758642
+                ],
+                "after": [
+                  13777.527555000002,
+                  150872.91796931636,
+                  389067.84534454346,
+                  133.32306623458862,
+                  -31.39330528313076,
+                  0.0005122430508238948,
+                  -30.69391107618866,
+                  0.0042501788434876646,
+                  -30.2487119573058,
+                  0.01832448977722258,
+                  -28.42520342885765,
+                  0.09653719094047354,
+                  -23.77111362965754,
+                  0.29795321292089627,
+                  -20.729719304614132,
+                  0.42261014326070695
+                ],
+                "difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "priming_difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  -4.793066960928627e-05,
+                  4.763238599121006e-10,
+                  -4.665472263454262e-05,
+                  2.395957588059716e-08,
+                  -3.452212328625137e-05,
+                  4.340198733153444e-07,
+                  0.00018157090880777105,
+                  7.37982960789807e-06,
+                  0.0001394302608623832,
+                  4.754611264645714e-06,
+                  0.00011892588301520846,
+                  3.3676151572348267e-06
+                ],
+                "full_variable_copy": true
+              }
+            ],
+            "frozen_state_before": "e7d4de7d5b5c1261322246ea695885ee5b4d3477062aaee477c355416ca18a57",
+            "frozen_state_after": "e7d4de7d5b5c1261322246ea695885ee5b4d3477062aaee477c355416ca18a57",
+            "snapshot_sha256": "c990cf8c5fd3e3741887b6b336443bd09c0a1bbd4a79cd07fdb00225c2e3d817",
+            "worker_identity": {
+              "pid": 46276,
+              "alive": true,
+              "created": 134373499745265459,
+              "cpu_seconds": 52.640625,
+              "private_bytes": 4117716992,
+              "rss_bytes": 1300516864
+            },
+            "native_identity": {
+              "pid": 53948,
+              "alive": true,
+              "created": 134373500554241313
+            }
+          }
+        },
+        "parallel": true
+      }
+    },
+    "primary_result": {
+      "schema": 1,
+      "seed": 7,
+      "category": "combined",
+      "channel": "residual",
+      "context": "combined",
+      "window": "plant_change",
+      "step": 82425,
+      "episode": 207,
+      "gate_source_line": 1762,
+      "observation": [
+        0.1613493710756302,
+        0.29823219776153564,
+        0.5296688079833984,
+        0.31014060974121094,
+        -0.10382355004549026,
+        -0.6776680946350098,
+        -0.25785794854164124,
+        -0.5416666865348816,
+        -2.220446049250313e-16,
+        0.11334806680679321,
+        0.33292263746261597,
+        0.5254505276679993,
+        0.47960588335990906,
+        1.713950276374817,
+        1.665850281715393
+      ],
+      "previous_action": [
+        0.0,
+        0.0
+      ],
+      "initial_tracking_error_physical": [
+        0.00532448977722258,
+        0.27028069538586763
+      ],
+      "gate": {
+        "action": [
+          0.0,
+          0.0
+        ],
+        "policy_action": [
+          1.0,
+          -0.9993194341659546
+        ],
+        "supervisor_action": [
+          0.0,
+          0.0
+        ],
+        "selected_source": 1,
+        "score_policy": 917.4036106928443,
+        "score_supervisor": 957.5359191894531,
+        "advantage_policy_supervisor": -40.13230849660886,
+        "q1_policy": 963.7162475585938,
+        "q2_policy": 1056.1016845703125,
+        "q1_supervisor": 961.0280151367188,
+        "q2_supervisor": 968.01220703125,
+        "q_gap_policy": 92.38543701171875,
+        "q_gap_supervisor": 6.98419189453125
+      },
+      "gate_config": {
+        "score_uncertainty_weight": 0.5,
+        "score_previous_action_weight": 0.01,
+        "score_supervisor_action_weight": 0.05,
+        "advantage_margin": 0.5,
+        "default_to_supervisor": true,
+        "actor_q_mode": "mean",
+        "supervisor_bc_weight": 0.0,
+        "supervisor_bc_temperature": 1.0,
+        "smooth_action_weight": 0.0,
+        "detach_supervisor_weight": true,
+        "enable_supervisor_actor_loss": false,
+        "min_train_steps_before_policy_gate": 0
+      },
+      "critic_train_steps_at_decision": 78425,
+      "support": {
+        "buffer_size": 40000,
+        "sample_size": 4096,
+        "state_nearest_rms_standardized": 0.604463259426516,
+        "state_mean": [
+          0.04590920783107322,
+          0.16460334613932903,
+          0.3913782487506978,
+          0.18708950340148078,
+          0.03704231685907189,
+          -0.5833330095556448,
+          -0.2238291561459036,
+          -0.22168986845099425,
+          -0.19638672167639015,
+          -0.05807329244998982,
+          0.21955463440407375,
+          0.0010002296302464297,
+          -0.002630816524500701,
+          0.0007357004977497361,
+          0.01565885395575256
+        ],
+        "state_scale": [
+          0.11218128929970032,
+          0.14055237253006808,
+          0.18826616729296577,
+          0.1800212899001462,
+          0.14937687781686293,
+          0.14885073186131637,
+          0.15283465065864565,
+          0.31241055414850316,
+          0.19996736081249236,
+          0.16364903553762927,
+          0.17308114690936977,
+          0.15298504972204754,
+          0.24212551108646843,
+          0.46934630097681823,
+          0.6994535212987811
+        ],
+        "normalization": "state standard deviations from decision-time replay; actions in normalized coordinates",
+        "policy_joint_nearest": 0.9972553202337312,
+        "supervisor_joint_nearest": 0.7358908737047835,
+        "sample_source_counts": {
+          "1": 2275,
+          "2": 1821
+        }
+      },
+      "gamma_per_control_step": 0.99,
+      "rollout_steps": 200,
+      "continuation": "gated",
+      "branches": {
+        "policy": {
+          "state": "completed",
+          "completed_steps": 200,
+          "controller_stdout": ""
+        },
+        "supervisor": {
+          "state": "completed",
+          "completed_steps": 200,
+          "controller_stdout": ""
+        }
+      },
+      "metrics": {
+        "20": {
+          "policy": {
+            "return": -106.0059986066023,
+            "rmse_physical": [
+              0.0018333910763839196,
+              0.17105931975328867
+            ],
+            "max_abs_error_physical": [
+              0.003671302411802989,
+              0.36113416628407435
+            ],
+            "sum_abs_input_movement_physical": [
+              15247.645378112793,
+              9.503901600837708
+            ],
+            "solver_failure_steps": 0
+          },
+          "supervisor": {
+            "return": -187.0103723251251,
+            "rmse_physical": [
+              0.002211203497044892,
+              0.28998835942445367
+            ],
+            "max_abs_error_physical": [
+              0.004692973728750056,
+              0.5289437167615318
+            ],
+            "sum_abs_input_movement_physical": [
+              13480.753898620605,
+              9.158561825752258
+            ],
+            "solver_failure_steps": 0
+          },
+          "delta_return": 81.0043737185228,
+          "selected": "supervisor",
+          "regret": 81.0043737185228
+        },
+        "80": {
+          "policy": {
+            "return": 179.59260815806857,
+            "rmse_physical": [
+              0.0009453206146233699,
+              0.10700558982930827
+            ],
+            "max_abs_error_physical": [
+              0.003671302411802989,
+              0.36113416628407435
+            ],
+            "sum_abs_input_movement_physical": [
+              28461.70425415039,
+              16.40229642391205
+            ],
+            "solver_failure_steps": 0
+          },
+          "supervisor": {
+            "return": 278.4011506849739,
+            "rmse_physical": [
+              0.0011147459727477767,
+              0.1472578753638177
+            ],
+            "max_abs_error_physical": [
+              0.004692973728750056,
+              0.5289437167615318
+            ],
+            "sum_abs_input_movement_physical": [
+              18549.013137817383,
+              11.947628259658813
+            ],
+            "solver_failure_steps": 0
+          },
+          "delta_return": -98.80854252690534,
+          "selected": "supervisor",
+          "regret": 0.0
+        },
+        "200": {
+          "policy": {
+            "return": 414.1037494416677,
+            "rmse_physical": [
+              0.002952119139269486,
+              0.1651903038589914
+            ],
+            "max_abs_error_physical": [
+              0.016335423664421988,
+              1.0264059989727379
+            ],
+            "sum_abs_input_movement_physical": [
+              70120.80669403076,
+              34.06448721885681
+            ],
+            "solver_failure_steps": 0
+          },
+          "supervisor": {
+            "return": 479.0885632787623,
+            "rmse_physical": [
+              0.0029424135384269693,
+              0.1943641787737225
+            ],
+            "max_abs_error_physical": [
+              0.016529118018005738,
+              0.9687545986619135
+            ],
+            "sum_abs_input_movement_physical": [
+              61934.90743637085,
+              29.29009258747101
+            ],
+            "solver_failure_steps": 0
+          },
+          "delta_return": -64.98481383709463,
+          "selected": "supervisor",
+          "regret": 0.0
+        }
+      },
+      "trace": "traces\\residual_plant_change_0082425.npz",
+      "prediction_validation": {},
+      "snapshot": null,
+      "status": "completed",
+      "smoke": false,
+      "budget_protocol_id": "column-e1-20-clock-strata-v1",
+      "budget_protocol_sha256": "089b5c6a7df66af5c319563b3f1110a7dfe078a93f74f706a0152be31f9c59ab",
+      "sampling_stratum": "early"
+    }
+  },
+  "primary_trace_sha256": "4c0830bd2a73c878acfdfec923dbee205783e244e317e714f385938ab75d4be0",
+  "matched_pairs": 206,
+  "remaining_pairs": 114,
+  "replay_archive": [],
+  "all_prior_results_and_recovery_data_preserved": true,
+  "retention_identity": {
+    "pid": 58264,
+    "created": 134372665192525684,
+    "alive": true
+  },
+  "pilot_acceptance": {
+    "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\attempt4\\pilot_acceptance.json",
+    "sha256": "6e85a99fce73f9de26c08477e40225aa2a9906fe89f601c391ede0e0cf4bd0e0"
+  },
+  "transport_acceptance": {
+    "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\transport_acceptance.json",
+    "sha256": "83078b95d4bdc1a2af6928bf18322d90efae33d50431fbca0b409956caadaf25"
+  },
+  "measured_speedup": 1.8759720020331756,
+  "production_parallel_timing": 445.66940419981256,
+  "memory": {
+    "committed_bytes": 44902924288,
+    "limit_bytes": 97452056576,
+    "headroom_bytes": 52549132288
+  },
+  "free_disk_bytes": 326002495488,
+  "scientific_source_edits": 0,
+  "shared_queue_plan_edits": 0,
+  "authorized_healthy_combined_checkpoint_restarts": 1,
+  "other_healthy_workers_interrupted": 0
+}

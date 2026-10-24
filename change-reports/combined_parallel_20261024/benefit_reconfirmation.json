@@ -1,0 +1,45 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-24T21:24:54.766678+00:00",
+  "measured_original_trace_fidelity_passed": true,
+  "measured_comparison_speedup": 1.8759720020331756,
+  "real_parent_eta": {
+    "at_utc": "2026-10-24T21:22:29.756107+00:00",
+    "remaining_pairs": 114,
+    "remaining_long_pairs": 14,
+    "main_training_hours": 11.260329199979752,
+    "serial_remaining_hours": 33.18624409210853,
+    "parallel_remaining_hours": 27.61123672359507,
+    "projected_gross_future_hours_saved": 5.575007368513461,
+    "observed_fixed_allowance_seconds_per_pair": 253.83714214656212,
+    "comparison_physics_coefficient": 0.9591613102662522,
+    "real_parent_decisions": [
+      {
+        "channel": "horizon",
+        "step": 82404,
+        "horizon": 200,
+        "total_seconds": 394.6508134000469
+      },
+      {
+        "channel": "residual",
+        "step": 82425,
+        "horizon": 200,
+        "total_seconds": 445.66940419981256
+      }
+    ],
+    "planning_range_hours": [
+      26,
+      32
+    ],
+    "basis": "Half the remaining branch steps, unchanged measured physics cost, worst real parent fixed overhead charged to every future pair",
+    "limitation": "Only two real 200-step channel decisions; longer and later-channel solver costs remain uncertain",
+    "case15_17_benchmark_speedup": 1.8759720020331756
+  },
+  "development_and_tests_before_retirement_hours": 1.0053655011111111,
+  "actual_retirement_to_acceptance_hours": 0.4736222411111111,
+  "conservatively_charged_restart_validation_hours": 1.0,
+  "future_archive_processing_allowance_hours": 0.26843575566774236,
+  "conservative_net_saved_hours": 3.3012061117346074,
+  "sufficient_saving_reconfirmed": true,
+  "note": "Actual two-channel parent timings; full one-hour restart allowance retained even though accepted restart took less; all archive CPU time charged serially"
+}

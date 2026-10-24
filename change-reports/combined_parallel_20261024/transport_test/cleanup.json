@@ -1,0 +1,12 @@
+{
+  "at_utc": "2026-10-24T20:40:54.962782+00:00",
+  "all_owned_worker_processes_retired": true,
+  "protected_combined": {
+    "pid": 15940,
+    "alive": true,
+    "created": 134373287822018420,
+    "cpu_seconds": 2882.71875,
+    "private_bytes": 5168726016,
+    "rss_bytes": 1659654144
+  }
+}

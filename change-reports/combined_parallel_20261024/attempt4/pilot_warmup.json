@@ -1,0 +1,410 @@
+{
+  "passed": true,
+  "at_utc": "2026-10-24T20:20:29.689777+00:00",
+  "result": {
+    "elapsed_seconds": 156.5632718000561,
+    "branches": {
+      "policy": {
+        "state": "completed",
+        "at_utc": "2026-10-24T20:20:09.918458+00:00",
+        "source": "policy",
+        "steps": 20,
+        "elapsed_seconds": 136.44712270004675,
+        "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\attempt4\\pilot_runtime\\case15\\result_ae77566eee8a442e9f6ae796469e9793\\trace.npz",
+        "trace_sha256": "53a222829e1fd948be8e1de8528a6a85250eae13036f7f04c2e3551f0de13834",
+        "result": {
+          "state": "completed",
+          "completed_steps": 20,
+          "controller_stdout": ""
+        },
+        "native_restore": [
+          {
+            "before": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909128498761063,
+              0.0008067716866244152,
+              -31.223714853509975,
+              0.006606109007929385,
+              -30.661649878926593,
+              0.026782635249114457,
+              -28.44642152889816,
+              0.12371189137656058,
+              -24.13919496333881,
+              0.30897852641198675,
+              -22.851408821369805,
+              0.3532198010671198
+            ],
+            "primed": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909107701293728,
+              0.0008067713529070656,
+              -31.223695458829173,
+              0.0066060716260406,
+              -30.66164364593674,
+              0.02678208183186403,
+              -28.446566742642624,
+              0.12370622040375978,
+              -24.139258776520993,
+              0.3089764101401048,
+              -22.85133826373881,
+              0.35322173157280295
+            ],
+            "after": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909128498761063,
+              0.0008067716866244152,
+              -31.223714853509975,
+              0.006606109007929385,
+              -30.661649878926593,
+              0.026782635249114457,
+              -28.44642152889816,
+              0.12371189137656058,
+              -24.13919496333881,
+              0.30897852641198675,
+              -22.851408821369805,
+              0.3532198010671198
+            ],
+            "difference": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "priming_difference": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              2.0797467335853526e-05,
+              -3.3371734954427967e-10,
+              1.9394680801809727e-05,
+              -3.738188878495835e-08,
+              6.232989854026982e-06,
+              -5.534172504290114e-07,
+              -0.0001452137444637458,
+              -5.670972800797536e-06,
+              -6.381318218373622e-05,
+              -2.116271881957843e-06,
+              7.055763099472756e-05,
+              1.930505683145345e-06
+            ],
+            "full_variable_copy": true
+          }
+        ],
+        "frozen_state_before": "1d8634d19c292aad40069fb32cf865cd4ca4381b6a7137fdf857210f894d8f2b",
+        "frozen_state_after": "1d8634d19c292aad40069fb32cf865cd4ca4381b6a7137fdf857210f894d8f2b",
+        "snapshot_sha256": "0ae7455d6c243c164ee841809b6688821ba7e8ab475b818b69c56ffddf0673df",
+        "worker_identity": {
+          "pid": 16116,
+          "alive": true,
+          "created": 134373466249856830,
+          "cpu_seconds": 18.59375,
+          "private_bytes": 4108533760,
+          "rss_bytes": 2736275456
+        },
+        "native_identity": {
+          "pid": 29568,
+          "alive": true,
+          "created": 134373466860870361
+        }
+      },
+      "supervisor": {
+        "state": "completed",
+        "at_utc": "2026-10-24T20:20:29.325506+00:00",
+        "source": "supervisor",
+        "steps": 20,
+        "elapsed_seconds": 155.62318739993498,
+        "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\attempt4\\pilot_runtime\\case17\\result_1f491ee59a7b4f789f599ce4f0b190c5\\trace.npz",
+        "trace_sha256": "978c785a4d918d8d5a95c54855f9a53237eee335107f401d53358b424da5a443",
+        "result": {
+          "state": "completed",
+          "completed_steps": 20,
+          "controller_stdout": ""
+        },
+        "native_restore": [
+          {
+            "before": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909128498761063,
+              0.0008067716866244152,
+              -31.223714853509975,
+              0.006606109007929385,
+              -30.661649878926593,
+              0.026782635249114457,
+              -28.44642152889816,
+              0.12371189137656058,
+              -24.13919496333881,
+              0.30897852641198675,
+              -22.851408821369805,
+              0.3532198010671198
+            ],
+            "primed": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909107701293728,
+              0.0008067713529070656,
+              -31.223695458829173,
+              0.0066060716260406,
+              -30.66164364593674,
+              0.02678208183186403,
+              -28.446566742642624,
+              0.12370622040375978,
+              -24.139258776520993,
+              0.3089764101401048,
+              -22.85133826373881,
+              0.35322173157280295
+            ],
+            "after": [
+              13476.860287000001,
+              150789.83953114907,
+              358883.8315010071,
+              123.34059774875641,
+              -31.909128498761063,
+              0.0008067716866244152,
+              -31.223714853509975,
+              0.006606109007929385,
+              -30.661649878926593,
+              0.026782635249114457,
+              -28.44642152889816,
+              0.12371189137656058,
+              -24.13919496333881,
+              0.30897852641198675,
+              -22.851408821369805,
+              0.3532198010671198
+            ],
+            "difference": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "priming_difference": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              2.0797467335853526e-05,
+              -3.3371734954427967e-10,
+              1.9394680801809727e-05,
+              -3.738188878495835e-08,
+              6.232989854026982e-06,
+              -5.534172504290114e-07,
+              -0.0001452137444637458,
+              -5.670972800797536e-06,
+              -6.381318218373622e-05,
+              -2.116271881957843e-06,
+              7.055763099472756e-05,
+              1.930505683145345e-06
+            ],
+            "full_variable_copy": true
+          }
+        ],
+        "frozen_state_before": "1d8634d19c292aad40069fb32cf865cd4ca4381b6a7137fdf857210f894d8f2b",
+        "frozen_state_after": "1d8634d19c292aad40069fb32cf865cd4ca4381b6a7137fdf857210f894d8f2b",
+        "snapshot_sha256": "0ae7455d6c243c164ee841809b6688821ba7e8ab475b818b69c56ffddf0673df",
+        "worker_identity": {
+          "pid": 51972,
+          "alive": true,
+          "created": 134373466250742027,
+          "cpu_seconds": 18.75,
+          "private_bytes": 4112728064,
+          "rss_bytes": 2736926720
+        },
+        "native_identity": {
+          "pid": 3384,
+          "alive": true,
+          "created": 134373467043286171
+        }
+      }
+    },
+    "parallel": true
+  },
+  "trace_checks": {
+    "policy": {
+      "Hc": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "Hp": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "current_Hc": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "current_Hp": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "existing_observer_yhat_next_scaled_deviation": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "markov_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "previous_input": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "reference": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "residual_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "reward": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "sol0_success": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "sol_success": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "u": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_executed_action_raw_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_mult": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "y": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "z_exec": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      }
+    },
+    "supervisor": {
+      "Hc": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "Hp": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "current_Hc": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "current_Hp": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "existing_observer_yhat_next_scaled_deviation": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "markov_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "previous_input": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "reference": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "residual_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "reward": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "sol0_success": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "sol_success": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "u": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_executed_action_raw_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_mult": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "weight_sg_selected_source_log": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "y": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      },
+      "z_exec": {
+        "max_abs_difference": 0.0,
+        "passed": true
+      }
+    }
+  }
+}

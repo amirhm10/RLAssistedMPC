@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "at_utc": "2026-10-24T20:36:30.985278+00:00",
+  "all_trace_fidelity_checks_passed": true,
+  "exact_original_fidelity_bounds_preserved": true,
+  "comparison_speedup": 1.8759720020331756,
+  "serial_seconds": 627.0334287001751,
+  "parallel_seconds": 334.2445558998734,
+  "gross_projected_saved_hours": 11.23879341200293,
+  "transport_allowance_hours": 2.1333333333333333,
+  "pilot_elapsed_hours": 0.3239217676666643,
+  "additional_restart_validation_allowance_hours": 1.0,
+  "conservative_projected_net_saved_hours": 7.781538311002933,
+  "enough_time_saved": true,
+  "active_combined_interrupted": false,
+  "primary_results_changed": false,
+  "original_serial_eta_hours": 35.58183919090428,
+  "limitation": "One complete 200-step decision pair; extra long/other-channel tests may be required before migration."
+}

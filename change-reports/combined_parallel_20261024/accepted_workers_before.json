@@ -1,0 +1,40 @@
+{
+  "workers": {
+    "weights": {
+      "identity": {
+        "pid": 47172,
+        "created": 134373209624632740,
+        "alive": true
+      },
+      "acceptance": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\weights_pid_reuse_recovery_20261024\\acceptance.json",
+      "sha256": "4c55ab577ab3e2708b350eddabfb9a4424589f29d9af0cc4fa0a98f1a3eb90da"
+    },
+    "markov": {
+      "identity": {
+        "pid": 2104,
+        "created": 134373249643501265,
+        "alive": true
+      },
+      "acceptance": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\markov_native_recovery_20261024\\acceptance.json",
+      "sha256": "0048a6278c535809c9289c4dfeb8df13197335a337c5ff1b0c4d74e121bc309f"
+    },
+    "residual": {
+      "identity": {
+        "pid": 36256,
+        "created": 134373364563544644,
+        "alive": true
+      },
+      "acceptance": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\residual_native_retry2_20261024\\acceptance.json",
+      "sha256": "484b7f639bd4fb8cddbe7a3dfc6965e397d9523fadadcd50bf0b2f252cc3af28"
+    },
+    "combined": {
+      "identity": {
+        "pid": 15940,
+        "created": 134373287822018420,
+        "alive": true
+      },
+      "acceptance": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_native_recovery_20261024\\acceptance.json",
+      "sha256": "d51facd2fffadcfc8ae55affe49a6bea7164304fad41ea7e1a90c1336ad058b0"
+    }
+  }
+}

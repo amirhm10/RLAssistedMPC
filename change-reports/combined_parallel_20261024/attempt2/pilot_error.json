@@ -1,0 +1,12 @@
+{
+  "at_utc": "2026-10-24T20:06:42.333325+00:00",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\pilot.py\", line 94, in run\n    result=pool.pair(plan['snapshot'],steps,parallel=parallel)\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py\", line 317, in pair\n    results=self.wait(requests)\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py\", line 300, in wait\n    self.check_processes()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py\", line 284, in check_processes\n    raise RuntimeError('Private branch worker exited; inspect '+str(w['directory']))\nRuntimeError: Private branch worker exited; inspect C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\attempt2\\pilot_runtime\\case15\n",
+  "protected_combined_identity": {
+    "pid": 15940,
+    "alive": true,
+    "created": 134373287822018420,
+    "cpu_seconds": 2586.625,
+    "private_bytes": 5161234432,
+    "rss_bytes": 1702518784
+  }
+}

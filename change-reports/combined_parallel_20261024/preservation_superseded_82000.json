@@ -1,0 +1,15 @@
+{
+  "verified": true,
+  "manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\before_2026-10-24T204720_354110+0000\\preservation.json",
+  "manifest_sha256": "8961836082b4af9ead6c8b2693d267d223f97bd144fad7e3a57563d8b0bf10bb",
+  "backup": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\before_2026-10-24T204720_354110+0000",
+  "files": 1183,
+  "bytes": 9703407169,
+  "checkpoint_steps": [
+    82000,
+    81600
+  ],
+  "completed_pairs": 204,
+  "post_checkpoint_pairs": 7,
+  "deferred_live_working_files": 5
+}

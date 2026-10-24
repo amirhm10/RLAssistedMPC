@@ -1,0 +1,30 @@
+{
+  "at_utc": "2026-10-24T20:07:01.192596+00:00",
+  "all_owned_worker_processes_retired": true,
+  "protected_combined": {
+    "pid": 15940,
+    "alive": true,
+    "created": 134373287822018420,
+    "cpu_seconds": 2590.140625,
+    "private_bytes": 5161234432,
+    "rss_bytes": 1702338560
+  },
+  "simulator_processes": {
+    "44704": {
+      "pid": 44704,
+      "alive": true,
+      "created": 134373458384727684,
+      "cpu_seconds": 108.265625,
+      "private_bytes": 1060900864,
+      "rss_bytes": 1048453120
+    },
+    "48948": {
+      "pid": 48948,
+      "alive": true,
+      "created": 134373289183812762,
+      "cpu_seconds": 206.78125,
+      "private_bytes": 1008160768,
+      "rss_bytes": 1005195264
+    }
+  }
+}

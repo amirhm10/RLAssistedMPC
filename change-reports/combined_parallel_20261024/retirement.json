@@ -1,0 +1,95 @@
+{
+  "at_utc": "2026-10-24T20:53:57.177551+00:00",
+  "actions": [
+    {
+      "identity": {
+        "pid": 28612,
+        "alive": true,
+        "created": 134373484974244689,
+        "cpu_seconds": 0.046875,
+        "private_bytes": 1396736,
+        "rss_bytes": 7524352,
+        "name": "am_task_server.exe",
+        "parent_identity": {
+          "pid": 42020,
+          "created": 134373484973621131,
+          "alive": true
+        }
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 17144,
+        "alive": true,
+        "created": 134373484974204482,
+        "cpu_seconds": 18.296875,
+        "private_bytes": 198328320,
+        "rss_bytes": 131989504,
+        "name": "sim_server.exe",
+        "parent_identity": {
+          "pid": 42020,
+          "created": 134373484973621131,
+          "alive": true
+        }
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 50816,
+        "alive": true,
+        "created": 134373289184410997,
+        "cpu_seconds": 1.296875,
+        "private_bytes": 1392640,
+        "rss_bytes": 7733248,
+        "name": "am_task_server.exe",
+        "parent_identity": {
+          "pid": 48948,
+          "created": 134373289183812762,
+          "alive": true
+        }
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 54752,
+        "alive": true,
+        "created": 134373289184388443,
+        "cpu_seconds": 212.328125,
+        "private_bytes": 220647424,
+        "rss_bytes": 154447872,
+        "name": "sim_server.exe",
+        "parent_identity": {
+          "pid": 48948,
+          "created": 134373289183812762,
+          "alive": true
+        }
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 48948,
+        "created": 134373289183812762,
+        "alive": true
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 42020,
+        "created": 134373484973621131,
+        "alive": true
+      },
+      "action": "closed_verified_orphan"
+    }
+  ],
+  "only_combined_was_signaled": true,
+  "original_python_signal_record": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\retirement_intent.json",
+  "former_working_preservation": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\before_2026-10-24T205043_539323+0000\\retired_working\\preservation.json",
+  "former_working_sha256": "b651962428a6d5369bd65877930068ff8f2b237ac3cf702d3340f4cb135f4e78",
+  "console_host_signals": 0,
+  "unrelated_process_signals": 0
+}

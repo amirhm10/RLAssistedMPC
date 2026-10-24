@@ -1,0 +1,12 @@
+{
+  "at_utc": "2026-10-24T20:13:16.276846+00:00",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\pilot.py\", line 95, in run\n    checks[label]={source:compare(row['trace'],plan['baseline_trace'],source,steps) for source,row in result['branches'].items()}\n                          ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\pilot.py\", line 33, in compare\n    raise RuntimeError('Original serial trace fidelity failed: '+str([k for k,v in details.items() if not v['passed']]))\nRuntimeError: Original serial trace fidelity failed: ['existing_observer_yhat_next_scaled_deviation', 'residual_sg_selected_source_log', 'reward', 'u', 'weight_executed_action_raw_log', 'weight_mult', 'weight_sg_selected_source_log', 'y', 'z_exec']\n",
+  "protected_combined_identity": {
+    "pid": 15940,
+    "alive": true,
+    "created": 134373287822018420,
+    "cpu_seconds": 2650.546875,
+    "private_bytes": 5519822848,
+    "rss_bytes": 821014528
+  }
+}

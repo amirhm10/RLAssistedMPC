@@ -1,0 +1,71 @@
+{
+  "at_utc": "2026-10-24T21:28:53.354922+00:00",
+  "accepted_parent": {
+    "pid": 59504,
+    "alive": true,
+    "created": 134373496370785599,
+    "cpu_seconds": 76.109375,
+    "private_bytes": 6889635840,
+    "rss_bytes": 1674784768
+  },
+  "branch_workers": [
+    {
+      "case": 15,
+      "actual": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962,
+        "cpu_seconds": 102.546875,
+        "private_bytes": 3490422784,
+        "rss_bytes": 1280839680
+      }
+    },
+    {
+      "case": 17,
+      "actual": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459,
+        "cpu_seconds": 103.921875,
+        "private_bytes": 3497422848,
+        "rss_bytes": 1284874240
+      }
+    }
+  ],
+  "matched_pairs": 207,
+  "remaining_pairs": 113,
+  "archive_service": {
+    "state": "running",
+    "updated_at": "2026-10-24T21:28:17.691780+00:00",
+    "pid": 4480,
+    "identity": {
+      "pid": 4480,
+      "alive": true,
+      "created": 134373504924160382,
+      "cpu_seconds": 0.171875,
+      "private_bytes": 25202688,
+      "rss_bytes": 43184128
+    },
+    "archived_working_folders": 0,
+    "duplicate_bytes_removed": 0,
+    "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips",
+    "newest_two_primary_comparisons_unpacked": true,
+    "all_results_checkpoints_and_inputs_retained": true,
+    "free_disk_bytes": 323758833664
+  },
+  "original_retention_identity": {
+    "pid": 58264,
+    "alive": true,
+    "created": 134372665192525684,
+    "cpu_seconds": 10324.53125,
+    "private_bytes": 27541504,
+    "rss_bytes": 35663872
+  },
+  "source_seals_verified": 143,
+  "memory": {
+    "committed_bytes": 47783350272,
+    "limit_bytes": 97452056576,
+    "headroom_bytes": 49668706304
+  },
+  "free_disk_bytes": 323740237824
+}

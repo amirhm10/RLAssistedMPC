@@ -1,0 +1,44 @@
+{
+  "at_utc": "2026-10-24T20:52:13.315804+00:00",
+  "original": {
+    "pid": 15940,
+    "alive": true,
+    "created": 134373287822018420
+  },
+  "native_owned": [
+    {
+      "pid": 48948,
+      "created": 134373289183812762,
+      "alive": true
+    },
+    {
+      "pid": 42020,
+      "created": 134373484973621131,
+      "alive": true
+    }
+  ],
+  "checkpoint_steps": [
+    82400,
+    82000
+  ],
+  "estimate": {
+    "prediction": {
+      "serial_future_hours": 33.50886406286551,
+      "parallel_future_hours": 26.06109613877766,
+      "main_training_hours": 11.276811823762126,
+      "remaining_comparison_hours": 22.23205223910339,
+      "transport_allowance_hours": 1.9333333333333333,
+      "replay_allowance_hours": 0.0,
+      "restart_validation_allowance_hours": 1.0,
+      "elapsed_development_and_tests_hours": 1.00474715,
+      "conservative_net_saved_hours": 6.443020774087854,
+      "enough_time_saved": true
+    },
+    "required_disk_bytes": 282208753392,
+    "free_disk_bytes": 336017592320,
+    "at_utc": "2026-10-24T20:52:11.090078+00:00"
+  },
+  "all_results_preserved": 204,
+  "complete_native_python_checkpoints_verified": true,
+  "other_workers_to_signal": []
+}

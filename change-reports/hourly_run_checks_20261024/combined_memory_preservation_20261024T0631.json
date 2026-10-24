@@ -1,0 +1,23 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-24T06:33:43.340940+00:00",
+  "purpose": "Proactive preservation under low memory; no worker stopped or recovery launched",
+  "original_output": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+  "checkpoint_steps": [
+    78400,
+    78000
+  ],
+  "file_count": 153,
+  "total_bytes": 2121258437,
+  "captured_completed_pairs": 139,
+  "decisions_snapshot": {
+    "file": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\memory_preservation_20261024T0631_combined\\capture\\decisions.jsonl",
+    "sha256": "98b0357f67ecb038958f177b2c48f2e1bafd5219bc0a598d5b5546b5810d2bf8"
+  },
+  "all_five_worker_identities_preserved": true,
+  "originals_deleted": 0,
+  "live_simulator_calls": 0,
+  "backup": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\memory_preservation_20261024T0631_combined",
+  "preservation_manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\memory_preservation_20261024T0631_combined\\preservation.json",
+  "manifest_sha256": "b3ab54136ebeb16c492136ec2c8ff530f7154c10dff93aee3043717dcd256867"
+}

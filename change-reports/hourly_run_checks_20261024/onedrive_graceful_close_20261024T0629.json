@@ -1,0 +1,53 @@
+{
+  "at_utc": "2026-10-24T06:29:59.895671+00:00",
+  "authorization": "Prior explicit approval to temporarily quit OneDrive; no Office or sync client is open",
+  "memory_before": {
+    "committed_bytes": 108066402304,
+    "limit_bytes": 112521437184,
+    "headroom_bytes": 4455034880
+  },
+  "memory_after": {
+    "committed_bytes": 108024119296,
+    "limit_bytes": 112521437184,
+    "headroom_bytes": 4497317888
+  },
+  "actions": [
+    {
+      "identity": {
+        "pid": 6844,
+        "alive": true,
+        "created": 134367346242675312
+      },
+      "name": "OneDrive.Sync.Service.exe",
+      "returncode": 0,
+      "stdout": "SUCCESS: Sent termination signal to the process with PID 6844.\n",
+      "stderr": "",
+      "forced": false,
+      "after": {
+        "pid": 6844,
+        "alive": true,
+        "created": 134367346242675312
+      }
+    },
+    {
+      "identity": {
+        "pid": 39572,
+        "alive": true,
+        "created": 134367346346729718
+      },
+      "name": "FileCoAuth.exe",
+      "returncode": 0,
+      "stdout": "SUCCESS: Sent termination signal to the process with PID 39572.\n",
+      "stderr": "",
+      "forced": false,
+      "after": {
+        "pid": 39572,
+        "alive": true,
+        "created": 134367346346729718
+      }
+    }
+  ],
+  "all_five_scientific_worker_identities_preserved": true,
+  "OneDrive_client_started": false,
+  "forced_process_termination": false
+}

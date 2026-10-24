@@ -1,0 +1,43 @@
+{
+  "at_utc": "2026-10-24T15:13:35.234460+00:00",
+  "full_source_seals_verified": 143,
+  "tests_passed": 15,
+  "checkpoint_steps": [
+    80800,
+    80400
+  ],
+  "initial_agents": {
+    "active_agent": {
+      "train_steps": 76800,
+      "replay_size": 40000
+    },
+    "horizon_agent": {
+      "train_steps": 76800,
+      "replay_size": 40000
+    },
+    "markov_agent": {
+      "train_steps": 76799,
+      "replay_size": 40000
+    },
+    "weight_agent": {
+      "train_steps": 76800,
+      "replay_size": 40000
+    }
+  },
+  "original_pairs": 181,
+  "post_checkpoint_pairs": 7,
+  "case_lease_available": true,
+  "accepted_live_peer_categories": [
+    "weights",
+    "markov",
+    "residual"
+  ],
+  "memory": {
+    "committed_bytes": 46525595648,
+    "limit_bytes": 97559683072,
+    "headroom_bytes": 51034087424
+  },
+  "simulator_calls": 0,
+  "scientific_checkpoint_map_unchanged": true,
+  "numerical_bootstrap_imported": false
+}

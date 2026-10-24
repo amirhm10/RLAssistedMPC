@@ -1,0 +1,11 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-24T14:59:26.953160+00:00",
+  "backup": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_native_recovery_20261024",
+  "manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_native_recovery_20261024\\preservation.json",
+  "manifest_sha256": "963411720bc7dc8d1461ac1524bbf9ad7836f514695da8eb8029e5d009516fc6",
+  "files": 652,
+  "bytes": 7474154685,
+  "completed_pairs": 181,
+  "post_checkpoint_pairs": 7
+}

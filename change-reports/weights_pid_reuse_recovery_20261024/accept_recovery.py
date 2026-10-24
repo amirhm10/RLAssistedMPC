@@ -13,7 +13,11 @@ import collect_hourly as hourly
 
 
 def accept(category):
-    if category == 'residual':
+    if category == 'combined':
+        sys.path.insert(0, str(ROOT / 'change-reports/combined_native_recovery_20261024'))
+        import recover_combined
+        recovery = recover_combined.engine
+    elif category == 'residual':
         sys.path.insert(0, str(ROOT / 'change-reports/residual_native_recovery_20261024'))
         import recover_residual
         recovery = recover_residual.engine
@@ -54,8 +58,14 @@ def accept(category):
             raise RuntimeError('Native import did not preserve the complete Python state')
     replay_archive = recovery.preserved_traces(plan, after_validation=True)
     index = metadata['index']
-    if len(index['agents']) != 1 or index['completed_steps'] < plan['initial_steps'] + 8:
+    expected_agents = 4 if category == 'combined' else 1
+    if (len(index['agents']) != expected_agents or set(index['agents']) != set(plan['initial_agents'])
+            or index['completed_steps'] < plan['initial_steps'] + 8):
         raise RuntimeError('The advancing learner checkpoint differs')
+    learner_deltas = {name: validation['index']['agents'][name]['train_steps'] - initial['train_steps']
+                      for name, initial in plan['initial_agents'].items()}
+    if category == 'combined' and any(delta != 8 for delta in learner_deltas.values()):
+        raise RuntimeError('All four combined learners must advance by eight validation steps')
     prepared = json.loads((recovery.HERE/'preparation.json').read_text(encoding='utf-8'))
     if index['source_hashes'] != prepared['pair']['index']['source_hashes']:
         raise RuntimeError('A scientific/budget checkpoint protocol marker changed')
@@ -74,6 +84,7 @@ def accept(category):
                      initial_completed_steps=plan['initial_steps'], bounded_completed_steps=plan['initial_steps']+8,
                      production_restore=restored, validation=validation, full_python_native_checks=checks,
                      current_checkpoint_steps=index['completed_steps'], current_agents=index['agents'],
+                     bounded_agent_training_deltas=learner_deltas,
                      checkpoint_protocols_unchanged=True, all_143_source_hashes_verified=True,
                      original_completed_pairs_preserved=plan['original_pairs'], current_primary_pairs=len(records),
                      replay_archive=replay_archive, original_trace_backups_verified=len(plan['traces']),
@@ -90,5 +101,5 @@ def accept(category):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--category', required=True, choices=('weights','markov','residual'))
+    parser.add_argument('--category', required=True, choices=('weights','markov','residual','combined'))
     accept(parser.parse_args().category)

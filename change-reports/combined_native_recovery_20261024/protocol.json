@@ -1,0 +1,14 @@
+{
+  "id": "combined-four-learner-native-retry-v1",
+  "prepared_at": "2026-10-24T15:13:26.455681+00:00",
+  "case": 16,
+  "seed": 7,
+  "expected_matched_pairs": 320,
+  "main_training_cycles": 300,
+  "decisions_per_window": 20,
+  "validation_steps": 8,
+  "minimum_headroom_bytes": 6442450944,
+  "original_budget_protocol_sha256": "089b5c6a7df66af5c319563b3f1110a7dfe078a93f74f706a0152be31f9c59ab",
+  "checkpoint_source_map": "Exact original map retained; operational fresh-process receipt stays separate",
+  "scope": "Full four-learner/controller/native continuation after confirmed document-open failure; generation-safe ownership"
+}

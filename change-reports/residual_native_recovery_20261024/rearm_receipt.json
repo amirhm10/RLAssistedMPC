@@ -1,0 +1,38 @@
+{
+  "state": "rearmed",
+  "at_utc": "2026-10-24T15:01:03.640750+00:00",
+  "resolved_source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_residual_native_retry",
+  "resolved_archive": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_residual_native_retry_retired_peer_guard_attempt1",
+  "scientific_output": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1",
+  "retired_supervisor": {
+    "pid": 22608,
+    "parent_pid": 2524,
+    "in_windows_job": true,
+    "scheduler_service_pid": 2524,
+    "parent_is_scheduler_service": true,
+    "session_id": 2,
+    "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+    "observed_at": "2026-10-24T14:26:37.817998+00:00"
+  },
+  "retired_attempt": {
+    "pid": 34044,
+    "identity": {
+      "pid": 34044,
+      "alive": true,
+      "created": 134373270865662949
+    },
+    "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1",
+    "stage": "validation",
+    "started_at": "2026-10-24T14:51:26.564951+00:00"
+  },
+  "actual_exit_cause": "A protected peer changed without verified completion: combined",
+  "original_manifest_sha256": "4ae8d7f4e49e854b468a334101dc4ff577b10a39fd0018ca0d3d3e179b36829e",
+  "log_sha256": "9f2ce65dbe442263a94428654eca77ca4baa85b66c248bfa86c0b24d50055fc0",
+  "native_restore_started": false,
+  "checkpoint_unchanged": true,
+  "task_name": "RLAssistedMPC-ResidualPIDRecovery-20261024",
+  "finished_at": "2026-10-24T15:01:05.768058+00:00",
+  "archived_manifest": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_residual_native_retry_retired_peer_guard_attempt1\\manifest.json",
+  "healthy_workers_interrupted": 0,
+  "source_checkpoint_or_result_edits": 0
+}

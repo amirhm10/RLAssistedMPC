@@ -1,0 +1,82 @@
+{
+  "state": "failed",
+  "job": {
+    "id": "e1/residual",
+    "kind": "e1",
+    "category": "residual",
+    "seed": 7,
+    "aspen_number": 17,
+    "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1",
+    "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\budget20_job.json",
+    "expected_matched_pairs": 80,
+    "state": "failed",
+    "attempts": [
+      {
+        "pid": 34044,
+        "identity": {
+          "pid": 34044,
+          "alive": true,
+          "created": 134373270865662949
+        },
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1",
+        "stage": "validation",
+        "started_at": "2026-10-24T14:51:26.564951+00:00"
+      }
+    ],
+    "error": "(-2147417851, 'The server threw an exception.', None, None)",
+    "pid": 34044,
+    "identity": {
+      "pid": 34044,
+      "alive": true,
+      "created": 134373270865662949
+    },
+    "started_at": "2026-10-24T14:51:26.564951+00:00",
+    "log": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_residual_native_retry\\logs\\validation.log",
+    "exit_code": 1
+  },
+  "jobs": [
+    {
+      "id": "e1/residual",
+      "kind": "e1",
+      "category": "residual",
+      "seed": 7,
+      "aspen_number": 17,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1",
+      "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\budget20_job.json",
+      "expected_matched_pairs": 80,
+      "state": "failed",
+      "attempts": [
+        {
+          "pid": 34044,
+          "identity": {
+            "pid": 34044,
+            "alive": true,
+            "created": 134373270865662949
+          },
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1",
+          "stage": "validation",
+          "started_at": "2026-10-24T14:51:26.564951+00:00"
+        }
+      ],
+      "error": "(-2147417851, 'The server threw an exception.', None, None)",
+      "pid": 34044,
+      "identity": {
+        "pid": 34044,
+        "alive": true,
+        "created": 134373270865662949
+      },
+      "started_at": "2026-10-24T14:51:26.564951+00:00",
+      "log": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_residual_native_retry\\logs\\validation.log",
+      "exit_code": 1
+    }
+  ],
+  "recovery_plan": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\residual_native_recovery_20261024\\plan.json",
+  "stage": "validation",
+  "memory": {
+    "committed_bytes": 41550319616,
+    "limit_bytes": 97674313728,
+    "headroom_bytes": 56123994112
+  },
+  "updated_at": "2026-10-24T14:51:40.777488+00:00",
+  "finished_at": "2026-10-24T14:51:42.881382+00:00"
+}

@@ -1,0 +1,20 @@
+test_guard_refusal_precedes_numerical_imports (__main__.Guards.test_guard_refusal_precedes_numerical_imports) ... ok
+test_invalid_validation_length_precedes_verification (__main__.Guards.test_invalid_validation_length_precedes_verification) ... ok
+test_live_reused_or_inaccessible_original_blocks_launch (__main__.Guards.test_live_reused_or_inaccessible_original_blocks_launch) ... ok
+test_memory_below_threshold_is_refused_exact_threshold_passes (__main__.Guards.test_memory_below_threshold_is_refused_exact_threshold_passes) ... ok
+test_other_live_worker_blocks_duplicate_before_native_creation (__main__.Guards.test_other_live_worker_blocks_duplicate_before_native_creation) ... ok
+test_remaining_native_application_blocks_launch (__main__.Guards.test_remaining_native_application_blocks_launch) ... ok
+test_wrong_case_category_budget_and_healthy_authorization_refused (__main__.Guards.test_wrong_case_category_budget_and_healthy_authorization_refused) ... ok
+test_added_checkpoint_marker_refused (__main__.ManagerContract.test_added_checkpoint_marker_refused) ... ok
+test_missing_fourth_learner_refused (__main__.ManagerContract.test_missing_fourth_learner_refused) ... ok
+test_original_scientific_protocol_map_remains_exact (__main__.ManagerContract.test_original_scientific_protocol_map_remains_exact) ... ok
+test_session_source_map_mutation_refused (__main__.ManagerContract.test_session_source_map_mutation_refused) ... ok
+test_wrong_source_map_refused (__main__.ManagerContract.test_wrong_source_map_refused) ... ok
+test_any_learner_or_controller_mutation_is_refused (__main__.NativeImport.test_any_learner_or_controller_mutation_is_refused) ... ok
+test_empty_full_state_digest_is_refused (__main__.NativeImport.test_empty_full_state_digest_is_refused) ... ok
+test_unchanged_full_state_keeps_return_value_and_records_equality (__main__.NativeImport.test_unchanged_full_state_keeps_return_value_and_records_equality) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.002s
+
+OK

@@ -519,15 +519,6 @@
   ],
   "protected": [
     {
-      "category": "combined",
-      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
-      "identity": {
-        "pid": 22588,
-        "alive": true,
-        "created": 134371156883220647
-      }
-    },
-    {
       "category": "weights",
       "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1",
       "identity": {
@@ -706,7 +697,23 @@
     "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\weights_pid_reuse_recovery_20261024\\recover_weights.py": "db2d0ca56a2d7aa84b5a2e6db4ccf8542057152bcbd6bc577a935e0357275330",
     "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\weights_pid_reuse_recovery_20261024\\ownership_fix.py": "ccc0e5f3ca7fc89c3b2b3733ca00329501a2001234b884908e55a1cc6045776d",
     "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\weights_pid_reuse_recovery_20261024\\prepare_recovery.py": "5b90412b7d6b321af9c4e3dc757dc1027c1b5d1259c726ac70a68b5183bb1bb0",
-    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\weights_pid_reuse_recovery_20261024\\test_recovery.py": "2e6b4048c57d03d5f11ca06e3cc8efd7b2321499e7bd447bee3d7d579363617d"
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\weights_pid_reuse_recovery_20261024\\test_recovery.py": "2e6b4048c57d03d5f11ca06e3cc8efd7b2321499e7bd447bee3d7d579363617d",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\residual_native_recovery_20261024\\rearm_after_combined_failure.py": "56a08e881fb276aeb48656b7f713437a6f51417631c1f55f802b07797f31ced7"
   },
-  "tests_passed": 18
+  "tests_passed": 18,
+  "preserved_failed_peer_transitions": [
+    {
+      "category": "combined",
+      "failure": "(-2147417851, 'The server threw an exception.', None, None)",
+      "failed_at": "2026-10-24T14:51:22.049995+00:00",
+      "backup_manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_native_recovery_20261024\\preservation.json",
+      "backup_manifest_sha256": "963411720bc7dc8d1461ac1524bbf9ad7836f514695da8eb8029e5d009516fc6",
+      "checkpoint_steps": [
+        80800,
+        80400
+      ],
+      "original_pairs": 181
+    }
+  ],
+  "retired_guard_attempt": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_residual_native_retry_retired_peer_guard_attempt1\\manifest.json"
 }

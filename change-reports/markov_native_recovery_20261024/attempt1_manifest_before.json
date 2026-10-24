@@ -1,0 +1,82 @@
+{
+  "state": "failed",
+  "job": {
+    "id": "e1/markov",
+    "kind": "e1",
+    "category": "markov",
+    "seed": 7,
+    "aspen_number": 15,
+    "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1",
+    "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\budget20_job.json",
+    "expected_matched_pairs": 80,
+    "state": "failed",
+    "attempts": [
+      {
+        "pid": 19492,
+        "identity": {
+          "pid": 19492,
+          "alive": true,
+          "created": 134373235831775248
+        },
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1",
+        "stage": "validation",
+        "started_at": "2026-10-24T13:53:03.175452+00:00"
+      }
+    ],
+    "error": "(-2147417851, 'The server threw an exception.', None, None)",
+    "pid": 19492,
+    "identity": {
+      "pid": 19492,
+      "alive": true,
+      "created": 134373235831775248
+    },
+    "started_at": "2026-10-24T13:53:03.175452+00:00",
+    "log": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_markov_native_retry\\logs\\validation.log",
+    "exit_code": 1
+  },
+  "jobs": [
+    {
+      "id": "e1/markov",
+      "kind": "e1",
+      "category": "markov",
+      "seed": 7,
+      "aspen_number": 15,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1",
+      "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\budget20_job.json",
+      "expected_matched_pairs": 80,
+      "state": "failed",
+      "attempts": [
+        {
+          "pid": 19492,
+          "identity": {
+            "pid": 19492,
+            "alive": true,
+            "created": 134373235831775248
+          },
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1",
+          "stage": "validation",
+          "started_at": "2026-10-24T13:53:03.175452+00:00"
+        }
+      ],
+      "error": "(-2147417851, 'The server threw an exception.', None, None)",
+      "pid": 19492,
+      "identity": {
+        "pid": 19492,
+        "alive": true,
+        "created": 134373235831775248
+      },
+      "started_at": "2026-10-24T13:53:03.175452+00:00",
+      "log": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_markov_native_retry\\logs\\validation.log",
+      "exit_code": 1
+    }
+  ],
+  "recovery_plan": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\markov_native_recovery_20261024\\plan.json",
+  "stage": "validation",
+  "memory": {
+    "committed_bytes": 118134280192,
+    "limit_bytes": 128784441344,
+    "headroom_bytes": 10650161152
+  },
+  "updated_at": "2026-10-24T13:53:17.390722+00:00",
+  "finished_at": "2026-10-24T13:53:19.493300+00:00"
+}

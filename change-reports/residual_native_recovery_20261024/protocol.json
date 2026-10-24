@@ -1,0 +1,13 @@
+{
+  "id": "residual-isolated-native-retry-v1",
+  "prepared_at": "2026-10-24T14:24:10.877874+00:00",
+  "case": 17,
+  "seed": 7,
+  "expected_matched_pairs": 80,
+  "main_training_cycles": 300,
+  "decisions_per_window": 20,
+  "validation_steps": 8,
+  "minimum_headroom_bytes": 6442450944,
+  "original_process_protocol_sha256": "da06badf964553aa12249ff892e0de9f193db7c8e06211c05b5fd189cb5a8902",
+  "scope": "Fresh-owned-process full-state retry after document-open failure, generation-safe ownership, existing scientific checkpoint markers unchanged"
+}

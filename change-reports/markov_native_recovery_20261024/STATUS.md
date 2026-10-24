@@ -1,6 +1,14 @@
 # Markov E1 native recovery — October 24, 2026
 
-## Current state: automatic recovery waiting for memory
+## Current state: production recovery accepted
+
+Markov passed the actual 116000-to-116008 continuation and then a separate production cold restore of 116008. `acceptance.json` at 14:22:29 UTC verifies native/Python checksums, full Python learner/controller digest equality across both native imports, unchanged checkpoint protocol maps, all sixty original trace backups/prefixes and all 143 source hashes. Production PID 2104, creation 134373249643501265, remains live and accrued CPU time during acceptance. Its active primary count reached 61 by 14:35. This is verified operational recovery, not completed training or a performance claim.
+
+The first controlled attempt at 13:53 exited before numerical/native restoration because residual's original worker had just failed. Its new log showed the peer guard; the supervisor had copied the old original COM error from a status file that the new attempt never wrote. `attempt1_manifest_before.json`, its task XML and `rearm_receipt.json` preserve that provenance. After confirming both control processes were retired and residual's full backup verified, only the old one-shot task and non-scientific supervisor folder were retired/re-armed. Both resolved move paths were checked under the intended workspace and the scientific output was explicitly excluded. The archived history is `20261024_markov_native_retry_retired_peer_guard_attempt1`; the current path is reused only by the new single supervisor. No scientific result or checkpoint was moved or changed by re-arming.
+
+Weights and combined stayed live. Residual's separate case-17 supervisor is currently pending memory, not an additional Markov failure. The accepted Markov creation identity/log is registered in the read-only hourly baseline. No new native internal-cause claim is promoted: the original server exception remains unproven, while the fresh complete-state continuation now demonstrates a viable restart.
+
+## Earlier memory-gated preparation (superseded)
 
 The independent normal-user task `RLAssistedMPC-MarkovPIDRecovery-20261024` is registered exactly once, and supervisor PID 55444, creation 134373215140748269, is alive. At 13:36 UTC its manifest was `waiting_for_memory`, validation stage, with job state pending and an empty attempts list. No new scientific worker or Aspen application has been launched. Headroom is about 2.87 GiB, below the required 6 GiB. The supervisor will automatically perform bounded validation and then production when memory permits; production requires successful validation. Do not duplicate this gated launch or describe the old failed status as a new recovery-worker failure.
 

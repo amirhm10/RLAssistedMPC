@@ -13,7 +13,11 @@ import collect_hourly as hourly
 
 
 def accept(category):
-    if category == 'markov':
+    if category == 'residual':
+        sys.path.insert(0, str(ROOT / 'change-reports/residual_native_recovery_20261024'))
+        import recover_residual
+        recovery = recover_residual.engine
+    elif category == 'markov':
         sys.path.insert(0, str(ROOT / 'change-reports/markov_native_recovery_20261024'))
         import recover_markov
         recovery = recover_markov.engine
@@ -75,7 +79,7 @@ def accept(category):
                      replay_archive=replay_archive, original_trace_backups_verified=len(plan['traces']),
                      backup_manifest=plan['backup_manifest'], backup_manifest_sha256=plan['backup_manifest_sha256'],
                      protected_peers=plan['protected'], retention_identity=plan['retention_identity'],
-                     memory=recovery.memory(), tests_passed=17,
+                     memory=recovery.memory(), tests_passed=plan['tests_passed'],
                      scientific_source_edits=0, shared_queue_plan_edits=0, healthy_workers_interrupted=0)
     recovery.protected_check(plan)
     recovery.write(destination, acceptance)
@@ -86,5 +90,5 @@ def accept(category):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--category', required=True, choices=('weights','markov'))
+    parser.add_argument('--category', required=True, choices=('weights','markov','residual'))
     accept(parser.parse_args().category)

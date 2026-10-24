@@ -1,0 +1,11 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-24T14:07:11.336468+00:00",
+  "backup": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\residual_native_recovery_20261024",
+  "manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\residual_native_recovery_20261024\\preservation.json",
+  "manifest_sha256": "32b4df97946c8ef1867d8f25fe4057e2466f0cdde78ec1b65c4c83e0e433c50c",
+  "files": 264,
+  "bytes": 3953505040,
+  "completed_pairs": 69,
+  "post_checkpoint_pairs": 1
+}

@@ -1,0 +1,38 @@
+{
+  "state": "rearmed",
+  "at_utc": "2026-10-24T14:09:56.858347+00:00",
+  "resolved_source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_markov_native_retry",
+  "resolved_archive": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_markov_native_retry_retired_peer_guard_attempt1",
+  "scientific_output": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1",
+  "retired_supervisor": {
+    "pid": 55444,
+    "parent_pid": 2524,
+    "in_windows_job": true,
+    "scheduler_service_pid": 2524,
+    "parent_is_scheduler_service": true,
+    "session_id": 2,
+    "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+    "observed_at": "2026-10-24T13:18:34.324785+00:00"
+  },
+  "retired_attempt": {
+    "pid": 19492,
+    "identity": {
+      "pid": 19492,
+      "alive": true,
+      "created": 134373235831775248
+    },
+    "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1",
+    "stage": "validation",
+    "started_at": "2026-10-24T13:53:03.175452+00:00"
+  },
+  "actual_exit_cause": "A protected peer changed without verified completion: residual",
+  "original_manifest_sha256": "38d2d376e7ce5366d8b91829ec708aae9b27e0b4b0be6d952bbec17e1aa2a609",
+  "log_sha256": "b9564900ac20c92f53f013cecdb2d863633cf879f631cfb397730ca71424a2fb",
+  "native_restore_started": false,
+  "checkpoint_unchanged": true,
+  "task_name": "RLAssistedMPC-MarkovPIDRecovery-20261024",
+  "finished_at": "2026-10-24T14:09:58.980802+00:00",
+  "archived_manifest": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_markov_native_retry_retired_peer_guard_attempt1\\manifest.json",
+  "healthy_workers_interrupted": 0,
+  "source_checkpoint_or_result_edits": 0
+}

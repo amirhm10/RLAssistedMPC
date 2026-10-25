@@ -1,0 +1,31 @@
+{
+  "at_utc": "2026-10-25T03:37:06.800770+00:00",
+  "completed_pairs": 240,
+  "remaining_pairs": 80,
+  "remaining_long_pairs": 8,
+  "latest_verified_checkpoint_steps": 86000,
+  "completed_by_window": {
+    "release": 80,
+    "prechange_mature": 80,
+    "plant_change": 80
+  },
+  "main_steps_remaining": 34000,
+  "observed_production_decisions": 35,
+  "main_training_hours": 10.189258338194273,
+  "comparison_hours": 11.504033205697965,
+  "estimated_remaining_hours": 21.693291543892236,
+  "planning_range_hours": [
+    20,
+    26
+  ],
+  "branch_seconds_per_step": 0.9591613102662522,
+  "worst_observed_fixed_allowance_seconds": 268.2995535871829,
+  "basis": "Measured main/branch physics coefficients; half the remaining branch steps; worst fixed allowance across 35 production comparisons; main progress anchored to the latest committed checkpoint rather than the last sampled comparison.",
+  "limitation": "Planning range, not a confidence interval. Future Aspen solver times and late-channel costs remain uncertain.",
+  "actions": {
+    "restarts": 0,
+    "source_edits": 0,
+    "queue_edits": 0,
+    "simulator_calls": 0
+  }
+}

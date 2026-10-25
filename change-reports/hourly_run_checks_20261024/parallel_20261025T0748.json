@@ -1,0 +1,123 @@
+{
+  "at_utc": "2026-10-25T07:49:24.497355+00:00",
+  "parent": {
+    "pid": 59504,
+    "alive": true,
+    "created": 134373496370785599,
+    "cpu_seconds": 6187.093749999999,
+    "private_bytes": 10920476672,
+    "rss_bytes": 99221504,
+    "priority": 32
+  },
+  "parent_generation_unchanged": true,
+  "parent_private_change_since_previous_bytes": 19681280,
+  "children": [
+    {
+      "case": 15,
+      "expected": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962
+      },
+      "actual": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962,
+        "cpu_seconds": 2345.5,
+        "private_bytes": 6653087744,
+        "rss_bytes": 23601152,
+        "priority": 32
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_since_previous_seconds": 27.15625,
+      "requests": 35,
+      "completed_responses": 35
+    },
+    {
+      "case": 17,
+      "expected": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459
+      },
+      "actual": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459,
+        "cpu_seconds": 2342.453125,
+        "private_bytes": 7004655616,
+        "rss_bytes": 22343680,
+        "priority": 32
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_since_previous_seconds": 26.734375,
+      "requests": 35,
+      "completed_responses": 35
+    }
+  ],
+  "normal_python_priorities_preserved": true,
+  "manifest_state": "running",
+  "stage": "production",
+  "validation_passed": true,
+  "completed_parallel_primary_pairs": 35,
+  "latest_completed_comparison": {
+    "channel": "weights",
+    "step": 83989,
+    "elapsed_seconds": 404.22056180005893
+  },
+  "side_archive_status": {
+    "state": "running",
+    "updated_at": "2026-10-25T07:48:42.467434+00:00",
+    "pid": 4480,
+    "identity": {
+      "pid": 4480,
+      "alive": true,
+      "created": 134373504924160382,
+      "cpu_seconds": 439.484375,
+      "private_bytes": 30388224,
+      "rss_bytes": 28028928
+    },
+    "archived_working_folders": 66,
+    "duplicate_bytes_removed": 41711376840,
+    "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips",
+    "newest_two_primary_comparisons_unpacked": true,
+    "all_results_checkpoints_and_inputs_retained": true,
+    "free_disk_bytes": 279371845632
+  },
+  "side_identity": {
+    "pid": 4480,
+    "alive": true,
+    "created": 134373504924160382,
+    "cpu_seconds": 439.484375,
+    "private_bytes": 30388224,
+    "rss_bytes": 28028928
+  },
+  "side_source_and_scheduled_seals_verified": true,
+  "archives": 66,
+  "original_bytes": 41711376840,
+  "zip_bytes": 6527925866,
+  "latest_archive_sha256_crc_verified": {
+    "path": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips\\29c8c7a165747593d528b66b.zip",
+    "sha256": "56e2f163e110c52b7473e82d864dc2d3ea9e22f644a9c8fac6cd26a7e2a49456"
+  },
+  "latest_two_primary_working_folders_unpacked": [
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_e2ca3005",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_d3b43e0b",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_f669bc35",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_5f7852c5"
+  ],
+  "memory": {
+    "committed_bytes": 59021148160,
+    "limit_bytes": 97452056576,
+    "headroom_bytes": 38430908416
+  },
+  "free_disk_bytes": 279358316544,
+  "actions": {
+    "process_signals": 0,
+    "restarts": 0,
+    "priority_changes": 0,
+    "simulator_calls": 0,
+    "source_edits": 0,
+    "data_deletions": 0
+  }
+}

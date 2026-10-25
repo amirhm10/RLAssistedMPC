@@ -1,0 +1,70 @@
+{
+  "at_utc": "2026-10-25T12:54:37.308992+00:00",
+  "updated_at": "2026-10-25T12:54:33.697792+00:00",
+  "state": "running",
+  "identity": {
+    "pid": 58264,
+    "alive": true,
+    "created": 134372665192525684,
+    "cpu_seconds": 15008.328125,
+    "private_bytes": 30199808,
+    "rss_bytes": 39350272
+  },
+  "totals": {
+    "removed_folders": 1102,
+    "original_bytes": 427373251344,
+    "compressed_bytes": 48317583805
+  },
+  "jobs": [
+    {
+      "category": "combined",
+      "state": "two complete checkpoints verified",
+      "reason": null,
+      "checkpoint_steps": [
+        113200,
+        112800
+      ]
+    },
+    {
+      "category": "horizon",
+      "state": "two complete checkpoints verified",
+      "reason": null,
+      "checkpoint_steps": [
+        120000,
+        119600
+      ]
+    },
+    {
+      "category": "weights",
+      "state": "two complete checkpoints verified",
+      "reason": null,
+      "checkpoint_steps": [
+        120000,
+        119600
+      ]
+    },
+    {
+      "category": "markov",
+      "state": "two complete checkpoints verified",
+      "reason": null,
+      "checkpoint_steps": [
+        120000,
+        119600
+      ]
+    },
+    {
+      "category": "residual",
+      "state": "two complete checkpoints verified",
+      "reason": null,
+      "checkpoint_steps": [
+        120000,
+        119600
+      ]
+    }
+  ],
+  "actions": {
+    "forced_cleanup": 0,
+    "process_signals": 0,
+    "checkpoint_reads": 0
+  }
+}

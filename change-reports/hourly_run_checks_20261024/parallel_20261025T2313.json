@@ -1,0 +1,175 @@
+{
+  "at_utc": "2026-10-25T23:15:45.973433+00:00",
+  "parent": {
+    "pid": 59504,
+    "alive": true,
+    "created": 134373496370785599,
+    "cpu_seconds": 14387.796875,
+    "private_bytes": 12344360960,
+    "rss_bytes": 1796399104,
+    "priority": 32
+  },
+  "parent_generation_unchanged": true,
+  "parent_private_change_since_previous_bytes": 4371378176,
+  "children": [
+    {
+      "case": 15,
+      "expected": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962
+      },
+      "actual": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962,
+        "cpu_seconds": 6003.921875,
+        "private_bytes": 13417635840,
+        "rss_bytes": 1912332288,
+        "priority": 32
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_since_previous_seconds": 382.46875,
+      "requests": 99,
+      "completed_responses": 98
+    },
+    {
+      "case": 17,
+      "expected": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459
+      },
+      "actual": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459,
+        "cpu_seconds": 5988.953125,
+        "private_bytes": 13804773376,
+        "rss_bytes": 2186092544,
+        "priority": 32
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_since_previous_seconds": 383.015625,
+      "requests": 99,
+      "completed_responses": 98
+    }
+  ],
+  "normal_python_priorities_preserved": true,
+  "manifest_state": "running",
+  "stage": "production",
+  "validation_passed": true,
+  "pool_pointer": {
+    "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360",
+    "parent": {
+      "pid": 59504,
+      "alive": true,
+      "created": 134373496370785599
+    },
+    "cases": [
+      15,
+      17
+    ]
+  },
+  "completed_parallel_primary_pairs": 98,
+  "all_production_live_state_and_source_map_checks_pass": true,
+  "latest_completed_comparison": {
+    "channel": "residual",
+    "step": 118426,
+    "elapsed_seconds": 446.76215510000475
+  },
+  "current_native_apps": [
+    {
+      "pid": 10704,
+      "alive": true,
+      "created": 134373497422336127,
+      "cpu_seconds": 160.6875,
+      "private_bytes": 58855424,
+      "rss_bytes": 65298432,
+      "owner_receipt": "parent_ownership"
+    },
+    {
+      "pid": 35628,
+      "alive": true,
+      "created": 134374436557690070,
+      "cpu_seconds": 70.015625,
+      "private_bytes": 2982088704,
+      "rss_bytes": 2591223808,
+      "owner_receipt": "ownership_15"
+    },
+    {
+      "pid": 50232,
+      "alive": true,
+      "created": 134373497797957783,
+      "cpu_seconds": 2020.59375,
+      "private_bytes": 1126686720,
+      "rss_bytes": 262094848,
+      "owner_receipt": "parent_ownership"
+    },
+    {
+      "pid": 53056,
+      "alive": true,
+      "created": 134374436740320965,
+      "cpu_seconds": 52.0625,
+      "private_bytes": 2695454720,
+      "rss_bytes": 2304626688,
+      "owner_receipt": "ownership_17"
+    }
+  ],
+  "all_current_native_generations_owned": true,
+  "side_archive_status": {
+    "state": "running",
+    "updated_at": "2026-10-25T23:15:23.594309+00:00",
+    "pid": 4480,
+    "identity": {
+      "pid": 4480,
+      "alive": true,
+      "created": 134373504924160382,
+      "cpu_seconds": 1493.890625,
+      "private_bytes": 33779712,
+      "rss_bytes": 32145408
+    },
+    "archived_working_folders": 192,
+    "duplicate_bytes_removed": 145496877412,
+    "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips",
+    "newest_two_primary_comparisons_unpacked": true,
+    "all_results_checkpoints_and_inputs_retained": true,
+    "free_disk_bytes": 184851845120
+  },
+  "side_identity": {
+    "pid": 4480,
+    "alive": true,
+    "created": 134373504924160382,
+    "cpu_seconds": 1493.890625,
+    "private_bytes": 33779712,
+    "rss_bytes": 32145408
+  },
+  "side_source_and_scheduled_seals_verified": true,
+  "archives": 192,
+  "original_bytes": 145496877412,
+  "zip_bytes": 22779683649,
+  "latest_archive_sha256_crc_verified": {
+    "path": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips\\6b542041209c5dc2ff541f2e.zip",
+    "sha256": "ef7ab21849618767f20487a536054f9552979e7dafd5afc3f596bfc92dd60a8a"
+  },
+  "latest_two_primary_working_folders_unpacked": [
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_3e885c1e",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_675907aa",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_e68db144",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_432a6a12"
+  ],
+  "memory": {
+    "committed_bytes": 82739707904,
+    "limit_bytes": 97245818880,
+    "headroom_bytes": 14506110976
+  },
+  "free_disk_bytes": 184840081408,
+  "actions": {
+    "process_signals": 0,
+    "restarts": 0,
+    "priority_changes": 0,
+    "simulator_calls": 0,
+    "source_edits": 0,
+    "data_deletions": 0
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "at_utc": "2026-10-25T23:15:48.216365+00:00",
+  "completed_pairs": 303,
+  "remaining_pairs": 17,
+  "remaining_long_pairs": 1,
+  "latest_verified_checkpoint_steps": 118400,
+  "latest_confirmed_main_progress_steps": 118427,
+  "completed_by_window": {
+    "release": 80,
+    "prechange_mature": 80,
+    "plant_change": 80,
+    "adapted": 63
+  },
+  "main_steps_remaining": 1573,
+  "observed_production_decisions": 98,
+  "main_training_hours": 0.4714030401758703,
+  "comparison_hours": 2.3327049033464218,
+  "estimated_remaining_hours": 2.804107943522292,
+  "planning_range_hours": [
+    3,
+    5
+  ],
+  "branch_seconds_per_step": 0.9591613102662522,
+  "main_seconds_per_step": 1.0788626475735112,
+  "worst_observed_fixed_allowance_seconds": 268.2995535871829,
+  "remaining_branch_steps": 8000,
+  "all_production_live_state_and_source_map_checks_pass": true,
+  "basis": "Original measured main/branch coefficients; half remaining branch steps; worst fixed allowance across all accepted production comparisons. Main progress is the maximum of checkpoint and saved capture. Planning lower estimate is rounded central prediction; upper estimate adds at least two hours allowance. In-flight work remains conservatively included.",
+  "limitation": "Planning range, not a confidence interval; future solver times and remaining long-rollout costs are uncertain. This receipt timestamp anchors the refreshed estimate.",
+  "actions": {
+    "restarts": 0,
+    "source_edits": 0,
+    "queue_edits": 0,
+    "simulator_calls": 0
+  }
+}

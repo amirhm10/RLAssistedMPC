@@ -1,0 +1,40 @@
+{
+  "at_utc": "2026-10-25T22:16:28.468597+00:00",
+  "initial_audit_pairs": 296,
+  "completed_combined_pairs": 297,
+  "remaining_combined_pairs": 23,
+  "completed_by_window": {
+    "release": 80,
+    "prechange_mature": 80,
+    "plant_change": 80,
+    "adapted": 57
+  },
+  "latest_pair": {
+    "channel": "horizon",
+    "step": 118244,
+    "episode": 296
+  },
+  "completed_unique_keys_verified": true,
+  "new_trace_hashes": [
+    {
+      "channel": "horizon",
+      "step": 118244,
+      "window": "adapted",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_adapted_0118244.npz",
+      "bytes": 41431,
+      "sha256": "82de0b7a2d19501438dea38dae5816d48a93c5c0c76a248216067b4519bbb0e5",
+      "crc_pass": true
+    }
+  ],
+  "scientific_trace_rechecks": 1,
+  "all_new_trace_crc_pass": true,
+  "reason": "An additional comparison committed between the initial audit and the later parallel receipt; preserve both timestamps and verify the additional primary trace.",
+  "actions": {
+    "process_signals": 0,
+    "restarts": 0,
+    "source_edits": 0,
+    "queue_edits": 0,
+    "simulator_calls": 0,
+    "data_deletions": 0
+  }
+}

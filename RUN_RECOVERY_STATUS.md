@@ -1,5 +1,11 @@
 # Reviewer-run recovery — latest update October 25, 2026
 
+## Routine hourly check — October 25, 12:02 Toronto
+
+Combined remains healthy at **254/320 comparisons saved**, four more since the previous check; **66 remain**. The adapted window has14/80. Full checkpoint advanced to **cycle291/300, step116400**; latest comparison is Markov step116557 in episode292. Accepted parent and both case15/17 generations remain live at normal priority, with matching pool pointer/ownership. Both children have50 requests/49 completed responses and their next rollout is actively progressing; parent pauses are expected. All143 scientific seals, completed/unique capture keys, four new trace hashes and current native ownership pass. All49 production comparisons preserve full live Python state and source map. Other configurations, repetitions/coordinator and horizon remain completed; no current failure needs recovery.
+
+Both retention services are healthy: complete matched combined116400/116000 and standalone120000/119600 checkpoint pairs verify. All94 side archive sizes reconcile; latest ZIP SHA-256/CRC passes and newest-two comparisons remain unpacked. Headroom33.4GiB, free disk249.1GiB, main Aspen memory remains normal. No restart or repair was needed. Viewer/hourly checks continue quietly. Earlier ETA ranges retain their recorded origin. Evidence: `change-reports/hourly_run_checks_20261024/audit_20261025T1601.json` and `parallel_20261025T1601.json`.
+
 ## Routine hourly check — October 25, 11:02 Toronto
 
 Combined remains healthy at **250/320 comparisons saved**, nine more since the previous check; **70 remain**. The adapted window has 10/80 saved comparisons. Latest capture is step116288 in episode291; full checkpoint remains cycle290/300, step116000 while comparisons execute inside the next training cycle. This is expected progress. Accepted parent and both case-15/17 generations remain live at normal priority, with matching pool pointer/ownership; each child has completed all45 issued requests. All143 scientific seals, unique completed capture keys, nine new trace hashes and current native ownership pass. All45 production comparisons preserve full live Python state and source map. Other configurations, repetitions/coordinator and horizon remain completed; no current failure needs recovery.

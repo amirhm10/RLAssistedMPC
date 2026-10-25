@@ -1,0 +1,42 @@
+{
+  "at_utc": "2026-10-25T14:02:29.509334+00:00",
+  "completed_pairs": 241,
+  "remaining_pairs": 79,
+  "remaining_long_pairs": 8,
+  "latest_verified_checkpoint_steps": 116000,
+  "latest_confirmed_main_progress_steps": 116017,
+  "completed_by_window": {
+    "release": 80,
+    "prechange_mature": 80,
+    "plant_change": 80,
+    "adapted": 1
+  },
+  "main_steps_remaining": 3983,
+  "observed_production_decisions": 36,
+  "main_training_hours": 1.193641645912582,
+  "comparison_hours": 11.376218812464511,
+  "estimated_remaining_hours": 12.569860458377093,
+  "planning_range_hours": [
+    12,
+    16
+  ],
+  "branch_seconds_per_step": 0.9591613102662522,
+  "main_seconds_per_step": 1.0788626475735112,
+  "worst_observed_fixed_allowance_seconds": 268.2995535871829,
+  "remaining_branch_steps": 41200,
+  "latest_adapted_comparison": {
+    "channel": "horizon",
+    "step": 116016,
+    "rollout_steps": 200,
+    "elapsed_seconds": 370.93535120016895
+  },
+  "all_production_live_state_and_source_map_checks_pass": true,
+  "basis": "Existing measured main/branch physics coefficients; half the remaining branch steps; worst fixed allowance across all 36 accepted production comparisons; main progress is the maximum of committed checkpoint and saved capture progress. In-flight work is conservatively included.",
+  "limitation": "Planning range, not a confidence interval. Future Aspen solver times, eight long rollouts and late-channel costs remain uncertain. This estimate supersedes earlier remaining-time estimates and is anchored to this receipt timestamp.",
+  "actions": {
+    "restarts": 0,
+    "source_edits": 0,
+    "queue_edits": 0,
+    "simulator_calls": 0
+  }
+}

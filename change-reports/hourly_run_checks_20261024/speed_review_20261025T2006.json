@@ -1,0 +1,36 @@
+{
+  "at_utc": "2026-10-25T20:07:51.879007+00:00",
+  "completed_pairs": 283,
+  "remaining_pairs": 37,
+  "remaining_long_pairs": 4,
+  "latest_verified_checkpoint_steps": 117600,
+  "latest_confirmed_main_progress_steps": 117830,
+  "completed_by_window": {
+    "release": 80,
+    "prechange_mature": 80,
+    "plant_change": 80,
+    "adapted": 43
+  },
+  "main_steps_remaining": 2170,
+  "observed_production_decisions": 78,
+  "main_training_hours": 0.6503144292318109,
+  "comparison_hours": 5.3685734231486215,
+  "estimated_remaining_hours": 6.018887852380432,
+  "planning_range_hours": [
+    6,
+    9
+  ],
+  "branch_seconds_per_step": 0.9591613102662522,
+  "main_seconds_per_step": 1.0788626475735112,
+  "worst_observed_fixed_allowance_seconds": 268.2995535871829,
+  "remaining_branch_steps": 19600,
+  "all_production_live_state_and_source_map_checks_pass": true,
+  "basis": "Original measured main/branch physics coefficients; half remaining branch steps; worst fixed allowance across all accepted production comparisons. Main progress uses the maximum of committed checkpoint and saved capture. In-flight work remains conservatively included.",
+  "limitation": "Planning range, not a confidence interval; future solver times and remaining long-rollout costs are uncertain. This receipt timestamp anchors the refreshed remaining-time estimate.",
+  "actions": {
+    "restarts": 0,
+    "source_edits": 0,
+    "queue_edits": 0,
+    "simulator_calls": 0
+  }
+}

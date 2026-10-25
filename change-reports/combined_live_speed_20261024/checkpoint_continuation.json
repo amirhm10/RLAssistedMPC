@@ -1,0 +1,100 @@
+{
+  "at_utc": "2026-10-25T03:50:51.181765+00:00",
+  "passed": true,
+  "completed_steps_before": 86400,
+  "completed_steps_after": 86800,
+  "completed_cycles": 217,
+  "checkpoint_advanced": true,
+  "agents": {
+    "active_agent": {
+      "before": {
+        "train_steps": 82400,
+        "replay_size": 40000
+      },
+      "after": {
+        "train_steps": 82800,
+        "replay_size": 40000
+      }
+    },
+    "weight_agent": {
+      "before": {
+        "train_steps": 82400,
+        "replay_size": 40000
+      },
+      "after": {
+        "train_steps": 82800,
+        "replay_size": 40000
+      }
+    },
+    "horizon_agent": {
+      "before": {
+        "train_steps": 82400,
+        "replay_size": 40000
+      },
+      "after": {
+        "train_steps": 82800,
+        "replay_size": 40000
+      }
+    },
+    "markov_agent": {
+      "before": {
+        "train_steps": 82399,
+        "replay_size": 40000
+      },
+      "after": {
+        "train_steps": 82799,
+        "replay_size": 40000
+      }
+    }
+  },
+  "source_map_unchanged": true,
+  "workers": [
+    {
+      "identity": {
+        "pid": 59504,
+        "alive": true,
+        "created": 134373496370785599,
+        "cpu_seconds": 2124.8125,
+        "private_bytes": 10922684416,
+        "rss_bytes": 800452608
+      },
+      "normal_priority_verified": true,
+      "affinity_unchanged": true
+    },
+    {
+      "identity": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962,
+        "cpu_seconds": 2228.625,
+        "private_bytes": 6648348672,
+        "rss_bytes": 24264704
+      },
+      "normal_priority_verified": true,
+      "affinity_unchanged": true
+    },
+    {
+      "identity": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459,
+        "cpu_seconds": 2228.6875,
+        "private_bytes": 7007645696,
+        "rss_bytes": 23388160
+      },
+      "normal_priority_verified": true,
+      "affinity_unchanged": true
+    }
+  ],
+  "saved_at_unix": 1792900242.5201197,
+  "whole_checkpoint_interval_seconds": 474.1450283527374,
+  "elapsed_seconds_per_step": 1.1853625708818436,
+  "limitation": "The checkpoint interval straddles the live priority change and varying learner/controller choices; it is not a controlled speedup measurement.",
+  "actions": {
+    "restarts": 0,
+    "process_signals": 0,
+    "simulator_calls": 0,
+    "data_deletions": 0,
+    "source_or_queue_edits": 0
+  }
+}

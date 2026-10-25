@@ -1,4 +1,8 @@
-# Reviewer-run recovery — latest update October 24, 2026
+# Reviewer-run recovery — latest update October 25, 2026
+
+## Routine hourly check — October 25, 00:44 Toronto
+
+Combined remains healthy and has advanced to **cycle223/300, step89200**. Comparisons remain **240/320**, total560/640; the remaining80 belong to the later adapted window. Both case-15/17 workers have completed all35 current production requests and legitimately wait while the main trajectory advances. The accepted parent and both child generations are unchanged; the normal OS priorities applied at the user's request remain in place. The parent accrued4.02 CPU seconds during the twelve-second audit, all143 scientific seals/current native ownership pass, capture keys remain completed/unique and no observation needs diagnosis. Other configurations, column repetitions/coordinator and horizon remain completed. Both retention services are live: combined89200/88800 and standalone120000/119600 complete matched checkpoints verify. Side retention still preserves66 verified retired-folder ZIPs and keeps the newest two comparisons unpacked; latest archive SHA-256/CRC passes. Memory headroom36.0GiB, disk265.0GiB, parent private allocation stable near10.1GiB. No restart, signal, priority change, cleanup, simulator call or scientific/queue edit was needed. Existing viewer/hourly monitoring continue; unchanged healthy training between comparison windows requires no alert. Evidence: `change-reports/hourly_run_checks_20261024/audit_20261025T0443.json` and `parallel_20261025T0443.json`. Earlier ETA ranges retain their recorded reference times; no new speedup claim is made.
 
 ## User-requested live performance check — October 24, 23:52 Toronto
 

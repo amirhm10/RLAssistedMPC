@@ -1,4 +1,14 @@
-# Hourly experiment check — October 24, 2026
+# Hourly experiment checks — October 24–25, 2026
+
+## October25,04:43UTC heartbeat — verified at04:44UTC (00:44Toronto)
+
+Accepted combined production has advanced to **cycle223/300, step89200**, with **240/320 comparisons**, overall560/640 and80 later adapted-window comparisons remaining. The parent and both case-15/17 worker creation identities remain unchanged/live. All three Python workers retain the normal OS priority applied at the user's request; no further scheduling change was made. Parent CPU advanced4.02 seconds during the twelve-second sample. Each child has35 requests/35 completed responses; their quiet owned applications are expected between capture windows while main training advances. No new trace is expected yet. All capture records remain completed/unique, all143 scientific seals pass and every live native application has current ownership. No observation needs diagnosis. Four standalones, column repetitions/coordinator and horizon remain completed.
+
+Original retention58264/134372665192525684 is live and verifies complete matched combined89200/88800 and standalone120000/119600 pairs. It now represents384,488,931,142 raw bytes in43,467,123,777 compressed bytes across1043 retired folders. Side service4480/134373504924160382 is live with unchanged source/scheduled seals. Its66 retired-folder archives remain unchanged at41,711,376,840 original bytes and6,527,925,866 ZIP bytes; every archive size reconciles, latest SHA-256/CRC passes, and actual working folders for the newest two primary comparisons remain unpacked. Scientific results, durable/native inputs, pins, matched checkpoints and every retained lossless archive remain available.
+
+Commitment headroom38,633,414,656 bytes (36.0GiB), free disk284,507,054,080 bytes (265.0GiB). Parent private allocation10,894,245,888 bytes is stable/slightly lower than the preceding full parallel sample; no preventive restart is warranted. The previous20–26-hour planning range retains its03:37UTC origin; this routine check does not make a new ETA or causal scheduling-speedup claim.
+
+Evidence: `audit_20261025T0443.json`, `parallel_20261025T0443.json`. Inspected current recovery/checkpoint/status/ownership via stable aliases, actual process generations/CPU/priorities, append-only journals/logs, completed output sizes, source seals and archive readback. Changed only these receipts and concise root/hourly notes. No restart, process signal, priority/affinity change, simulator call, cleanup, numerical test, scientific/shared queue/manuscript edit, package/OneDrive change or administrator action occurred. Existing viewer, queue, hourly automation, frozen analysis and unrelated dirty polymer runner remain intact. Unchanged healthy advancement between sampled windows needs no user alert.
 
 ## Direct performance request — verified through03:52UTC (October24,23:52Toronto)
 

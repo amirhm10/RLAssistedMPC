@@ -1,5 +1,11 @@
 # Reviewer-run recovery — latest update October 25, 2026
 
+## Routine hourly check — October 25, 15:01 Toronto
+
+Combined remains healthy at **275/320 comparisons saved**, six more since the previous check; **45 remain**. Adapted has35/80. Latest full checkpoint is **cycle294/300, step117600**; latest saved comparison is Markov117554. Accepted parent and both case15/17 generations remain live at normal priority, with matching pool pointer. Each child has71 requests/70 completed responses; CPU and saved results confirm progress. All current native applications match exact ownership generations. All143 scientific seals, completed/unique capture keys, six new trace hashes and all70 production live-state/source-map checks pass. Other configurations, repetitions/coordinator and horizon remain completed; no current failure needs recovery.
+
+Both retention services are healthy: complete matched combined117600/117200 and standalone120000/119600 checkpoint pairs verify. All136 side archive sizes reconcile; latest ZIP SHA-256/CRC passes and newest-two comparisons remain unpacked. Headroom22.1GiB and free disk214.4GiB remain above launch/reserve guards. Python private allocations have grown and remain under hourly monitoring; main Aspen memory is normal, so no preventive restart was performed. No repair was needed. Viewer/hourly checks continue quietly. Earlier ETA ranges retain their recorded origin. Evidence: `change-reports/hourly_run_checks_20261024/audit_20261025T1859.json` and `parallel_20261025T1859.json`.
+
 ## Routine hourly check — October 25, 14:04 Toronto
 
 Combined remains healthy at **269/320 comparisons saved**, seven more since the previous check; **51 remain**. Adapted has29/80. Latest full checkpoint is **cycle293/300, step117200**; latest saved comparison is weights117411. Accepted parent and both case15/17 generations remain live at normal priority, with matching pool pointer. Each child has65 requests/64 completed responses; CPU and saved comparison changes confirm progress. All current native applications match exact ownership generations. All143 scientific seals, completed/unique capture keys, seven new trace hashes and all64 production live-state/source-map checks pass. Other configurations, repetitions/coordinator and horizon remain completed; no current failure needs recovery.

@@ -1,0 +1,117 @@
+{
+  "at_utc": "2026-10-25T01:37:43.029853+00:00",
+  "parent": {
+    "pid": 59504,
+    "alive": true,
+    "created": 134373496370785599,
+    "cpu_seconds": 875.375,
+    "private_bytes": 13996642304,
+    "rss_bytes": 1696649216
+  },
+  "parent_generation_unchanged": true,
+  "children": [
+    {
+      "case": 15,
+      "expected": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962
+      },
+      "actual": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962,
+        "cpu_seconds": 1764.125,
+        "private_bytes": 6213705728,
+        "rss_bytes": 1684267008
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_since_previous_seconds": 336.15625,
+      "requests": 26,
+      "completed_responses": 25
+    },
+    {
+      "case": 17,
+      "expected": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459
+      },
+      "actual": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459,
+        "cpu_seconds": 1777.546875,
+        "private_bytes": 6193860608,
+        "rss_bytes": 1688268800
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_since_previous_seconds": 339.5,
+      "requests": 26,
+      "completed_responses": 25
+    }
+  ],
+  "manifest_state": "running",
+  "stage": "production",
+  "validation_passed": true,
+  "completed_parallel_primary_pairs": 25,
+  "latest_completed_comparison": {
+    "channel": "horizon",
+    "step": 83580,
+    "elapsed_seconds": 401.17027899995446
+  },
+  "side_archive_status": {
+    "state": "running",
+    "updated_at": "2026-10-25T01:37:09.307610+00:00",
+    "pid": 4480,
+    "identity": {
+      "pid": 4480,
+      "alive": true,
+      "created": 134373504924160382,
+      "cpu_seconds": 292.03125,
+      "private_bytes": 29339648,
+      "rss_bytes": 21012480
+    },
+    "archived_working_folders": 46,
+    "duplicate_bytes_removed": 28693259642,
+    "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips",
+    "newest_two_primary_comparisons_unpacked": true,
+    "all_results_checkpoints_and_inputs_retained": true,
+    "free_disk_bytes": 295199248384
+  },
+  "side_identity": {
+    "pid": 4480,
+    "alive": true,
+    "created": 134373504924160382,
+    "cpu_seconds": 292.03125,
+    "private_bytes": 29339648,
+    "rss_bytes": 21012480
+  },
+  "side_source_and_scheduled_seals_verified": true,
+  "archives": 46,
+  "original_bytes": 28693259642,
+  "zip_bytes": 4490091675,
+  "latest_archive_sha256_crc_verified": {
+    "path": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips\\f1e81bd7a828a0e2ddf61675.zip",
+    "sha256": "c4602a37838e073a46f20622ea5ddaf44a5530dc52f0e13f26102c27512c0400"
+  },
+  "latest_two_primary_working_folders_unpacked": [
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_52e8adc2",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_34b56ffe",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_7f6ce787",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_136048a2"
+  ],
+  "memory": {
+    "committed_bytes": 63573794816,
+    "limit_bytes": 97452056576,
+    "headroom_bytes": 33878261760
+  },
+  "free_disk_bytes": 295193718784,
+  "actions": {
+    "process_signals": 0,
+    "restarts": 0,
+    "simulator_calls": 0,
+    "source_edits": 0,
+    "data_deletions": 0
+  }
+}

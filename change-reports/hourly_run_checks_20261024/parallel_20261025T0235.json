@@ -1,0 +1,118 @@
+{
+  "at_utc": "2026-10-25T02:35:43.034417+00:00",
+  "parent": {
+    "pid": 59504,
+    "alive": true,
+    "created": 134373496370785599,
+    "cpu_seconds": 1090.953125,
+    "private_bytes": 9995730944,
+    "rss_bytes": 635502592
+  },
+  "parent_generation_unchanged": true,
+  "parent_private_change_since_previous_bytes": -4000911360,
+  "children": [
+    {
+      "case": 15,
+      "expected": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962
+      },
+      "actual": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962,
+        "cpu_seconds": 2103.296875,
+        "private_bytes": 6701895680,
+        "rss_bytes": 822288384
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_since_previous_seconds": 339.171875,
+      "requests": 33,
+      "completed_responses": 33
+    },
+    {
+      "case": 17,
+      "expected": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459
+      },
+      "actual": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459,
+        "cpu_seconds": 2104.65625,
+        "private_bytes": 6793072640,
+        "rss_bytes": 832090112
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_since_previous_seconds": 327.109375,
+      "requests": 33,
+      "completed_responses": 33
+    }
+  ],
+  "manifest_state": "running",
+  "stage": "production",
+  "validation_passed": true,
+  "completed_parallel_primary_pairs": 33,
+  "latest_completed_comparison": {
+    "channel": "weights",
+    "step": 83864,
+    "elapsed_seconds": 406.52061830018647
+  },
+  "side_archive_status": {
+    "state": "running",
+    "updated_at": "2026-10-25T02:35:01.752897+00:00",
+    "pid": 4480,
+    "identity": {
+      "pid": 4480,
+      "alive": true,
+      "created": 134373504924160382,
+      "cpu_seconds": 387.375,
+      "private_bytes": 30384128,
+      "rss_bytes": 16478208
+    },
+    "archived_working_folders": 60,
+    "duplicate_bytes_removed": 37773396692,
+    "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips",
+    "newest_two_primary_comparisons_unpacked": true,
+    "all_results_checkpoints_and_inputs_retained": true,
+    "free_disk_bytes": 286178934784
+  },
+  "side_identity": {
+    "pid": 4480,
+    "alive": true,
+    "created": 134373504924160382,
+    "cpu_seconds": 387.375,
+    "private_bytes": 30384128,
+    "rss_bytes": 16474112
+  },
+  "side_source_and_scheduled_seals_verified": true,
+  "archives": 60,
+  "original_bytes": 37773396692,
+  "zip_bytes": 5911437737,
+  "latest_archive_sha256_crc_verified": {
+    "path": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips\\b3592ace9bdc2d0b440f84c1.zip",
+    "sha256": "ee6ef61fd534f75a6b33154df65a20a3d7e2e0e85e2645ba412bfe8dfe24c4dc"
+  },
+  "latest_two_primary_working_folders_unpacked": [
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_cdd4b68f",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_5d9b7dfe",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_3f3d6a8f",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_690da661"
+  ],
+  "memory": {
+    "committed_bytes": 57363922944,
+    "limit_bytes": 97452056576,
+    "headroom_bytes": 40088133632
+  },
+  "free_disk_bytes": 286835032064,
+  "actions": {
+    "process_signals": 0,
+    "restarts": 0,
+    "simulator_calls": 0,
+    "source_edits": 0,
+    "data_deletions": 0
+  }
+}

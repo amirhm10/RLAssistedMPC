@@ -1,6 +1,14 @@
 # Reviewer-run recovery — latest update October 26, 2026
 
-## Current progress —03:28UTC:317/320 combined comparisons
+## Authorized campaign complete — October26,04:13UTC; verified04:37UTC
+
+**Combined finished all300 training cycles,120000 steps and320/320 comparisons, with zero failed pairs. All authorized campaign runs are now complete:** all five column E1 configurations have640/640 comparisons in total, and50/50 column repetitions, the coordinator and horizon supervisor are completed. Every current combined trace passed fresh CRC/SHA-256 checks against its previously verified generation; the complete saved trajectory has finite outputs, inputs, rewards and observer states. All143 scientific source seals remain intact. Final receipt: `change-reports/combined_inference_recovery_20261026/completion.json`.
+
+The final matched120000/119600 Python/native checkpoints verify independently, with all four40000-entry learner buffers retained. Final preservation verified1051 files referencing17.92GB, reusing unchanged verified copies and adding64 new files; the external manifest and its SHA-256 are in `completion_preservation.json`. Every original result, the initial314 comparison generations, technical replay evidence, pinned dependencies and all lossless archives remain retained. Original main retention is still active; its combined timestamp deferral cleared automatically. The current side helper completed normally with10 verified archives and the newest two comparison pairs unpacked; prior214 side archives remain preserved. About100.8GiB disk remains free.
+
+The viewer points to the completed current manifest. The hourly automation was **disabled (PAUSED)** through the app after saved-result and preservation verification; its prompt, schedule and target were preserved and the stored status was rechecked in `monitor_completion.json`. No scientific worker needed interruption. Frozen reviewer analysis, manuscript and unrelated dirty polymer source remain unchanged.
+
+## Prior progress —03:28UTC:317/320 combined comparisons
 
 The horizon119020 comparison has saved and passed trace checks; **3 comparisons plus final training remain**. The current parent and both case15/17 workers retain their accepted creation identities; both current native comparison applications show CPU progress. All143 scientific seals verify and no unresolved observation needs repair. The side service has safely archived4 older working folders; the newest ZIP SHA-256/CRC and all four unpacked models for the newest two completed comparisons verify. Original retention remains healthy and conservatively retains combined files until the next full checkpoint; the verified/backed-up118808/118800 pair remains protected. Headroom37.6GiB, disk103.6GiB. All other scheduled runs remain completed. The viewer points to the current metadata retry. Evidence: `change-reports/hourly_run_checks_20261024/audit_20261026T0322.json`, `parallel_20261026T0322.json` and `check_20261026T0322.json`. No worker was paused, restarted or signaled; monitoring continues.
 

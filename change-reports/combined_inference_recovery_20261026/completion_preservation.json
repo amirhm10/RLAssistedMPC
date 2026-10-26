@@ -1,0 +1,18 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-26T04:36:55.975591+00:00",
+  "manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\final_2026-10-26T043609_090535+0000\\preservation.json",
+  "manifest_sha256": "5fa289a7a93da2c08e0ad1e503d19644e76c6bcb7b1eadd4bfb037f55a9879d8",
+  "files": 1051,
+  "bytes": 17924759392,
+  "new_files": 64,
+  "checkpoint_steps": [
+    120000,
+    119600
+  ],
+  "primary_pairs": 320,
+  "final_trajectory_sha256": "6e4c1c7c2f088337ea353c5f1849477ae78a5d78458dc5b9b93367a3259c5987",
+  "original_314_and_prior_backups_retained": true,
+  "all_original_files_retained": true,
+  "free_disk_bytes": 108255969280
+}

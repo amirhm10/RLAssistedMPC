@@ -1,0 +1,17 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-26 04:37:36 UTC",
+  "automation_id": "hourly-aspen-run-checks-and-recovery",
+  "status": "PAUSED",
+  "app_update_succeeded": true,
+  "reason": "All remaining authorized campaign runs completed and saved results, matched checkpoints and final independent preservation verified.",
+  "prompt_preserved": true,
+  "schedule_preserved": true,
+  "target_thread_preserved": true,
+  "notification_policy_preserved": true,
+  "verified_current_config_updated_at": 1792989430459,
+  "completion_receipt": "completion.json",
+  "final_preservation_receipt": "completion_preservation.json",
+  "original_main_retention_unchanged": true,
+  "manuscript_and_frozen_analysis_unchanged": true
+}

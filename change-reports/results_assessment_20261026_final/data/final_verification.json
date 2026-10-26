@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "e1_pairs": 3840,
+  "combined_final_pairs": 320,
+  "four_balanced_channels_and_windows": true,
+  "threshold_metric_rows_checked": 36,
+  "threshold_recovery_rows_checked": 8,
+  "combined_steady_states_checked": 160,
+  "extended800_step_cases_checked": 32,
+  "earlier_assessment_files_unchanged": 85,
+  "accessible_paper_files_unchanged": 47,
+  "unreadable_ancillary_pdfs_left_untouched": 2,
+  "job_source_files_unchanged": 139,
+  "campaign_seals_unchanged": 143,
+  "manuscript_edits": 0,
+  "reviewer_comments_answered": 0,
+  "total_figures": 24,
+  "readiness_comments_checked": 24,
+  "analysis_script_hashes": {
+    "analyze.py": "e961b76d89592950727bc5aa8f7b212cab068f152e9737e08fe9fe86033c3ad1",
+    "build_assessment.py": "929ba5587319bd897759a8c160d1f48971e132a07d1f047138f53c44e22d362e",
+    "final_checks.py": "9b56e990102ae41a87a08840cfe9eb069a31b0adf22c07a964db8be136978eec",
+    "final_comparison.py": "96fde5eaf4b2f62e7217f0c87b746d710a1ad95b6d05d6614ab531444198d72a",
+    "package_figures.py": "e3b6cd3694b1742ea278cc5fb354ce402d3c88b37b92de387661bd9f4950aa32",
+    "plot_results.py": "ad30c359d19a80a07b8b516b4f46c812c1345b08549abd348041f313a613f174",
+    "recovery_analysis.py": "cf658705123fcac22dcf87fab9862ec27122347b089b0a50b5b2f46b3e308d52",
+    "reward_check.py": "36b552ad14003cb571736508efeee99c991bd25ec3e5f274f53869a57b747e8d",
+    "steady_state_analysis.py": "1575cdb05976e69050da7a0b099066ed9119715f753ca2e49a9c972e96216afd",
+    "verify_analysis.py": "31d2b6929e8af36643a9ab4523303aed30a6572bad04ef6de24a0508d2925f19",
+    "verify_comparators.py": "27cf09b4fb862858b6147121c71a94ed1a1a2c0aeac3c8dc88a1d80fabef4d61"
+  }
+}

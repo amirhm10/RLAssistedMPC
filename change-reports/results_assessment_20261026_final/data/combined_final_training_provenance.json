@@ -1,0 +1,13 @@
+{
+  "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\training.pkl",
+  "sha256": "6e4c1c7c2f088337ea353c5f1849477ae78a5d78458dc5b9b93367a3259c5987",
+  "bytes": 345123663,
+  "reward_rescore_max_abs_difference": 1.5205614545266144e-12,
+  "finite_primary_arrays": true,
+  "reference_matches_common": true,
+  "profile": "temperature_flip_200_100",
+  "stored_reward_kept": true,
+  "source": "Accepted final E1 instrumented main trajectory, not an additional independent replicate.",
+  "accepted_recovery": "combined_inference_recovery_20261026/completion.json",
+  "technical_suffix_replays_have_preserved_originals": true
+}

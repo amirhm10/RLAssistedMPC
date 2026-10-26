@@ -1,0 +1,25 @@
+comment,status,evidence,remaining
+R1.1,Ready to prepare,Final comparative abstract numbers and abbreviation cleanup,Final values verified; no abstract written.
+R1.2,Ready to prepare,Contributions and practical scope,Keep claims within the tested linear-MPC assistance setting.
+R1.3,Ready to prepare,Positioning against MPC tuning,E2 evidence available; verify literature attribution during writing.
+R1.4,Open analytical dependency,Requested substantive analytical result,Formal stability/convergence/unbiasedness is not established. Author prefers future work; this does not itself resolve the request.
+R1.5,Literature check needed,Two named RL papers,Full-text comparison and citation check remain separate writing work.
+R1.6,Ready to prepare,Approved simple/BO/LS/ARX numerical comparisons,Adapted BO and known ARX limitations must remain explicit; no extra E7 reproduction campaign is required by the accepted scope.
+R1.7,Ready to prepare,Short conclusion and measured future-work limits,Use final evidence; avoid general superiority.
+R2.1,Ready to prepare,Completed critic-versus-realized-decision audit,"Evidence is mixed/unfavorable in important cells; supports honest diagnostic discussion, not dependable critic ranking or calibrated confidence."
+R2.2,Partial evidence,"Critic semantics, scalar reward and interactions",Output-wise metrics and reward decomposition exist; E4 joint-action evidence is not supplied by this campaign.
+R2.3,Partial evidence,Paired seeds and unseen multistep references,Five seeds per family/mode/plant are complete; frozen-policy unseen-reference evaluation is not supplied.
+R2.4,Ready to prepare,Linear MPC scope and guarantee terminology,"Describe empirical mitigation; no formal safety, recursive-feasibility or stability guarantee."
+R2.5,Ready to prepare,Four separate gates using a common principle,"Preserve channel-specific critics, supervisors, margins and buffers."
+R2.6,Ready to prepare,Abrupt release protocol,State release episode14 and distinguish learning from action availability.
+R2.7,Ready to prepare,Readable figures,New PNG/SVG figures and booklet are ready for selection; manuscript figures are not replaced.
+R3.1,Ready to prepare,Nomenclature and first use,Editorial pass remains to be performed.
+R3.2,Ready to prepare,Predictor accuracy and identification detail,"576 E3 rows reproduced; known-future-input, window and single-seed limitations remain."
+R3.3,Literature check needed,Nonlinear surrogate trade-offs,Verified literature discussion remains; no nonlinear benchmark claim is supported.
+R3.4,Ready to prepare,Safe-RL keyword and guarantee language,Observed handoff mitigation is distinct from certified constraint satisfaction.
+R3.5,Ready to prepare,Supervisor origins in the diagram,Implementation can support the diagram; no conceptual/manuscript figure has been edited.
+R3.6,Partial evidence,Sequential decisions and joint limitations,Conditional first-action E1 data do not establish joint causal effects; E4 remains separate.
+R3.7,Additional empirical evidence needed,"Adverse calibration, model order and disturbances",No verified completed E5 stress campaign was identified in the audited pool.
+R3.8,Ready to prepare,"Architecture, activations and smaller networks",Follow accepted E6 justification/limitations route; no new architecture training is authorized.
+R3.9,Additional empirical evidence needed,Margin/bound/reward-scale sensitivity,E5 controller-parameter sweeps remain separate. Analysis-window and dwell sensitivities do not replace them.
+R3.10,Ready to prepare,NMPC omission and modeling premise,Follow accepted E7 scope/limitations route; no numerical superiority over NMPC is established.

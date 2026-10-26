@@ -1,0 +1,6 @@
+{
+  "classified_decisions": 160,
+  "max_training_trace_alignment_range_fraction": 0.0,
+  "thresholds_match_previous_standalone_analysis": true,
+  "engineering_sensitivities_not_controller_settings_or_safety_bounds": true
+}

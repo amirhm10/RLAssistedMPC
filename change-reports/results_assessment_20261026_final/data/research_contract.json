@@ -1,0 +1,22 @@
+{
+  "question": "With final combined E1 complete, compare critic supervisory gating with the simple threshold on handoff disruption and recovery speed, and assess reviewer readiness without writing replies.",
+  "mode": "focused-audit with versioned final analysis and scientific figures",
+  "allowed_actions": [
+    "read saved scientific data and paper roadmap",
+    "recompute offline metrics",
+    "create a new assessment and figure package",
+    "create scoped local commit"
+  ],
+  "excluded_actions": [
+    "new simulations or training",
+    "editing manuscript or reviewer replies",
+    "changing raw results or recovery archives",
+    "silently overwriting the October24 assessment"
+  ],
+  "final_campaign_completion": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_inference_recovery_20261026\\completion.json",
+  "e1_pairs": 3840,
+  "threshold_comparison_scope": "E2 separately trained combined controllers, one realization per method and plant; no new threshold replications",
+  "recovery_primary_definition": "Three consecutive episodes at or above matched nominal MPC reward, or with both output RMSEs no worse. Search episodes14-200; retain censoring and dwell1/5 sensitivity.",
+  "empirical_handoff_definition": "Episodes14-20: output RMSE, peak physical error, normalized tracking-band excursions, reward and input movement. Tracking bands are not hard safety constraints.",
+  "readiness_scope": "Check the existing24-comment roadmap and accepted E1-E7 scopes; do not answer or mark comments resolved."
+}

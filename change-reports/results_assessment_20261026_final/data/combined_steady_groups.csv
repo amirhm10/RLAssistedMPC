@@ -1,0 +1,5 @@
+channel,quasi_steady,pairs,different_proposals,negligible_first_moves,near_tied_returns,supervisor_among_ties,material_harmful_accepted,near_target_material_harmful
+horizon,False,69,65,2,7,0,37,22
+horizon,True,11,8,2,3,0,5,5
+weights,False,65,65,4,17,7,22,13
+weights,True,15,15,7,5,4,3,3

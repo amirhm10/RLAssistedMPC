@@ -1,0 +1,8 @@
+claim,classification,evidence,limit
+Lower primary seven-episode handoff disruption than threshold,empirical observation,threshold_pairwise.csv; E2 raw verified trajectories,One realization per method/plant; shorter column composition window is a counterexample.
+Faster recovery than threshold,metric-dependent empirical observation,threshold_recovery_summary.csv,Reward favors critic in both plants; both-output RMSE favors threshold in the column.
+SG improves handoff and recovery versus ungated combined RL,replicated empirical observation,paired_seed_differences.csv; recovery_times.csv,"Five paired training seeds; tested scenario, no held-out-reference generalization claim."
+Critic reliably ranks the better action,unsupported generalization,combined_final_gate_summary.csv; gate_groups.csv,Many lower-return acceptances and beneficial rejections; negative phase-weighted mean selected gain in each column combined channel.
+Steady operation can produce similar outcomes from different settings,partly supported interpretation,steady_state_groups.csv; combined_steady_groups.csv,Not all near-steady choices are equivalent; no direct evidence of training confusion.
+Formal closed-loop safety/stability,not established,No theorem or certified operating constraints supplied,Empirical tracking mitigation only; R1.4 remains an explicit dependency.
+All reviewer requirements complete,not established,reviewer_readiness.csv,"Campaign complete; unseen references, E4/E5, analytical and literature work remain distinct."

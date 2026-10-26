@@ -1,0 +1,44 @@
+{
+  "sources": [
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\horizon_s7\\a1\\training.pkl",
+      "sha256": "db3f1b8ebbc9309dcbfba7ace57e3adb6d127996d0d893e963f4dc3fcd01d8dc",
+      "bytes": 208092653,
+      "plant": "polymer",
+      "category": "horizon",
+      "predecision_state_max_alignment_range_fraction": 0
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\weights_s7\\a1\\training.pkl",
+      "sha256": "1b3fda9ad414529252845af8418f7dbdf9f112302b9fac35899e3eba669133e4",
+      "bytes": 403585227,
+      "plant": "polymer",
+      "category": "weights",
+      "predecision_state_max_alignment_range_fraction": 0
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training.pkl",
+      "sha256": "95c9162d66e8b7be4085ed681375cd4b8d398a00b63cd80ac7299374eb9dd5f7",
+      "bytes": 91594893,
+      "plant": "column",
+      "category": "horizon",
+      "predecision_state_max_alignment_range_fraction": 0
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training.pkl",
+      "sha256": "7f03e175829ff151490515abc38164cb9052f1bd33915d83128f21dcf1af4461",
+      "bytes": 188504343,
+      "plant": "column",
+      "category": "weights",
+      "predecision_state_max_alignment_range_fraction": 0
+    }
+  ],
+  "classified_decisions": 960,
+  "scope": "Standalone horizon/weights only; both plants, one training seed, complete four-window coverage.",
+  "quasi_steady": "Reference constant over preceding 10 steps, max output increment <=5% of current tracking band per step, max input increment <=0.5% of identification input range per step.",
+  "near_target": "Both PRE-decision output errors inside the existing physical reward bands; distinct from low-rate steady operation.",
+  "negligible_first_move": "Maximum normalized first-input difference <=0.0001 of identification input range (0.01%).",
+  "negligible_outcome": "Negligible first move AND each 200-step output RMSE change <=1% of current tracking band AND abs return difference <=0.5% of max(1,abs supervisor return).",
+  "limits": "Post-hoc diagnostic thresholds; no optimized-objective/Hessian equivalence, causal channel ablation or state-independent no-effect claim.",
+  "future_reference_changes": "Reported separately: a presently steady state can still have different 200-step outcomes across a forthcoming setpoint change."
+}

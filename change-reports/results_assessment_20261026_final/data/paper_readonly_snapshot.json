@@ -1,0 +1,252 @@
+{
+  "files": [
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\cover_letter.tex",
+      "sha256": "964879d83da9de0866e8cf8c5d6dc67a95b596aa0150e86bec4fab5e68d28b3d",
+      "bytes": 2571
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\figures\\mixed_replay_schematic_source.tex",
+      "sha256": "881d3d08d01ff4c65c1b559e64989fc7931efcfaee85ba36262917251fea2518",
+      "bytes": 2670
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\highlights.tex",
+      "sha256": "b01b6422304667351fdece31aa61cd8ca493e2afe535f7d58e856c54e02bb70e",
+      "bytes": 754
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\main.tex",
+      "sha256": "3d76a78a261fe3d568fd57281b253621b80412eb0e11744757cb8d1259e5b668",
+      "bytes": 1968
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\references.bib",
+      "sha256": "d300dfc0c981b1d2ed713dc7fa186c7a1ef017521390ce1f87da43bd8b7db956",
+      "bytes": 17900
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\sections\\abstract.tex",
+      "sha256": "e23e2decf7bacf14f83ed792fab8ae91e0b1ce27c64d79662c47e4a60d396e4d",
+      "bytes": 1743
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\sections\\conclusion.tex",
+      "sha256": "9d2fdab26add9e8e4a2a26fcbc0d60579d3944aa1cffa7561554fded60a92975",
+      "bytes": 3098
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\sections\\introduction.tex",
+      "sha256": "5eb508e739f080ed9963365d85823355147f9ac43150453d130d434b6993ea29",
+      "bytes": 10534
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\sections\\methodology.tex",
+      "sha256": "2fa77f5358ccd643bb4114a2d9e865d37a6d03728e859a6ca6e9737952db6928",
+      "bytes": 73199
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\sections\\preliminaries.tex",
+      "sha256": "ab0c9af2eaf6f0458e946dd2464dd545fd58feb8eac7a3d1fbad1ddf25798a9f",
+      "bytes": 9326
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\sections\\results.tex",
+      "sha256": "2eb2a9a025f250875bc5552c20bbdf6ffcbce0e21978590a49acf65cc2ba39b9",
+      "bytes": 21711
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\sections\\supporting_information_content.tex",
+      "sha256": "809e24aae82774ba4777ccb99e49b6a278fe7a1a238715fe4011e4a11dc8afeb",
+      "bytes": 35754
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\supporting_information.tex",
+      "sha256": "8428bc01e1591a0a95a61e0e1877716b38a1790d7b2dbb1fcecad031f6bbc686",
+      "bytes": 1569
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\supporting_information_references.bib",
+      "sha256": "e3f03998e4df0da2d8b16597c2e4374e1f3ee62e883d773a7188ac511103efcc",
+      "bytes": 3131
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\tables\\distillation_repeated_results.tex",
+      "sha256": "a258d39e21117ec36f48d48f39eebd63bee1e4a4a2589349a48722c9428ad752",
+      "bytes": 2679
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\tables\\distillation_two_phase_results.tex",
+      "sha256": "816ab01bb4b4e55d34525f54e28e7855af1e3d49b854727ff6406615f3061fc9",
+      "bytes": 1164
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\tables\\polymer_repeated_results.tex",
+      "sha256": "ceb7bdb84372e5cac35c46aff6b772d85ad0ce69c45ad573074d611a89495ce3",
+      "bytes": 2612
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript\\tables\\polymer_two_phase_results.tex",
+      "sha256": "7247ac43b9529c048f1f18d4e9478d3d0c4e6da67ca4df47a1f4a972d0347dac",
+      "bytes": 1100
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\cover_letter.tex",
+      "sha256": "964879d83da9de0866e8cf8c5d6dc67a95b596aa0150e86bec4fab5e68d28b3d",
+      "bytes": 2571
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\figures\\mixed_replay_schematic_source.tex",
+      "sha256": "881d3d08d01ff4c65c1b559e64989fc7931efcfaee85ba36262917251fea2518",
+      "bytes": 2670
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\highlights.tex",
+      "sha256": "b01b6422304667351fdece31aa61cd8ca493e2afe535f7d58e856c54e02bb70e",
+      "bytes": 754
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\main.pdf",
+      "sha256": "eda814bce0ce4d80eef549c9fdb558a393e15edc18e26fad01a1123eb98f6698",
+      "bytes": 5139009
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\main.tex",
+      "sha256": "3d76a78a261fe3d568fd57281b253621b80412eb0e11744757cb8d1259e5b668",
+      "bytes": 1968
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\polymer_comparison_references.bib",
+      "sha256": "5516439ef73e49769c2a905ababb6a45e438a6a50ef5d71a0c4420993ae19a8e",
+      "bytes": 1665
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\polymer_scenario1_comparison_protocol.pdf",
+      "sha256": "443a617a8cd300fae9ac50d6a48c5f953099606bd12d673a1cfcb7452b5c6114",
+      "bytes": 205569
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\polymer_scenario1_comparison_protocol.tex",
+      "sha256": "058148335fdc75d35ffd47cb912559a019caee64a529b0e4d37ec936de9ea63d",
+      "bytes": 13049
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\references.bib",
+      "sha256": "d300dfc0c981b1d2ed713dc7fa186c7a1ef017521390ce1f87da43bd8b7db956",
+      "bytes": 17900
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\response_to_reviewers.pdf",
+      "sha256": "5ee5514b572588f856a62eff8b5420427c4004fceda411cb6865b5b25eb083aa",
+      "bytes": 186529
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\response_to_reviewers.tex",
+      "sha256": "0a050aed5e213113865bdb403182995ca7c47949379547a057c2d4d966cc0889",
+      "bytes": 12601
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\REVISION_ROADMAP.md",
+      "sha256": "1c3423353c3667340d48e8454541876e89ab2e455061a3eabf1be5a4e6cca8c7",
+      "bytes": 25387
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\sections\\abstract.tex",
+      "sha256": "e23e2decf7bacf14f83ed792fab8ae91e0b1ce27c64d79662c47e4a60d396e4d",
+      "bytes": 1743
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\sections\\conclusion.tex",
+      "sha256": "9d2fdab26add9e8e4a2a26fcbc0d60579d3944aa1cffa7561554fded60a92975",
+      "bytes": 3098
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\sections\\introduction.tex",
+      "sha256": "5eb508e739f080ed9963365d85823355147f9ac43150453d130d434b6993ea29",
+      "bytes": 10534
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\sections\\methodology.tex",
+      "sha256": "2fa77f5358ccd643bb4114a2d9e865d37a6d03728e859a6ca6e9737952db6928",
+      "bytes": 73199
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\sections\\preliminaries.tex",
+      "sha256": "ab0c9af2eaf6f0458e946dd2464dd545fd58feb8eac7a3d1fbad1ddf25798a9f",
+      "bytes": 9326
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\sections\\results.tex",
+      "sha256": "2eb2a9a025f250875bc5552c20bbdf6ffcbce0e21978590a49acf65cc2ba39b9",
+      "bytes": 21711
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\sections\\supporting_information_content.tex",
+      "sha256": "809e24aae82774ba4777ccb99e49b6a278fe7a1a238715fe4011e4a11dc8afeb",
+      "bytes": 35754
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\supporting_information.pdf",
+      "sha256": "3dc81b60bdd667d690fbf9f3b8a402f7ecf36dc81eff3697023a6a1e50160355",
+      "bytes": 2367259
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\supporting_information.tex",
+      "sha256": "8428bc01e1591a0a95a61e0e1877716b38a1790d7b2dbb1fcecad031f6bbc686",
+      "bytes": 1569
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\supporting_information_references.bib",
+      "sha256": "e3f03998e4df0da2d8b16597c2e4374e1f3ee62e883d773a7188ac511103efcc",
+      "bytes": 3131
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\tables\\distillation_repeated_results.tex",
+      "sha256": "a258d39e21117ec36f48d48f39eebd63bee1e4a4a2589349a48722c9428ad752",
+      "bytes": 2679
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\tables\\distillation_two_phase_results.tex",
+      "sha256": "816ab01bb4b4e55d34525f54e28e7855af1e3d49b854727ff6406615f3061fc9",
+      "bytes": 1164
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\tables\\polymer_repeated_results.tex",
+      "sha256": "ceb7bdb84372e5cac35c46aff6b772d85ad0ce69c45ad573074d611a89495ce3",
+      "bytes": 2612
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\tables\\polymer_two_phase_results.tex",
+      "sha256": "7247ac43b9529c048f1f18d4e9478d3d0c4e6da67ca4df47a1f4a972d0347dac",
+      "bytes": 1100
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\paper-memory\\ACTIVE_PAPER_STATE.md",
+      "sha256": "4f492cc2a7ae50fe4aca2be2f62e8dbf62cebef023edb8dfb11992ce15d4f4ca",
+      "bytes": 70947
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\paper-memory\\EXPERIMENT_BACKLOG.md",
+      "sha256": "4c0367206ea28b0fe7dff11daea54ffd2451464675933568f366aef5c32b51e3",
+      "bytes": 55382
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\paper-memory\\OPEN_QUESTIONS.md",
+      "sha256": "2911a32cf994069c98e583c37c9190fcdfc0c678b97cc90ba6278806174a78d1",
+      "bytes": 47967
+    }
+  ],
+  "unavailable_files": [
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\cover_letter.pdf",
+      "error": "OSError(22, 'Invalid argument')",
+      "left_untouched": true
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\highlights.pdf",
+      "error": "OSError(22, 'Invalid argument')",
+      "left_untouched": true
+    }
+  ],
+  "manuscript_or_response_edits_authorized": false
+}

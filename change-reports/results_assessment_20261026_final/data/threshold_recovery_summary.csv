@@ -1,0 +1,9 @@
+plant,method,criterion,episodes_after_release,confirmed_episode,reward_deficit_episode_sum
+polymer,sg,reward,1,17,2.5694997764970724
+polymer,sg,both_output_rmse,1,17,2.5694997764970724
+polymer,threshold,reward,25,41,56.073030553793046
+polymer,threshold,both_output_rmse,25,41,56.073030553793046
+column,sg,reward,5,21,321.5992572938336
+column,sg,both_output_rmse,37,53,321.5992572938336
+column,threshold,reward,37,53,1564.0231054865105
+column,threshold,both_output_rmse,22,38,1564.0231054865105

@@ -1,0 +1,74 @@
+{
+  "sources": [
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e2_sg\\training.pkl",
+      "sha256": "329e903141c5b5a95174c803cb9fefc687fa06117517c70e9bf03436a4f9b496",
+      "bytes": 587587388,
+      "plant": "polymer",
+      "method": "sg",
+      "parameter_source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s7\\a1\\rl\\20261012_230544\\input_data.pkl",
+      "threshold": null,
+      "core_arrays_finite": true
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\comparisons\\scenario1\\20261014_runtime_recovery_threshold_sg\\threshold\\training.pkl",
+      "sha256": "3528a368750246fe88cd71c8b06e650bf9cfa4ddb92e0f8b43ee0ab48b430d09",
+      "bytes": 604345563,
+      "plant": "polymer",
+      "method": "threshold",
+      "parameter_source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s7\\a1\\rl\\20261012_230544\\input_data.pkl",
+      "threshold": 34.29157768930163,
+      "core_arrays_finite": true
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Data\\mpc_results_dist.pickle",
+      "sha256": "844bead9043ac452ed53fdf88751b728a34d1e680d1970ca9476c6de992b05ca",
+      "bytes": 33284435,
+      "plant": "polymer",
+      "method": "nominal",
+      "parameter_source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\phase2_repeats\\20261013_010021_35e44c\\horizon_sg\\s7\\a1\\rl\\20261012_230544\\input_data.pkl",
+      "threshold": null,
+      "core_arrays_finite": true
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\sg\\a1\\training.pkl",
+      "sha256": "55fe4454188d6992b5bfc0722d7587b92064095c757d194b045efd05c4de7964",
+      "bytes": 250892882,
+      "plant": "column",
+      "method": "sg",
+      "parameter_source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s7\\a1\\rl\\20261015_171418\\input_data.pkl",
+      "threshold": null,
+      "core_arrays_finite": true
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_review\\20261018_recovered\\threshold\\a1\\training.pkl",
+      "sha256": "802ca1e93798a6229579298849537319297a654d1b08af53ec908e59509d3da9",
+      "bytes": 259105341,
+      "plant": "column",
+      "method": "threshold",
+      "parameter_source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s7\\a1\\rl\\20261015_171418\\input_data.pkl",
+      "threshold": 4.654534926770644,
+      "core_arrays_finite": true
+    },
+    {
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Data\\mpc_results_disturb_fluctuation.pickle",
+      "sha256": "268a29a3ee49f42748285585b77bd5c1794664c421b4515f78abbd8a4e21ff12",
+      "bytes": 14096448,
+      "plant": "column",
+      "method": "nominal",
+      "parameter_source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\phase2_repeats\\20261014_154252_a2ed3b\\horizon_sg\\s7\\a1\\rl\\20261015_171418\\input_data.pkl",
+      "threshold": null,
+      "core_arrays_finite": true
+    }
+  ],
+  "primary_window": "episodes 14-20",
+  "window_sensitivities": [
+    "14",
+    "14-16",
+    "14-25"
+  ],
+  "handoff_safety_meaning": "Empirical disruption, tracking-band excursions and input movement. Tracking bands are not certified safe operating limits.",
+  "independent_threshold_realizations_per_plant": 1,
+  "no_threshold_seed_confidence_intervals": true,
+  "end_to_end_training_comparison_not_fixed_policy_selector_ablation": true
+}

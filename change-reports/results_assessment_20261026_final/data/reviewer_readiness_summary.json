@@ -1,0 +1,19 @@
+{
+  "total_comments": 24,
+  "status_counts": {
+    "Ready to prepare": 16,
+    "Open analytical dependency": 1,
+    "Literature check needed": 2,
+    "Partial evidence": 3,
+    "Additional empirical evidence needed": 2
+  },
+  "can_begin_revision_preparation": true,
+  "all_comments_resolved": false,
+  "submission_ready": false,
+  "responses_drafted": 0,
+  "manuscript_edits": 0,
+  "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\REVISION_ROADMAP.md",
+  "source_sha256": "1c3423353c3667340d48e8454541876e89ab2e455061a3eabf1be5a4e6cca8c7",
+  "scope_source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\Rl_assisted_paper\\RL_assisted_paper\\manuscript_revised\\REVIEW_EXPERIMENT_PLAN_2026_10_12.md",
+  "scope_source_sha256": "289ccbfabcc2bdb9f135eade818d9b28faa50ce40e4345566a76e132aab38600"
+}

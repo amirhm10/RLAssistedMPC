@@ -1,0 +1,73 @@
+{
+  "column_cutoff_utc": "2026-10-26T04:27:41.550164+00:00",
+  "sources": [
+    {
+      "plant": "polymer",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\horizon_s7\\a1\\capture\\decisions.jsonl",
+      "completed_prefix_records": 400,
+      "canonical_prefix_sha256": "b1bcc6eec4b94a537355282b702d09fa819b6e47f7464368462081528022b6ce"
+    },
+    {
+      "plant": "polymer",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\weights_s7\\a1\\capture\\decisions.jsonl",
+      "completed_prefix_records": 400,
+      "canonical_prefix_sha256": "5ff070aeb94d4f7c352eae3c7b5902e3e39640599903946fa64e133984ee1944"
+    },
+    {
+      "plant": "polymer",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\markov_s7\\a2\\capture\\decisions.jsonl",
+      "completed_prefix_records": 400,
+      "canonical_prefix_sha256": "7a0fe8206abe8eee0061005887ae441fb6d94ad709745d9c2552e28393de1db8"
+    },
+    {
+      "plant": "polymer",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\e1\\20261013_192015_916c06\\residual_s7\\a1\\capture\\decisions.jsonl",
+      "completed_prefix_records": 400,
+      "canonical_prefix_sha256": "834901bf3f1c41151aba243c4883e32ba36693cc8e06d836ba34b5f2535aa562"
+    },
+    {
+      "plant": "polymer",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Polymer\\Results\\review_recovery\\20261016_remaining_polymer_concurrent\\e1_combined\\capture\\decisions.jsonl",
+      "completed_prefix_records": 1600,
+      "canonical_prefix_sha256": "10070469f76ec090ff5ab79167c23ed33ed6e10acd033c9efb436035ba0f5dda"
+    },
+    {
+      "plant": "column",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\capture\\decisions.jsonl",
+      "completed_prefix_records": 80,
+      "canonical_prefix_sha256": "b26a0a5229ad66f32d8d0e00993c3f9671112c4e800bb6d31482b65e4092c1b3"
+    },
+    {
+      "plant": "column",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\capture\\decisions.jsonl",
+      "completed_prefix_records": 80,
+      "canonical_prefix_sha256": "fff5d5e62e7de071844c7adf245e3add2f99b434a943cceb7f87de87dd929162"
+    },
+    {
+      "plant": "column",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\capture\\decisions.jsonl",
+      "completed_prefix_records": 80,
+      "canonical_prefix_sha256": "53c311c4d1ae0af0e908c559a503a48bf07209cf092de95355ddf94520a7e064"
+    },
+    {
+      "plant": "column",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\capture\\decisions.jsonl",
+      "completed_prefix_records": 80,
+      "canonical_prefix_sha256": "292b872b9903896e4f83a76cba26a65624220c81e8a1cf9c0e99bcd2e1455df2"
+    },
+    {
+      "plant": "column",
+      "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\decisions.jsonl",
+      "completed_prefix_records": 320,
+      "canonical_prefix_sha256": "5de0d4f1f4354b1f519e124cce65934a18acdaa418a5bf37b079ff4e20562f39"
+    }
+  ],
+  "column_complete": true,
+  "accepted_combined_completion": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_inference_recovery_20261026\\completion.json",
+  "recovery_replay_note": "Current accepted technical replay generations are used; all original alternatives remain independently retained.",
+  "primary_horizon": 200,
+  "zero_sign_tolerance": true,
+  "material_harm_sensitivity_reward_units": 1,
+  "all_primary_returns_and_rmse_recomputed": true,
+  "one_training_seed": true
+}

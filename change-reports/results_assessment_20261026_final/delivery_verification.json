@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "pdf_pages": 25,
+  "all_pages_rendered": true,
+  "render_exit_code": 0,
+  "rendered_contact_sheets_reviewed": true,
+  "cover_and_key_new_pages_visually_reviewed": true,
+  "no_visible_clipping_or_missing_glyphs": true,
+  "figure_pairs": 24,
+  "png_svg_source_hashes_verified": true,
+  "zip_crc_passed": true,
+  "all_packaged_files_match_manifest": true,
+  "html_links_verified": true,
+  "markdown_table_column_counts_verified": true,
+  "pdf_sha256": "1b34fa1f7bcfddba51ee5a8200c037926b2d1108ded39c44cef4b90536aa1f13",
+  "zip_sha256": "7412aca1f1969d595dc26107f4c4502c540e8ee9a2c1cc1ff1d302bbbf6abbb8",
+  "numerical_verification": "data/final_verification.json",
+  "old_assessment_unchanged": true,
+  "manuscript_edits": 0,
+  "reviewer_replies": 0
+}

@@ -1,0 +1,415 @@
+{
+  "at_utc": "2026-10-26T02:05:15.948868+00:00",
+  "helper_syntax_passed": [
+    "accept_recovery.py",
+    "finish_retirement.py",
+    "inspect_progress.py",
+    "lifecycle.py",
+    "prepare.py",
+    "recover_parallel.py",
+    "retired_side_service.py"
+  ],
+  "archive_safety_tests": {
+    "passed": 4,
+    "total": 4,
+    "runner": "pytest",
+    "duration_seconds": 0.24,
+    "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\test_retired_side_archive.py",
+    "only_generated_fixtures": true
+  },
+  "retention": {
+    "retention": {
+      "state": "running",
+      "updated_at": "2026-10-26T02:04:57.943801+00:00",
+      "pid": 58264,
+      "protected_complete_checkpoints_per_job": 2,
+      "all_scientific_results_preserved": true,
+      "scientific_sources_modified": 0,
+      "live_simulator_calls": 0,
+      "process_termination_calls": 0,
+      "totals": {
+        "removed_folders": 1117,
+        "original_bytes": 439282856165,
+        "compressed_bytes": 49664370814
+      },
+      "jobs": [
+        {
+          "label": "combined",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+          "state": "deferred; all files retained",
+          "reason": "A native checkpoint is being saved/restored; wait for the writer"
+        },
+        {
+          "label": "horizon",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1",
+          "state": "two complete checkpoints verified",
+          "checkpoints": [
+            {
+              "slot": 0,
+              "completed_steps": 120000,
+              "python_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\training_state_0.pkl",
+              "sha256": "e68fb1d6664d2340522df3a3ebb05570041d606e0aa204370cc1ff6ca35fa2f3",
+              "native_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_120000",
+              "native": {
+                "file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_120000\\review_e1_ffbbe071b8c5\\snapshot.snp",
+                "file_sha256": "ef4403f4fe7f4439878aff45ea18f7c43229696e5a4efa0e7bb3e764ebdbefde",
+                "project_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_120000\\review_e1_ffbbe071b8c5\\C2S_SS_simulation13.dynf",
+                "project_file_sha256": "793c272ffc522d47b430523ca85a223f4d11411a616576cfa5fc2645e1a35276",
+                "name": "review_e1_ffbbe071b8c5",
+                "live_save_unchanged": true
+              },
+              "runner_sha256": "3398fab53278a4ababb306fe89f3eb5e8dd1d8c354ec253c21299ccea118692e",
+              "version": [
+                "C:\\",
+                134372985351354526,
+                120873179,
+                1792824935341097000
+              ],
+              "private_roots": [
+                "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\native_e8b5375b\\main"
+              ],
+              "verification": "writer_checksum"
+            },
+            {
+              "slot": 1,
+              "completed_steps": 119600,
+              "python_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\training_state_1.pkl",
+              "sha256": "49c31d92b7e49628757c3aa8edccb9cb8ccb95941f8a2da0bff8172cf437fcd9",
+              "native_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_119600",
+              "native": {
+                "file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_119600\\review_e1_1a0456bebbee\\snapshot.snp",
+                "file_sha256": "d9675caf6eb5846826b6489f386f2639ba49f06e2f898200059d57da3e87dd54",
+                "project_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_119600\\review_e1_1a0456bebbee\\C2S_SS_simulation13.dynf",
+                "project_file_sha256": "271835c9f793e49f1fc076e319fd92da6449b445dd65c313c8b6271484e64228",
+                "name": "review_e1_1a0456bebbee",
+                "live_save_unchanged": true
+              },
+              "runner_sha256": "3398fab53278a4ababb306fe89f3eb5e8dd1d8c354ec253c21299ccea118692e",
+              "version": [
+                "C:\\",
+                134372982160969235,
+                120868559,
+                1792824616288867500
+              ],
+              "private_roots": [
+                "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\native_e8b5375b\\main"
+              ],
+              "verification": "prior_verified_checksum"
+            }
+          ],
+          "obsolete_native": 2,
+          "old_private": 0
+        },
+        {
+          "label": "weights",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1",
+          "state": "two complete checkpoints verified",
+          "checkpoints": [
+            {
+              "slot": 1,
+              "completed_steps": 120000,
+              "python_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\training_state_1.pkl",
+              "sha256": "eb0e82a3dda2c31ee2c99ed3f42223b3622f08b2cd16ff9cac9b08b07f9c1620",
+              "native_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_1_120000",
+              "native": {
+                "file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_1_120000\\review_e1_549eafb84b5a\\snapshot.snp",
+                "file_sha256": "9121f722c5d888e98fb0d800e0e42aca422d230b96dce180ef9d9aa8d7f4c63c",
+                "project_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_1_120000\\review_e1_549eafb84b5a\\C2S_SS_simulation14.dynf",
+                "project_file_sha256": "4ce985ae94717a71d186f2d839ee11beff4e8e2e062afcbe9a963bfbf04d8be4",
+                "name": "review_e1_549eafb84b5a",
+                "live_save_unchanged": true
+              },
+              "runner_sha256": "71f237857e328e5d4e2ac4c22218ee4dc42b4d75a5f8a1ebc23d082171696cb5",
+              "version": [
+                "C:\\",
+                134373328897300464,
+                255615951,
+                1792859290012633500
+              ],
+              "private_roots": [
+                "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\native_88a29f91\\main"
+              ],
+              "verification": "writer_checksum"
+            },
+            {
+              "slot": 0,
+              "completed_steps": 119600,
+              "python_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\training_state_0.pkl",
+              "sha256": "4fed9484ab53e02446804dfeb6331eb12ddf1eaacfcf5a1769cceb33acd3858e",
+              "native_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_0_119600",
+              "native": {
+                "file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_0_119600\\review_e1_ca3da52d995a\\snapshot.snp",
+                "file_sha256": "137c3a5d380e6d233b710e73c62bfc471cfa25495f195020a6758e6a514da110",
+                "project_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_0_119600\\review_e1_ca3da52d995a\\C2S_SS_simulation14.dynf",
+                "project_file_sha256": "d26512a6e587e968015a120e5e259dd33019912cbbeb9d6f2ce8ae54de1d4da0",
+                "name": "review_e1_ca3da52d995a",
+                "live_save_unchanged": true
+              },
+              "runner_sha256": "71f237857e328e5d4e2ac4c22218ee4dc42b4d75a5f8a1ebc23d082171696cb5",
+              "version": [
+                "C:\\",
+                134373325555977329,
+                255601533,
+                1792858955885750800
+              ],
+              "private_roots": [
+                "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\native_88a29f91\\main"
+              ],
+              "verification": "prior_verified_checksum"
+            }
+          ],
+          "obsolete_native": 2,
+          "old_private": 0
+        },
+        {
+          "label": "markov",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1",
+          "state": "two complete checkpoints verified",
+          "checkpoints": [
+            {
+              "slot": 1,
+              "completed_steps": 120000,
+              "python_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\training_state_1.pkl",
+              "sha256": "7289c4da5133eac2bbecf209364840bebcb3f6a327a0ea6c512addaee786dddd",
+              "native_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_120000",
+              "native": {
+                "file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_120000\\review_e1_a7e2d798a594\\snapshot.snp",
+                "file_sha256": "e68f20b1e949d4a63374a26fb9293817ff50634fd4d53155e855da3250e23b60",
+                "project_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_120000\\review_e1_a7e2d798a594\\C2S_SS_simulation15.dynf",
+                "project_file_sha256": "b1c6575f8790ba480537d1869810aa296b8d5e7a533f92c3853e96d179e0daad",
+                "name": "review_e1_a7e2d798a594",
+                "live_save_unchanged": true
+              },
+              "runner_sha256": "37e6f03dcf7a50171830893276eb204af754572a4acf7a10a23a71861227c8b3",
+              "version": [
+                "C:\\",
+                134373405567406094,
+                373048484,
+                1792866957136346200
+              ],
+              "private_roots": [
+                "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\native_dda9c5b1\\main"
+              ],
+              "verification": "writer_checksum"
+            },
+            {
+              "slot": 0,
+              "completed_steps": 119600,
+              "python_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\training_state_0.pkl",
+              "sha256": "0a5c8c87b2669dab9614ccb41d751eea11ae6036af43c7b8599f3f90c0461de3",
+              "native_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_0_119600",
+              "native": {
+                "file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_0_119600\\review_e1_09f804886d04\\snapshot.snp",
+                "file_sha256": "02aceb39ee0e0e8b88e8d8ee4283a7bba4182861aaf8d1bac9404ffb84b1098b",
+                "project_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_0_119600\\review_e1_09f804886d04\\C2S_SS_simulation15.dynf",
+                "project_file_sha256": "b826895120ff3766ff061c5623a4e6850937557995fa845171936f3db0f89b40",
+                "name": "review_e1_09f804886d04",
+                "live_save_unchanged": true
+              },
+              "runner_sha256": "37e6f03dcf7a50171830893276eb204af754572a4acf7a10a23a71861227c8b3",
+              "version": [
+                "C:\\",
+                134373402065102049,
+                373030003,
+                1792866606961337300
+              ],
+              "private_roots": [
+                "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\native_dda9c5b1\\main"
+              ],
+              "verification": "prior_verified_checksum"
+            }
+          ],
+          "obsolete_native": 2,
+          "old_private": 0
+        },
+        {
+          "label": "residual",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1",
+          "state": "two complete checkpoints verified",
+          "checkpoints": [
+            {
+              "slot": 0,
+              "completed_steps": 120000,
+              "python_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\training_state_0.pkl",
+              "sha256": "a039d7a090e819b724b1a675a4e639ea6e5401dc77c705071d9378b04e3c680a",
+              "native_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_0_120000",
+              "native": {
+                "file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_0_120000\\review_e1_cad36117c3db\\snapshot.snp",
+                "file_sha256": "ad180c63e66227aad9d095e5c3209f02dc0bf23f8231f777063e634721462fa0",
+                "project_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_0_120000\\review_e1_cad36117c3db\\C2S_SS_simulation17.dynf",
+                "project_file_sha256": "018b0cd50b01219ed9344c3118ad7861438d229d59ee169c15b4dac8114ff095",
+                "name": "review_e1_cad36117c3db",
+                "live_save_unchanged": true
+              },
+              "runner_sha256": "d80a11bc2c6e9c422e43af49bd298b874ec3722c654a69694522a8c4c2380be5",
+              "version": [
+                "C:\\",
+                134373406640672666,
+                257571922,
+                1792867064412667300
+              ],
+              "private_roots": [
+                "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\native_31c169c7\\main"
+              ],
+              "verification": "writer_checksum"
+            },
+            {
+              "slot": 1,
+              "completed_steps": 119600,
+              "python_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\training_state_1.pkl",
+              "sha256": "78b3918118d24e678564f26790a4e5b90bcc35131eceadd9d1f8c5f8e1d4eafe",
+              "native_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_119600",
+              "native": {
+                "file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_119600\\review_e1_1e3ec8584e58\\snapshot.snp",
+                "file_sha256": "7582e57984637ba41e22e5ff301d476b1cb0125ae036d4f57baed805557bab62",
+                "project_file": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_119600\\review_e1_1e3ec8584e58\\C2S_SS_simulation17.dynf",
+                "project_file_sha256": "aefa59ceb036cb3dceb5bb6509d096afad9cf0fd32fd63617ecd40a12e99b265",
+                "name": "review_e1_1e3ec8584e58",
+                "live_save_unchanged": true
+              },
+              "runner_sha256": "d80a11bc2c6e9c422e43af49bd298b874ec3722c654a69694522a8c4c2380be5",
+              "version": [
+                "C:\\",
+                134373403262123008,
+                257557508,
+                1792866726554708600
+              ],
+              "private_roots": [
+                "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\native_31c169c7\\main"
+              ],
+              "verification": "prior_verified_checksum"
+            }
+          ],
+          "obsolete_native": 2,
+          "old_private": 0
+        }
+      ],
+      "active": null,
+      "issues": [
+        {
+          "at_utc": "2026-10-26T02:03:52.706989+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_76000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:03:52.708282+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_76000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:03:52.709596+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_106000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:03:52.710857+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_0_76000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:24.720879+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_4000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:24.722200+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_4000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:24.723505+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_1_4000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:24.724413+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_4000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:24.724969+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_76000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:24.725473+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_106000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:24.725988+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_0_76000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:24.726518+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_76000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:57.934683+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_1_4000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:57.936013+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_1_4000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:57.937332+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_4000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:57.938596+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_4000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:57.939839+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\horizon\\a1\\training_checkpoints\\native_0_106000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:57.941273+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\weights\\a1\\training_checkpoints\\native_0_76000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:57.942555+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\markov\\a1\\training_checkpoints\\native_1_76000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        },
+        {
+          "at_utc": "2026-10-26T02:04:57.943788+00:00",
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_remaining_active\\e1\\residual\\a1\\training_checkpoints\\native_1_76000",
+          "message": "Checkpoint is referenced by a queue/recovery manifest"
+        }
+      ],
+      "free_disk_bytes": 138738446336,
+      "stop_file": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\aspen_retention_20261023\\stop.request"
+    },
+    "old_side": {
+      "state": "completed",
+      "updated_at": "2026-10-26T01:39:52.941027+00:00",
+      "pid": 4480,
+      "identity": {
+        "pid": 4480,
+        "alive": true,
+        "created": 134373504924160382,
+        "cpu_seconds": 1693.4375,
+        "private_bytes": 34365440,
+        "rss_bytes": 32903168
+      },
+      "archived_working_folders": 214,
+      "duplicate_bytes_removed": 165000849346,
+      "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips",
+      "newest_two_primary_comparisons_unpacked": true,
+      "all_results_checkpoints_and_inputs_retained": true,
+      "free_disk_bytes": 154274398208
+    }
+  },
+  "scientific_source_edits": 0,
+  "simulator_calls": 0
+}

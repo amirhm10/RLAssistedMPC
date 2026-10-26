@@ -1,0 +1,13 @@
+{
+  "at_utc": "2026-10-26T02:07:48.218225+00:00",
+  "archives": 214,
+  "original_bytes": 165000849346,
+  "archive_bytes": 25833838009,
+  "all_sizes_reconciled": true,
+  "latest_sha256_crc_passed": true,
+  "latest_archive": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips\\a0b2f78706bfa1423659daea.zip",
+  "all_retained": true,
+  "science_seals_verified": 143,
+  "recovery_adapter_seals_verified": true,
+  "original_retention_identity_verified": true
+}

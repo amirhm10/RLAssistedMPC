@@ -1,0 +1,123 @@
+[
+  {
+    "pid": 46276,
+    "thread_id": 30064,
+    "thread_name": "MainThread",
+    "os_thread_id": 30064,
+    "active": true,
+    "owns_gil": false,
+    "frames": [
+      {
+        "name": "evaluate_action_score",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\TD3Agent\\supervisor_gated_agent.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\TD3Agent\\supervisor_gated_agent.py",
+        "line": 157,
+        "locals": null,
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "decorate_context",
+        "filename": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\utils\\_contextlib.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\utils\\_contextlib.py",
+        "line": 124,
+        "locals": null,
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "select_action_with_supervisor",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\TD3Agent\\supervisor_gated_agent.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\TD3Agent\\supervisor_gated_agent.py",
+        "line": 230,
+        "locals": null,
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "decorate_context",
+        "filename": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\utils\\_contextlib.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\utils\\_contextlib.py",
+        "line": 124,
+        "locals": null,
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "choose",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\review_experiments\\e1\\runtime.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\review_experiments\\e1\\runtime.py",
+        "line": 286,
+        "locals": null,
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "select_supervisor_gated_continuous_action",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\agent_step_runtime.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\agent_step_runtime.py",
+        "line": 546,
+        "locals": null,
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "<module>",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\combined_runner.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\combined_runner.py",
+        "line": 1432,
+        "locals": null,
+        "is_entry": false,
+        "is_shim_entry": true
+      },
+      {
+        "name": "run_branch",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\review_experiments\\e1\\study.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\review_experiments\\e1\\study.py",
+        "line": 205,
+        "locals": null,
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "one_branch",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "line": 158,
+        "locals": null,
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "worker",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "line": 236,
+        "locals": null,
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "<module>",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "line": 357,
+        "locals": null,
+        "is_entry": false,
+        "is_shim_entry": true
+      }
+    ],
+    "process_info": null
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "at_utc": "2026-10-26T01:58:49.099725+00:00",
+  "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\attempt4\\pilot_acceptance.json",
+  "copy": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_inference_recovery_20261026\\attempt4\\pilot_acceptance.json",
+  "sha256": "6e85a99fce73f9de26c08477e40225aa2a9906fe89f601c391ede0e0cf4bd0e0",
+  "original_receipt_unchanged": true,
+  "reason": "The unchanged accepted acceptance helper reads its pilot receipt relative to its report directory."
+}

@@ -1,0 +1,16 @@
+{
+  "at_utc": "2026-10-26T02:39:25.445839+00:00",
+  "ownership_atomic_retry_tests": {
+    "passed": 3,
+    "total": 3,
+    "duration_seconds": 0.19
+  },
+  "closed_checkpoint_guard_tests": {
+    "passed": 3,
+    "total": 3,
+    "duration_seconds": 0.22
+  },
+  "all_tests_use_generated_fixtures": true,
+  "scientific_source_edits": 0,
+  "shared_retention_edits": 0
+}

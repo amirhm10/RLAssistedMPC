@@ -1,0 +1,18 @@
+{
+  "at_utc": "2026-10-26T02:33:51.264486+00:00",
+  "parent_identity": {
+    "pid": 14392,
+    "alive": true,
+    "created": 134374542030451776
+  },
+  "confirmed_ownership_atomic_replace_failure": true,
+  "case17_log": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_inference\\branches_0_05db0d6e\\case17.log",
+  "case17_log_sha256": "7ba620e6ab56f13197b3439d80e2fc990f9acf2c1154cdda60aae3990fbb2e96",
+  "error": "PermissionError [WinError 5] replacing case17 ownership_status.json at branch startup",
+  "requests_dispatched": 0,
+  "all_scientific_native_apps_retired": true,
+  "process_signals_required": 0,
+  "onedrive_running": false,
+  "repair": "Unique atomic ownership temporary plus bounded retry for WinError5/32/33; science and checkpoints unchanged",
+  "tests_passed": 3
+}

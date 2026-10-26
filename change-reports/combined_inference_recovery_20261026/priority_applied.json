@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "at_utc": "2026-10-26T03:06:54.502549+00:00",
+  "rollback": false,
+  "targets": [
+    {
+      "pid": 55752,
+      "alive": true,
+      "created": 134374561114578001
+    },
+    {
+      "pid": 44536,
+      "alive": true,
+      "created": 134374564947993919
+    },
+    {
+      "pid": 35476,
+      "alive": true,
+      "created": 134374564949035600
+    }
+  ],
+  "resulting_priorities": [
+    32,
+    32,
+    32
+  ],
+  "affinity_unchanged": true,
+  "process_signals": 0,
+  "pauses": 0,
+  "restarts": 0,
+  "simulator_calls": 0,
+  "scientific_changes": 0,
+  "same_handle_creation_checks": true
+}

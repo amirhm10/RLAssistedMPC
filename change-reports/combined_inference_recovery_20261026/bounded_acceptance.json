@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "at_utc": "2026-10-26T02:11:48.680147+00:00",
+  "initial_steps": 118800,
+  "bounded_steps": 118808,
+  "learners": {
+    "active_agent": {
+      "train_steps": 8,
+      "replay_before": 40000,
+      "replay_after": 40000
+    },
+    "weight_agent": {
+      "train_steps": 8,
+      "replay_before": 40000,
+      "replay_after": 40000
+    },
+    "horizon_agent": {
+      "train_steps": 8,
+      "replay_before": 40000,
+      "replay_after": 40000
+    },
+    "markov_agent": {
+      "train_steps": 8,
+      "replay_before": 40000,
+      "replay_after": 40000
+    }
+  },
+  "science_seals_verified": 143,
+  "native_python_restore_verified": true,
+  "validation_receipt_sha256": "d06e97db16be032491c4b9c95fa7f552dfe54609cc54ba16b67fcae1e5a9400e",
+  "two_full_parallel_pairs_passed": true,
+  "completed_pair_steps": [
+    118801,
+    118803
+  ],
+  "production_identity": {
+    "pid": 14392,
+    "alive": true,
+    "created": 134374542030451776
+  },
+  "production_cold_restore_still_required": true,
+  "originals_retained": true
+}

@@ -1,0 +1,1881 @@
+{
+  "at_utc": "2026-10-26T02:56:52.520652+00:00",
+  "comparisons": [
+    {
+      "step": 118801,
+      "original": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_2026-10-26T013317_458786+0000\\files\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_adapted_0118801.npz.3aab360e0dfe.copy",
+      "original_sha256": "293042991b933a88577ec6187e77b49e981916454d9bd7446e3d97ab3d75d090",
+      "replayed": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\weights_adapted_0118801.npz",
+      "replayed_sha256": "4b07082401459cd362383ae82133014c89514f2a218f82c5bde1e1df40638dda",
+      "arrays": {
+        "policy__reward": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 9.393071468876114,
+          "max_per_channel": 9.393071468876114,
+          "original_mean": 14.741220299250108,
+          "replay_mean": 15.158528007695637
+        },
+        "policy__y": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.022263533817646675,
+          "max_per_channel": [
+            5.8714545421893055e-05,
+            0.022263533817646675
+          ],
+          "original_mean": [
+            0.01388372975590237,
+            -21.025373201994412
+          ],
+          "replay_mean": [
+            0.013881364345590522,
+            -21.02499474246539
+          ]
+        },
+        "policy__u": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 104.84695434570312,
+          "max_per_channel": [
+            104.84695434570312,
+            0.04679381847381592
+          ],
+          "original_mean": [
+            386833.1567168236,
+            136.81152615249158
+          ],
+          "replay_mean": [
+            386841.7951345444,
+            136.81458688378333
+          ]
+        },
+        "policy__reference": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": [
+            0.0,
+            0.0
+          ],
+          "original_mean": [
+            0.013074999999999943,
+            -21.01
+          ],
+          "replay_mean": [
+            0.013074999999999943,
+            -21.01
+          ]
+        },
+        "policy__existing_observer_yhat_next_scaled_deviation": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.0010910995952002622,
+          "max_per_channel": [
+            0.0010910995952002622,
+            0.0008560434628559488
+          ],
+          "original_mean": [
+            -0.1617562481298831,
+            0.10921038459992652
+          ],
+          "replay_mean": [
+            -0.16176077917248277,
+            0.10923130692069813
+          ]
+        },
+        "policy__current_Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 9.805,
+          "replay_mean": 9.805
+        },
+        "policy__current_Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 6.15,
+          "replay_mean": 6.15
+        },
+        "policy__Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 9.805,
+          "replay_mean": 9.805
+        },
+        "policy__Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 6.15,
+          "replay_mean": 6.15
+        },
+        "policy__weight_mult": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.32876957207918167,
+          "max_per_channel": [
+            0.21257326006889343,
+            0.22238556295633316,
+            0.32876957207918167,
+            0.24275951087474823
+          ],
+          "original_mean": [
+            0.9361395304091275,
+            0.9886096872425696,
+            0.9444253490073606,
+            0.871321910712868
+          ],
+          "replay_mean": [
+            0.92696917289868,
+            0.9929761373474321,
+            0.9327757852035574,
+            0.8563971213996411
+          ]
+        },
+        "policy__z_exec": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 0.022772566229104996,
+          "max_per_channel": [
+            0.022772566229104996,
+            0.010105422511696816,
+            0.011690779735009902,
+            0.0025144960257038203
+          ],
+          "original_mean": [
+            0.004728507459856208,
+            0.0007845630069473767,
+            0.0035852581613310536,
+            -0.0037359462523109967
+          ],
+          "replay_mean": [
+            0.0048022435134058,
+            0.0006921415123884777,
+            0.0037745496400734507,
+            -0.0037175760553552263
+          ]
+        },
+        "policy__weight_executed_action_raw_log": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.5260313153266907,
+          "max_per_channel": [
+            0.3401172161102295,
+            0.35581690073013306,
+            0.5260313153266907,
+            0.38841521739959717
+          ],
+          "original_mean": [
+            -0.702176751345396,
+            -0.6182245004118886,
+            -0.6889194415882229,
+            -0.8058849428594113
+          ],
+          "replay_mean": [
+            -0.716849323362112,
+            -0.6112381802441087,
+            -0.707558743674308,
+            -0.8297646057605743
+          ]
+        },
+        "policy__markov_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.325,
+          "replay_mean": 1.255
+        },
+        "policy__weight_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.655,
+          "replay_mean": 1.73
+        },
+        "policy__residual_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.35,
+          "replay_mean": 1.32
+        },
+        "policy__sol_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "policy__sol0_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "policy__previous_input": {
+          "shape": [
+            2
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 176544.52094435692,
+          "replay_mean": 176544.52094435692
+        },
+        "supervisor__reward": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 11.920063845334985,
+          "max_per_channel": 11.920063845334985,
+          "original_mean": 15.24384982483235,
+          "replay_mean": 15.5235508970254
+        },
+        "supervisor__y": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.021134776576989367,
+          "max_per_channel": [
+            4.8576022126134086e-05,
+            0.021134776576989367
+          ],
+          "original_mean": [
+            0.013827775513952683,
+            -21.02580663097865
+          ],
+          "replay_mean": [
+            0.013825940172461809,
+            -21.025656480425255
+          ]
+        },
+        "supervisor__u": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 87.90016174316406,
+          "max_per_channel": [
+            87.90016174316406,
+            0.04217326641082764
+          ],
+          "original_mean": [
+            386939.3167257309,
+            136.84829248785974
+          ],
+          "replay_mean": [
+            386945.90932130814,
+            136.85055946409702
+          ]
+        },
+        "supervisor__reference": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": [
+            0.0,
+            0.0
+          ],
+          "original_mean": [
+            0.013074999999999943,
+            -21.01
+          ],
+          "replay_mean": [
+            0.013074999999999943,
+            -21.01
+          ]
+        },
+        "supervisor__existing_observer_yhat_next_scaled_deviation": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.001253161946686454,
+          "max_per_channel": [
+            0.001253161946686454,
+            0.0011002205877570503
+          ],
+          "original_mean": [
+            -0.1618607794965466,
+            0.10918671713920816
+          ],
+          "replay_mean": [
+            -0.16186407538249978,
+            0.10919582029941866
+          ]
+        },
+        "supervisor__current_Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 9.805,
+          "replay_mean": 9.805
+        },
+        "supervisor__current_Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 6.05,
+          "replay_mean": 6.05
+        },
+        "supervisor__Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 9.805,
+          "replay_mean": 9.805
+        },
+        "supervisor__Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 6.05,
+          "replay_mean": 6.05
+        },
+        "supervisor__weight_mult": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 0.4665519390255213,
+          "max_per_channel": [
+            0.18347971141338348,
+            0.21638378500938416,
+            0.4665519390255213,
+            0.24042680859565735
+          ],
+          "original_mean": [
+            0.9372225818224251,
+            0.9982204171828926,
+            0.9523717787582427,
+            0.8851380199193954
+          ],
+          "replay_mean": [
+            0.9326012284494937,
+            0.9986758787068538,
+            0.9517300814157352,
+            0.8807895438745618
+          ]
+        },
+        "supervisor__z_exec": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 0.01732205003499985,
+          "max_per_channel": [
+            0.01732205003499985,
+            0.0065388625011682956,
+            0.013925965003661766,
+            0.0017048342391856306
+          ],
+          "original_mean": [
+            0.004979851044971424,
+            0.0007209535920462543,
+            0.0037492119114450723,
+            -0.0040220658621641005
+          ],
+          "replay_mean": [
+            0.004810983837418757,
+            0.0006068314274185354,
+            0.0037518296924848697,
+            -0.004037748037597652
+          ]
+        },
+        "supervisor__weight_executed_action_raw_log": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 0.746483102440834,
+          "max_per_channel": [
+            0.2935675382614136,
+            0.34621405601501465,
+            0.746483102440834,
+            0.38468289375305176
+          ],
+          "original_mean": [
+            -0.7004438690841198,
+            -0.6028473325073719,
+            -0.6762051539868117,
+            -0.7837791681289673
+          ],
+          "replay_mean": [
+            -0.7078380344808102,
+            -0.6021185940690339,
+            -0.6772318697348237,
+            -0.7907367298007011
+          ]
+        },
+        "supervisor__markov_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.27,
+          "replay_mean": 1.24
+        },
+        "supervisor__weight_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.595,
+          "replay_mean": 1.62
+        },
+        "supervisor__residual_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.31,
+          "replay_mean": 1.26
+        },
+        "supervisor__sol_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "supervisor__sol0_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "supervisor__previous_input": {
+          "shape": [
+            2
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 176544.52094435692,
+          "replay_mean": 176544.52094435692
+        }
+      },
+      "all_arrays_exact": false
+    },
+    {
+      "step": 118803,
+      "original": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_2026-10-26T013317_458786+0000\\files\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_adapted_0118803.npz.101a83494573.copy",
+      "original_sha256": "03c01b9269f59987fa9902f124057458cc35f85d8868a7c8d44c619287ec297b",
+      "replayed": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\markov_adapted_0118803.npz",
+      "replayed_sha256": "25b4fcce2e2487cc63262764436038bf5795db3ddf8839c712b1882bc446410d",
+      "arrays": {
+        "policy__reward": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 12.206605572910915,
+          "max_per_channel": 12.206605572910915,
+          "original_mean": 13.090347053484638,
+          "replay_mean": 13.70693925314372
+        },
+        "policy__y": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.035214157335897056,
+          "max_per_channel": [
+            8.453542977587304e-05,
+            0.035214157335897056
+          ],
+          "original_mean": [
+            0.013663005823998747,
+            -21.039172586108748
+          ],
+          "replay_mean": [
+            0.013663173971001766,
+            -21.039834357131532
+          ]
+        },
+        "policy__u": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 172.9583740234375,
+          "max_per_channel": [
+            172.9583740234375,
+            0.07957220077514648
+          ],
+          "original_mean": [
+            387028.71754169464,
+            136.86439428925513
+          ],
+          "replay_mean": [
+            387027.76505947113,
+            136.86408645212651
+          ]
+        },
+        "policy__reference": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": [
+            0.0,
+            0.0
+          ],
+          "original_mean": [
+            0.013224999999999945,
+            -21.03
+          ],
+          "replay_mean": [
+            0.013224999999999945,
+            -21.03
+          ]
+        },
+        "policy__existing_observer_yhat_next_scaled_deviation": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.0017948347437595213,
+          "max_per_channel": [
+            0.0017948347437595213,
+            0.0013562623762599646
+          ],
+          "original_mean": [
+            -0.16219770417217105,
+            0.10843955300315837
+          ],
+          "replay_mean": [
+            -0.16219790241047274,
+            0.10840088318893347
+          ]
+        },
+        "policy__current_Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 9.695,
+          "replay_mean": 9.695
+        },
+        "policy__current_Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 6.13,
+          "replay_mean": 6.13
+        },
+        "policy__Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 9.695,
+          "replay_mean": 9.695
+        },
+        "policy__Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 6.13,
+          "replay_mean": 6.13
+        },
+        "policy__weight_mult": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 0.4857991635799408,
+          "max_per_channel": [
+            0.24978447705507278,
+            0.2498062700033188,
+            0.4857991635799408,
+            0.24996068328619003
+          ],
+          "original_mean": [
+            0.9540228174999357,
+            0.9807800459675491,
+            0.9746914322720841,
+            0.9115386061370373
+          ],
+          "replay_mean": [
+            0.9551218365319073,
+            0.9843004775233567,
+            0.9540929112699814,
+            0.8988650515675545
+          ]
+        },
+        "policy__z_exec": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.009432772715432889,
+          "max_per_channel": [
+            0.007829141795739134,
+            0.007049811631441117,
+            0.009432772715432889,
+            0.003318326454609633
+          ],
+          "original_mean": [
+            0.006208627414193486,
+            0.002493236309733504,
+            0.0007487050300685244,
+            -0.00322191751173375
+          ],
+          "replay_mean": [
+            0.006077326653975419,
+            0.002460444207096063,
+            0.0009492162148751343,
+            -0.0032557574039189367
+          ]
+        },
+        "policy__weight_executed_action_raw_log": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 0.7772786617279053,
+          "max_per_channel": [
+            0.39965516328811646,
+            0.39969003200531006,
+            0.7772786617279053,
+            0.39993709325790405
+          ],
+          "original_mean": [
+            -0.673563492000103,
+            -0.6307519264519215,
+            -0.6404937083646655,
+            -0.7415382301807404
+          ],
+          "replay_mean": [
+            -0.6718050615489483,
+            -0.6251192359626293,
+            -0.6734513419680297,
+            -0.7618159174919128
+          ]
+        },
+        "policy__markov_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.86,
+          "replay_mean": 1.885
+        },
+        "policy__weight_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.445,
+          "replay_mean": 1.49
+        },
+        "policy__residual_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.64,
+          "replay_mean": 1.53
+        },
+        "policy__sol_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "policy__sol0_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "policy__previous_input": {
+          "shape": [
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.00476837158203125,
+          "max_per_channel": 0.00476837158203125,
+          "original_mean": 179136.8546551466,
+          "replay_mean": 179136.85227185488
+        },
+        "supervisor__reward": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 9.875426740373245,
+          "max_per_channel": 9.875426740373245,
+          "original_mean": 13.606705572652887,
+          "replay_mean": 13.618007636286354
+        },
+        "supervisor__y": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.03417518423530197,
+          "max_per_channel": [
+            7.13456100497837e-05,
+            0.03417518423530197
+          ],
+          "original_mean": [
+            0.013690843557393877,
+            -21.039923967468
+          ],
+          "replay_mean": [
+            0.013691333817193584,
+            -21.03965947294761
+          ]
+        },
+        "supervisor__u": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 102.08606719970703,
+          "max_per_channel": [
+            102.08606719970703,
+            0.0618821382522583
+          ],
+          "original_mean": [
+            386965.9483194351,
+            136.8425475984812
+          ],
+          "replay_mean": [
+            386965.1509284973,
+            136.84235908389093
+          ]
+        },
+        "supervisor__reference": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": [
+            0.0,
+            0.0
+          ],
+          "original_mean": [
+            0.013224999999999945,
+            -21.03
+          ],
+          "replay_mean": [
+            0.013224999999999945,
+            -21.03
+          ]
+        },
+        "supervisor__existing_observer_yhat_next_scaled_deviation": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.0015131809849902034,
+          "max_per_channel": [
+            0.0015131809849902034,
+            0.0010747311225263179
+          ],
+          "original_mean": [
+            -0.16214527271035334,
+            0.10839822134110706
+          ],
+          "replay_mean": [
+            -0.16214444024708796,
+            0.10841244186861462
+          ]
+        },
+        "supervisor__current_Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 9.855,
+          "replay_mean": 9.855
+        },
+        "supervisor__current_Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 6.11,
+          "replay_mean": 6.11
+        },
+        "supervisor__Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 9.855,
+          "replay_mean": 9.855
+        },
+        "supervisor__Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 6.11,
+          "replay_mean": 6.11
+        },
+        "supervisor__weight_mult": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 0.3884643130004406,
+          "max_per_channel": [
+            0.2386736124753952,
+            0.23662205785512924,
+            0.3884643130004406,
+            0.24681590497493744
+          ],
+          "original_mean": [
+            0.9582653574645519,
+            0.9910349191777641,
+            0.9532938565826043,
+            0.9113091227598489
+          ],
+          "replay_mean": [
+            0.9566270367242395,
+            0.9896313115721569,
+            0.9525300019420684,
+            0.908384308591485
+          ]
+        },
+        "supervisor__z_exec": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.00825705502639878,
+          "max_per_channel": [
+            0.007806777209043503,
+            0.005942380055785179,
+            0.00825705502639878,
+            0.0026969620957970624
+          ],
+          "original_mean": [
+            0.006222885876844223,
+            0.0022261444408727916,
+            -0.00018170499360304306,
+            -0.003182869581498049
+          ],
+          "replay_mean": [
+            0.006170821178491821,
+            0.002200475412105759,
+            -0.00024398743683763497,
+            -0.0031956185568539396
+          ]
+        },
+        "supervisor__weight_executed_action_raw_log": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 0.621542900800705,
+          "max_per_channel": [
+            0.3818777799606323,
+            0.3785952925682068,
+            0.621542900800705,
+            0.3949054479598999
+          ],
+          "original_mean": [
+            -0.666775428056717,
+            -0.6143441293155775,
+            -0.674729829467833,
+            -0.7419054035842418
+          ],
+          "replay_mean": [
+            -0.6693967412412166,
+            -0.6165899014845491,
+            -0.6759519968926907,
+            -0.746585106253624
+          ]
+        },
+        "supervisor__markov_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.85,
+          "replay_mean": 1.85
+        },
+        "supervisor__weight_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.465,
+          "replay_mean": 1.48
+        },
+        "supervisor__residual_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.51,
+          "replay_mean": 1.51
+        },
+        "supervisor__sol_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "supervisor__sol0_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "supervisor__previous_input": {
+          "shape": [
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.00476837158203125,
+          "max_per_channel": 0.00476837158203125,
+          "original_mean": 179136.8546551466,
+          "replay_mean": 179136.85227185488
+        },
+        "policy__forecast_nominal": {
+          "shape": [
+            8,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 1.5355812681860925e-05,
+          "max_per_channel": [
+            3.221318673612972e-07,
+            1.5355812681860925e-05
+          ],
+          "original_mean": [
+            0.05910001664923869,
+            -20.35897705915335
+          ],
+          "replay_mean": [
+            0.05910013830947802,
+            -20.358970530018496
+          ]
+        },
+        "policy__forecast_supervisor_ls_or_zero": {
+          "shape": [
+            8,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 1.5216554501762403e-05,
+          "max_per_channel": [
+            3.1879221445985095e-07,
+            1.5216554501762403e-05
+          ],
+          "original_mean": [
+            0.058797062849191235,
+            -20.38783510336358
+          ],
+          "replay_mean": [
+            0.05879718361495932,
+            -20.387828687666204
+          ]
+        },
+        "policy__forecast_rl_proposed": {
+          "shape": [
+            8,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 2.9492936061359387e-05,
+          "max_per_channel": [
+            3.3689447459517297e-07,
+            2.9492936061359387e-05
+          ],
+          "original_mean": [
+            0.07020936573249854,
+            -20.14770515908211
+          ],
+          "replay_mean": [
+            0.0702094925830708,
+            -20.147726509578327
+          ]
+        },
+        "supervisor__forecast_nominal": {
+          "shape": [
+            8,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 4.5836066071558434e-06,
+          "max_per_channel": [
+            5.760156691209106e-08,
+            4.5836066071558434e-06
+          ],
+          "original_mean": [
+            0.05893780371488103,
+            -20.395599306563636
+          ],
+          "replay_mean": [
+            0.05893782938726919,
+            -20.395601046220666
+          ]
+        },
+        "supervisor__forecast_supervisor_ls_or_zero": {
+          "shape": [
+            8,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 4.6751018913937514e-06,
+          "max_per_channel": [
+            5.580761430756809e-08,
+            4.6751018913937514e-06
+          ],
+          "original_mean": [
+            0.05863035397715155,
+            -20.42440960955376
+          ],
+          "replay_mean": [
+            0.05863037861301995,
+            -20.4244114468449
+          ]
+        },
+        "supervisor__forecast_rl_proposed": {
+          "shape": [
+            8,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 3.800204298087806e-05,
+          "max_per_channel": [
+            5.9431632726258954e-08,
+            3.800204298087806e-05
+          ],
+          "original_mean": [
+            0.07003905152429565,
+            -20.184748261852167
+          ],
+          "replay_mean": [
+            0.07003907758986286,
+            -20.18477791946623
+          ]
+        }
+      },
+      "all_arrays_exact": false
+    },
+    {
+      "step": 118812,
+      "original": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_2026-10-26T013317_458786+0000\\files\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_adapted_0118812.npz.effc229b780a.copy",
+      "original_sha256": "f3a501476e84bf596b70ad0e1cab1004d82bce1993eae19f33512b94c70916fa",
+      "replayed": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\horizon_adapted_0118812.npz",
+      "replayed_sha256": "7ec0b5658c404adec674f02441a850721f2314a6d35a7aedc19b6166270ccdfd",
+      "arrays": {
+        "policy__reward": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 30.734002389576467,
+          "max_per_channel": 30.734002389576467,
+          "original_mean": 12.63914208638933,
+          "replay_mean": 13.260255089440966
+        },
+        "policy__y": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.3120365667890539,
+          "max_per_channel": [
+            0.0010110462353089752,
+            0.3120365667890539
+          ],
+          "original_mean": [
+            0.013358549431761629,
+            -21.0943215550558
+          ],
+          "replay_mean": [
+            0.013358432119734098,
+            -21.09595917697905
+          ]
+        },
+        "policy__u": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 1275.8350372314453,
+          "max_per_channel": [
+            1275.8350372314453,
+            0.5334180593490601
+          ],
+          "original_mean": [
+            386967.2641992569,
+            136.91197834908962
+          ],
+          "replay_mean": [
+            386984.2384338379,
+            136.9157608449459
+          ]
+        },
+        "policy__reference": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": [
+            0.0,
+            0.0
+          ],
+          "original_mean": [
+            0.01389999999999995,
+            -21.12
+          ],
+          "replay_mean": [
+            0.01389999999999995,
+            -21.12
+          ]
+        },
+        "policy__existing_observer_yhat_next_scaled_deviation": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.016349348112971063,
+          "max_per_channel": [
+            0.004870279121419463,
+            0.016349348112971063
+          ],
+          "original_mean": [
+            -0.16321100732432348,
+            0.10435051552879107
+          ],
+          "replay_mean": [
+            -0.16321682429795406,
+            0.10426960151281492
+          ]
+        },
+        "policy__current_Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 9.16,
+          "replay_mean": 9.16
+        },
+        "policy__current_Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 4.32,
+          "replay_mean": 4.32
+        },
+        "policy__Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 9.16,
+          "replay_mean": 9.16
+        },
+        "policy__Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 4.32,
+          "replay_mean": 4.32
+        },
+        "policy__weight_mult": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.6238225335255265,
+          "max_per_channel": [
+            0.24894539266824722,
+            0.30496004968881607,
+            0.6238225335255265,
+            0.33886857330799103
+          ],
+          "original_mean": [
+            0.942585771670565,
+            0.9863974179141224,
+            0.9608231667079963,
+            0.898831123067066
+          ],
+          "replay_mean": [
+            0.9570309359580278,
+            0.9951879625441507,
+            0.9450573447858914,
+            0.9097235879395157
+          ]
+        },
+        "policy__z_exec": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.07873016595840454,
+          "max_per_channel": [
+            0.04344829011435894,
+            0.027562399581074717,
+            0.07873016595840454,
+            0.044640439514271345
+          ],
+          "original_mean": [
+            0.0023497229249989414,
+            0.0020980624426932136,
+            -0.002509732266242342,
+            0.00016878350915384985
+          ],
+          "replay_mean": [
+            0.002104638431844594,
+            0.0027074207127863307,
+            -0.0030683059182165483,
+            0.00037323526800756945
+          ]
+        },
+        "policy__weight_executed_action_raw_log": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.9981160536408424,
+          "max_per_channel": [
+            0.39831262826919556,
+            0.4879360795021057,
+            0.9981160536408424,
+            0.5421897172927856
+          ],
+          "original_mean": [
+            -0.691862765327096,
+            -0.6217641313374043,
+            -0.662682933267206,
+            -0.7618702030926943
+          ],
+          "replay_mean": [
+            -0.6687505024671555,
+            -0.6076992599293589,
+            -0.6879082483425737,
+            -0.7444422592967749
+          ]
+        },
+        "policy__markov_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.77,
+          "replay_mean": 1.825
+        },
+        "policy__weight_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.61,
+          "replay_mean": 1.54
+        },
+        "policy__residual_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.54,
+          "replay_mean": 1.535
+        },
+        "policy__sol_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "policy__sol0_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "policy__previous_input": {
+          "shape": [
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.01430511474609375,
+          "max_per_channel": 0.01430511474609375,
+          "original_mean": 186813.8415402174,
+          "replay_mean": 186813.83439213037
+        },
+        "supervisor__reward": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 25.35574491560449,
+          "max_per_channel": 25.35574491560449,
+          "original_mean": 13.005085802544151,
+          "replay_mean": 12.719178546449388
+        },
+        "supervisor__y": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.34699888701439363,
+          "max_per_channel": [
+            0.0018585574406276562,
+            0.34699888701439363
+          ],
+          "original_mean": [
+            0.013363558384118113,
+            -21.094985091495154
+          ],
+          "replay_mean": [
+            0.013322985298556508,
+            -21.09877266635226
+          ]
+        },
+        "supervisor__u": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 2077.3839950561523,
+          "max_per_channel": [
+            2077.3839950561523,
+            0.9345155954360962
+          ],
+          "original_mean": [
+            386969.9562072754,
+            136.91065371334554
+          ],
+          "replay_mean": [
+            387041.7040348053,
+            136.93251185715198
+          ]
+        },
+        "supervisor__reference": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": [
+            0.0,
+            0.0
+          ],
+          "original_mean": [
+            0.01389999999999995,
+            -21.12
+          ],
+          "replay_mean": [
+            0.01389999999999995,
+            -21.12
+          ]
+        },
+        "supervisor__existing_observer_yhat_next_scaled_deviation": {
+          "shape": [
+            200,
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.020239326512724753,
+          "max_per_channel": [
+            0.007564545114136956,
+            0.020239326512724753
+          ],
+          "original_mean": [
+            -0.16320685280589486,
+            0.10432755967582469
+          ],
+          "replay_mean": [
+            -0.163238799818623,
+            0.10419502443555757
+          ]
+        },
+        "supervisor__current_Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 8.96,
+          "replay_mean": 8.96
+        },
+        "supervisor__current_Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 4.2,
+          "replay_mean": 4.2
+        },
+        "supervisor__Hp": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 8.96,
+          "replay_mean": 8.96
+        },
+        "supervisor__Hc": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 4.2,
+          "replay_mean": 4.2
+        },
+        "supervisor__weight_mult": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.8365068212151527,
+          "max_per_channel": [
+            0.8365068212151527,
+            0.40138574317097664,
+            0.8115632086992264,
+            0.4483602615073323
+          ],
+          "original_mean": [
+            0.9579348041675985,
+            0.9982187261804938,
+            0.9509776777820662,
+            0.9064957041759044
+          ],
+          "replay_mean": [
+            0.9516392854973674,
+            0.9930252706399187,
+            0.9656323484610766,
+            0.8968625736539252
+          ]
+        },
+        "supervisor__z_exec": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.07579773962497711,
+          "max_per_channel": [
+            0.04463625379241992,
+            0.03949927017092705,
+            0.07579773962497711,
+            0.04450536048745705
+          ],
+          "original_mean": [
+            0.0018337055239212507,
+            0.0029449262384444864,
+            -0.003316570058456336,
+            0.00016842649133444205
+          ],
+          "replay_mean": [
+            0.002149553947818768,
+            0.002677470543719299,
+            -0.0025287777806219124,
+            -2.368347446858196e-05
+          ]
+        },
+        "supervisor__weight_executed_action_raw_log": {
+          "shape": [
+            200,
+            4
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 1.3384109139442444,
+          "max_per_channel": [
+            1.3384109139442444,
+            0.6422171890735626,
+            1.2985011339187622,
+            0.7173764184117317
+          ],
+          "original_mean": [
+            -0.6673043133318424,
+            -0.6028500381112099,
+            -0.6784357155486941,
+            -0.749606873318553
+          ],
+          "replay_mean": [
+            -0.6773771432042122,
+            -0.61115956697613,
+            -0.6549882424622774,
+            -0.7650198821537196
+          ]
+        },
+        "supervisor__markov_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.82,
+          "replay_mean": 1.795
+        },
+        "supervisor__weight_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.54,
+          "replay_mean": 1.585
+        },
+        "supervisor__residual_sg_selected_source_log": {
+          "shape": [
+            200
+          ],
+          "exact_equal": false,
+          "first_row_exact": true,
+          "max_abs_difference": 1.0,
+          "max_per_channel": 1.0,
+          "original_mean": 1.46,
+          "replay_mean": 1.51
+        },
+        "supervisor__sol_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "supervisor__sol0_success": {
+          "shape": [
+            200
+          ],
+          "exact_equal": true,
+          "first_row_exact": true,
+          "max_abs_difference": 0.0,
+          "max_per_channel": 0.0,
+          "original_mean": 1.0,
+          "replay_mean": 1.0
+        },
+        "supervisor__previous_input": {
+          "shape": [
+            2
+          ],
+          "exact_equal": false,
+          "first_row_exact": false,
+          "max_abs_difference": 0.01430511474609375,
+          "max_per_channel": 0.01430511474609375,
+          "original_mean": 186813.8415402174,
+          "replay_mean": 186813.83439213037
+        }
+      },
+      "all_arrays_exact": false
+    }
+  ],
+  "originals_retained": true,
+  "scientific_source_changes": 0,
+  "simulator_calls": 0,
+  "interpretation": "Every closed technical replay array is compared; subsequent native integration is not claimed bitwise identical. No post-hoc tolerance or result-based selection is used."
+}

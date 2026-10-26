@@ -1,5 +1,13 @@
 # Combined parallel comparison adapter — active test October 24, 2026
 
+## Current recovered execution accepted — October26, 03:09UTC
+
+Combined is healthy at315/320 comparisons under parent55752/134374561114578001, current state `Distillation/Results/state_recovery/20261026_combined_metadata_retry`. Read `../combined_inference_recovery_20261026/STATUS.md` and its acceptance/health receipts first. All314 original results and full recovery state were preserved before retiring the original stalled attempt. Four-learner +8 validation, fresh cold restoration and both current parallel pairs verified; formerly stalled Markov118860 completed in434.09seconds. All143 scientific seals and original budgets/solver/seed/protocols remain unchanged. Current Python priority is normal, current side archiver is healthy and both older archives/retention remain protected. Five comparisons plus remaining training are still required. The original migration, prior retirement, failed startup and their identity assumptions below are historical and must not be replayed.
+
+## Current execution superseded — October26, 01:55UTC
+
+The original accepted parent59504 and its associated case15/17 workers genuinely stalled on Markov118860 after314 saved comparisons. All314 original results and matched118800/118400 recovery checkpoints were independently hash-verified before exact failed-generation retirement. Fresh CUDA inference passed after GPU context memory was released. A new bounded recovery is active at `../combined_inference_recovery_20261026/STATUS.md` and `Distillation/Results/state_recovery/20261026_combined_inference/manifest.json`; production acceptance is pending. The original scientific parallel adapter and budgets remain unchanged. All original results/archives remain retained. Do not repeat this directory's old migration, retirement, launch or monitoring identity assumptions. Original retention remains active; its old side helper completed normally when the old parent retired. Earlier healthy/ETA entries below are historical.
+
 The user explicitly authorized testing free Aspen 15 and 17, and a combined-only checkpoint restart **only if equivalence and sufficient measured saving pass**; more cases may be considered if useful. This supersedes the earlier recommendation to finish serially. The existing scientific budget remains seed 7, 300 cycles, 320 comparisons, 20 selected decisions per window and the original 200/800-step horizons. All four advancing learners remain coupled in one trajectory.
 
 ## Final 17 comparisons — October 25, 19:16 Toronto

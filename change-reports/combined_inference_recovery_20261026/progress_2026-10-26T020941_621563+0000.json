@@ -1,0 +1,731 @@
+{
+  "at_utc": "2026-10-26T02:09:41.610086+00:00",
+  "state": "running",
+  "stage": "validation",
+  "validation_passed": null,
+  "error": null,
+  "worker_identity": {
+    "pid": 50836,
+    "alive": true,
+    "created": 134374528078308674
+  },
+  "status": {
+    "state": "running",
+    "pid": 50836,
+    "started_at": "2026-10-26T01:47:25.161784+00:00",
+    "category": "combined",
+    "case": 16,
+    "technical": false,
+    "output": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+    "profile": "temperature_flip_200_100",
+    "budget_protocol_id": "column-e1-20-clock-strata-v1",
+    "expected_matched_pairs": 320,
+    "budget_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_e1_budget20",
+    "native_sessions": {
+      "aspen": {
+        "aspen_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_0ae4d841\\main\\C2S_SS_simulation16.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_0ae4d841\\main\\AM_C2S_SS_simulation16",
+        "path_source": "e3-number-override",
+        "aspen_sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4"
+      },
+      "branch_aspen": {
+        "aspen_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_0ae4d841\\branch\\C2S_SS_simulation16.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_0ae4d841\\branch\\AM_C2S_SS_simulation16",
+        "path_source": "e3-number-override",
+        "aspen_sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4"
+      }
+    }
+  },
+  "checkpoint": {
+    "completed_steps": 118808,
+    "completed_cycles": 297,
+    "agents": {
+      "active_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "weight_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "horizon_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "markov_agent": {
+        "train_steps": 114807,
+        "replay_size": 40000
+      }
+    },
+    "sha256": "02c1fafcf6c5d9a496553f4b150efa7b8275811045dd9916091e2f7131694c4f"
+  },
+  "restore": {
+    "completed_steps": 118800,
+    "native_checksum_verified": true,
+    "python_checksum_verified": true,
+    "agents": {
+      "active_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "weight_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "horizon_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "markov_agent": {
+        "train_steps": 114799,
+        "replay_size": 40000
+      }
+    }
+  },
+  "full_restore_events": [
+    {
+      "completed_steps": 118800,
+      "before_equals_after": true
+    }
+  ],
+  "primary_pairs": 313,
+  "latest_primary": {
+    "schema": 1,
+    "seed": 7,
+    "category": "combined",
+    "channel": "markov",
+    "context": "combined",
+    "window": "adapted",
+    "step": 118803,
+    "episode": 298,
+    "gate_source_line": 1432,
+    "observation": [
+      -0.10891295224428177,
+      -0.07635638862848282,
+      0.2155739665031433,
+      0.04948507621884346,
+      0.29694664478302,
+      -0.4506208002567291,
+      -0.13611729443073273,
+      -0.5416666865348816,
+      -2.220446049250313e-16,
+      -0.2731759250164032,
+      0.11114180088043213,
+      -0.3092094957828522,
+      0.3486954867839813,
+      3.0806479454040527,
+      -1.6043181419372559,
+      0.05000000074505806,
+      0.038692355155944824,
+      0.05000000074505806,
+      -0.05000000074505806,
+      -0.01633189618587494,
+      -0.006389804650098085,
+      -0.009486833587288857,
+      -0.0031010981183499098,
+      0.0005675063002854586,
+      0.005664682947099209,
+      0.8181818127632141,
+      0.8181818127632141,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "previous_action": [
+      1.0,
+      0.7738471031188965,
+      1.0,
+      -1.0
+    ],
+    "initial_tracking_error_physical": [
+      0.02430383266921173,
+      -0.2503913981500574
+    ],
+    "gate": {
+      "action": [
+        0.9999983906745911,
+        0.9997379183769226,
+        1.0,
+        0.3989720940589905
+      ],
+      "policy_action": [
+        0.9999983906745911,
+        0.9997379183769226,
+        1.0,
+        0.3989720940589905
+      ],
+      "supervisor_action": [
+        -0.3266379237174988,
+        -0.12779608368873596,
+        -0.18973666429519653,
+        -0.06202196329832077
+      ],
+      "selected_source": 2,
+      "score_policy": 418.7671954369253,
+      "score_supervisor": 392.9729854330221,
+      "advantage_policy_supervisor": 25.79421000390323,
+      "q1_policy": 523.1115112304688,
+      "q2_policy": 453.6241455078125,
+      "q1_supervisor": 393.6944885253906,
+      "q2_supervisor": 395.0401306152344,
+      "q_gap_policy": 69.48736572265625,
+      "q_gap_supervisor": 1.34564208984375
+    },
+    "gate_config": {
+      "score_uncertainty_weight": 0.5,
+      "score_previous_action_weight": 0.01,
+      "score_supervisor_action_weight": 0.02,
+      "advantage_margin": 0.5,
+      "default_to_supervisor": true,
+      "actor_q_mode": "mean",
+      "supervisor_bc_weight": 0.0,
+      "supervisor_bc_temperature": 1.0,
+      "smooth_action_weight": 0.0,
+      "detach_supervisor_weight": true,
+      "enable_supervisor_actor_loss": false,
+      "min_train_steps_before_policy_gate": 0
+    },
+    "critic_train_steps_at_decision": 114803,
+    "support": {
+      "buffer_size": 40000,
+      "sample_size": 4096,
+      "state_nearest_rms_standardized": 0.996969353072605,
+      "state_mean": [
+        0.040055455486239566,
+        0.15725911926787717,
+        0.3669424129766412,
+        0.16372730836114613,
+        0.044840371357773634,
+        -0.5619387060323788,
+        -0.20654270051390355,
+        -0.23191325748848612,
+        -0.19873047171131475,
+        -0.06659972204215592,
+        0.19720457913717482,
+        -0.0014336578703263436,
+        -0.0005103296884780492,
+        0.02998165599773861,
+        -0.025576609248902926,
+        0.002912171368714477,
+        5.980944911032973e-05,
+        0.0009770028178318624,
+        -0.0009236639940609637,
+        -0.00015160414374411693,
+        -2.620878392385964e-05,
+        -0.0011897358987483161,
+        -0.0002625354965732213,
+        0.21105106568655804,
+        0.011125853861537083,
+        0.8050870092993136,
+        0.523082394785888,
+        0.9484111173223937,
+        0.9827508925809525,
+        1.018438904065988,
+        0.9577836874959758
+      ],
+      "state_scale": [
+        0.1693489660622998,
+        0.21071692087313376,
+        0.31170287804946334,
+        0.2981397821305898,
+        0.22371062657791863,
+        0.2459884602890271,
+        0.17674818720664773,
+        0.3124879410017538,
+        0.19999597366559332,
+        0.24701997038542722,
+        0.28637701466702253,
+        0.16951589504728357,
+        0.2574580375547746,
+        0.6543568407394749,
+        0.7355959491302069,
+        0.015452305804793393,
+        0.013516091520593135,
+        0.01925639845496576,
+        0.017720717691039483,
+        0.0057282180743253525,
+        0.0034596282188700156,
+        0.012093913993424465,
+        0.0021378542379628888,
+        0.603748488132732,
+        0.016194501451875114,
+        0.14754287231933272,
+        0.1985993431077064,
+        0.1231806033865644,
+        0.147858710303158,
+        0.23346725487002218,
+        0.10615355730309418
+      ],
+      "normalization": "state standard deviations from decision-time replay; actions in normalized coordinates",
+      "policy_joint_nearest": 1.2178800108768733,
+      "supervisor_joint_nearest": 1.227086479767337,
+      "sample_source_counts": {
+        "1": 2064,
+        "2": 2032
+      }
+    },
+    "gamma_per_control_step": 0.99,
+    "rollout_steps": 200,
+    "continuation": "gated",
+    "branches": {
+      "policy": {
+        "state": "completed",
+        "completed_steps": 200,
+        "controller_stdout": ""
+      },
+      "supervisor": {
+        "state": "completed",
+        "completed_steps": 200,
+        "controller_stdout": ""
+      }
+    },
+    "metrics": {
+      "20": {
+        "policy": {
+          "return": -430.70534630050565,
+          "rmse_physical": [
+            0.009237644256414275,
+            0.18545474169777973
+          ],
+          "max_abs_error_physical": [
+            0.022371631296037194,
+            0.4541758747074276
+          ],
+          "sum_abs_input_movement_physical": [
+            33967.9217338562,
+            10.74007272720337
+          ],
+          "solver_failure_steps": 0
+        },
+        "supervisor": {
+          "return": -447.60914356320023,
+          "rmse_physical": [
+            0.009493447837841746,
+            0.17196845700242486
+          ],
+          "max_abs_error_physical": [
+            0.023161663205074835,
+            0.42726683196345405
+          ],
+          "sum_abs_input_movement_physical": [
+            32452.728748321533,
+            10.294075012207031
+          ],
+          "solver_failure_steps": 0
+        },
+        "delta_return": 16.90379726269458,
+        "selected": "policy",
+        "regret": 0.0
+      },
+      "80": {
+        "policy": {
+          "return": 165.19811500681018,
+          "rmse_physical": [
+            0.004619418619778834,
+            0.09498675223294524
+          ],
+          "max_abs_error_physical": [
+            0.022371631296037194,
+            0.4541758747074276
+          ],
+          "sum_abs_input_movement_physical": [
+            43298.22778701782,
+            15.051888227462769
+          ],
+          "solver_failure_steps": 0
+        },
+        "supervisor": {
+          "return": 135.7570317073964,
+          "rmse_physical": [
+            0.004747429904201259,
+            0.08929578719731467
+          ],
+          "max_abs_error_physical": [
+            0.023161663205074835,
+            0.42726683196345405
+          ],
+          "sum_abs_input_movement_physical": [
+            42423.40803146362,
+            14.422824382781982
+          ],
+          "solver_failure_steps": 0
+        },
+        "delta_return": 29.441083299413776,
+        "selected": "policy",
+        "regret": 0.0
+      },
+      "200": {
+        "policy": {
+          "return": 773.5370612212791,
+          "rmse_physical": [
+            0.0035535475075962413,
+            0.08465599512068604
+          ],
+          "max_abs_error_physical": [
+            0.022371631296037194,
+            0.8039564569160689
+          ],
+          "sum_abs_input_movement_physical": [
+            56106.09769821167,
+            21.3164484500885
+          ],
+          "solver_failure_steps": 0
+        },
+        "supervisor": {
+          "return": 754.5971074147589,
+          "rmse_physical": [
+            0.003620974732842131,
+            0.08201736154156725
+          ],
+          "max_abs_error_physical": [
+            0.023161663205074835,
+            0.8024354469067418
+          ],
+          "sum_abs_input_movement_physical": [
+            55008.437633514404,
+            20.65519094467163
+          ],
+          "solver_failure_steps": 0
+        },
+        "delta_return": 18.939953806520293,
+        "selected": "policy",
+        "regret": 0.0
+      }
+    },
+    "trace": "traces\\markov_adapted_0118803.npz",
+    "prediction_validation": {
+      "policy": {
+        "horizon": 8,
+        "metrics": {
+          "nominal": {
+            "1": {
+              "rmse_physical": [
+                0.0040164544754794015,
+                0.2556428428613309
+              ],
+              "max_abs_error_physical": [
+                0.0040164544754794015,
+                0.2556428428613309
+              ]
+            },
+            "4": {
+              "rmse_physical": [
+                0.015351976256202823,
+                0.3926730312429628
+              ],
+              "max_abs_error_physical": [
+                0.025328529192716734,
+                0.6823176395130552
+              ]
+            },
+            "8": {
+              "rmse_physical": [
+                0.03981873747795454,
+                1.1771765488035453
+              ],
+              "max_abs_error_physical": [
+                0.0687045189189921,
+                2.103412641302416
+              ]
+            }
+          },
+          "supervisor_ls_or_zero": {
+            "1": {
+              "rmse_physical": [
+                0.004558511319386081,
+                0.27657983577713097
+              ],
+              "max_abs_error_physical": [
+                0.004558511319386081,
+                0.27657983577713097
+              ]
+            },
+            "4": {
+              "rmse_physical": [
+                0.015353660844544188,
+                0.38245813201619877
+              ],
+              "max_abs_error_physical": [
+                0.02508277152322324,
+                0.6528567642192442
+              ]
+            },
+            "8": {
+              "rmse_physical": [
+                0.03926595438458466,
+                1.1544432690548745
+              ],
+              "max_abs_error_physical": [
+                0.06769075477040312,
+                2.0714369496212086
+              ]
+            }
+          },
+          "rl_proposed": {
+            "1": {
+              "rmse_physical": [
+                0.005771795850962207,
+                0.11028088056436758
+              ],
+              "max_abs_error_physical": [
+                0.005771795850962207,
+                0.11028088056436758
+              ]
+            },
+            "4": {
+              "rmse_physical": [
+                0.022513326095871766,
+                0.5052234200822183
+              ],
+              "max_abs_error_physical": [
+                0.036135526255968546,
+                0.8985892801827369
+              ]
+            },
+            "8": {
+              "rmse_physical": [
+                0.05204244366408921,
+                1.3535440441063304
+              ],
+              "max_abs_error_physical": [
+                0.08685420830008535,
+                2.342757019159315
+              ]
+            }
+          }
+        },
+        "scope": "decision-time predictor; common observed future inputs; held-out future outputs; shared nominal free response"
+      },
+      "supervisor": {
+        "horizon": 8,
+        "metrics": {
+          "nominal": {
+            "1": {
+              "rmse_physical": [
+                0.004926018194565694,
+                0.28095286770934536
+              ],
+              "max_abs_error_physical": [
+                0.004926018194565694,
+                0.28095286770934536
+              ]
+            },
+            "4": {
+              "rmse_physical": [
+                0.015128743317817614,
+                0.3501461845845598
+              ],
+              "max_abs_error_physical": [
+                0.024665800821268014,
+                0.567935528089297
+              ]
+            },
+            "8": {
+              "rmse_physical": [
+                0.03909103945198618,
+                1.1167675932196914
+              ],
+              "max_abs_error_physical": [
+                0.06752555371797478,
+                2.008194711855655
+              ]
+            }
+          },
+          "supervisor_ls_or_zero": {
+            "1": {
+              "rmse_physical": [
+                0.005451541840856375,
+                0.30226087898638454
+              ],
+              "max_abs_error_physical": [
+                0.005451541840856375,
+                0.30226087898638454
+              ]
+            },
+            "4": {
+              "rmse_physical": [
+                0.015144337102854444,
+                0.34640350271933923
+              ],
+              "max_abs_error_physical": [
+                0.02442483127728197,
+                0.538742177141458
+              ]
+            },
+            "8": {
+              "rmse_physical": [
+                0.03853911172229419,
+                1.0952341982101237
+              ],
+              "max_abs_error_physical": [
+                0.06650473483617234,
+                1.976273907728995
+              ]
+            }
+          },
+          "rl_proposed": {
+            "1": {
+              "rmse_physical": [
+                0.006766324511295559,
+                0.13328326981863725
+              ],
+              "max_abs_error_physical": [
+                0.006766324511295559,
+                0.13328326981863725
+              ]
+            },
+            "4": {
+              "rmse_physical": [
+                0.022305269502330496,
+                0.43075437116294096
+              ],
+              "max_abs_error_physical": [
+                0.03543803605856578,
+                0.7824797952588547
+              ]
+            },
+            "8": {
+              "rmse_physical": [
+                0.051284243574133165,
+                1.286019000652068
+              ],
+              "max_abs_error_physical": [
+                0.0856299201197158,
+                2.2469121293182823
+              ]
+            }
+          }
+        },
+        "scope": "decision-time predictor; common observed future inputs; held-out future outputs; shared nominal free response"
+      }
+    },
+    "snapshot": null,
+    "status": "completed",
+    "smoke": false,
+    "budget_protocol_id": "column-e1-20-clock-strata-v1",
+    "budget_protocol_sha256": "089b5c6a7df66af5c319563b3f1110a7dfe078a93f74f706a0152be31f9c59ab",
+    "sampling_stratum": "early"
+  },
+  "original_314_independently_preserved": true,
+  "pools": [
+    {
+      "name": "pool8",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_inference\\branches_8_4c20b181",
+      "children": [
+        {
+          "case": 15,
+          "identity": {
+            "pid": 10620,
+            "alive": true,
+            "created": 134374531742656999
+          },
+          "requests": 2,
+          "responses": 2,
+          "pending": []
+        },
+        {
+          "case": 17,
+          "identity": {
+            "pid": 18736,
+            "alive": true,
+            "created": 134374531743637354
+          },
+          "requests": 2,
+          "responses": 2,
+          "pending": []
+        }
+      ],
+      "completed_pairs": [
+        {
+          "channel": "weights",
+          "step": 118801,
+          "elapsed_seconds": 487.1923919999972,
+          "full_python_state_before": "1c12a468a796cbb49788977a5240ecc10d3ba34022d5ba3bd883089c9be09131",
+          "full_python_state_after": "1c12a468a796cbb49788977a5240ecc10d3ba34022d5ba3bd883089c9be09131",
+          "source_map_unchanged": true
+        },
+        {
+          "channel": "markov",
+          "step": 118803,
+          "elapsed_seconds": 448.74905059998855,
+          "full_python_state_before": "c6f0ef543b599e73c46325ffdc24df364bfffaeee7f266d365ef25d90dddcf90",
+          "full_python_state_after": "c6f0ef543b599e73c46325ffdc24df364bfffaeee7f266d365ef25d90dddcf90",
+          "source_map_unchanged": true
+        }
+      ]
+    }
+  ],
+  "process_samples": [
+    {
+      "expected": {
+        "pid": 50836,
+        "alive": true,
+        "created": 134374528078308674
+      },
+      "before": {
+        "pid": 50836,
+        "alive": true,
+        "created": 134374528078308674,
+        "cpu_seconds": 66.3125,
+        "private_bytes": 3547504640,
+        "rss_bytes": 385351680
+      },
+      "after": {
+        "pid": 50836,
+        "alive": true,
+        "created": 134374528078308674,
+        "cpu_seconds": 66.71875,
+        "private_bytes": 3540275200,
+        "rss_bytes": 407793664
+      }
+    },
+    {
+      "expected": {
+        "pid": 10620,
+        "alive": true,
+        "created": 134374531742656999
+      },
+      "before": {
+        "pid": 10620,
+        "alive": false,
+        "created": null
+      },
+      "after": {
+        "pid": 10620,
+        "alive": false,
+        "created": null
+      }
+    },
+    {
+      "expected": {
+        "pid": 18736,
+        "alive": true,
+        "created": 134374531743637354
+      },
+      "before": {
+        "pid": 18736,
+        "alive": false,
+        "created": null
+      },
+      "after": {
+        "pid": 18736,
+        "alive": false,
+        "created": null
+      }
+    }
+  ],
+  "memory": {
+    "committed_bytes": 40890789888,
+    "limit_bytes": 97245818880,
+    "headroom_bytes": 56355028992
+  },
+  "free_disk_bytes": 140368089088,
+  "native_processes": {},
+  "log_tail": [
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 272 in worker",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1_budget.py\", line 202 in worker",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\recover_parallel.py\", line 97 in worker",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_inference_recovery_20261026\\recover_parallel.py\", line 82 in <module>"
+  ]
+}

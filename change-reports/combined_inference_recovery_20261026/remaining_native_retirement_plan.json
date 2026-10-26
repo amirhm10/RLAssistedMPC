@@ -1,0 +1,322 @@
+{
+  "at_utc": "2026-10-26T01:42:30.700185+00:00",
+  "failed_plan_sha256": "406286f05ac0faeee5ea7ffda4b57a05a33d1c4152fe9c5477dac0cfc053ecc2",
+  "failed_backup_sha256": "a0e37e3e442e199f6190810e32d908096e7bf975a588b189241481c259443f5e",
+  "intent_sha256": "58cb2ffd94c18681b33b04c48a542e413c2c3dc53c71f463f7dcb8070e6837b8",
+  "source_sha256": "5adfc150fbd5e5b1150672a019a0b9d279b38929c582db335ff6d56f1f7fabfb",
+  "servers": [
+    {
+      "identity": {
+        "pid": 34008,
+        "alive": true,
+        "created": 134373497422934670,
+        "cpu_seconds": 29.625,
+        "private_bytes": 3145728,
+        "rss_bytes": 10268672
+      },
+      "name": "sim_server.exe",
+      "parent": {
+        "pid": 10704,
+        "created": 134373497422336127,
+        "alive": true
+      }
+    },
+    {
+      "identity": {
+        "pid": 54528,
+        "alive": true,
+        "created": 134373497422962862,
+        "cpu_seconds": 7.34375,
+        "private_bytes": 1359872,
+        "rss_bytes": 6897664
+      },
+      "name": "am_task_server.exe",
+      "parent": {
+        "pid": 10704,
+        "created": 134373497422336127,
+        "alive": true
+      }
+    },
+    {
+      "identity": {
+        "pid": 22572,
+        "alive": true,
+        "created": 134373497798514508,
+        "cpu_seconds": 7.625,
+        "private_bytes": 1400832,
+        "rss_bytes": 7237632
+      },
+      "name": "am_task_server.exe",
+      "parent": {
+        "pid": 50232,
+        "created": 134373497797957783,
+        "alive": true
+      }
+    },
+    {
+      "identity": {
+        "pid": 44988,
+        "alive": true,
+        "created": 134373497798491171,
+        "cpu_seconds": 5263.59375,
+        "private_bytes": 238673920,
+        "rss_bytes": 123387904
+      },
+      "name": "sim_server.exe",
+      "parent": {
+        "pid": 50232,
+        "created": 134373497797957783,
+        "alive": true
+      }
+    },
+    {
+      "identity": {
+        "pid": 25360,
+        "alive": true,
+        "created": 134374489628809466,
+        "cpu_seconds": 13.125,
+        "private_bytes": 197251072,
+        "rss_bytes": 130863104
+      },
+      "name": "sim_server.exe",
+      "parent": {
+        "pid": 18272,
+        "created": 134374489628139949,
+        "alive": true
+      }
+    },
+    {
+      "identity": {
+        "pid": 56180,
+        "alive": true,
+        "created": 134374489628836168,
+        "cpu_seconds": 0.390625,
+        "private_bytes": 1363968,
+        "rss_bytes": 7487488
+      },
+      "name": "am_task_server.exe",
+      "parent": {
+        "pid": 18272,
+        "created": 134374489628139949,
+        "alive": true
+      }
+    },
+    {
+      "identity": {
+        "pid": 12332,
+        "alive": true,
+        "created": 134374489811021323,
+        "cpu_seconds": 10.0625,
+        "private_bytes": 197443584,
+        "rss_bytes": 130793472
+      },
+      "name": "sim_server.exe",
+      "parent": {
+        "pid": 14168,
+        "created": 134374489809536597,
+        "alive": true
+      }
+    },
+    {
+      "identity": {
+        "pid": 36192,
+        "alive": true,
+        "created": 134374489811044753,
+        "cpu_seconds": 0.53125,
+        "private_bytes": 1368064,
+        "rss_bytes": 7491584
+      },
+      "name": "am_task_server.exe",
+      "parent": {
+        "pid": 14168,
+        "created": 134374489809536597,
+        "alive": true
+      }
+    }
+  ],
+  "ignored_descendants": [
+    {
+      "identity": {
+        "pid": 48176,
+        "alive": true,
+        "created": 134373497422982510,
+        "cpu_seconds": 0.015625,
+        "private_bytes": 1867776,
+        "rss_bytes": 10289152
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 34008,
+        "alive": true,
+        "created": 134373497422934670,
+        "cpu_seconds": 29.625,
+        "private_bytes": 3145728,
+        "rss_bytes": 10268672
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 9704,
+        "alive": true,
+        "created": 134373497422995470,
+        "cpu_seconds": 0.0,
+        "private_bytes": 1875968,
+        "rss_bytes": 10280960
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 54528,
+        "alive": true,
+        "created": 134373497422962862,
+        "cpu_seconds": 7.34375,
+        "private_bytes": 1359872,
+        "rss_bytes": 6897664
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 12588,
+        "alive": true,
+        "created": 134373497798541830,
+        "cpu_seconds": 0.03125,
+        "private_bytes": 1875968,
+        "rss_bytes": 10326016
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 22572,
+        "alive": true,
+        "created": 134373497798514508,
+        "cpu_seconds": 7.625,
+        "private_bytes": 1400832,
+        "rss_bytes": 7237632
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 51548,
+        "alive": true,
+        "created": 134373497798521852,
+        "cpu_seconds": 0.015625,
+        "private_bytes": 1851392,
+        "rss_bytes": 10293248
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 44988,
+        "alive": true,
+        "created": 134373497798491171,
+        "cpu_seconds": 5263.59375,
+        "private_bytes": 238673920,
+        "rss_bytes": 123387904
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 44704,
+        "alive": true,
+        "created": 134374489628844544,
+        "cpu_seconds": 0.015625,
+        "private_bytes": 1753088,
+        "rss_bytes": 10964992
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 25360,
+        "alive": true,
+        "created": 134374489628809466,
+        "cpu_seconds": 13.125,
+        "private_bytes": 197251072,
+        "rss_bytes": 130863104
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 18456,
+        "alive": true,
+        "created": 134374489628865730,
+        "cpu_seconds": 0.03125,
+        "private_bytes": 1863680,
+        "rss_bytes": 10956800
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 56180,
+        "alive": true,
+        "created": 134374489628836168,
+        "cpu_seconds": 0.390625,
+        "private_bytes": 1363968,
+        "rss_bytes": 7487488
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 13496,
+        "alive": true,
+        "created": 134374489811052984,
+        "cpu_seconds": 0.03125,
+        "private_bytes": 1871872,
+        "rss_bytes": 10981376
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 12332,
+        "alive": true,
+        "created": 134374489811021323,
+        "cpu_seconds": 10.0625,
+        "private_bytes": 197443584,
+        "rss_bytes": 130793472
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 41836,
+        "alive": true,
+        "created": 134374489811075577,
+        "cpu_seconds": 0.015625,
+        "private_bytes": 1871872,
+        "rss_bytes": 10985472
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 36192,
+        "alive": true,
+        "created": 134374489811044753,
+        "cpu_seconds": 0.53125,
+        "private_bytes": 1368064,
+        "rss_bytes": 7491584
+      },
+      "action": "leave_untouched"
+    }
+  ],
+  "owned_native_generations": [
+    {
+      "pid": 10704,
+      "created": 134373497422336127,
+      "alive": true
+    },
+    {
+      "pid": 50232,
+      "created": 134373497797957783,
+      "alive": true
+    },
+    {
+      "pid": 18272,
+      "created": 134374489628139949,
+      "alive": true
+    },
+    {
+      "pid": 14168,
+      "created": 134374489809536597,
+      "alive": true
+    }
+  ],
+  "other_healthy_workers_to_signal": []
+}

@@ -1,0 +1,12 @@
+{
+  "package": "py-spy",
+  "version": "0.4.2",
+  "source": "https://pypi.org/pypi/py-spy/json",
+  "wheel_url": "https://files.pythonhosted.org/packages/6f/ed/1409cdb557e558a6c98003ab12fdd4284699e158c167c187cb0f124eea4c/py_spy-0.4.2-py2.py3-none-win_amd64.whl",
+  "wheel_filename": "py_spy-0.4.2-py2.py3-none-win_amd64.whl",
+  "wheel_sha256": "8b06a353c177677e4e1701b288d8c58e2f8d4208ee81a8048d9f72ba800918f8",
+  "executable_sha256": "6e83ab095f40453742d01a2719a178f308534015da519ec0659d2584139dc995",
+  "executable_bytes": 4815360,
+  "installation": "Standalone extracted executable in scoped project diagnostic directory; no interpreter or global package changes",
+  "documentation": "https://github.com/benfred/py-spy#how-can-i-avoid-pausing-the-python-program"
+}

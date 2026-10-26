@@ -1,0 +1,15 @@
+{
+  "verified": true,
+  "manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_2026-10-26T013317_458786+0000\\preservation.json",
+  "manifest_sha256": "a0e37e3e442e199f6190810e32d908096e7bf975a588b189241481c259443f5e",
+  "backup": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_2026-10-26T013317_458786+0000",
+  "files": 3199,
+  "bytes": 18612475153,
+  "checkpoint_steps": [
+    118800,
+    118400
+  ],
+  "completed_pairs": 314,
+  "post_checkpoint_pairs": 3,
+  "deferred_live_working_files": 5
+}

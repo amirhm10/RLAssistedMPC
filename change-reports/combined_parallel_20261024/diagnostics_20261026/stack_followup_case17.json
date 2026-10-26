@@ -1,0 +1,852 @@
+[
+  {
+    "pid": 46276,
+    "thread_id": 30064,
+    "thread_name": "MainThread",
+    "os_thread_id": 30064,
+    "active": true,
+    "owns_gil": false,
+    "frames": [
+      {
+        "name": "evaluate_action_score",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\TD3Agent\\supervisor_gated_agent.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\TD3Agent\\supervisor_gated_agent.py",
+        "line": 157,
+        "locals": [
+          {
+            "name": "self",
+            "addr": 3095066289376,
+            "arg": true,
+            "repr": "<SupervisorGatedTD3Agent at 0x2d0a053a4e0>"
+          },
+          {
+            "name": "state",
+            "addr": 3095657762080,
+            "arg": true,
+            "repr": "<Tensor at 0x2d0c394cd20>"
+          },
+          {
+            "name": "action",
+            "addr": 3096015628176,
+            "arg": true,
+            "repr": "<numpy.ndarray at 0x2d0d8e96790>"
+          },
+          {
+            "name": "supervisor_action",
+            "addr": 3096015623664,
+            "arg": true,
+            "repr": "<numpy.ndarray at 0x2d0d8e955f0>"
+          },
+          {
+            "name": "previous_action",
+            "addr": 3096015631056,
+            "arg": true,
+            "repr": "<numpy.ndarray at 0x2d0d8e972d0>"
+          },
+          {
+            "name": "action_arr",
+            "addr": 3096015626928,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e962b0>"
+          },
+          {
+            "name": "supervisor_arr",
+            "addr": 3096015620112,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e94810>"
+          },
+          {
+            "name": "previous_arr",
+            "addr": 3096015628080,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e96730>"
+          },
+          {
+            "name": "state_t",
+            "addr": 3095657762080,
+            "arg": false,
+            "repr": "<Tensor at 0x2d0c394cd20>"
+          },
+          {
+            "name": "action_t",
+            "addr": 3095657764240,
+            "arg": false,
+            "repr": "<Tensor at 0x2d0c394d590>"
+          },
+          {
+            "name": "q1",
+            "addr": 3095657763840,
+            "arg": false,
+            "repr": "<Tensor at 0x2d0c394d400>"
+          },
+          {
+            "name": "q2",
+            "addr": 3095657773040,
+            "arg": false,
+            "repr": "<Tensor at 0x2d0c394f7f0>"
+          }
+        ],
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "decorate_context",
+        "filename": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\utils\\_contextlib.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\utils\\_contextlib.py",
+        "line": 124,
+        "locals": [
+          {
+            "name": "args",
+            "addr": 3095664704704,
+            "arg": false,
+            "repr": "(<SupervisorGatedTD3Agent at 0x2d0a053a4e0>, <Tensor at 0x2d0c394cd20>, <numpy.ndarray at 0x2d0d8e96790>)"
+          },
+          {
+            "name": "kwargs",
+            "addr": 3095664694272,
+            "arg": false,
+            "repr": "{\"supervisor_action\": <numpy.ndarray at 0x2d0d8e955f0>, \"previous_action\": <numpy.ndarray at 0x2d0d8e972d0>}"
+          }
+        ],
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "select_action_with_supervisor",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\TD3Agent\\supervisor_gated_agent.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\TD3Agent\\supervisor_gated_agent.py",
+        "line": 230,
+        "locals": [
+          {
+            "name": "self",
+            "addr": 3095066289376,
+            "arg": true,
+            "repr": "<SupervisorGatedTD3Agent at 0x2d0a053a4e0>"
+          },
+          {
+            "name": "state",
+            "addr": 3096015627408,
+            "arg": true,
+            "repr": "<numpy.ndarray at 0x2d0d8e96490>"
+          },
+          {
+            "name": "supervisor_action",
+            "addr": 3096015622800,
+            "arg": true,
+            "repr": "<numpy.ndarray at 0x2d0d8e95290>"
+          },
+          {
+            "name": "previous_action",
+            "addr": 3096015620592,
+            "arg": true,
+            "repr": "<numpy.ndarray at 0x2d0d8e949f0>"
+          },
+          {
+            "name": "explore",
+            "addr": 140716285618960,
+            "arg": true,
+            "repr": "False"
+          },
+          {
+            "name": "test",
+            "addr": 140716285618928,
+            "arg": true,
+            "repr": "True"
+          },
+          {
+            "name": "supervisor_arr",
+            "addr": 3096015623664,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e955f0>"
+          },
+          {
+            "name": "previous_arr",
+            "addr": 3096015631056,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e972d0>"
+          },
+          {
+            "name": "state_t",
+            "addr": 3095657762080,
+            "arg": false,
+            "repr": "<Tensor at 0x2d0c394cd20>"
+          },
+          {
+            "name": "clean_policy",
+            "addr": 3096015620016,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e947b0>"
+          },
+          {
+            "name": "policy_arr",
+            "addr": 3096015628176,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e96790>"
+          }
+        ],
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "decorate_context",
+        "filename": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\utils\\_contextlib.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\Lib\\site-packages\\torch\\utils\\_contextlib.py",
+        "line": 124,
+        "locals": [
+          {
+            "name": "args",
+            "addr": 3095525204416,
+            "arg": false,
+            "repr": "(<SupervisorGatedTD3Agent at 0x2d0a053a4e0>, <numpy.ndarray at 0x2d0d8e96490>)"
+          },
+          {
+            "name": "kwargs",
+            "addr": 3095561345600,
+            "arg": false,
+            "repr": "{\"supervisor_action\": <numpy.ndarray at 0x2d0d8e95290>, \"previous_action\": <numpy.ndarray at 0x2d0d8e949f0>, ...}"
+          }
+        ],
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "choose",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\review_experiments\\e1\\runtime.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\review_experiments\\e1\\runtime.py",
+        "line": 286,
+        "locals": [
+          {
+            "name": "self",
+            "addr": 3095066289376,
+            "arg": true,
+            "repr": "<SupervisorGatedTD3Agent at 0x2d0a053a4e0>"
+          },
+          {
+            "name": "state",
+            "addr": 3096015627408,
+            "arg": true,
+            "repr": "<numpy.ndarray at 0x2d0d8e96490>"
+          },
+          {
+            "name": "args",
+            "addr": 140716286637504,
+            "arg": false,
+            "repr": "()"
+          },
+          {
+            "name": "kwargs",
+            "addr": 3095738101120,
+            "arg": false,
+            "repr": "{\"supervisor_action\": <numpy.ndarray at 0x2d0d8e95290>, \"previous_action\": <numpy.ndarray at 0x2d0d8e949f0>, ...}"
+          }
+        ],
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "select_supervisor_gated_continuous_action",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\agent_step_runtime.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\agent_step_runtime.py",
+        "line": 546,
+        "locals": [
+          {
+            "name": "agent",
+            "addr": 3095066289376,
+            "arg": false,
+            "repr": "<SupervisorGatedTD3Agent at 0x2d0a053a4e0>"
+          },
+          {
+            "name": "state",
+            "addr": 3096015627408,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e96490>"
+          },
+          {
+            "name": "step",
+            "addr": 3095790655312,
+            "arg": false,
+            "repr": "118899"
+          },
+          {
+            "name": "warm_start_step",
+            "addr": 3100932457008,
+            "arg": false,
+            "repr": "4000"
+          },
+          {
+            "name": "decision_interval",
+            "addr": 140716286563240,
+            "arg": false,
+            "repr": "1"
+          },
+          {
+            "name": "last_action",
+            "addr": 3096015629136,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e96b50>"
+          },
+          {
+            "name": "last_action_test",
+            "addr": 140716285618960,
+            "arg": false,
+            "repr": "False"
+          },
+          {
+            "name": "first_live_action_step",
+            "addr": 140716285701232,
+            "arg": false,
+            "repr": "None"
+          },
+          {
+            "name": "test",
+            "addr": 140716285618960,
+            "arg": false,
+            "repr": "False"
+          },
+          {
+            "name": "baseline_action",
+            "addr": 3096015625584,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e95d70>"
+          },
+          {
+            "name": "supervisor_action",
+            "addr": 3096015625584,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e95d70>"
+          },
+          {
+            "name": "previous_action",
+            "addr": 140716285701232,
+            "arg": false,
+            "repr": "None"
+          },
+          {
+            "name": "phase1",
+            "addr": 3095525376256,
+            "arg": false,
+            "repr": "{\"enabled\": True, \"action_freeze_subepisodes\": 3, \"actor_freeze_subepisodes\": 3, \"action_freeze_start_step\": 4001, ...}"
+          },
+          {
+            "name": "action_dim",
+            "addr": 140716286563336,
+            "arg": false,
+            "repr": "4"
+          },
+          {
+            "name": "nonfinite_fallback",
+            "addr": 140716285618928,
+            "arg": false,
+            "repr": "True"
+          },
+          {
+            "name": "baseline",
+            "addr": 3096015621552,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e94db0>"
+          },
+          {
+            "name": "supervisor",
+            "addr": 3096015622800,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e95290>"
+          },
+          {
+            "name": "hidden_active",
+            "addr": 140716285618960,
+            "arg": false,
+            "repr": "False"
+          },
+          {
+            "name": "first_live",
+            "addr": 3095684176944,
+            "arg": false,
+            "repr": "5201"
+          },
+          {
+            "name": "last",
+            "addr": 3096015632976,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e97a50>"
+          },
+          {
+            "name": "held_action_available",
+            "addr": 140716285618928,
+            "arg": false,
+            "repr": "True"
+          },
+          {
+            "name": "previous",
+            "addr": 3096015620592,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0d8e949f0>"
+          },
+          {
+            "name": "live_offset",
+            "addr": 3095790649424,
+            "arg": false,
+            "repr": "113698"
+          },
+          {
+            "name": "should_decide",
+            "addr": 140716285618928,
+            "arg": false,
+            "repr": "True"
+          }
+        ],
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "<module>",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\combined_runner.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\combined_runner.py",
+        "line": 1432,
+        "locals": [],
+        "is_entry": false,
+        "is_shim_entry": true
+      },
+      {
+        "name": "run_branch",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\review_experiments\\e1\\study.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\review_experiments\\e1\\study.py",
+        "line": 205,
+        "locals": [
+          {
+            "name": "snapshot",
+            "addr": 3095679936384,
+            "arg": true,
+            "repr": "{\"__name__\": \"utils.combined_runner\", \"__doc__\": None, \"__package__\": \"utils\", ...}"
+          },
+          {
+            "name": "compiled",
+            "addr": 3096320717792,
+            "arg": true,
+            "repr": "<CompiledRunner at 0x2d0eb18b3e0>"
+          },
+          {
+            "name": "site",
+            "addr": 3094602682192,
+            "arg": true,
+            "repr": "<GateSite at 0x2d084b18f50>"
+          },
+          {
+            "name": "record",
+            "addr": 3095612397312,
+            "arg": true,
+            "repr": "{\"state\": <numpy.ndarray at 0x2d0b2a82070>, \"decision\": <SupervisorGatedDecision at 0x2d1fdfb1e50>, \"kwargs\": {...}}"
+          },
+          {
+            "name": "source",
+            "addr": 3095525628080,
+            "arg": true,
+            "repr": "\"supervisor\""
+          },
+          {
+            "name": "steps",
+            "addr": 140716286569608,
+            "arg": true,
+            "repr": "200"
+          },
+          {
+            "name": "continuation",
+            "addr": 3098559214336,
+            "arg": true,
+            "repr": "\"gated\""
+          },
+          {
+            "name": "environment",
+            "addr": 3095755436352,
+            "arg": false,
+            "repr": "{\"__name__\": \"utils.combined_runner\", \"__doc__\": None, \"__package__\": \"utils\", ...}"
+          },
+          {
+            "name": "previous_input",
+            "addr": 3095752543184,
+            "arg": false,
+            "repr": "<numpy.ndarray at 0x2d0c93b0bd0>"
+          },
+          {
+            "name": "start",
+            "addr": 3095490864112,
+            "arg": false,
+            "repr": "118860"
+          },
+          {
+            "name": "rows",
+            "addr": 3095533855808,
+            "arg": false,
+            "repr": "[{\"reward\": 23.604015523504053, \"y\": <numpy.ndarray at 0x2d0bfe3f090>, \"u\": <numpy.ndarray at 0x2d0bfe3e370>, ...}, ...]"
+          },
+          {
+            "name": "freeze_normalization",
+            "addr": 3095034724032,
+            "arg": false,
+            "repr": "<function at 0x2d09e71fec0>"
+          },
+          {
+            "name": "branch_stdout",
+            "addr": 3096321015872,
+            "arg": false,
+            "repr": "<_io.StringIO at 0x2d0eb1d4040>"
+          },
+          {
+            "name": "step",
+            "addr": 3095790655312,
+            "arg": false,
+            "repr": "118899"
+          },
+          {
+            "name": "name",
+            "addr": 3100932726192,
+            "arg": false,
+            "repr": "<cell at 0x2d1fdfe5db0>"
+          }
+        ],
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "one_branch",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "line": 158,
+        "locals": [
+          {
+            "name": "request",
+            "addr": 3095525630336,
+            "arg": true,
+            "repr": "{...}"
+          },
+          {
+            "name": "config",
+            "addr": 3094745588288,
+            "arg": true,
+            "repr": "{\"category\": \"combined\", \"science_hashes\": {...}, \"snapshot_source_hashes\": {...}, \"adapter_hashes\": {...}, ...}"
+          },
+          {
+            "name": "worker_directory",
+            "addr": 3094745556896,
+            "arg": true,
+            "repr": "<WindowsPath at 0x2d08d35a7a0>"
+          },
+          {
+            "name": "plant",
+            "addr": 3096825469664,
+            "arg": true,
+            "repr": "<cell at 0x2d1092e9ae0>"
+          },
+          {
+            "name": "np",
+            "addr": 3094746620256,
+            "arg": false,
+            "repr": "<module at 0x2d08d45e160>"
+          },
+          {
+            "name": "load_snapshot",
+            "addr": 3095029418720,
+            "arg": false,
+            "repr": "<function at 0x2d09e210ae0>"
+          },
+          {
+            "name": "clone_environment",
+            "addr": 3095034723712,
+            "arg": false,
+            "repr": "<function at 0x2d09e71fd80>"
+          },
+          {
+            "name": "restore_rng",
+            "addr": 3095034719072,
+            "arg": false,
+            "repr": "<function at 0x2d09e71eb60>"
+          },
+          {
+            "name": "rng_state",
+            "addr": 3095034718912,
+            "arg": false,
+            "repr": "<function at 0x2d09e71eac0>"
+          },
+          {
+            "name": "run_branch",
+            "addr": 3095029219872,
+            "arg": false,
+            "repr": "<function at 0x2d09e1e0220>"
+          },
+          {
+            "name": "json_safe",
+            "addr": 3095035544896,
+            "arg": false,
+            "repr": "<function at 0x2d09e7e8540>"
+          },
+          {
+            "name": "runtime",
+            "addr": 3094941648432,
+            "arg": false,
+            "repr": "<module at 0x2d098e5c630>"
+          },
+          {
+            "name": "DetachedColumn",
+            "addr": 3095001432688,
+            "arg": false,
+            "repr": "0"
+          },
+          {
+            "name": "digest_state",
+            "addr": 3095029225792,
+            "arg": false,
+            "repr": "<function at 0x2d09e1e1940>"
+          },
+          {
+            "name": "integrity_payload",
+            "addr": 3095029226112,
+            "arg": false,
+            "repr": "<function at 0x2d09e1e1a80>"
+          },
+          {
+            "name": "source",
+            "addr": 3095525628080,
+            "arg": false,
+            "repr": "\"supervisor\""
+          },
+          {
+            "name": "snapshot",
+            "addr": 3095560042112,
+            "arg": false,
+            "repr": "<WindowsPath at 0x2d0bdc1b680>"
+          },
+          {
+            "name": "target",
+            "addr": 3095560043120,
+            "arg": false,
+            "repr": "<WindowsPath at 0x2d0bdc1ba70>"
+          },
+          {
+            "name": "started",
+            "addr": 3096832161648,
+            "arg": false,
+            "repr": "1321847.6680837"
+          },
+          {
+            "name": "payload",
+            "addr": 3095525635008,
+            "arg": false,
+            "repr": "{\"schema\": 1, \"category\": \"combined\", \"site\": \"markov:1432\", ...}"
+          },
+          {
+            "name": "compiled",
+            "addr": 3096320717792,
+            "arg": false,
+            "repr": "<CompiledRunner at 0x2d0eb18b3e0>"
+          },
+          {
+            "name": "detached",
+            "addr": 3095556229504,
+            "arg": false,
+            "repr": "{\"__name__\": \"utils.combined_runner\", \"__doc__\": None, \"__package__\": \"utils\", ...}"
+          },
+          {
+            "name": "exported",
+            "addr": 3096320716912,
+            "arg": false,
+            "repr": "<DetachedColumn at 0x2d0eb18b070>"
+          },
+          {
+            "name": "metadata",
+            "addr": 3096888610176,
+            "arg": false,
+            "repr": "{...}"
+          },
+          {
+            "name": "metadata_before",
+            "addr": 3095560044224,
+            "arg": false,
+            "repr": "\"adb039381ce1e48373d84376b40b1b6bb8860dd381a45f428c490208eefd1ff7\""
+          },
+          {
+            "name": "frozen_before",
+            "addr": 3095393358144,
+            "arg": false,
+            "repr": "\"709d77965b2e0c7243ba9aa49f2a4cf687b4e7eebae2088a6d560950c2c8f1b8\""
+          },
+          {
+            "name": "original_restore",
+            "addr": 3095029227232,
+            "arg": false,
+            "repr": "<function at 0x2d09e1e1ee0>"
+          },
+          {
+            "name": "initial_rng",
+            "addr": 3096888606784,
+            "arg": false,
+            "repr": "{...}"
+          },
+          {
+            "name": "primes",
+            "addr": 3096888614656,
+            "arg": false,
+            "repr": "[{...}]"
+          },
+          {
+            "name": "attach",
+            "addr": 3095684426752,
+            "arg": false,
+            "repr": "<function at 0x2d0c52bac00>"
+          },
+          {
+            "name": "environment",
+            "addr": 3095679936384,
+            "arg": false,
+            "repr": "{\"__name__\": \"utils.combined_runner\", \"__doc__\": None, \"__package__\": \"utils\", ...}"
+          }
+        ],
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "worker",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "line": 236,
+        "locals": [
+          {
+            "name": "config_path",
+            "addr": 3094736281312,
+            "arg": true,
+            "repr": "<WindowsPath at 0x2d08ca81ee0>"
+          },
+          {
+            "name": "review_numeric_recovery",
+            "addr": 3094695359120,
+            "arg": false,
+            "repr": "<module at 0x2d08a37b290>"
+          },
+          {
+            "name": "torch",
+            "addr": 3094734116224,
+            "arg": false,
+            "repr": "<module at 0x2d08c871580>"
+          },
+          {
+            "name": "win32com",
+            "addr": 3094745603168,
+            "arg": false,
+            "repr": "<module at 0x2d08d365c60>"
+          },
+          {
+            "name": "fresh",
+            "addr": 3094940689536,
+            "arg": false,
+            "repr": "<module at 0x2d098d72480>"
+          },
+          {
+            "name": "column_e1_recovery",
+            "addr": 3094941654832,
+            "arg": false,
+            "repr": "<module at 0x2d098e5df30>"
+          },
+          {
+            "name": "ownership_fix",
+            "addr": 3094941655712,
+            "arg": false,
+            "repr": "<module at 0x2d098e5e2a0>"
+          },
+          {
+            "name": "document_open_retry",
+            "addr": 3094941653152,
+            "arg": false,
+            "repr": "<module at 0x2d098e5d8a0>"
+          },
+          {
+            "name": "aspen_file_lock",
+            "addr": 3095029231872,
+            "arg": false,
+            "repr": "<function at 0x2d09e1e3100>"
+          },
+          {
+            "name": "aspen_com_compatibility",
+            "addr": 3095029232192,
+            "arg": false,
+            "repr": "<function at 0x2d09e1e3240>"
+          },
+          {
+            "name": "DistillationColumnAspen",
+            "addr": 3095001397968,
+            "arg": false,
+            "repr": "0"
+          },
+          {
+            "name": "identity",
+            "addr": 3095029380352,
+            "arg": false,
+            "repr": "{\"pid\": 46276, \"alive\": True, \"created\": 134373499745265459}"
+          },
+          {
+            "name": "plant",
+            "addr": 3095034993968,
+            "arg": false,
+            "repr": "<DistillationColumnAspen at 0x2d09e761d30>"
+          },
+          {
+            "name": "guarded_step",
+            "addr": 3095029234592,
+            "arg": false,
+            "repr": "<function at 0x2d09e1e3ba0>"
+          },
+          {
+            "name": "processed",
+            "addr": 3095034567296,
+            "arg": false,
+            "repr": "<set at 0x2d09e6f9a80>"
+          },
+          {
+            "name": "request_path",
+            "addr": 3096321051440,
+            "arg": false,
+            "repr": "<WindowsPath at 0x2d0eb1dcb30>"
+          },
+          {
+            "name": "request",
+            "addr": 3095525630336,
+            "arg": false,
+            "repr": "{...}"
+          },
+          {
+            "name": "response_file",
+            "addr": 3095560040208,
+            "arg": false,
+            "repr": "<WindowsPath at 0x2d0bdc1af10>"
+          },
+          {
+            "name": "response",
+            "addr": 3095830530496,
+            "arg": false,
+            "repr": "{\"state\": \"completed\", \"at_utc\": \"2026-10-26T00:40:36.939749+00:00\", \"source\": \"supervisor\", \"steps\": 200, ...}"
+          }
+        ],
+        "is_entry": false,
+        "is_shim_entry": false
+      },
+      {
+        "name": "<module>",
+        "filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "module": null,
+        "short_filename": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py",
+        "line": 357,
+        "locals": [],
+        "is_entry": false,
+        "is_shim_entry": true
+      }
+    ],
+    "process_info": null
+  }
+]

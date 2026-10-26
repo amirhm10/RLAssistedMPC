@@ -1,0 +1,1543 @@
+{
+  "passed": true,
+  "at_utc": "2026-10-26T03:06:04.179761+00:00",
+  "category": "combined",
+  "output": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+  "recovery_manifest": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\manifest.json",
+  "production_identity": {
+    "pid": 55752,
+    "alive": true,
+    "created": 134374561114578001
+  },
+  "initial_completed_steps": 118800,
+  "bounded_completed_steps": 118808,
+  "production_restore": {
+    "completed_steps": 118808,
+    "native_checksum_verified": true,
+    "python_checksum_verified": true,
+    "zero_time_initializations": [
+      {
+        "before": [
+          19841.373016,
+          148698.25014208414,
+          367369.4038391113,
+          129.74779069423676,
+          -31.548423392252136,
+          0.0007992639871048429,
+          -30.8619929247912,
+          0.006117022421180509,
+          -30.335132656988666,
+          0.024487469840635517,
+          -28.279133218156225,
+          0.11383882378663746,
+          -23.937361910672273,
+          0.3008094537200355,
+          -21.20660703835593,
+          0.41148327954644204
+        ],
+        "primed": [
+          19841.373016,
+          148698.25014208414,
+          367369.4038391113,
+          129.74779069423676,
+          -31.54838988891036,
+          0.0007992611634887076,
+          -30.861958404912233,
+          0.006117036060859086,
+          -30.335096579027528,
+          0.024487543425344212,
+          -28.279104438592142,
+          0.11383862743850083,
+          -23.9373245588613,
+          0.3008096024614752,
+          -21.207399553767885,
+          0.41146037785290773
+        ],
+        "after": [
+          19841.373016,
+          148698.25014208414,
+          367369.4038391113,
+          129.74779069423676,
+          -31.548423392252136,
+          0.0007992639871048429,
+          -30.8619929247912,
+          0.006117022421180509,
+          -30.335132656988666,
+          0.024487469840635517,
+          -28.279133218156225,
+          0.11383882378663746,
+          -23.937361910672273,
+          0.3008094537200355,
+          -21.20660703835593,
+          0.41148327954644204
+        ],
+        "difference": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "priming_difference": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          3.3503341775542594e-05,
+          -2.823616135285041e-09,
+          3.45198789659662e-05,
+          1.3639678577564984e-08,
+          3.607796113769268e-05,
+          7.358470869439637e-08,
+          2.8779564082981324e-05,
+          -1.9634813662461337e-07,
+          3.735181097397344e-05,
+          1.4874143972054554e-07,
+          -0.0007925154119554634,
+          -2.2901693534305156e-05
+        ],
+        "full_variable_copy": true
+      }
+    ],
+    "agents": {
+      "active_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "weight_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "horizon_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "markov_agent": {
+        "train_steps": 114807,
+        "replay_size": 40000
+      }
+    },
+    "full_python_state_sha256": "837bafa9fae17ef7e3b8be5e5d74616b8a64f30503cddc24539e79bb86c4ba23"
+  },
+  "full_python_restore": {
+    "event": "full_python_restore_verified",
+    "before": "837bafa9fae17ef7e3b8be5e5d74616b8a64f30503cddc24539e79bb86c4ba23",
+    "after": "837bafa9fae17ef7e3b8be5e5d74616b8a64f30503cddc24539e79bb86c4ba23",
+    "completed_steps": 118808
+  },
+  "initial_agents": {
+    "active_agent": {
+      "train_steps": 114800,
+      "replay_size": 40000
+    },
+    "weight_agent": {
+      "train_steps": 114800,
+      "replay_size": 40000
+    },
+    "horizon_agent": {
+      "train_steps": 114800,
+      "replay_size": 40000
+    },
+    "markov_agent": {
+      "train_steps": 114799,
+      "replay_size": 40000
+    }
+  },
+  "bounded_agents": {
+    "active_agent": {
+      "train_steps": 114808,
+      "replay_size": 40000
+    },
+    "weight_agent": {
+      "train_steps": 114808,
+      "replay_size": 40000
+    },
+    "horizon_agent": {
+      "train_steps": 114808,
+      "replay_size": 40000
+    },
+    "markov_agent": {
+      "train_steps": 114807,
+      "replay_size": 40000
+    }
+  },
+  "checkpoint_protocols_unchanged": true,
+  "all_143_source_hashes_verified": true,
+  "tests_passed": 42,
+  "parallel_branches": [
+    {
+      "case": 15,
+      "identity": {
+        "pid": 44536,
+        "alive": true,
+        "created": 134374564947993919
+      },
+      "journal": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case15\\owned_aspen_apps.json"
+    },
+    {
+      "case": 17,
+      "identity": {
+        "pid": 35476,
+        "alive": true,
+        "created": 134374564949035600
+      },
+      "journal": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case17\\owned_aspen_apps.json"
+    }
+  ],
+  "first_parallel_primary": {
+    "at_utc": "2026-10-26T02:56:07.912954+00:00",
+    "channel": "horizon",
+    "step": 118812,
+    "steps": 200,
+    "elapsed_seconds": 486.49301610002294,
+    "input_receipt": {
+      "at_utc": "2026-10-26T02:48:14.491509+00:00",
+      "channel": "horizon",
+      "step": 118812,
+      "snapshot": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\frozen_decisions\\horizon_118812_5bc6e6d7\\frozen.pkl.gz",
+      "snapshot_sha256": "5bf5e5b9b7920ced1410b39a6465afcb4d9b128dad8b07bae5a4aaabb0f3b2a9",
+      "snapshot_bytes": 207120813,
+      "native_inputs": [
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\frozen_decisions\\horizon_118812_5bc6e6d7\\snapshot.snp",
+          "bytes": 6784592,
+          "sha256": "2e60e1fdfbd405f5d3755be85c4e84caee8542d17f61840aae474f27088cc149"
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\frozen_decisions\\horizon_118812_5bc6e6d7\\C2S_SS_simulation16.dynf",
+          "bytes": 892815761,
+          "sha256": "ade49807169987c8823fecfa682027232e96b6df0f0c5ef559603a5f87e91547"
+        }
+      ],
+      "elapsed_seconds": 12.747395199956372,
+      "all_inputs_retained": true,
+      "scientific_source_map_unchanged": true
+    },
+    "full_python_state_before": "d0007bfea7f39fc08dd47fe04d54b0f6bfc58271c0882e14ce85d254d9d1544f",
+    "full_python_state_after": "d0007bfea7f39fc08dd47fe04d54b0f6bfc58271c0882e14ce85d254d9d1544f",
+    "source_map_unchanged": true,
+    "consumed_sources": {
+      "policy": 1,
+      "supervisor": 1
+    },
+    "batches": {
+      "0": {
+        "elapsed_seconds": 422.0040700000245,
+        "branches": {
+          "policy": {
+            "state": "completed",
+            "at_utc": "2026-10-26T02:55:07.602038+00:00",
+            "source": "policy",
+            "steps": 200,
+            "elapsed_seconds": 362.3288252002094,
+            "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case15\\result_b604be1a589b49a38dd880f193f0200c\\trace.npz",
+            "trace_sha256": "03f1cd391158bb334487d1adeee6c1ac5808b4c8b95017a05e9152d96030ff8c",
+            "result": {
+              "state": "completed",
+              "completed_steps": 200,
+              "controller_stdout": ""
+            },
+            "native_restore": [
+              {
+                "before": [
+                  19842.039684000003,
+                  148696.43410852365,
+                  373496.1414337158,
+                  131.5273505449295,
+                  -31.549828669252573,
+                  0.0006463534166934113,
+                  -30.871250611798654,
+                  0.005000188085691056,
+                  -30.398502500763602,
+                  0.020634738219351363,
+                  -28.51149553017007,
+                  0.10204089869110007,
+                  -24.01451506979949,
+                  0.29644016981654875,
+                  -20.973516837326667,
+                  0.4213260289858867
+                ],
+                "primed": [
+                  19842.039684000003,
+                  148696.43410852365,
+                  373496.1414337158,
+                  131.5273505449295,
+                  -31.54985645020404,
+                  0.0006463537492756346,
+                  -30.871276375545648,
+                  0.0050002246284023165,
+                  -30.398514960866812,
+                  0.020635234625858742,
+                  -28.51135515347047,
+                  0.10204637189094205,
+                  -24.01440796524009,
+                  0.2964437488580904,
+                  -20.973348677187442,
+                  0.42133054123376146
+                ],
+                "after": [
+                  19842.039684000003,
+                  148696.43410852365,
+                  373496.1414337158,
+                  131.5273505449295,
+                  -31.549828669252573,
+                  0.0006463534166934113,
+                  -30.871250611798654,
+                  0.005000188085691056,
+                  -30.398502500763602,
+                  0.020634738219351363,
+                  -28.51149553017007,
+                  0.10204089869110007,
+                  -24.01451506979949,
+                  0.29644016981654875,
+                  -20.973516837326667,
+                  0.4213260289858867
+                ],
+                "difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "priming_difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  -2.778095146638293e-05,
+                  3.3258222326311426e-10,
+                  -2.5763746993590075e-05,
+                  3.6542711260613425e-08,
+                  -1.2460103210543139e-05,
+                  4.96406507378977e-07,
+                  0.00014037669960131893,
+                  5.473199841982135e-06,
+                  0.0001071045594009945,
+                  3.5790415416347976e-06,
+                  0.00016816013922493767,
+                  4.512247874732811e-06
+                ],
+                "full_variable_copy": true
+              }
+            ],
+            "frozen_state_before": "ba943dbdfd6052f0889183c2e76b1f1b3f926669c8105f2d2b3c1b761bec755f",
+            "frozen_state_after": "ba943dbdfd6052f0889183c2e76b1f1b3f926669c8105f2d2b3c1b761bec755f",
+            "snapshot_sha256": "5bf5e5b9b7920ced1410b39a6465afcb4d9b128dad8b07bae5a4aaabb0f3b2a9",
+            "worker_identity": {
+              "pid": 44536,
+              "alive": true,
+              "created": 134374564947993919,
+              "cpu_seconds": 52.640625,
+              "private_bytes": 4396105728,
+              "rss_bytes": 2707570688
+            },
+            "native_identity": {
+              "pid": 44704,
+              "alive": true,
+              "created": 134374565617519495
+            }
+          },
+          "supervisor": {
+            "state": "completed",
+            "at_utc": "2026-10-26T02:56:06.130257+00:00",
+            "source": "supervisor",
+            "steps": 200,
+            "elapsed_seconds": 420.617153899977,
+            "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case17\\result_eaadf901ddcd4329848149ca2224abc4\\trace.npz",
+            "trace_sha256": "e652ae38cab2da7379da44ecd836233584e60bb8d72c476158fadc8fe43da2a6",
+            "result": {
+              "state": "completed",
+              "completed_steps": 200,
+              "controller_stdout": ""
+            },
+            "native_restore": [
+              {
+                "before": [
+                  19842.039684000003,
+                  148696.43410852365,
+                  373496.1414337158,
+                  131.5273505449295,
+                  -31.549828669252573,
+                  0.0006463534166934113,
+                  -30.871250611798654,
+                  0.005000188085691056,
+                  -30.398502500763602,
+                  0.020634738219351363,
+                  -28.51149553017007,
+                  0.10204089869110007,
+                  -24.01451506979949,
+                  0.29644016981654875,
+                  -20.973516837326667,
+                  0.4213260289858867
+                ],
+                "primed": [
+                  19842.039684000003,
+                  148696.43410852365,
+                  373496.1414337158,
+                  131.5273505449295,
+                  -31.54985645020404,
+                  0.0006463537492756346,
+                  -30.871276375545648,
+                  0.0050002246284023165,
+                  -30.398514960866812,
+                  0.020635234625858742,
+                  -28.51135515347047,
+                  0.10204637189094205,
+                  -24.01440796524009,
+                  0.2964437488580904,
+                  -20.973348677187442,
+                  0.42133054123376146
+                ],
+                "after": [
+                  19842.039684000003,
+                  148696.43410852365,
+                  373496.1414337158,
+                  131.5273505449295,
+                  -31.549828669252573,
+                  0.0006463534166934113,
+                  -30.871250611798654,
+                  0.005000188085691056,
+                  -30.398502500763602,
+                  0.020634738219351363,
+                  -28.51149553017007,
+                  0.10204089869110007,
+                  -24.01451506979949,
+                  0.29644016981654875,
+                  -20.973516837326667,
+                  0.4213260289858867
+                ],
+                "difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "priming_difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  -2.778095146638293e-05,
+                  3.3258222326311426e-10,
+                  -2.5763746993590075e-05,
+                  3.6542711260613425e-08,
+                  -1.2460103210543139e-05,
+                  4.96406507378977e-07,
+                  0.00014037669960131893,
+                  5.473199841982135e-06,
+                  0.0001071045594009945,
+                  3.5790415416347976e-06,
+                  0.00016816013922493767,
+                  4.512247874732811e-06
+                ],
+                "full_variable_copy": true
+              }
+            ],
+            "frozen_state_before": "ba943dbdfd6052f0889183c2e76b1f1b3f926669c8105f2d2b3c1b761bec755f",
+            "frozen_state_after": "ba943dbdfd6052f0889183c2e76b1f1b3f926669c8105f2d2b3c1b761bec755f",
+            "snapshot_sha256": "5bf5e5b9b7920ced1410b39a6465afcb4d9b128dad8b07bae5a4aaabb0f3b2a9",
+            "worker_identity": {
+              "pid": 35476,
+              "alive": true,
+              "created": 134374564949035600,
+              "cpu_seconds": 51.75,
+              "private_bytes": 4392615936,
+              "rss_bytes": 2412867584
+            },
+            "native_identity": {
+              "pid": 49248,
+              "alive": true,
+              "created": 134374565805505720
+            }
+          }
+        },
+        "parallel": true
+      }
+    },
+    "primary_result": {
+      "schema": 1,
+      "seed": 7,
+      "category": "combined",
+      "channel": "horizon",
+      "context": "combined",
+      "window": "adapted",
+      "step": 118812,
+      "episode": 298,
+      "gate_source_line": 985,
+      "observation": [
+        0.026490066200494766,
+        0.09381500631570816,
+        0.40284717082977295,
+        0.21548525989055634,
+        0.11590350419282913,
+        -0.5961330533027649,
+        -0.21713463962078094,
+        -0.5416666865348816,
+        -2.220446049250313e-16,
+        -0.08129823207855225,
+        0.26109403371810913,
+        -0.5433153510093689,
+        -0.7342653274536133,
+        2.0182862281799316,
+        0.3509157598018646
+      ],
+      "previous_action": 13,
+      "initial_tracking_error_physical": [
+        0.007634738219351362,
+        0.026483162673333283
+      ],
+      "gate": {
+        "action": 33,
+        "policy_action": 33,
+        "supervisor_action": 0,
+        "selected_source": 2,
+        "score_policy": 1495.591552734375,
+        "score_supervisor": 1488.0079345703125,
+        "advantage_policy_supervisor": 7.5836181640625,
+        "q_policy": 1495.591552734375,
+        "q_supervisor": 1488.0079345703125
+      },
+      "gate_config": {
+        "advantage_margin": 0.0,
+        "default_to_supervisor": true,
+        "min_train_steps_before_policy_gate": 0
+      },
+      "critic_train_steps_at_decision": 114812,
+      "support": {
+        "buffer_size": 40000,
+        "sample_size": 4096,
+        "state_nearest_rms_standardized": 0.33033753638571867,
+        "state_mean": [
+          0.04214068266212223,
+          0.16065298273074902,
+          0.3699014348676428,
+          0.16654815211238372,
+          0.04117996640670185,
+          -0.5640306317054637,
+          -0.2078637467263036,
+          -0.23420207592971565,
+          -0.1970703154365765,
+          -0.06356519715336617,
+          0.19968454758540588,
+          0.001364411491713513,
+          0.00259798293024871,
+          0.024565732414065344,
+          -0.019687430660036753
+        ],
+        "state_scale": [
+          0.16867259028547632,
+          0.20986886772012814,
+          0.31009185568040737,
+          0.29675556975272954,
+          0.22282259654594883,
+          0.24456132825834945,
+          0.1759254784672558,
+          0.31245944012946125,
+          0.1999785441565921,
+          0.24602398706438955,
+          0.2851343535215309,
+          0.17360801204803517,
+          0.2574989473082335,
+          0.6891291700358679,
+          0.7718720461886691
+        ],
+        "normalization": "state standard deviations from decision-time replay; actions in normalized coordinates",
+        "policy_action_sample_count": 73,
+        "policy_joint_nearest": 0.848222349043263,
+        "supervisor_action_sample_count": 140,
+        "supervisor_joint_nearest": 1.0519059665452177,
+        "sample_source_counts": {
+          "3": 3057,
+          "2": 1005,
+          "1": 34
+        }
+      },
+      "gamma_per_control_step": 0.99,
+      "rollout_steps": 200,
+      "continuation": "gated",
+      "branches": {
+        "policy": {
+          "state": "completed",
+          "completed_steps": 200,
+          "controller_stdout": ""
+        },
+        "supervisor": {
+          "state": "completed",
+          "completed_steps": 200,
+          "controller_stdout": ""
+        }
+      },
+      "metrics": {
+        "20": {
+          "policy": {
+            "return": -3.4058079600528606,
+            "rmse_physical": [
+              0.002663152057677348,
+              0.08556837428173386
+            ],
+            "max_abs_error_physical": [
+              0.005893788778055801,
+              0.2179180353114667
+            ],
+            "sum_abs_input_movement_physical": [
+              22488.341331481934,
+              7.501582503318787
+            ],
+            "solver_failure_steps": 0
+          },
+          "supervisor": {
+            "return": -30.29656222201427,
+            "rmse_physical": [
+              0.002737216842127557,
+              0.08593201062431764
+            ],
+            "max_abs_error_physical": [
+              0.006331839552655087,
+              0.19696103582229085
+            ],
+            "sum_abs_input_movement_physical": [
+              22690.424919128418,
+              7.752154469490051
+            ],
+            "solver_failure_steps": 0
+          },
+          "delta_return": 26.89075426196141,
+          "selected": "policy",
+          "regret": 0.0
+        },
+        "80": {
+          "policy": {
+            "return": 728.9291530044152,
+            "rmse_physical": [
+              0.001332062827241507,
+              0.043934962506768906
+            ],
+            "max_abs_error_physical": [
+              0.005893788778055801,
+              0.2179180353114667
+            ],
+            "sum_abs_input_movement_physical": [
+              26081.857681274414,
+              9.736590385437012
+            ],
+            "solver_failure_steps": 0
+          },
+          "supervisor": {
+            "return": 666.9801559629319,
+            "rmse_physical": [
+              0.0013691868070993542,
+              0.04637257258161511
+            ],
+            "max_abs_error_physical": [
+              0.006331839552655087,
+              0.19696103582229085
+            ],
+            "sum_abs_input_movement_physical": [
+              27625.460624694824,
+              10.248697400093079
+            ],
+            "solver_failure_steps": 0
+          },
+          "delta_return": 61.94899704148327,
+          "selected": "policy",
+          "regret": 0.0
+        },
+        "200": {
+          "policy": {
+            "return": 1231.711045922228,
+            "rmse_physical": [
+              0.0030548034529078397,
+              0.14877926306335157
+            ],
+            "max_abs_error_physical": [
+              0.017174944730819527,
+              0.9798227989346131
+            ],
+            "sum_abs_input_movement_physical": [
+              56022.70603179932,
+              21.443281173706055
+            ],
+            "solver_failure_steps": 0
+          },
+          "supervisor": {
+            "return": 1165.756927920308,
+            "rmse_physical": [
+              0.003190112390378931,
+              0.1281129768741367
+            ],
+            "max_abs_error_physical": [
+              0.01723759172481771,
+              0.8385596099082093
+            ],
+            "sum_abs_input_movement_physical": [
+              56605.57746887207,
+              21.935250163078308
+            ],
+            "solver_failure_steps": 0
+          },
+          "delta_return": 65.95411800192005,
+          "selected": "policy",
+          "regret": 0.0
+        }
+      },
+      "trace": "traces\\horizon_adapted_0118812.npz",
+      "prediction_validation": {},
+      "snapshot": null,
+      "status": "completed",
+      "smoke": false,
+      "budget_protocol_id": "column-e1-20-clock-strata-v1",
+      "budget_protocol_sha256": "089b5c6a7df66af5c319563b3f1110a7dfe078a93f74f706a0152be31f9c59ab",
+      "sampling_stratum": "early"
+    }
+  },
+  "primary_trace_sha256": "7ec0b5658c404adec674f02441a850721f2314a6d35a7aedc19b6166270ccdfd",
+  "matched_pairs": 315,
+  "remaining_pairs": 5,
+  "replay_archive": [
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\replayed_suffixes\\1792979342138402100\\traces\\weights_adapted_0118801.npz",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\replayed_suffixes\\1792979342138402100\\traces\\markov_adapted_0118803.npz",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\replayed_suffixes\\1792979342138402100\\traces\\horizon_adapted_0118812.npz"
+  ],
+  "all_prior_results_and_recovery_data_preserved": true,
+  "retention_identity": {
+    "pid": 58264,
+    "created": 134372665192525684,
+    "alive": true
+  },
+  "pilot_acceptance": {
+    "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\attempt4\\pilot_acceptance.json",
+    "sha256": "6e85a99fce73f9de26c08477e40225aa2a9906fe89f601c391ede0e0cf4bd0e0"
+  },
+  "transport_acceptance": {
+    "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\transport_acceptance.json",
+    "sha256": "83078b95d4bdc1a2af6928bf18322d90efae33d50431fbca0b409956caadaf25"
+  },
+  "measured_speedup": 1.8759720020331756,
+  "production_parallel_timing": 486.49301610002294,
+  "memory": {
+    "committed_bytes": 51946024960,
+    "limit_bytes": 97245818880,
+    "headroom_bytes": 45299793920
+  },
+  "free_disk_bytes": 118093660160,
+  "scientific_source_edits": 0,
+  "shared_queue_plan_edits": 0,
+  "authorized_healthy_combined_checkpoint_restarts": 0,
+  "other_healthy_workers_interrupted": 0,
+  "confirmed_failed_inference_recovery": true,
+  "previous_worker_identity": {
+    "pid": 14392,
+    "alive": true,
+    "created": 134374542030451776
+  },
+  "failure_evidence": {
+    "at_utc": "2026-10-26T02:33:51.264486+00:00",
+    "parent_identity": {
+      "pid": 14392,
+      "alive": true,
+      "created": 134374542030451776
+    },
+    "confirmed_ownership_atomic_replace_failure": true,
+    "case17_log": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_inference\\branches_0_05db0d6e\\case17.log",
+    "case17_log_sha256": "7ba620e6ab56f13197b3439d80e2fc990f9acf2c1154cdda60aae3990fbb2e96",
+    "error": "PermissionError [WinError 5] replacing case17 ownership_status.json at branch startup",
+    "requests_dispatched": 0,
+    "all_scientific_native_apps_retired": true,
+    "process_signals_required": 0,
+    "onedrive_running": false,
+    "repair": "Unique atomic ownership temporary plus bounded retry for WinError5/32/33; science and checkpoints unchanged",
+    "tests_passed": 3,
+    "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_inference_recovery_20261026\\startup_failure.json",
+    "sha256": "9d5ff96f409f2a1c15b9ac5e8e70dfea66fbd5b79a05ad732ac514bbc2ce1e5d"
+  },
+  "formerly_stalled_markov_pair": {
+    "at_utc": "2026-10-26T03:04:37.783275+00:00",
+    "channel": "markov",
+    "step": 118860,
+    "steps": 200,
+    "elapsed_seconds": 434.0850558001548,
+    "input_receipt": {
+      "at_utc": "2026-10-26T02:57:36.441046+00:00",
+      "channel": "markov",
+      "step": 118860,
+      "snapshot": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\frozen_decisions\\markov_118860_e9b01ba7\\frozen.pkl.gz",
+      "snapshot_sha256": "029a999b69b08c80056c1f5c5d54646bc85d6d72070488a2c3841cadd41b643b",
+      "snapshot_bytes": 207162112,
+      "native_inputs": [
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\frozen_decisions\\markov_118860_e9b01ba7\\snapshot.snp",
+          "bytes": 6784592,
+          "sha256": "51fce4b6c556ed0f247ddafa90cf28d72ea45ab09ccfdb3068441934731c67f5"
+        },
+        {
+          "path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\frozen_decisions\\markov_118860_e9b01ba7\\C2S_SS_simulation16.dynf",
+          "bytes": 894281155,
+          "sha256": "1230b0e14f14f35763317852ac9b37bf419dd9656e4bcc18a6df39f115f5cc7b"
+        }
+      ],
+      "elapsed_seconds": 12.361896000104025,
+      "all_inputs_retained": true,
+      "scientific_source_map_unchanged": true
+    },
+    "full_python_state_before": "eed88607f6dc851b19c54e5bda78739f677bd5dfd02bf45529528cff849edc9f",
+    "full_python_state_after": "eed88607f6dc851b19c54e5bda78739f677bd5dfd02bf45529528cff849edc9f",
+    "source_map_unchanged": true,
+    "consumed_sources": {
+      "policy": 1,
+      "supervisor": 1
+    },
+    "batches": {
+      "0": {
+        "elapsed_seconds": 419.85340370004997,
+        "branches": {
+          "policy": {
+            "state": "completed",
+            "at_utc": "2026-10-26T03:04:36.397834+00:00",
+            "source": "policy",
+            "steps": 200,
+            "elapsed_seconds": 419.1799582000822,
+            "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case15\\result_dde93c04531342c99cc743c37308f30d\\trace.npz",
+            "trace_sha256": "4d8f8c571098e2703d653454967b216a469ed096e5d5033e4c710fcfe65fd60c",
+            "result": {
+              "state": "completed",
+              "completed_steps": 200,
+              "controller_stdout": ""
+            },
+            "native_restore": [
+              {
+                "before": [
+                  19850.0397,
+                  148674.64170579767,
+                  388486.5999221802,
+                  137.2927838563919,
+                  -31.948600900870446,
+                  0.0003294751434057119,
+                  -31.262408254359247,
+                  0.0028205212381360407,
+                  -30.89622579455227,
+                  0.012906498109287982,
+                  -29.380517438655925,
+                  0.07652582851220772,
+                  -24.610477569382752,
+                  0.28427724338977894,
+                  -21.02759481367463,
+                  0.4337675525317836
+                ],
+                "primed": [
+                  19850.0397,
+                  148674.64170579767,
+                  388486.5999221802,
+                  137.2927838563919,
+                  -31.948628576202776,
+                  0.00032947528566228584,
+                  -31.26243519006432,
+                  0.002820525391525739,
+                  -30.896250359455166,
+                  0.012906587705721433,
+                  -29.38048840736878,
+                  0.0765277637149093,
+                  -24.61042669082903,
+                  0.2842794490621253,
+                  -21.027146502862493,
+                  0.43377989960712465
+                ],
+                "after": [
+                  19850.0397,
+                  148674.64170579767,
+                  388486.5999221802,
+                  137.2927838563919,
+                  -31.948600900870446,
+                  0.0003294751434057119,
+                  -31.262408254359247,
+                  0.0028205212381360407,
+                  -30.89622579455227,
+                  0.012906498109287982,
+                  -29.380517438655925,
+                  0.07652582851220772,
+                  -24.610477569382752,
+                  0.28427724338977894,
+                  -21.02759481367463,
+                  0.4337675525317836
+                ],
+                "difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "priming_difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  -2.76753323298351e-05,
+                  1.4225657392515079e-10,
+                  -2.693570507261711e-05,
+                  4.153389698141607e-09,
+                  -2.456490289759472e-05,
+                  8.959643345123058e-08,
+                  2.903128714493164e-05,
+                  1.935202701572325e-06,
+                  5.087855372210015e-05,
+                  2.2056723463781402e-06,
+                  0.0004483108121355883,
+                  1.2347075341034852e-05
+                ],
+                "full_variable_copy": true
+              }
+            ],
+            "frozen_state_before": "e82d40cab722f618a51c5b91eea8c00c23b82ba12f0786daa7881bc1103792e2",
+            "frozen_state_after": "e82d40cab722f618a51c5b91eea8c00c23b82ba12f0786daa7881bc1103792e2",
+            "snapshot_sha256": "029a999b69b08c80056c1f5c5d54646bc85d6d72070488a2c3841cadd41b643b",
+            "worker_identity": {
+              "pid": 44536,
+              "alive": true,
+              "created": 134374564947993919,
+              "cpu_seconds": 101.34375,
+              "private_bytes": 4512649216,
+              "rss_bytes": 1349623808
+            },
+            "native_identity": {
+              "pid": 56064,
+              "alive": true,
+              "created": 134374570965685055
+            }
+          },
+          "supervisor": {
+            "state": "completed",
+            "at_utc": "2026-10-26T03:04:20.923192+00:00",
+            "source": "supervisor",
+            "steps": 200,
+            "elapsed_seconds": 403.5928184997756,
+            "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case17\\result_814aa25a065443a3886fdfcbc3c1ea70\\trace.npz",
+            "trace_sha256": "75695950488ead7c838a9ad0ba8a88ddd30ea3a278dfc15186c85adf91e5a7d1",
+            "result": {
+              "state": "completed",
+              "completed_steps": 200,
+              "controller_stdout": ""
+            },
+            "native_restore": [
+              {
+                "before": [
+                  19850.0397,
+                  148674.64170579767,
+                  388486.5999221802,
+                  137.2927838563919,
+                  -31.948600900870446,
+                  0.0003294751434057119,
+                  -31.262408254359247,
+                  0.0028205212381360407,
+                  -30.89622579455227,
+                  0.012906498109287982,
+                  -29.380517438655925,
+                  0.07652582851220772,
+                  -24.610477569382752,
+                  0.28427724338977894,
+                  -21.02759481367463,
+                  0.4337675525317836
+                ],
+                "primed": [
+                  19850.0397,
+                  148674.64170579767,
+                  388486.5999221802,
+                  137.2927838563919,
+                  -31.948628576202776,
+                  0.00032947528566228584,
+                  -31.26243519006432,
+                  0.002820525391525739,
+                  -30.896250359455166,
+                  0.012906587705721433,
+                  -29.38048840736878,
+                  0.0765277637149093,
+                  -24.61042669082903,
+                  0.2842794490621253,
+                  -21.027146502862493,
+                  0.43377989960712465
+                ],
+                "after": [
+                  19850.0397,
+                  148674.64170579767,
+                  388486.5999221802,
+                  137.2927838563919,
+                  -31.948600900870446,
+                  0.0003294751434057119,
+                  -31.262408254359247,
+                  0.0028205212381360407,
+                  -30.89622579455227,
+                  0.012906498109287982,
+                  -29.380517438655925,
+                  0.07652582851220772,
+                  -24.610477569382752,
+                  0.28427724338977894,
+                  -21.02759481367463,
+                  0.4337675525317836
+                ],
+                "difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "priming_difference": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  -2.76753323298351e-05,
+                  1.4225657392515079e-10,
+                  -2.693570507261711e-05,
+                  4.153389698141607e-09,
+                  -2.456490289759472e-05,
+                  8.959643345123058e-08,
+                  2.903128714493164e-05,
+                  1.935202701572325e-06,
+                  5.087855372210015e-05,
+                  2.2056723463781402e-06,
+                  0.0004483108121355883,
+                  1.2347075341034852e-05
+                ],
+                "full_variable_copy": true
+              }
+            ],
+            "frozen_state_before": "e82d40cab722f618a51c5b91eea8c00c23b82ba12f0786daa7881bc1103792e2",
+            "frozen_state_after": "e82d40cab722f618a51c5b91eea8c00c23b82ba12f0786daa7881bc1103792e2",
+            "snapshot_sha256": "029a999b69b08c80056c1f5c5d54646bc85d6d72070488a2c3841cadd41b643b",
+            "worker_identity": {
+              "pid": 35476,
+              "alive": true,
+              "created": 134374564949035600,
+              "cpu_seconds": 98.953125,
+              "private_bytes": 4511268864,
+              "rss_bytes": 1319989248
+            },
+            "native_identity": {
+              "pid": 55156,
+              "alive": true,
+              "created": 134374570772827443
+            }
+          }
+        },
+        "parallel": true
+      }
+    },
+    "primary_result": {
+      "schema": 1,
+      "seed": 7,
+      "category": "combined",
+      "channel": "markov",
+      "context": "combined",
+      "window": "adapted",
+      "step": 118860,
+      "episode": 298,
+      "gate_source_line": 1432,
+      "observation": [
+        0.1578281819820404,
+        0.30713388323783875,
+        0.6907179355621338,
+        0.47226911783218384,
+        -0.11437854170799255,
+        -0.8397347331047058,
+        -0.3975245952606201,
+        -0.5416666865348816,
+        -2.220446049250313e-16,
+        0.1060824990272522,
+        0.4917113482952118,
+        0.1531670242547989,
+        -0.11337150633335114,
+        -0.07688339054584503,
+        -0.36326223611831665,
+        -0.038790516555309296,
+        0.004834373481571674,
+        0.01832798309624195,
+        0.0029406012035906315,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.002692024689167738,
+        0.0032369738910347223,
+        0.6363636255264282,
+        0.6363636255264282,
+        0.9046180844306946,
+        1.0074844360351562,
+        0.8945808410644531,
+        1.0722391605377197
+      ],
+      "previous_action": [
+        -0.7758103013038636,
+        0.09668747335672379,
+        0.3665596544742584,
+        0.05881202220916749
+      ],
+      "initial_tracking_error_physical": [
+        -9.350189071201907e-05,
+        -0.027594813674628682
+      ],
+      "gate": {
+        "action": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "policy_action": [
+          -0.11621010303497314,
+          0.0450102761387825,
+          0.0609099343419075,
+          -0.07633648067712784
+        ],
+        "supervisor_action": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "selected_source": 1,
+        "score_policy": 1321.319382759906,
+        "score_supervisor": 1325.6372848413714,
+        "advantage_policy_supervisor": -4.3179020814654905,
+        "q1_policy": 1327.944091796875,
+        "q2_policy": 1323.5316162109375,
+        "q1_supervisor": 1329.4013671875,
+        "q2_supervisor": 1326.89697265625,
+        "q_gap_policy": 4.4124755859375,
+        "q_gap_supervisor": 2.50439453125
+      },
+      "gate_config": {
+        "score_uncertainty_weight": 0.5,
+        "score_previous_action_weight": 0.01,
+        "score_supervisor_action_weight": 0.02,
+        "advantage_margin": 0.5,
+        "default_to_supervisor": true,
+        "actor_q_mode": "mean",
+        "supervisor_bc_weight": 0.0,
+        "supervisor_bc_temperature": 1.0,
+        "smooth_action_weight": 0.0,
+        "detach_supervisor_weight": true,
+        "enable_supervisor_actor_loss": false,
+        "min_train_steps_before_policy_gate": 0
+      },
+      "critic_train_steps_at_decision": 114860,
+      "support": {
+        "buffer_size": 40000,
+        "sample_size": 4096,
+        "state_nearest_rms_standardized": 0.4501556084207963,
+        "state_mean": [
+          0.039951205149867164,
+          0.1570105098219976,
+          0.3654960311105242,
+          0.16242869156783968,
+          0.045114309448234025,
+          -0.5604894584257636,
+          -0.20536308533792297,
+          -0.23084514221591235,
+          -0.19794922169967322,
+          -0.06672951509972336,
+          0.19602032496958088,
+          -0.003994172186155234,
+          -0.0019302405021592861,
+          0.03320725031152705,
+          -0.024785757973544875,
+          0.0028397991920070392,
+          2.925653004301476e-05,
+          0.0008402569723858395,
+          -0.0011158238447307595,
+          -0.0001374189892258959,
+          -3.724236555390295e-05,
+          -0.0013262821769618738,
+          -0.0003205215553565566,
+          0.20148812187914886,
+          0.011246934864265756,
+          0.8079501130559947,
+          0.5191539503066451,
+          0.9444436143967323,
+          0.9790720346209127,
+          1.0256401559599908,
+          0.9559213864267804
+        ],
+        "state_scale": [
+          0.1696734739410518,
+          0.21102974974029393,
+          0.3118264743806407,
+          0.2984745316167346,
+          0.2240280143076018,
+          0.24590104167679205,
+          0.17676908463346563,
+          0.31249550354195105,
+          0.19998948844434875,
+          0.24749741266583902,
+          0.28674559430909624,
+          0.16233800305963178,
+          0.25223651777471234,
+          0.641821653280583,
+          0.7376154551303408,
+          0.015317866684325322,
+          0.013084814699485605,
+          0.019412750850029355,
+          0.01736618060266865,
+          0.005880177353962287,
+          0.003402956521269914,
+          0.011536624156380279,
+          0.0022189639781977602,
+          0.5798116168658475,
+          0.016277334008547622,
+          0.1478577537274343,
+          0.19891522899135175,
+          0.11932968429374509,
+          0.14573589348622853,
+          0.24744509504753393,
+          0.10472634732725586
+        ],
+        "normalization": "state standard deviations from decision-time replay; actions in normalized coordinates",
+        "policy_joint_nearest": 0.4566694617876145,
+        "supervisor_joint_nearest": 0.4501937443050386,
+        "sample_source_counts": {
+          "2": 2031,
+          "1": 2065
+        }
+      },
+      "gamma_per_control_step": 0.99,
+      "rollout_steps": 200,
+      "continuation": "gated",
+      "branches": {
+        "policy": {
+          "state": "completed",
+          "completed_steps": 200,
+          "controller_stdout": ""
+        },
+        "supervisor": {
+          "state": "completed",
+          "completed_steps": 200,
+          "controller_stdout": ""
+        }
+      },
+      "metrics": {
+        "20": {
+          "policy": {
+            "return": 365.391313975085,
+            "rmse_physical": [
+              5.900891152102609e-05,
+              0.014792364555391842
+            ],
+            "max_abs_error_physical": [
+              0.00013891033412975415,
+              0.04180952665238635
+            ],
+            "sum_abs_input_movement_physical": [
+              725.3026962280273,
+              0.39659321308135986
+            ],
+            "solver_failure_steps": 0
+          },
+          "supervisor": {
+            "return": 335.1105512021942,
+            "rmse_physical": [
+              5.27981538844131e-05,
+              0.018336396005701222
+            ],
+            "max_abs_error_physical": [
+              0.00011846069448983969,
+              0.05312802718997389
+            ],
+            "sum_abs_input_movement_physical": [
+              1077.5470733642578,
+              0.3992575407028198
+            ],
+            "solver_failure_steps": 0
+          },
+          "delta_return": 30.280762772890796,
+          "selected": "supervisor",
+          "regret": 30.280762772890796
+        },
+        "80": {
+          "policy": {
+            "return": 1286.4760709427298,
+            "rmse_physical": [
+              3.0132493023157804e-05,
+              0.007673693786551034
+            ],
+            "max_abs_error_physical": [
+              0.00013891033412975415,
+              0.04180952665238635
+            ],
+            "sum_abs_input_movement_physical": [
+              1083.1117630004883,
+              0.6694310903549194
+            ],
+            "solver_failure_steps": 0
+          },
+          "supervisor": {
+            "return": 1265.5737661265975,
+            "rmse_physical": [
+              2.7281575604609565e-05,
+              0.009313282651494517
+            ],
+            "max_abs_error_physical": [
+              0.00011846069448983969,
+              0.05312802718997389
+            ],
+            "sum_abs_input_movement_physical": [
+              1395.6165313720703,
+              0.60333251953125
+            ],
+            "solver_failure_steps": 0
+          },
+          "delta_return": 20.9023048161323,
+          "selected": "supervisor",
+          "regret": 20.9023048161323
+        },
+        "200": {
+          "policy": {
+            "return": 1999.0117162638455,
+            "rmse_physical": [
+              0.0030557198408935663,
+              0.11636819228430868
+            ],
+            "max_abs_error_physical": [
+              0.01710701489490244,
+              0.8717064355643025
+            ],
+            "sum_abs_input_movement_physical": [
+              43363.53063583374,
+              15.108373761177063
+            ],
+            "solver_failure_steps": 0
+          },
+          "supervisor": {
+            "return": 1977.9547446562005,
+            "rmse_physical": [
+              0.003057628781981541,
+              0.11597106963128465
+            ],
+            "max_abs_error_physical": [
+              0.01711197343590134,
+              0.8700041729749337
+            ],
+            "sum_abs_input_movement_physical": [
+              43596.670627593994,
+              15.01388132572174
+            ],
+            "solver_failure_steps": 0
+          },
+          "delta_return": 21.056971607644982,
+          "selected": "supervisor",
+          "regret": 21.056971607644982
+        }
+      },
+      "trace": "traces\\markov_adapted_0118860.npz",
+      "prediction_validation": {
+        "policy": {
+          "horizon": 7,
+          "metrics": {
+            "nominal": {
+              "1": {
+                "rmse_physical": [
+                  0.0008019005651874606,
+                  0.07431810954400575
+                ],
+                "max_abs_error_physical": [
+                  0.0008019005651874606,
+                  0.07431810954400575
+                ]
+              },
+              "4": {
+                "rmse_physical": [
+                  0.0004942427903909248,
+                  0.07773599383255311
+                ],
+                "max_abs_error_physical": [
+                  0.0008019005651874606,
+                  0.09404488308945602
+                ]
+              }
+            },
+            "supervisor_ls_or_zero": {
+              "1": {
+                "rmse_physical": [
+                  0.0008019005651874606,
+                  0.07431810954400575
+                ],
+                "max_abs_error_physical": [
+                  0.0008019005651874606,
+                  0.07431810954400575
+                ]
+              },
+              "4": {
+                "rmse_physical": [
+                  0.0004942427903909248,
+                  0.07773599383255311
+                ],
+                "max_abs_error_physical": [
+                  0.0008019005651874606,
+                  0.09404488308945602
+                ]
+              }
+            },
+            "rl_proposed": {
+              "1": {
+                "rmse_physical": [
+                  0.00033592512674738423,
+                  0.01160301379896822
+                ],
+                "max_abs_error_physical": [
+                  0.00033592512674738423,
+                  0.01160301379896822
+                ]
+              },
+              "4": {
+                "rmse_physical": [
+                  0.0014622933790086681,
+                  0.026986945597203542
+                ],
+                "max_abs_error_physical": [
+                  0.0020173578983089593,
+                  0.04773528655598369
+                ]
+              }
+            }
+          },
+          "scope": "decision-time predictor; common observed future inputs; held-out future outputs; shared nominal free response"
+        },
+        "supervisor": {
+          "horizon": 7,
+          "metrics": {
+            "nominal": {
+              "1": {
+                "rmse_physical": [
+                  0.000806145324801744,
+                  0.06349716396233873
+                ],
+                "max_abs_error_physical": [
+                  0.000806145324801744,
+                  0.06349716396233873
+                ]
+              },
+              "4": {
+                "rmse_physical": [
+                  0.0005485821132303459,
+                  0.05987300311734377
+                ],
+                "max_abs_error_physical": [
+                  0.000806145324801744,
+                  0.07695552980750975
+                ]
+              }
+            },
+            "supervisor_ls_or_zero": {
+              "1": {
+                "rmse_physical": [
+                  0.000806145324801744,
+                  0.06349716396233873
+                ],
+                "max_abs_error_physical": [
+                  0.000806145324801744,
+                  0.06349716396233873
+                ]
+              },
+              "4": {
+                "rmse_physical": [
+                  0.0005485821132303459,
+                  0.05987300311734377
+                ],
+                "max_abs_error_physical": [
+                  0.000806145324801744,
+                  0.07695552980750975
+                ]
+              }
+            },
+            "rl_proposed": {
+              "1": {
+                "rmse_physical": [
+                  0.000330178314868217,
+                  0.0008470663452122551
+                ],
+                "max_abs_error_physical": [
+                  0.000330178314868217,
+                  0.0008470663452122551
+                ]
+              },
+              "4": {
+                "rmse_physical": [
+                  0.0013224378876831476,
+                  0.04262939066250597
+                ],
+                "max_abs_error_physical": [
+                  0.0017828936479907173,
+                  0.07081779779506903
+                ]
+              }
+            }
+          },
+          "scope": "decision-time predictor; common observed future inputs; held-out future outputs; shared nominal free response"
+        }
+      },
+      "snapshot": null,
+      "status": "completed",
+      "smoke": false,
+      "budget_protocol_id": "column-e1-20-clock-strata-v1",
+      "budget_protocol_sha256": "089b5c6a7df66af5c319563b3f1110a7dfe078a93f74f706a0152be31f9c59ab",
+      "sampling_stratum": "middle"
+    }
+  },
+  "independent_preservation_manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_metadata_retry_2026-10-26T023823_240837+0000\\preservation.json",
+  "independent_preservation_sha256": "0d3e797be83ad6f751c8a2d3d7b0457d38ae1a9f55ab4a08cfd16e828ddf863d"
+}

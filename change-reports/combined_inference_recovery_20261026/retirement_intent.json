@@ -1,0 +1,50 @@
+{
+  "at_utc": "2026-10-26T01:39:10.342988+00:00",
+  "failed_python_generations": [
+    {
+      "pid": 59504,
+      "alive": true,
+      "created": 134373496370785599
+    },
+    {
+      "pid": 38188,
+      "alive": true,
+      "created": 134373499744270962
+    },
+    {
+      "pid": 46276,
+      "alive": true,
+      "created": 134373499745265459
+    }
+  ],
+  "owned_native_generations": [
+    {
+      "pid": 10704,
+      "created": 134373497422336127,
+      "alive": true
+    },
+    {
+      "pid": 50232,
+      "created": 134373497797957783,
+      "alive": true
+    },
+    {
+      "pid": 18272,
+      "created": 134374489628139949,
+      "alive": true
+    },
+    {
+      "pid": 14168,
+      "created": 134374489809536597,
+      "alive": true
+    }
+  ],
+  "checkpoint_steps": [
+    118800,
+    118400
+  ],
+  "preserved_matched_pairs": 314,
+  "independent_backup_manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_2026-10-26T013317_458786+0000\\preservation.json",
+  "reason": "Confirmed unchanged CUDA calls and I/O; only this stalled combined attempt is retired",
+  "other_healthy_workers_to_signal": []
+}

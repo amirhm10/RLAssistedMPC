@@ -1,0 +1,14 @@
+{
+  "verified": true,
+  "at_utc": "2026-10-26T02:40:00.198402+00:00",
+  "manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_metadata_retry_2026-10-26T023823_240837+0000\\preservation.json",
+  "manifest_sha256": "0d3e797be83ad6f751c8a2d3d7b0457d38ae1a9f55ab4a08cfd16e828ddf863d",
+  "files": 1770,
+  "bytes": 27289455468,
+  "checkpoint_steps": [
+    118808,
+    118800
+  ],
+  "primary_pairs": 313,
+  "initial_314_originals_still_preserved": true
+}

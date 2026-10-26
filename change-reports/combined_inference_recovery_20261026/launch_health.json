@@ -1,0 +1,142 @@
+{
+  "at_utc": "2026-10-26T01:48:35.590254+00:00",
+  "memory": {
+    "committed_bytes": 39314862080,
+    "limit_bytes": 97245818880,
+    "headroom_bytes": 57930956800
+  },
+  "status": {
+    "state": "running",
+    "pid": 50836,
+    "error": null,
+    "matched_pairs": null,
+    "failed_pairs": null
+  },
+  "index": {
+    "completed_steps": 118800,
+    "completed_cycles": 297,
+    "sha256": "c5d0537cc964efcf071dd9b2e86ddba8538b7adc4cfcff5803d67bd33e8d4375",
+    "agents": {
+      "active_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "weight_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "horizon_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "markov_agent": {
+        "train_steps": 114799,
+        "replay_size": 40000
+      }
+    }
+  },
+  "scheduled.json": {
+    "task_name": "RLAssistedMPC-CombinedInferenceRecovery-20261026",
+    "administrator_required": false,
+    "execution_time_limit": "PT0S",
+    "triggers": 0,
+    "launch_at_utc": "2026-10-26T01:46:38.509076+00:00",
+    "cases": [
+      15,
+      17
+    ]
+  },
+  "manifest.json": {
+    "state": "running",
+    "stage": "validation",
+    "validation_passed": null,
+    "updated_at": "2026-10-26T01:48:28.882587+00:00",
+    "job": {
+      "id": "e1/combined",
+      "kind": "e1",
+      "category": "combined",
+      "seed": 7,
+      "aspen_number": 16,
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+      "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\budget20_job.json",
+      "expected_matched_pairs": 320,
+      "state": "running",
+      "attempts": [
+        {
+          "pid": 50836,
+          "identity": {
+            "pid": 50836,
+            "alive": true,
+            "created": 134374528078308674
+          },
+          "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+          "stage": "validation",
+          "started_at": "2026-10-26T01:46:47.814030+00:00"
+        }
+      ],
+      "error": null,
+      "pid": 50836,
+      "identity": {
+        "pid": 50836,
+        "alive": true,
+        "created": 134374528078308674
+      },
+      "started_at": "2026-10-26T01:46:47.814030+00:00",
+      "log": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_inference\\logs\\validation.log"
+    }
+  },
+  "supervisor_identity.json": {
+    "pid": 33208,
+    "parent_pid": 2524,
+    "in_windows_job": true,
+    "scheduler_service_pid": 2524,
+    "parent_is_scheduler_service": true,
+    "session_id": 2,
+    "python": "C:\\Users\\hamediaa\\AppData\\Local\\PythonEnvs\\rl-assisted-env\\pythonw.exe",
+    "observed_at": "2026-10-26T01:46:39.296146+00:00"
+  },
+  "worker_8_identity.json": {
+    "identity": {
+      "pid": 50836,
+      "alive": true,
+      "created": 134374528078308674
+    },
+    "at_utc": "2026-10-26T01:47:06.055159+00:00",
+    "source_sha256": {
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\handoff.py": "1c8c15bde9673be43464c78cb7a8750815dbc6d95bbd3b349ae4781edc539e72",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\parallel_branches.py": "bac07b71682962b157f204ffc8a9e0745452933f74b8342cf390c38053c86d34",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\pilot.py": "fa05433b9936b81cf970d30c47bcc19ea6889cd7c3be485411a487ce34916bb0",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\preserve.py": "466f6303e9a661ba6235732a3886ec0553b9536a097c272a0895276f8844af1a",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\recover_parallel.py": "73caa48a4374e12b3764d0c39f67d2b455a007d899f1231fbcc29e51dda68197",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\runtime_integration.py": "5e31f49dec5cd3b3f0e5c108588438ea750e1d02c1320c1ba82f03856c72b146",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\session_adapter.py": "3b71dae5c032f96776081cf4c5eb9f4219f8445941123cf22e61c48a51509e02",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\test_handoff.py": "a0875ac95ee9cdf258f6033f26be6f16942620ba767ca2f0a9213898e819d625",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\test_parallel.py": "2204116055b26727825302f487c467d9ead378a4a0348d8a481e7799e2420fc4",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\test_preservation.py": "99c30fd78dea27d1438eaafb511c11098fbbccc149b7f4150dafd6fccd8c561d",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\test_runtime_integration.py": "4d20f99f9f34b0bbca4a96b54371db6173edaabf52fb47e0358a978ee75593ca",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\test_session_adapter.py": "979312923ed8fed7876a9f494ec4df96e036ea2a2ba338b97262561c515265e6",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\transport_pilot.py": "c1c60c2e4d93e6b887566f39fbe8a8d7dbd1cbcf43d43b10d738d1692ff6bb49",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_native_recovery_20261024\\recover_combined.py": "628e3249e5d79a80caebb2e60ccd656b0eba4193b9d283c98c5abf6468e404bf",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\weights_pid_reuse_recovery_20261024\\recover_weights.py": "db2d0ca56a2d7aa84b5a2e6db4ccf8542057152bcbd6bc577a935e0357275330",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\weights_pid_reuse_recovery_20261024\\ownership_fix.py": "ccc0e5f3ca7fc89c3b2b3733ca00329501a2001234b884908e55a1cc6045776d",
+      "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_memory_restart_20261024\\recover_combined.py": "c21418d068a237d5a64f887fc4750bb367b3110110617b0eed2c43731d0dcbf1",
+      "accept_recovery.py": "df61f1eb75e3d018324ba34941f3a3abe94af565de41c1820090dffaedcd1546",
+      "lifecycle.py": "7055a396b5e3eb45b957f3f374cac4b561117f46e3c02fdbe347913dcc8a2912",
+      "prepare.py": "8c2a6631c9bcba833f18ba90f4d26b7a27a7a12b16db3154a5d39ea9ceaacc03",
+      "recover_parallel.py": "82f889f8a3f7b5abddbaf7237aa552b0168f67b0a61d7f94e95f929effa6829f"
+    },
+    "existing_scientific_protocols_unchanged": true
+  },
+  "validation_tail": [
+    "  horizon             : {'buffer_size': 40000, 'replay_frac_per': 0.4, 'replay_frac_recent': 0.3, 'replay_recent_window_mult': 10, 'replay_recent_window': 2000, 'replay_alpha': 0.6, 'replay_beta_start': 0.4, 'replay_beta_end': 1.0, 'replay_beta_steps': 50000}",
+    "  markov_td3          : {'buffer_size': 40000, 'replay_frac_per': 0.4, 'replay_frac_recent': 0.3, 'replay_recent_window_mult': 10, 'replay_recent_window': 2000, 'replay_alpha': 0.6, 'replay_beta_start': 0.4, 'replay_beta_end': 1.0, 'replay_beta_steps': 50000}",
+    "  weights_td3         : {'buffer_size': 40000, 'replay_frac_per': 0.4, 'replay_frac_recent': 0.3, 'replay_recent_window_mult': 10, 'replay_recent_window': 2000, 'replay_alpha': 0.6, 'replay_beta_start': 0.4, 'replay_beta_end': 1.0, 'replay_beta_steps': 50000}",
+    "  residual_td3        : {'buffer_size': 40000, 'replay_frac_per': 0.4, 'replay_frac_recent': 0.3, 'replay_recent_window_mult': 10, 'replay_recent_window': 2000, 'replay_alpha': 0.6, 'replay_beta_start': 0.4, 'replay_beta_end': 1.0, 'replay_beta_steps': 50000}",
+    "",
+    "[Plotting]",
+    "  style_profile       : hybrid",
+    "  save_pdf            : False",
+    "  result_prefix       : column_e1",
+    "  compare_prefix      : column_e1"
+  ]
+}

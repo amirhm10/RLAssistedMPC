@@ -1,0 +1,192 @@
+{
+  "at_utc": "2026-10-26T01:12:54.600169+00:00",
+  "parent": {
+    "pid": 59504,
+    "alive": true,
+    "created": 134373496370785599,
+    "cpu_seconds": 14752.578125,
+    "private_bytes": 11762663424,
+    "rss_bytes": 610750464,
+    "priority": 32
+  },
+  "parent_generation_unchanged": true,
+  "parent_private_change_since_previous_bytes": 1780510720,
+  "children": [
+    {
+      "case": 15,
+      "expected": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962
+      },
+      "actual": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962,
+        "cpu_seconds": 8099.656249999999,
+        "private_bytes": 15435890688,
+        "rss_bytes": 340852736,
+        "priority": 32
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_since_previous_seconds": 1795.90625,
+      "requests": 110,
+      "completed_responses": 109
+    },
+    {
+      "case": 17,
+      "expected": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459
+      },
+      "actual": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459,
+        "cpu_seconds": 9634.40625,
+        "private_bytes": 15509667840,
+        "rss_bytes": 272011264,
+        "priority": 32
+      },
+      "accepted_generation_unchanged": true,
+      "cpu_delta_since_previous_seconds": 3352.765625000001,
+      "requests": 110,
+      "completed_responses": 109
+    }
+  ],
+  "normal_python_priorities_preserved": true,
+  "manifest_state": "running",
+  "stage": "production",
+  "validation_passed": true,
+  "pool_pointer": {
+    "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360",
+    "parent": {
+      "pid": 59504,
+      "alive": true,
+      "created": 134373496370785599
+    },
+    "cases": [
+      15,
+      17
+    ]
+  },
+  "completed_parallel_primary_pairs": 109,
+  "all_production_live_state_and_source_map_checks_pass": true,
+  "latest_completed_comparison": {
+    "channel": "horizon",
+    "step": 118812,
+    "elapsed_seconds": 447.67145809996873
+  },
+  "primary_capture_confirmation": {
+    "completed_pairs": 314,
+    "remaining_pairs": 6,
+    "completed_by_window": {
+      "release": 80,
+      "prechange_mature": 80,
+      "plant_change": 80,
+      "adapted": 74
+    },
+    "latest_pair": {
+      "channel": "horizon",
+      "step": 118812,
+      "episode": 298
+    },
+    "extra_trace_hashes": [],
+    "completed_unique_keys_verified": true
+  },
+  "current_native_apps": [
+    {
+      "pid": 10704,
+      "alive": true,
+      "created": 134373497422336127,
+      "cpu_seconds": 187.390625,
+      "private_bytes": 58753024,
+      "rss_bytes": 64880640,
+      "owner_receipt": "parent_ownership"
+    },
+    {
+      "pid": 14168,
+      "alive": true,
+      "created": 134374489809536597,
+      "cpu_seconds": 142.40625,
+      "private_bytes": 1547952128,
+      "rss_bytes": 1505325056,
+      "owner_receipt": "ownership_17"
+    },
+    {
+      "pid": 18272,
+      "alive": true,
+      "created": 134374489628139949,
+      "cpu_seconds": 143.015625,
+      "private_bytes": 1546883072,
+      "rss_bytes": 1502285824,
+      "owner_receipt": "ownership_15"
+    },
+    {
+      "pid": 50232,
+      "alive": true,
+      "created": 134373497797957783,
+      "cpu_seconds": 2128.6875,
+      "private_bytes": 1133121536,
+      "rss_bytes": 199749632,
+      "owner_receipt": "parent_ownership"
+    }
+  ],
+  "all_current_native_generations_owned": true,
+  "side_archive_status": {
+    "state": "running",
+    "updated_at": "2026-10-26T01:12:50.123247+00:00",
+    "pid": 4480,
+    "identity": {
+      "pid": 4480,
+      "alive": true,
+      "created": 134373504924160382,
+      "cpu_seconds": 1690.875,
+      "private_bytes": 33759232,
+      "rss_bytes": 30593024
+    },
+    "archived_working_folders": 214,
+    "duplicate_bytes_removed": 165000849346,
+    "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips",
+    "newest_two_primary_comparisons_unpacked": true,
+    "all_results_checkpoints_and_inputs_retained": true,
+    "free_disk_bytes": 165957234688
+  },
+  "side_identity": {
+    "pid": 4480,
+    "alive": true,
+    "created": 134373504924160382,
+    "cpu_seconds": 1690.875,
+    "private_bytes": 33759232,
+    "rss_bytes": 30593024
+  },
+  "side_source_and_scheduled_seals_verified": true,
+  "archives": 214,
+  "original_bytes": 165000849346,
+  "zip_bytes": 25833838009,
+  "latest_archive_sha256_crc_verified": {
+    "path": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_parallel_20261024\\retired_branch_zips\\a0b2f78706bfa1423659daea.zip",
+    "sha256": "498836b0755c2bfeb0270d440a0d33d5e38d43b4a929e668286cd4d114bff15c"
+  },
+  "latest_two_primary_working_folders_unpacked": [
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_d9426615",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_657cebce",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case15\\working\\load_70798e44",
+    "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261024_combined_parallel\\branches_0_d15b9360\\case17\\working\\load_59e0977f"
+  ],
+  "memory": {
+    "committed_bytes": 85867778048,
+    "limit_bytes": 97245818880,
+    "headroom_bytes": 11378040832
+  },
+  "free_disk_bytes": 165956333568,
+  "actions": {
+    "process_signals": 0,
+    "restarts": 0,
+    "priority_changes": 0,
+    "simulator_calls": 0,
+    "source_edits": 0,
+    "data_deletions": 0
+  }
+}

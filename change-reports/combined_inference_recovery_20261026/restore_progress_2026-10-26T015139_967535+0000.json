@@ -1,0 +1,194 @@
+{
+  "at_utc": "2026-10-26T01:51:39.967198+00:00",
+  "state": "running",
+  "stage": "validation",
+  "validation_passed": null,
+  "job": {
+    "id": "e1/combined",
+    "kind": "e1",
+    "category": "combined",
+    "seed": 7,
+    "aspen_number": 16,
+    "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+    "job": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\budget20_job.json",
+    "expected_matched_pairs": 320,
+    "state": "running",
+    "attempts": [
+      {
+        "pid": 50836,
+        "identity": {
+          "pid": 50836,
+          "alive": true,
+          "created": 134374528078308674
+        },
+        "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+        "stage": "validation",
+        "started_at": "2026-10-26T01:46:47.814030+00:00"
+      }
+    ],
+    "error": null,
+    "pid": 50836,
+    "identity": {
+      "pid": 50836,
+      "alive": true,
+      "created": 134374528078308674
+    },
+    "started_at": "2026-10-26T01:46:47.814030+00:00",
+    "log": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_inference\\logs\\validation.log"
+  },
+  "status": {
+    "state": "running",
+    "pid": 50836,
+    "error": null,
+    "matched_pairs": null,
+    "failed_pairs": null
+  },
+  "checkpoint": {
+    "completed_steps": 118800,
+    "completed_cycles": 297,
+    "sha256": "c5d0537cc964efcf071dd9b2e86ddba8538b7adc4cfcff5803d67bd33e8d4375"
+  },
+  "native_python_restore": {
+    "completed_steps": 82408,
+    "native_checksum_verified": true,
+    "python_checksum_verified": true,
+    "zero_time_initializations": [
+      {
+        "before": [
+          13774.694216000002,
+          150872.13507937797,
+          376149.2347717285,
+          128.84271681308746,
+          -31.147960583690914,
+          0.0010409575862789192,
+          -30.418135494886986,
+          0.007970557017634527,
+          -29.79385761503088,
+          0.031047900103015395,
+          -27.4531123951809,
+          0.13339955620778116,
+          -23.299886161664695,
+          0.3108763008007015,
+          -20.85075380354412,
+          0.4084480866290084
+        ],
+        "primed": [
+          13774.694216000002,
+          150872.13507937797,
+          376149.2347717285,
+          128.84271681308746,
+          -31.147956289280874,
+          0.0010409639938257261,
+          -30.418127419514803,
+          0.007970671458349397,
+          -29.79380828173153,
+          0.03104936122851492,
+          -27.452683237805907,
+          0.13341267323996048,
+          -23.2996932888812,
+          0.3108808567939621,
+          -20.851608479382072,
+          0.40842392918237025
+        ],
+        "after": [
+          13774.694216000002,
+          150872.13507937797,
+          376149.2347717285,
+          128.84271681308746,
+          -31.147960583690914,
+          0.0010409575862789192,
+          -30.418135494886986,
+          0.007970557017634527,
+          -29.79385761503088,
+          0.031047900103015395,
+          -27.4531123951809,
+          0.13339955620778116,
+          -23.299886161664695,
+          0.3108763008007015,
+          -20.85075380354412,
+          0.4084480866290084
+        ],
+        "difference": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "priming_difference": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          4.294410040017738e-06,
+          6.407546806943415e-09,
+          8.075372182503315e-06,
+          1.1444071486982343e-07,
+          4.933329935141728e-05,
+          1.4611254995251788e-06,
+          0.0004291573749917177,
+          1.3117032179321697e-05,
+          0.00019287278349366943,
+          4.555993260602076e-06,
+          -0.0008546758379530672,
+          -2.4157446638140012e-05
+        ],
+        "full_variable_copy": true
+      }
+    ],
+    "agents": {
+      "active_agent": {
+        "train_steps": 78408,
+        "replay_size": 40000
+      },
+      "weight_agent": {
+        "train_steps": 78408,
+        "replay_size": 40000
+      },
+      "horizon_agent": {
+        "train_steps": 78408,
+        "replay_size": 40000
+      },
+      "markov_agent": {
+        "train_steps": 78407,
+        "replay_size": 40000
+      }
+    },
+    "full_python_state_sha256": "4f50ebada6ef27d2db1ab825929caee9a96c48f9e6ac175fa9188ea09bf87e5f"
+  },
+  "full_restore_events": [],
+  "current_primary_pairs": 311,
+  "original_314_independently_preserved": true,
+  "child_workers": [],
+  "log_tail": [
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\column_e1_budget.py\", line 119 in restore",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_native_recovery_20261024\\recover_combined.py\", line 67 in restore",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\utils\\combined_runner.py\", line 237 in run_combined_supervisor",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\revision_recovery\\checkpoints.py\", line 285 in run",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\distillation_RL_assisted_MPC_combined_unified.py\", line 822 in <module>",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 92 in execute",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1.py\", line 240 in worker",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1_budget.py\", line 202 in worker",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\recover_parallel.py\", line 97 in worker",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_inference_recovery_20261026\\recover_parallel.py\", line 82 in <module>"
+  ],
+  "working_backup_files": 1857,
+  "working_backup_bytes": 5510185236,
+  "memory": {
+    "committed_bytes": 43903225856,
+    "limit_bytes": 97245818880,
+    "headroom_bytes": 53342593024
+  },
+  "retention_state": "running"
+}

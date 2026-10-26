@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "at_utc": "2026-10-26T01:32:27.750332+00:00",
+  "checks": [
+    "reject_budget_change",
+    "reject_unverified_stall",
+    "reject_live_original",
+    "reject_low_commitment_headroom"
+  ],
+  "source_sha256": {
+    "prepare.py": "8c2a6631c9bcba833f18ba90f4d26b7a27a7a12b16db3154a5d39ea9ceaacc03",
+    "recover_parallel.py": "82f889f8a3f7b5abddbaf7237aa552b0168f67b0a61d7f94e95f929effa6829f"
+  },
+  "simulator_calls": 0,
+  "process_signals": 0
+}

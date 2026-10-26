@@ -1,0 +1,292 @@
+{
+  "at_utc": "2026-10-26T01:44:28.944054+00:00",
+  "initial_partial_intent": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_inference_recovery_20261026\\retirement_intent.json",
+  "completed_native_actions": [
+    {
+      "identity": {
+        "pid": 34008,
+        "alive": true,
+        "created": 134373497422934670,
+        "cpu_seconds": 29.625,
+        "private_bytes": 3145728,
+        "rss_bytes": 10268672
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 54528,
+        "alive": true,
+        "created": 134373497422962862,
+        "cpu_seconds": 7.34375,
+        "private_bytes": 1359872,
+        "rss_bytes": 6897664
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 22572,
+        "alive": true,
+        "created": 134373497798514508,
+        "cpu_seconds": 7.625,
+        "private_bytes": 1400832,
+        "rss_bytes": 7237632
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 44988,
+        "alive": true,
+        "created": 134373497798491171,
+        "cpu_seconds": 5263.59375,
+        "private_bytes": 238673920,
+        "rss_bytes": 123387904
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 25360,
+        "alive": true,
+        "created": 134374489628809466,
+        "cpu_seconds": 13.125,
+        "private_bytes": 197251072,
+        "rss_bytes": 130863104
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 56180,
+        "alive": true,
+        "created": 134374489628836168,
+        "cpu_seconds": 0.390625,
+        "private_bytes": 1363968,
+        "rss_bytes": 7487488
+      },
+      "action": "already_exited"
+    },
+    {
+      "identity": {
+        "pid": 12332,
+        "alive": true,
+        "created": 134374489811021323,
+        "cpu_seconds": 10.0625,
+        "private_bytes": 197443584,
+        "rss_bytes": 130793472
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 36192,
+        "alive": true,
+        "created": 134374489811044753,
+        "cpu_seconds": 0.53125,
+        "private_bytes": 1368064,
+        "rss_bytes": 7491584
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 10704,
+        "created": 134373497422336127,
+        "alive": true
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 50232,
+        "created": 134373497797957783,
+        "alive": true
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 18272,
+        "created": 134374489628139949,
+        "alive": true
+      },
+      "action": "closed_verified_orphan"
+    },
+    {
+      "identity": {
+        "pid": 14168,
+        "created": 134374489809536597,
+        "alive": true
+      },
+      "action": "closed_verified_orphan"
+    }
+  ],
+  "ignored_descendants": [
+    {
+      "identity": {
+        "pid": 48176,
+        "alive": true,
+        "created": 134373497422982510,
+        "cpu_seconds": 0.015625,
+        "private_bytes": 1867776,
+        "rss_bytes": 10289152
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 34008,
+        "alive": true,
+        "created": 134373497422934670,
+        "cpu_seconds": 29.625,
+        "private_bytes": 3145728,
+        "rss_bytes": 10268672
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 9704,
+        "alive": true,
+        "created": 134373497422995470,
+        "cpu_seconds": 0.0,
+        "private_bytes": 1875968,
+        "rss_bytes": 10280960
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 54528,
+        "alive": true,
+        "created": 134373497422962862,
+        "cpu_seconds": 7.34375,
+        "private_bytes": 1359872,
+        "rss_bytes": 6897664
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 12588,
+        "alive": true,
+        "created": 134373497798541830,
+        "cpu_seconds": 0.03125,
+        "private_bytes": 1875968,
+        "rss_bytes": 10326016
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 22572,
+        "alive": true,
+        "created": 134373497798514508,
+        "cpu_seconds": 7.625,
+        "private_bytes": 1400832,
+        "rss_bytes": 7237632
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 51548,
+        "alive": true,
+        "created": 134373497798521852,
+        "cpu_seconds": 0.015625,
+        "private_bytes": 1851392,
+        "rss_bytes": 10293248
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 44988,
+        "alive": true,
+        "created": 134373497798491171,
+        "cpu_seconds": 5263.59375,
+        "private_bytes": 238673920,
+        "rss_bytes": 123387904
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 44704,
+        "alive": true,
+        "created": 134374489628844544,
+        "cpu_seconds": 0.015625,
+        "private_bytes": 1753088,
+        "rss_bytes": 10964992
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 25360,
+        "alive": true,
+        "created": 134374489628809466,
+        "cpu_seconds": 13.125,
+        "private_bytes": 197251072,
+        "rss_bytes": 130863104
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 18456,
+        "alive": true,
+        "created": 134374489628865730,
+        "cpu_seconds": 0.03125,
+        "private_bytes": 1863680,
+        "rss_bytes": 10956800
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 56180,
+        "alive": true,
+        "created": 134374489628836168,
+        "cpu_seconds": 0.390625,
+        "private_bytes": 1363968,
+        "rss_bytes": 7487488
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 13496,
+        "alive": true,
+        "created": 134374489811052984,
+        "cpu_seconds": 0.03125,
+        "private_bytes": 1871872,
+        "rss_bytes": 10981376
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 12332,
+        "alive": true,
+        "created": 134374489811021323,
+        "cpu_seconds": 10.0625,
+        "private_bytes": 197443584,
+        "rss_bytes": 130793472
+      },
+      "action": "leave_untouched"
+    },
+    {
+      "identity": {
+        "pid": 41836,
+        "alive": true,
+        "created": 134374489811075577,
+        "cpu_seconds": 0.015625,
+        "private_bytes": 1871872,
+        "rss_bytes": 10985472
+      },
+      "name": "conhost.exe",
+      "parent": {
+        "pid": 36192,
+        "alive": true,
+        "created": 134374489811044753,
+        "cpu_seconds": 0.53125,
+        "private_bytes": 1368064,
+        "rss_bytes": 7491584
+      },
+      "action": "leave_untouched"
+    }
+  ],
+  "only_failed_combined_was_signaled": true,
+  "other_healthy_workers_interrupted": 0,
+  "former_working_preservation": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_2026-10-26T013317_458786+0000\\retired_working\\preservation.json",
+  "former_working_sha256": "65b965e6343ae7c4834e6a018bb1992946fb2354834a61fc976c2528f75f9b5b"
+}

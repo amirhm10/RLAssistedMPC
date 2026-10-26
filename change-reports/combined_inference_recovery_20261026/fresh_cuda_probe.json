@@ -1,0 +1,25 @@
+{
+  "at_utc": "2026-10-26T01:46:31.784091+00:00",
+  "returncode": 0,
+  "stdout": "{\"passed\": true, \"torch_version\": \"2.13.0+cu130\", \"cuda_device\": \"NVIDIA GeForce RTX 4090\", \"iterations\": 100, \"elapsed_seconds\": 0.35065619996748865, \"actor_cpu_transfer_and_scalar_sync_verified\": true, \"cpu_gpu_probe_agreement\": true, \"scientific_simulator_calls\": 0}\n",
+  "stderr": "",
+  "probe_source_sha256": "d65eda8215c5b754e4c2d2fde47ae196a8f598a7477761781c5d3d75a24a1a19",
+  "retirement_sha256": "99731299cfd93baddb193faa544f1697e7aadbc80070c98ae612c7cf5881ff68",
+  "memory": {
+    "committed_bytes": 37064617984,
+    "limit_bytes": 97245818880,
+    "headroom_bytes": 60181200896
+  },
+  "global_package_changes": 0,
+  "other_jobs_interrupted": 0,
+  "result": {
+    "passed": true,
+    "torch_version": "2.13.0+cu130",
+    "cuda_device": "NVIDIA GeForce RTX 4090",
+    "iterations": 100,
+    "elapsed_seconds": 0.35065619996748865,
+    "actor_cpu_transfer_and_scalar_sync_verified": true,
+    "cpu_gpu_probe_agreement": true,
+    "scientific_simulator_calls": 0
+  }
+}

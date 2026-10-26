@@ -1,0 +1,10 @@
+{
+  "at_utc": "2026-10-26T02:47:28.522137+00:00",
+  "source": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_process_recovery.jsonl",
+  "copy": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_metadata_retry_2026-10-26T023823_240837+0000\\files\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_process_recovery.jsonl.fcaa80e469d8.copy",
+  "sha256": "07ac850ac275ee9425ee23444c27fe919fa464cc8c51dad908778ec47781cf2e",
+  "bytes": 30669,
+  "complete_records": 80,
+  "full_restore_events": 6,
+  "backup_manifest_sha256": "0d3e797be83ad6f751c8a2d3d7b0457d38ae1a9f55ab4a08cfd16e828ddf863d"
+}

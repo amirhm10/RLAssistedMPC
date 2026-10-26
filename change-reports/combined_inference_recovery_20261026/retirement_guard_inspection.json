@@ -1,0 +1,209 @@
+{
+  "at_utc": "2026-10-26T01:40:32.122496+00:00",
+  "rows": [
+    {
+      "expected": {
+        "pid": 59504,
+        "alive": true,
+        "created": 134373496370785599
+      },
+      "actual": {
+        "pid": 59504,
+        "alive": false,
+        "created": null
+      },
+      "direct_children": []
+    },
+    {
+      "expected": {
+        "pid": 38188,
+        "alive": true,
+        "created": 134373499744270962
+      },
+      "actual": {
+        "pid": 38188,
+        "alive": false,
+        "created": null
+      },
+      "direct_children": []
+    },
+    {
+      "expected": {
+        "pid": 46276,
+        "alive": true,
+        "created": 134373499745265459
+      },
+      "actual": {
+        "pid": 46276,
+        "alive": false,
+        "created": null
+      },
+      "direct_children": []
+    },
+    {
+      "expected": {
+        "pid": 10704,
+        "created": 134373497422336127,
+        "alive": true
+      },
+      "actual": {
+        "pid": 10704,
+        "alive": true,
+        "created": 134373497422336127,
+        "cpu_seconds": 189.65625,
+        "private_bytes": 58822656,
+        "rss_bytes": 64999424
+      },
+      "direct_children": [
+        {
+          "name": "sim_server.exe",
+          "identity": {
+            "pid": 34008,
+            "alive": true,
+            "created": 134373497422934670,
+            "cpu_seconds": 29.5625,
+            "private_bytes": 3145728,
+            "rss_bytes": 10268672
+          },
+          "created_after_owned_parent": true
+        },
+        {
+          "name": "am_task_server.exe",
+          "identity": {
+            "pid": 54528,
+            "alive": true,
+            "created": 134373497422962862,
+            "cpu_seconds": 7.34375,
+            "private_bytes": 1359872,
+            "rss_bytes": 6897664
+          },
+          "created_after_owned_parent": true
+        }
+      ]
+    },
+    {
+      "expected": {
+        "pid": 50232,
+        "created": 134373497797957783,
+        "alive": true
+      },
+      "actual": {
+        "pid": 50232,
+        "alive": true,
+        "created": 134373497797957783,
+        "cpu_seconds": 2131.1875,
+        "private_bytes": 1133211648,
+        "rss_bytes": 199954432
+      },
+      "direct_children": [
+        {
+          "name": "am_task_server.exe",
+          "identity": {
+            "pid": 22572,
+            "alive": true,
+            "created": 134373497798514508,
+            "cpu_seconds": 7.59375,
+            "private_bytes": 1400832,
+            "rss_bytes": 7237632
+          },
+          "created_after_owned_parent": true
+        },
+        {
+          "name": "sim_server.exe",
+          "identity": {
+            "pid": 44988,
+            "alive": true,
+            "created": 134373497798491171,
+            "cpu_seconds": 5263.5625,
+            "private_bytes": 238673920,
+            "rss_bytes": 123387904
+          },
+          "created_after_owned_parent": true
+        }
+      ]
+    },
+    {
+      "expected": {
+        "pid": 18272,
+        "created": 134374489628139949,
+        "alive": true
+      },
+      "actual": {
+        "pid": 18272,
+        "alive": true,
+        "created": 134374489628139949,
+        "cpu_seconds": 145.796875,
+        "private_bytes": 1546825728,
+        "rss_bytes": 1502277632
+      },
+      "direct_children": [
+        {
+          "name": "sim_server.exe",
+          "identity": {
+            "pid": 25360,
+            "alive": true,
+            "created": 134374489628809466,
+            "cpu_seconds": 13.09375,
+            "private_bytes": 197251072,
+            "rss_bytes": 130863104
+          },
+          "created_after_owned_parent": true
+        },
+        {
+          "name": "am_task_server.exe",
+          "identity": {
+            "pid": 56180,
+            "alive": true,
+            "created": 134374489628836168,
+            "cpu_seconds": 0.390625,
+            "private_bytes": 1363968,
+            "rss_bytes": 7487488
+          },
+          "created_after_owned_parent": true
+        }
+      ]
+    },
+    {
+      "expected": {
+        "pid": 14168,
+        "created": 134374489809536597,
+        "alive": true
+      },
+      "actual": {
+        "pid": 14168,
+        "alive": true,
+        "created": 134374489809536597,
+        "cpu_seconds": 145.09375,
+        "private_bytes": 1548013568,
+        "rss_bytes": 1505406976
+      },
+      "direct_children": [
+        {
+          "name": "sim_server.exe",
+          "identity": {
+            "pid": 12332,
+            "alive": true,
+            "created": 134374489811021323,
+            "cpu_seconds": 10.015625,
+            "private_bytes": 197443584,
+            "rss_bytes": 130793472
+          },
+          "created_after_owned_parent": true
+        },
+        {
+          "name": "am_task_server.exe",
+          "identity": {
+            "pid": 36192,
+            "alive": true,
+            "created": 134374489811044753,
+            "cpu_seconds": 0.515625,
+            "private_bytes": 1368064,
+            "rss_bytes": 7491584
+          },
+          "created_after_owned_parent": true
+        }
+      ]
+    }
+  ],
+  "process_signals": 0
+}

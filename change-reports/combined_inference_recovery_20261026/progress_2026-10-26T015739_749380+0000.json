@@ -1,0 +1,520 @@
+{
+  "at_utc": "2026-10-26T01:57:39.736879+00:00",
+  "state": "running",
+  "stage": "validation",
+  "validation_passed": null,
+  "error": null,
+  "worker_identity": {
+    "pid": 50836,
+    "alive": true,
+    "created": 134374528078308674
+  },
+  "status": {
+    "state": "running",
+    "pid": 50836,
+    "started_at": "2026-10-26T01:47:25.161784+00:00",
+    "category": "combined",
+    "case": 16,
+    "technical": false,
+    "output": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+    "profile": "temperature_flip_200_100",
+    "budget_protocol_id": "column-e1-20-clock-strata-v1",
+    "expected_matched_pairs": 320,
+    "budget_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_e1_budget20",
+    "native_sessions": {
+      "aspen": {
+        "aspen_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_0ae4d841\\main\\C2S_SS_simulation16.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_0ae4d841\\main\\AM_C2S_SS_simulation16",
+        "path_source": "e3-number-override",
+        "aspen_sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4"
+      },
+      "branch_aspen": {
+        "aspen_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_0ae4d841\\branch\\C2S_SS_simulation16.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_0ae4d841\\branch\\AM_C2S_SS_simulation16",
+        "path_source": "e3-number-override",
+        "aspen_sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4"
+      }
+    }
+  },
+  "checkpoint": {
+    "completed_steps": 118800,
+    "completed_cycles": 297,
+    "agents": {
+      "active_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "weight_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "horizon_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "markov_agent": {
+        "train_steps": 114799,
+        "replay_size": 40000
+      }
+    },
+    "sha256": "c5d0537cc964efcf071dd9b2e86ddba8538b7adc4cfcff5803d67bd33e8d4375"
+  },
+  "restore": {
+    "completed_steps": 118800,
+    "native_checksum_verified": true,
+    "python_checksum_verified": true,
+    "agents": {
+      "active_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "weight_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "horizon_agent": {
+        "train_steps": 114800,
+        "replay_size": 40000
+      },
+      "markov_agent": {
+        "train_steps": 114799,
+        "replay_size": 40000
+      }
+    }
+  },
+  "full_restore_events": [
+    {
+      "completed_steps": 118800,
+      "before_equals_after": true
+    }
+  ],
+  "primary_pairs": 311,
+  "latest_primary": {
+    "schema": 1,
+    "seed": 7,
+    "category": "combined",
+    "channel": "weights",
+    "context": "combined",
+    "window": "adapted",
+    "step": 118776,
+    "episode": 297,
+    "gate_source_line": 1106,
+    "observation": [
+      -0.14788936078548431,
+      -0.07796526700258255,
+      0.12626254558563232,
+      -0.06681510806083679,
+      0.294538676738739,
+      -0.3977518081665039,
+      -0.09969401359558105,
+      0.0833333358168602,
+      -0.4000000059604645,
+      -0.3406691253185272,
+      -0.024111878126859665,
+      0.0025032637640833855,
+      0.005468474235385656,
+      -0.008853870443999767,
+      -0.005650984589010477
+    ],
+    "previous_action": [
+      -0.6,
+      -0.6,
+      -0.6,
+      -0.6
+    ],
+    "initial_tracking_error_physical": [
+      -2.2410819301158652e-05,
+      -0.00039102173536065266
+    ],
+    "gate": {
+      "action": [
+        -0.6000000238418579,
+        -0.6000000238418579,
+        -0.6000000238418579,
+        -0.6000000238418579
+      ],
+      "policy_action": [
+        -0.6708895564079285,
+        -0.6027380228042603,
+        -0.6528372764587402,
+        -0.6943100094795227
+      ],
+      "supervisor_action": [
+        -0.6000000238418579,
+        -0.6000000238418579,
+        -0.6000000238418579,
+        -0.6000000238418579
+      ],
+      "selected_source": 1,
+      "score_policy": 3591.760774019015,
+      "score_supervisor": 3593.563720703125,
+      "advantage_policy_supervisor": -1.8029466841098838,
+      "q1_policy": 3627.039306640625,
+      "q2_policy": 3603.5205078125,
+      "q1_supervisor": 3631.53466796875,
+      "q2_supervisor": 3606.220703125,
+      "q_gap_policy": 23.518798828125,
+      "q_gap_supervisor": 25.31396484375
+    },
+    "gate_config": {
+      "score_uncertainty_weight": 0.5,
+      "score_previous_action_weight": 0.01,
+      "score_supervisor_action_weight": 0.01,
+      "advantage_margin": 0.0,
+      "default_to_supervisor": true,
+      "actor_q_mode": "mean",
+      "supervisor_bc_weight": 0.0,
+      "supervisor_bc_temperature": 1.0,
+      "smooth_action_weight": 0.0,
+      "detach_supervisor_weight": true,
+      "enable_supervisor_actor_loss": false,
+      "min_train_steps_before_policy_gate": 0
+    },
+    "critic_train_steps_at_decision": 114776,
+    "support": {
+      "buffer_size": 40000,
+      "sample_size": 4096,
+      "state_nearest_rms_standardized": 0.010517213850857757,
+      "state_mean": [
+        0.040492257842462465,
+        0.15768058373281946,
+        0.3662119787186384,
+        0.16305487349858083,
+        0.04440309327322467,
+        -0.5610753301616569,
+        -0.2058532433322826,
+        -0.23267619696889597,
+        -0.1982421904540388,
+        -0.06594743610912701,
+        0.19658935050447912,
+        -0.00134571715566828,
+        -0.0029934248096425975,
+        0.027047781019011286,
+        -0.028262248166713855
+      ],
+      "state_scale": [
+        0.16931742329226132,
+        0.21042187070959004,
+        0.31297677496230897,
+        0.29955772714568224,
+        0.22336797879939224,
+        0.24715671424501806,
+        0.17782470389613256,
+        0.31248030376809255,
+        0.19999227806896547,
+        0.24699908474039114,
+        0.28777466504060234,
+        0.16477778263368364,
+        0.25314912503686016,
+        0.6339006550537235,
+        0.7337527067804082
+      ],
+      "normalization": "state standard deviations from decision-time replay; actions in normalized coordinates",
+      "policy_joint_nearest": 0.03305851150256945,
+      "supervisor_joint_nearest": 0.011233183252433084,
+      "sample_source_counts": {
+        "1": 1575,
+        "2": 2521
+      }
+    },
+    "gamma_per_control_step": 0.99,
+    "rollout_steps": 200,
+    "continuation": "gated",
+    "branches": {
+      "policy": {
+        "state": "completed",
+        "completed_steps": 200,
+        "controller_stdout": "Sub_Episode: 297 | avg. reward: 30.172812493149433 | Hp,Hc: (np.int64(11), np.int64(6)) | h sg src: policy=97,supervisor=3,warm=0,held=300,fallback=0 | avg z: [ 2.84072851e-03  2.18185577e-03  2.94007341e-03 -1.45251842e-05] | m exec src: td3=194,sg_ls=49,sg_mpc=157,solver_fb=0,ls_fb=0,nom_fb=0 | m sg src: policy=194,supervisor=206,warm=0,held=0,fallback=0 | alpha: off | avg weights: [0.96342419 0.98395704 0.96261402 0.95382349] | w sg src: policy=241,supervisor=159,warm=0,held=0,fallback=0 | avg residual: [-3.39315804e-04 -2.33689310e-05] | r sg src: policy=190,supervisor=210,warm=0,held=0,fallback=0\n"
+      },
+      "supervisor": {
+        "state": "completed",
+        "completed_steps": 200,
+        "controller_stdout": "Sub_Episode: 297 | avg. reward: 30.17286434812372 | Hp,Hc: (np.int64(11), np.int64(6)) | h sg src: policy=97,supervisor=3,warm=0,held=300,fallback=0 | avg z: [ 2.84072018e-03  2.18184044e-03  2.94008071e-03 -1.45368022e-05] | m exec src: td3=194,sg_ls=49,sg_mpc=157,solver_fb=0,ls_fb=0,nom_fb=0 | m sg src: policy=194,supervisor=206,warm=0,held=0,fallback=0 | alpha: off | avg weights: [0.96353481 0.98396126 0.9626969  0.95397086] | w sg src: policy=240,supervisor=160,warm=0,held=0,fallback=0 | avg residual: [-3.39314318e-04 -2.33683779e-05] | r sg src: policy=190,supervisor=210,warm=0,held=0,fallback=0\n"
+      }
+    },
+    "metrics": {
+      "20": {
+        "policy": {
+          "return": 1242.8347308058808,
+          "rmse_physical": [
+            2.5047454200131935e-05,
+            0.00071054385849667
+          ],
+          "max_abs_error_physical": [
+            3.892373245015235e-05,
+            0.001509667521123248
+          ],
+          "sum_abs_input_movement_physical": [
+            49.95584487915039,
+            0.010781586170196533
+          ],
+          "solver_failure_steps": 0
+        },
+        "supervisor": {
+          "return": 1242.8504844509398,
+          "rmse_physical": [
+            2.505942582367628e-05,
+            0.0007076423672516416
+          ],
+          "max_abs_error_physical": [
+            3.8904149281437234e-05,
+            0.0015034335277803734
+          ],
+          "sum_abs_input_movement_physical": [
+            49.91292953491211,
+            0.01071631908416748
+          ],
+          "solver_failure_steps": 0
+        },
+        "delta_return": -0.015753645059021437,
+        "selected": "supervisor",
+        "regret": 0.0
+      },
+      "80": {
+        "policy": {
+          "return": 1005.0312731884164,
+          "rmse_physical": [
+            0.00607896753440097,
+            0.21511159062713917
+          ],
+          "max_abs_error_physical": [
+            0.023815464160003488,
+            1.491610975556064
+          ],
+          "sum_abs_input_movement_physical": [
+            48177.69765853882,
+            17.13694006204605
+          ],
+          "solver_failure_steps": 0
+        },
+        "supervisor": {
+          "return": 1005.0303048516253,
+          "rmse_physical": [
+            0.0060789609880248655,
+            0.21511102948392996
+          ],
+          "max_abs_error_physical": [
+            0.023815437311671215,
+            1.4916103473172484
+          ],
+          "sum_abs_input_movement_physical": [
+            48177.950382232666,
+            17.136662900447845
+          ],
+          "solver_failure_steps": 0
+        },
+        "delta_return": 0.0009683367911748064,
+        "selected": "supervisor",
+        "regret": 0.0009683367911748064
+      },
+      "200": {
+        "policy": {
+          "return": 1760.3293569536747,
+          "rmse_physical": [
+            0.0038447943283498776,
+            0.1360588448461911
+          ],
+          "max_abs_error_physical": [
+            0.023815464160003488,
+            1.491610975556064
+          ],
+          "sum_abs_input_movement_physical": [
+            48761.231899261475,
+            17.590329945087433
+          ],
+          "solver_failure_steps": 0
+        },
+        "supervisor": {
+          "return": 1756.1204907108859,
+          "rmse_physical": [
+            0.0038447870315450852,
+            0.13606047366814308
+          ],
+          "max_abs_error_physical": [
+            0.023815437311671215,
+            1.4916103473172484
+          ],
+          "sum_abs_input_movement_physical": [
+            48759.15765762329,
+            17.61420339345932
+          ],
+          "solver_failure_steps": 0
+        },
+        "delta_return": 4.208866242788872,
+        "selected": "supervisor",
+        "regret": 4.208866242788872
+      }
+    },
+    "trace": "traces\\weights_adapted_0118776.npz",
+    "prediction_validation": {},
+    "snapshot": null,
+    "status": "completed",
+    "smoke": false,
+    "budget_protocol_id": "column-e1-20-clock-strata-v1",
+    "budget_protocol_sha256": "089b5c6a7df66af5c319563b3f1110a7dfe078a93f74f706a0152be31f9c59ab",
+    "sampling_stratum": "late"
+  },
+  "original_314_independently_preserved": true,
+  "pools": [
+    {
+      "name": "pool8",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_inference\\branches_8_4c20b181",
+      "children": [
+        {
+          "case": 15,
+          "identity": {
+            "pid": 10620,
+            "alive": true,
+            "created": 134374531742656999
+          },
+          "requests": 1,
+          "responses": 0,
+          "pending": [
+            {
+              "source": "policy",
+              "steps": 200,
+              "snapshot": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_inference\\branches_8_4c20b181\\frozen_decisions\\weights_118801_2d491593\\frozen.pkl.gz",
+              "output": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_inference\\branches_8_4c20b181\\case15\\result_856fa4d8335f4cdbbd4cfca803f49f8a"
+            }
+          ]
+        },
+        {
+          "case": 17,
+          "identity": {
+            "pid": 18736,
+            "alive": true,
+            "created": 134374531743637354
+          },
+          "requests": 1,
+          "responses": 0,
+          "pending": [
+            {
+              "source": "supervisor",
+              "steps": 200,
+              "snapshot": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_inference\\branches_8_4c20b181\\frozen_decisions\\weights_118801_2d491593\\frozen.pkl.gz",
+              "output": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_inference\\branches_8_4c20b181\\case17\\result_5d548c4690a84c9da9f608472365e982"
+            }
+          ]
+        }
+      ],
+      "completed_pairs": []
+    }
+  ],
+  "process_samples": [
+    {
+      "expected": {
+        "pid": 50836,
+        "alive": true,
+        "created": 134374528078308674
+      },
+      "before": {
+        "pid": 50836,
+        "alive": true,
+        "created": 134374528078308674,
+        "cpu_seconds": 38.5,
+        "private_bytes": 4806041600,
+        "rss_bytes": 1138450432
+      },
+      "after": {
+        "pid": 50836,
+        "alive": true,
+        "created": 134374528078308674,
+        "cpu_seconds": 38.5,
+        "private_bytes": 4806041600,
+        "rss_bytes": 1055936512
+      }
+    },
+    {
+      "expected": {
+        "pid": 10620,
+        "alive": true,
+        "created": 134374531742656999
+      },
+      "before": {
+        "pid": 10620,
+        "alive": true,
+        "created": 134374531742656999,
+        "cpu_seconds": 24.234375,
+        "private_bytes": 4417331200,
+        "rss_bytes": 2567778304
+      },
+      "after": {
+        "pid": 10620,
+        "alive": true,
+        "created": 134374531742656999,
+        "cpu_seconds": 25.71875,
+        "private_bytes": 4432687104,
+        "rss_bytes": 2423836672
+      }
+    },
+    {
+      "expected": {
+        "pid": 18736,
+        "alive": true,
+        "created": 134374531743637354
+      },
+      "before": {
+        "pid": 18736,
+        "alive": true,
+        "created": 134374531743637354,
+        "cpu_seconds": 16.859375,
+        "private_bytes": 3041837056,
+        "rss_bytes": 1492463616
+      },
+      "after": {
+        "pid": 18736,
+        "alive": true,
+        "created": 134374531743637354,
+        "cpu_seconds": 18.65625,
+        "private_bytes": 3166146560,
+        "rss_bytes": 1586319360
+      }
+    }
+  ],
+  "memory": {
+    "committed_bytes": 54554386432,
+    "limit_bytes": 97245818880,
+    "headroom_bytes": 42691432448
+  },
+  "free_disk_bytes": 140996419584,
+  "native_processes": {
+    "15140": {
+      "pid": 15140,
+      "alive": true,
+      "created": 134374529537826112,
+      "cpu_seconds": 160.015625,
+      "private_bytes": 1540526080,
+      "rss_bytes": 1499795456
+    },
+    "27452": {
+      "pid": 27452,
+      "alive": true,
+      "created": 134374532428701592,
+      "cpu_seconds": 161.625,
+      "private_bytes": 1536110592,
+      "rss_bytes": 1495707648
+    },
+    "38752": {
+      "pid": 38752,
+      "alive": true,
+      "created": 134374532612548367,
+      "cpu_seconds": 161.9375,
+      "private_bytes": 1537982464,
+      "rss_bytes": 1496498176
+    },
+    "45656": {
+      "pid": 45656,
+      "alive": true,
+      "created": 134374529149186753,
+      "cpu_seconds": 1.484375,
+      "private_bytes": 58757120,
+      "rss_bytes": 87744512
+    }
+  },
+  "log_tail": [
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\run_column_e1_budget.py\", line 202 in worker",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\recover_parallel.py\", line 97 in worker",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_inference_recovery_20261026\\recover_parallel.py\", line 82 in <module>",
+    "Resumed native Aspen plus learner/optimizer/replay/controller state at step 118800"
+  ]
+}

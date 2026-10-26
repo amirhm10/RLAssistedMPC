@@ -1,0 +1,515 @@
+{
+  "at_utc": "2026-10-26T02:56:27.725407+00:00",
+  "state": "running",
+  "stage": "production",
+  "validation_passed": true,
+  "error": null,
+  "worker_identity": {
+    "pid": 55752,
+    "alive": true,
+    "created": 134374561114578001
+  },
+  "status": {
+    "state": "running",
+    "pid": 55752,
+    "started_at": "2026-10-26T02:42:30.152045+00:00",
+    "category": "combined",
+    "case": 16,
+    "technical": false,
+    "output": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1",
+    "profile": "temperature_flip_200_100",
+    "budget_protocol_id": "column-e1-20-clock-strata-v1",
+    "expected_matched_pairs": 320,
+    "budget_directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261021_e1_budget20",
+    "native_sessions": {
+      "aspen": {
+        "aspen_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_a0d87e02\\main\\C2S_SS_simulation16.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_a0d87e02\\main\\AM_C2S_SS_simulation16",
+        "path_source": "e3-number-override",
+        "aspen_sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4"
+      },
+      "branch_aspen": {
+        "aspen_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_a0d87e02\\branch\\C2S_SS_simulation16.dynf",
+        "snaps_path": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\native_a0d87e02\\branch\\AM_C2S_SS_simulation16",
+        "path_source": "e3-number-override",
+        "aspen_sha256": "10a983652135ef6721bd4d80cea17d0cadfb5a4cf2e664e4a2e5a5fa14c7c8e4"
+      }
+    }
+  },
+  "checkpoint": {
+    "completed_steps": 118808,
+    "completed_cycles": 297,
+    "agents": {
+      "active_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "weight_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "horizon_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "markov_agent": {
+        "train_steps": 114807,
+        "replay_size": 40000
+      }
+    },
+    "sha256": "02c1fafcf6c5d9a496553f4b150efa7b8275811045dd9916091e2f7131694c4f"
+  },
+  "restore": {
+    "completed_steps": 118808,
+    "native_checksum_verified": true,
+    "python_checksum_verified": true,
+    "agents": {
+      "active_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "weight_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "horizon_agent": {
+        "train_steps": 114808,
+        "replay_size": 40000
+      },
+      "markov_agent": {
+        "train_steps": 114807,
+        "replay_size": 40000
+      }
+    }
+  },
+  "current_generation_restore_verified": true,
+  "full_restore_events": [
+    {
+      "at_utc": null,
+      "completed_steps": 118800,
+      "before_equals_after": true
+    },
+    {
+      "at_utc": null,
+      "completed_steps": 118808,
+      "before_equals_after": true
+    },
+    {
+      "at_utc": null,
+      "completed_steps": 118808,
+      "before_equals_after": true
+    }
+  ],
+  "primary_pairs": 314,
+  "latest_primary": {
+    "schema": 1,
+    "seed": 7,
+    "category": "combined",
+    "channel": "horizon",
+    "context": "combined",
+    "window": "adapted",
+    "step": 118812,
+    "episode": 298,
+    "gate_source_line": 985,
+    "observation": [
+      0.026490066200494766,
+      0.09381500631570816,
+      0.40284717082977295,
+      0.21548525989055634,
+      0.11590350419282913,
+      -0.5961330533027649,
+      -0.21713463962078094,
+      -0.5416666865348816,
+      -2.220446049250313e-16,
+      -0.08129823207855225,
+      0.26109403371810913,
+      -0.5433153510093689,
+      -0.7342653274536133,
+      2.0182862281799316,
+      0.3509157598018646
+    ],
+    "previous_action": 13,
+    "initial_tracking_error_physical": [
+      0.007634738219351362,
+      0.026483162673333283
+    ],
+    "gate": {
+      "action": 33,
+      "policy_action": 33,
+      "supervisor_action": 0,
+      "selected_source": 2,
+      "score_policy": 1495.591552734375,
+      "score_supervisor": 1488.0079345703125,
+      "advantage_policy_supervisor": 7.5836181640625,
+      "q_policy": 1495.591552734375,
+      "q_supervisor": 1488.0079345703125
+    },
+    "gate_config": {
+      "advantage_margin": 0.0,
+      "default_to_supervisor": true,
+      "min_train_steps_before_policy_gate": 0
+    },
+    "critic_train_steps_at_decision": 114812,
+    "support": {
+      "buffer_size": 40000,
+      "sample_size": 4096,
+      "state_nearest_rms_standardized": 0.33033753638571867,
+      "state_mean": [
+        0.04214068266212223,
+        0.16065298273074902,
+        0.3699014348676428,
+        0.16654815211238372,
+        0.04117996640670185,
+        -0.5640306317054637,
+        -0.2078637467263036,
+        -0.23420207592971565,
+        -0.1970703154365765,
+        -0.06356519715336617,
+        0.19968454758540588,
+        0.001364411491713513,
+        0.00259798293024871,
+        0.024565732414065344,
+        -0.019687430660036753
+      ],
+      "state_scale": [
+        0.16867259028547632,
+        0.20986886772012814,
+        0.31009185568040737,
+        0.29675556975272954,
+        0.22282259654594883,
+        0.24456132825834945,
+        0.1759254784672558,
+        0.31245944012946125,
+        0.1999785441565921,
+        0.24602398706438955,
+        0.2851343535215309,
+        0.17360801204803517,
+        0.2574989473082335,
+        0.6891291700358679,
+        0.7718720461886691
+      ],
+      "normalization": "state standard deviations from decision-time replay; actions in normalized coordinates",
+      "policy_action_sample_count": 73,
+      "policy_joint_nearest": 0.848222349043263,
+      "supervisor_action_sample_count": 140,
+      "supervisor_joint_nearest": 1.0519059665452177,
+      "sample_source_counts": {
+        "3": 3057,
+        "2": 1005,
+        "1": 34
+      }
+    },
+    "gamma_per_control_step": 0.99,
+    "rollout_steps": 200,
+    "continuation": "gated",
+    "branches": {
+      "policy": {
+        "state": "completed",
+        "completed_steps": 200,
+        "controller_stdout": ""
+      },
+      "supervisor": {
+        "state": "completed",
+        "completed_steps": 200,
+        "controller_stdout": ""
+      }
+    },
+    "metrics": {
+      "20": {
+        "policy": {
+          "return": -3.4058079600528606,
+          "rmse_physical": [
+            0.002663152057677348,
+            0.08556837428173386
+          ],
+          "max_abs_error_physical": [
+            0.005893788778055801,
+            0.2179180353114667
+          ],
+          "sum_abs_input_movement_physical": [
+            22488.341331481934,
+            7.501582503318787
+          ],
+          "solver_failure_steps": 0
+        },
+        "supervisor": {
+          "return": -30.29656222201427,
+          "rmse_physical": [
+            0.002737216842127557,
+            0.08593201062431764
+          ],
+          "max_abs_error_physical": [
+            0.006331839552655087,
+            0.19696103582229085
+          ],
+          "sum_abs_input_movement_physical": [
+            22690.424919128418,
+            7.752154469490051
+          ],
+          "solver_failure_steps": 0
+        },
+        "delta_return": 26.89075426196141,
+        "selected": "policy",
+        "regret": 0.0
+      },
+      "80": {
+        "policy": {
+          "return": 728.9291530044152,
+          "rmse_physical": [
+            0.001332062827241507,
+            0.043934962506768906
+          ],
+          "max_abs_error_physical": [
+            0.005893788778055801,
+            0.2179180353114667
+          ],
+          "sum_abs_input_movement_physical": [
+            26081.857681274414,
+            9.736590385437012
+          ],
+          "solver_failure_steps": 0
+        },
+        "supervisor": {
+          "return": 666.9801559629319,
+          "rmse_physical": [
+            0.0013691868070993542,
+            0.04637257258161511
+          ],
+          "max_abs_error_physical": [
+            0.006331839552655087,
+            0.19696103582229085
+          ],
+          "sum_abs_input_movement_physical": [
+            27625.460624694824,
+            10.248697400093079
+          ],
+          "solver_failure_steps": 0
+        },
+        "delta_return": 61.94899704148327,
+        "selected": "policy",
+        "regret": 0.0
+      },
+      "200": {
+        "policy": {
+          "return": 1231.711045922228,
+          "rmse_physical": [
+            0.0030548034529078397,
+            0.14877926306335157
+          ],
+          "max_abs_error_physical": [
+            0.017174944730819527,
+            0.9798227989346131
+          ],
+          "sum_abs_input_movement_physical": [
+            56022.70603179932,
+            21.443281173706055
+          ],
+          "solver_failure_steps": 0
+        },
+        "supervisor": {
+          "return": 1165.756927920308,
+          "rmse_physical": [
+            0.003190112390378931,
+            0.1281129768741367
+          ],
+          "max_abs_error_physical": [
+            0.01723759172481771,
+            0.8385596099082093
+          ],
+          "sum_abs_input_movement_physical": [
+            56605.57746887207,
+            21.935250163078308
+          ],
+          "solver_failure_steps": 0
+        },
+        "delta_return": 65.95411800192005,
+        "selected": "policy",
+        "regret": 0.0
+      }
+    },
+    "trace": "traces\\horizon_adapted_0118812.npz",
+    "prediction_validation": {},
+    "snapshot": null,
+    "status": "completed",
+    "smoke": false,
+    "budget_protocol_id": "column-e1-20-clock-strata-v1",
+    "budget_protocol_sha256": "089b5c6a7df66af5c319563b3f1110a7dfe078a93f74f706a0152be31f9c59ab",
+    "sampling_stratum": "early"
+  },
+  "original_314_independently_preserved": true,
+  "pools": [
+    {
+      "name": "pool0",
+      "directory": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c",
+      "children": [
+        {
+          "case": 15,
+          "expected_identity": {
+            "pid": 44536,
+            "alive": true,
+            "created": 134374564947993919
+          },
+          "actual": {
+            "pid": 44536,
+            "alive": true,
+            "created": 134374564947993919,
+            "cpu_seconds": 53.25,
+            "private_bytes": 3268124672,
+            "rss_bytes": 1353699328
+          },
+          "generation_is_live": true,
+          "requests": 1,
+          "responses": 1,
+          "pending": []
+        },
+        {
+          "case": 17,
+          "expected_identity": {
+            "pid": 35476,
+            "alive": true,
+            "created": 134374564949035600
+          },
+          "actual": {
+            "pid": 35476,
+            "alive": true,
+            "created": 134374564949035600,
+            "cpu_seconds": 51.796875,
+            "private_bytes": 4094640128,
+            "rss_bytes": 2104676352
+          },
+          "generation_is_live": true,
+          "requests": 1,
+          "responses": 1,
+          "pending": []
+        }
+      ],
+      "completed_pairs": [
+        {
+          "channel": "horizon",
+          "step": 118812,
+          "elapsed_seconds": 486.49301610002294,
+          "full_python_state_before": "d0007bfea7f39fc08dd47fe04d54b0f6bfc58271c0882e14ce85d254d9d1544f",
+          "full_python_state_after": "d0007bfea7f39fc08dd47fe04d54b0f6bfc58271c0882e14ce85d254d9d1544f",
+          "source_map_unchanged": true
+        }
+      ]
+    }
+  ],
+  "process_samples": [
+    {
+      "expected": {
+        "pid": 55752,
+        "alive": true,
+        "created": 134374561114578001
+      },
+      "before": {
+        "pid": 55752,
+        "alive": true,
+        "created": 134374561114578001,
+        "cpu_seconds": 46.65625,
+        "private_bytes": 5383917568,
+        "rss_bytes": 1287438336
+      },
+      "after": {
+        "pid": 55752,
+        "alive": true,
+        "created": 134374561114578001,
+        "cpu_seconds": 48.78125,
+        "private_bytes": 5383917568,
+        "rss_bytes": 1257488384
+      }
+    },
+    {
+      "expected": {
+        "pid": 44536,
+        "alive": true,
+        "created": 134374564947993919
+      },
+      "before": {
+        "pid": 44536,
+        "alive": true,
+        "created": 134374564947993919,
+        "cpu_seconds": 53.25,
+        "private_bytes": 3268124672,
+        "rss_bytes": 1353699328
+      },
+      "after": {
+        "pid": 44536,
+        "alive": true,
+        "created": 134374564947993919,
+        "cpu_seconds": 53.265625,
+        "private_bytes": 3268124672,
+        "rss_bytes": 1324883968
+      }
+    },
+    {
+      "expected": {
+        "pid": 35476,
+        "alive": true,
+        "created": 134374564949035600
+      },
+      "before": {
+        "pid": 35476,
+        "alive": true,
+        "created": 134374564949035600,
+        "cpu_seconds": 51.796875,
+        "private_bytes": 4094640128,
+        "rss_bytes": 2104676352
+      },
+      "after": {
+        "pid": 35476,
+        "alive": true,
+        "created": 134374564949035600,
+        "cpu_seconds": 52.109375,
+        "private_bytes": 3264819200,
+        "rss_bytes": 1296535552
+      }
+    }
+  ],
+  "memory": {
+    "committed_bytes": 50753138688,
+    "limit_bytes": 97245818880,
+    "headroom_bytes": 46492680192
+  },
+  "free_disk_bytes": 121095950336,
+  "native_processes": {
+    "5020": {
+      "pid": 5020,
+      "alive": true,
+      "created": 134374562577244647,
+      "cpu_seconds": 173.78125,
+      "private_bytes": 1548587008,
+      "rss_bytes": 1507368960
+    },
+    "44704": {
+      "pid": 44704,
+      "alive": true,
+      "created": 134374565617519495,
+      "cpu_seconds": 115.34375,
+      "private_bytes": 1543753728,
+      "rss_bytes": 1502461952
+    },
+    "49248": {
+      "pid": 49248,
+      "alive": true,
+      "created": 134374565805505720,
+      "cpu_seconds": 155.28125,
+      "private_bytes": 1545564160,
+      "rss_bytes": 1503862784
+    },
+    "59924": {
+      "pid": 59924,
+      "alive": true,
+      "created": 134374562187811247,
+      "cpu_seconds": 3.4375,
+      "private_bytes": 58773504,
+      "rss_bytes": 86528000
+    }
+  },
+  "log_tail": [
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_parallel_20261024\\recover_parallel.py\", line 97 in worker",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_inference_recovery_20261026\\recover_production.py\", line 62 in worker",
+    "  File \"C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\combined_inference_recovery_20261026\\recover_production.py\", line 179 in <module>",
+    "Resumed native Aspen plus learner/optimizer/replay/controller state at step 118808"
+  ]
+}

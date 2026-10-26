@@ -1,0 +1,23 @@
+{
+  "question": "Are the 100 lower-return acceptances mainly steady-state near-ties, and how can end-to-end handoff/reward recovery still be better?",
+  "mode": "focused-audit",
+  "scope": "Accepted completed column combined E1, seed 7, all 320 pairs; previously verified E2 context.",
+  "allowed_actions": "Read closed data; create a separate derived supplement. No simulation, training, manuscript or reviewer-response edits.",
+  "primary_metric": "Policy minus supervisor discounted return over 200 controls, gamma from each record.",
+  "independent_unit": "One instrumented training realization; sampled, phase-stratified decision states are not independent seeds.",
+  "legacy_absolute_sensitivity": 1.0,
+  "relative_return_sensitivities": [
+    0.001,
+    0.005,
+    0.01,
+    0.05
+  ],
+  "relative_denominator": "max(1, abs(supervisor discounted return)); cancellation-robust denominator sensitivity also reported.",
+  "steady_definition": "Previous 10 controls: unchanged reference, max output increment <=5% tracking band, max input increment <=0.5% ID range.",
+  "near_target_definition": "Both pre-decision errors inside their reference-relative performance bands.",
+  "negligible_first_move": "Max branch first-input difference <=0.01% of its ID range.",
+  "small_physical_change": "Absolute difference between branch normalized-error RMSEs <=1% of a tracking band on BOTH outputs.",
+  "joint_near_equivalence": "Return gap <=0.5%, negligible first move, AND small physical RMSE change.",
+  "thresholds_status": "Analysis sensitivities fixed before this recalculation; not validated safety bounds or a practical-equivalence test.",
+  "prior_package": "Preserved byte-for-byte; previous material_harmful_acceptance label refers only to the absolute -1 sensitivity."
+}

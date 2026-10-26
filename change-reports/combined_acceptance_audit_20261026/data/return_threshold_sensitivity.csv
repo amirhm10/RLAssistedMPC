@@ -1,0 +1,5 @@
+relative_threshold,supervisor_return_denominator,symmetric_return_denominator,discounted_absolute_reward_denominator
+0.001,5,5,6
+0.005,14,14,16
+0.01,24,24,24
+0.05,61,61,72

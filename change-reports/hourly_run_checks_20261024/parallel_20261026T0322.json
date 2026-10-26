@@ -1,0 +1,121 @@
+{
+  "at_utc": "2026-10-26T03:27:27.693282+00:00",
+  "passed": true,
+  "side_identity": {
+    "pid": 37712,
+    "alive": true,
+    "created": 134374576176725400,
+    "cpu_seconds": 36.234375,
+    "private_bytes": 27013120,
+    "rss_bytes": 82345984
+  },
+  "side_status": {
+    "state": "running",
+    "updated_at": "2026-10-26T03:27:04.920696+00:00",
+    "pid": 37712,
+    "identity": {
+      "pid": 37712,
+      "alive": true,
+      "created": 134374576176725400,
+      "cpu_seconds": 36.234375,
+      "private_bytes": 27013120,
+      "rss_bytes": 82345984
+    },
+    "archived_working_folders": 4,
+    "duplicate_bytes_removed": 3601337912,
+    "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\retired_branch_zips",
+    "newest_two_primary_comparisons_unpacked": true,
+    "all_results_checkpoints_and_inputs_retained": true,
+    "free_disk_bytes": 111270875136
+  },
+  "algorithm_wrapper_seals_passed": true,
+  "verified_archive_count": 4,
+  "archive_bytes": 563644487,
+  "latest_archive": {
+    "at_utc": "2026-10-26T03:23:19.849865+00:00",
+    "verified_archive": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\retired_branch_zips\\c678a177820c0a2d2f179c59.zip",
+    "archive_sha256": "fc6593a6a629b84de2e743088cfea0e10c568b42f419125a962615da67ebbb3f",
+    "only_verified_duplicate_working_files_removed": true,
+    "bytes_freed": 901067126,
+    "all_results_inputs_and_checkpoints_retained": true
+  },
+  "latest_archive_sha256_crc_passed": true,
+  "newest_two_primary_comparisons": [
+    {
+      "channel": "residual",
+      "step": 118960
+    },
+    {
+      "channel": "horizon",
+      "step": 119020
+    }
+  ],
+  "retained_working_models": [
+    {
+      "case": 15,
+      "channel": "residual",
+      "step": 118960,
+      "model": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case15\\working\\load_6d6347aa\\C2S_SS_simulation16.dynf",
+      "unpacked_bytes": 895750698
+    },
+    {
+      "case": 15,
+      "channel": "horizon",
+      "step": 119020,
+      "model": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case15\\working\\load_856f3ab8\\C2S_SS_simulation16.dynf",
+      "unpacked_bytes": 897213549
+    },
+    {
+      "case": 17,
+      "channel": "residual",
+      "step": 118960,
+      "model": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case17\\working\\load_2547b37d\\C2S_SS_simulation16.dynf",
+      "unpacked_bytes": 895750698
+    },
+    {
+      "case": 17,
+      "channel": "horizon",
+      "step": 119020,
+      "model": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case17\\working\\load_edfcdc66\\C2S_SS_simulation16.dynf",
+      "unpacked_bytes": 897213549
+    }
+  ],
+  "all_current_native_generations_owned": true,
+  "current_native_processes": {
+    "5020": {
+      "pid": 5020,
+      "alive": true,
+      "created": 134374562577244647,
+      "cpu_seconds": 211.203125,
+      "private_bytes": 1551503360,
+      "rss_bytes": 1510588416
+    },
+    "20316": {
+      "pid": 20316,
+      "alive": true,
+      "created": 134374586438697438,
+      "cpu_seconds": 148.421875,
+      "private_bytes": 1553424384,
+      "rss_bytes": 1510735872
+    },
+    "59924": {
+      "pid": 59924,
+      "alive": true,
+      "created": 134374562187811247,
+      "cpu_seconds": 8.71875,
+      "private_bytes": 58748928,
+      "rss_bytes": 86568960
+    },
+    "60208": {
+      "pid": 60208,
+      "alive": true,
+      "created": 134374586255149212,
+      "cpu_seconds": 153.625,
+      "private_bytes": 1554407424,
+      "rss_bytes": 1512296448
+    }
+  },
+  "main_checkpoint_retention_conservative": true,
+  "live_offline_verifier_used": false,
+  "actions_on_scientific_workers": []
+}

@@ -1,0 +1,79 @@
+{
+  "at_utc": "2026-10-26T03:28:16.526693+00:00",
+  "passed": true,
+  "primary_pairs": 317,
+  "remaining_comparisons": 3,
+  "latest_primary": {
+    "channel": "horizon",
+    "step": 119020,
+    "status": "completed"
+  },
+  "viewer_current_manifest_verified": true,
+  "independent_preservation_manifests_verified": [
+    {
+      "receipt": "preservation.json",
+      "independent_manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_2026-10-26T013317_458786+0000\\preservation.json",
+      "sha256": "a0e37e3e442e199f6190810e32d908096e7bf975a588b189241481c259443f5e",
+      "verified": true
+    },
+    {
+      "receipt": "retry_preservation.json",
+      "independent_manifest": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\before_metadata_retry_2026-10-26T023823_240837+0000\\preservation.json",
+      "sha256": "0d3e797be83ad6f751c8a2d3d7b0457d38ae1a9f55ab4a08cfd16e828ddf863d",
+      "verified": true
+    }
+  ],
+  "latest_full_checkpoint": 118808,
+  "native_cpu_deltas": [
+    {
+      "pid": 5020,
+      "created": 134374562577244647,
+      "cpu_delta_seconds": 0.1875,
+      "private_bytes": 1551474688
+    },
+    {
+      "pid": 20316,
+      "created": 134374586438697438,
+      "cpu_delta_seconds": 1.046875,
+      "private_bytes": 1553391616
+    },
+    {
+      "pid": 59924,
+      "created": 134374562187811247,
+      "cpu_delta_seconds": 0.171875,
+      "private_bytes": 58748928
+    },
+    {
+      "pid": 60208,
+      "created": 134374586255149212,
+      "cpu_delta_seconds": 1.203125,
+      "private_bytes": 1554411520
+    }
+  ],
+  "OneDrive_processes": [
+    {
+      "name": "OneDrive.Sync.Service.exe",
+      "pid": 38308
+    },
+    {
+      "name": "FileCoAuth.exe",
+      "pid": 39572
+    }
+  ],
+  "OneDrive_client_absent": true,
+  "retention_evidence": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\hourly_run_checks_20261024\\parallel_20261026T0322.json",
+  "audit_evidence": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\change-reports\\hourly_run_checks_20261024\\audit_20261026T0322.json",
+  "actions": {
+    "launches": 0,
+    "restarts": 0,
+    "signals": 0,
+    "source_edits": 0,
+    "scientific_data_changes": 0
+  },
+  "memory": {
+    "committed_bytes": 56901320704,
+    "limit_bytes": 97245818880,
+    "headroom_bytes": 40344498176
+  },
+  "free_disk_bytes": 111259643904
+}

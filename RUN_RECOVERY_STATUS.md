@@ -1,8 +1,8 @@
 # Reviewer-run recovery — latest update October 26, 2026
 
-## Current progress —03:19UTC:316/320 combined comparisons
+## Current progress —03:28UTC:317/320 combined comparisons
 
-One further residual comparison at118960 has saved and passed trace checks; **4 comparisons plus final training remain**. Current accepted production and all runtime/committed-source seals remain valid. New side retention has safely archived its first2 old working folders; latest ZIP checks pass and newest-two full comparison models remain unpacked. Disk106.6GiB; all original results, full checkpoint backups and archives remain retained. All other scheduled runs remain completed. Evidence: `change-reports/combined_inference_recovery_20261026/STATUS.md` and its final verification receipts. The hourly monitor continues.
+The horizon119020 comparison has saved and passed trace checks; **3 comparisons plus final training remain**. The current parent and both case15/17 workers retain their accepted creation identities; both current native comparison applications show CPU progress. All143 scientific seals verify and no unresolved observation needs repair. The side service has safely archived4 older working folders; the newest ZIP SHA-256/CRC and all four unpacked models for the newest two completed comparisons verify. Original retention remains healthy and conservatively retains combined files until the next full checkpoint; the verified/backed-up118808/118800 pair remains protected. Headroom37.6GiB, disk103.6GiB. All other scheduled runs remain completed. The viewer points to the current metadata retry. Evidence: `change-reports/hourly_run_checks_20261024/audit_20261026T0322.json`, `parallel_20261026T0322.json` and `check_20261026T0322.json`. No worker was paused, restarted or signaled; monitoring continues.
 
 ## Recovery accepted;315/320 combined comparisons saved — 03:09UTC
 

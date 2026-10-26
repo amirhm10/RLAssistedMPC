@@ -1,5 +1,9 @@
 # Reviewer-run recovery — latest update October 26, 2026
 
+## Current progress —03:19UTC:316/320 combined comparisons
+
+One further residual comparison at118960 has saved and passed trace checks; **4 comparisons plus final training remain**. Current accepted production and all runtime/committed-source seals remain valid. New side retention has safely archived its first2 old working folders; latest ZIP checks pass and newest-two full comparison models remain unpacked. Disk106.6GiB; all original results, full checkpoint backups and archives remain retained. All other scheduled runs remain completed. Evidence: `change-reports/combined_inference_recovery_20261026/STATUS.md` and its final verification receipts. The hourly monitor continues.
+
 ## Recovery accepted;315/320 combined comparisons saved — 03:09UTC
 
 Combined is healthy under current parent55752/134374561114578001 at `Distillation/Results/state_recovery/20261026_combined_metadata_retry/manifest.json`. The formerly stalled Markov118860 comparison completed in434.09seconds. Exact8-step advancement of all four learners,40000-entry replay buffers, current-generation full native/Python cold restore and both production pairs verified; all143 scientific seals remain unchanged. **Five comparisons and final training remain.** All four standalone column configurations, repetitions/coordinator and horizon remain completed; final collector reports635/640 and no unresolved observations. Current full checkpoint118808/118800 pair is independently verified/backed up. All314 original results, all current results, both complete backups, pins and archives remain retained.

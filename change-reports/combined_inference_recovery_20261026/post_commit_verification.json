@@ -1,0 +1,56 @@
+{
+  "at_utc": "2026-10-26T03:18:58.464312+00:00",
+  "parent": {
+    "pid": 55752,
+    "alive": true,
+    "created": 134374561114578001,
+    "cpu_seconds": 174.765625,
+    "private_bytes": 8276574208,
+    "rss_bytes": 1792241664
+  },
+  "pairs": 316,
+  "remaining": 4,
+  "latest_step": 118960,
+  "new_trace_checks": [
+    {
+      "step": 118960,
+      "trace": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\column_e1\\20261020_seed7_native_v2\\combined\\a1\\capture\\traces\\residual_adapted_0118960.npz",
+      "sha256": "8332ace2fdd7ed39eb4cd080a08b226202ffe5cc203b1d61b3d0e58f935e5507"
+    }
+  ],
+  "all_current_parallel_states_preserved": true,
+  "side_status": {
+    "state": "running",
+    "updated_at": "2026-10-26T03:18:31.600170+00:00",
+    "pid": 37712,
+    "identity": {
+      "pid": 37712,
+      "alive": true,
+      "created": 134374576176725400,
+      "cpu_seconds": 18.390625,
+      "private_bytes": 24006656,
+      "rss_bytes": 80474112
+    },
+    "archived_working_folders": 2,
+    "duplicate_bytes_removed": 1799203660,
+    "archive_root": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\retired_branch_zips",
+    "newest_two_primary_comparisons_unpacked": true,
+    "all_results_checkpoints_and_inputs_retained": true,
+    "free_disk_bytes": 114502848512
+  },
+  "verified_retired_archives": 2,
+  "latest_archive_sha256_crc_passed": true,
+  "latest_archive": {
+    "at_utc": "2026-10-26T03:14:46.536556+00:00",
+    "verified_archive": "C:\\Users\\hamediaa\\RL_MPC_local_archive\\combined_inference_recovery_20261026\\retired_branch_zips\\48f0e8e7cafb1609ad096dc5.zip",
+    "archive_sha256": "f49b19a0b4cd34336163011925a3f8f60032b01dfdd3793ba7c65f524523f347",
+    "only_verified_duplicate_working_files_removed": true,
+    "bytes_freed": 899601830,
+    "all_results_inputs_and_checkpoints_retained": true
+  },
+  "newest_two_comparisons_unpacked": true,
+  "all_original_results_and_checkpoint_backups_retained": true,
+  "free_disk_GiB": 106.6,
+  "local_recovery_commit": "fefae9e",
+  "post_commit_science_adapter_and_blob_seals_verified": true
+}

@@ -1,5 +1,9 @@
 # Combined inference recovery — October 26, 2026
 
+## Latest progress —03:19UTC
+
+**316/320 comparisons are now saved;4 remain plus final training.** The additional residual118960 trace passed SHA-256/CRC checks, current production remains live, and all source/adapter seals matched their exact committed Git blobs after local recovery commit `fefae9e`. The side service has archived/pruned its first2 retired working folders after verification; latest ZIP SHA/CRC passes and all four working models for the newest two completed comparisons remain unpacked. Disk106.6GiB. See `post_commit_verification.json` and `retained_comparison_verification.json`. Current accepted identities/manifest and all preservation/monitoring safeguards below remain unchanged.
+
 ## Accepted current production — verified through03:09UTC
 
 **Combined is healthy at315/320 saved comparisons;5 remain, plus the last training continuation.** Full checkpoint is118808, cycle297/300; the actual saved comparison advanced through Markov118860. That formerly stalled200-step pair completed in434.09seconds, with unchanged full live/frozen state and source map. The current production55752/134374561114578001 passed a fresh118808 cold restore beyond the exact80-record historical journal prefix. Accepted validation preserved all four learners/optimizers/controllers, advanced every train counter exactly8, and retained40000-entry replay buffers. Both actual production comparisons and every native restore/trace/ownership check pass. See `acceptance.json`, `fresh_production_restore.json`, `bounded_acceptance.json` and `recovery_health.json`. Only the combined monitoring identity was updated; all four standalone E1 configurations, column repetitions/coordinator and horizon remain completed. The final campaign collector reports635/640 pairs and **no unresolved observations**.

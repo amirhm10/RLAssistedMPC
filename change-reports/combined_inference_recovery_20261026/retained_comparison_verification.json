@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "at_utc": "2026-10-26T03:20:27.839130+00:00",
+  "newest_two_primary_keys": [
+    {
+      "channel": "markov",
+      "step": 118860
+    },
+    {
+      "channel": "residual",
+      "step": 118960
+    }
+  ],
+  "working_models": [
+    {
+      "case": 15,
+      "channel": "markov",
+      "step": 118860,
+      "model": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case15\\working\\load_00ce379a\\C2S_SS_simulation16.dynf",
+      "unpacked_bytes": 894281155
+    },
+    {
+      "case": 15,
+      "channel": "residual",
+      "step": 118960,
+      "model": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case15\\working\\load_6d6347aa\\C2S_SS_simulation16.dynf",
+      "unpacked_bytes": 895750698
+    },
+    {
+      "case": 17,
+      "channel": "markov",
+      "step": 118860,
+      "model": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case17\\working\\load_489387de\\C2S_SS_simulation16.dynf",
+      "unpacked_bytes": 894281155
+    },
+    {
+      "case": 17,
+      "channel": "residual",
+      "step": 118960,
+      "model": "C:\\Users\\hamediaa\\OneDrive - McMaster University\\PythonProjects\\RL_assisted_MPC\\Distillation\\Results\\state_recovery\\20261026_combined_metadata_retry\\branches_0_13e9142c\\case17\\working\\load_2547b37d\\C2S_SS_simulation16.dynf",
+      "unpacked_bytes": 895750698
+    }
+  ],
+  "all_four_latest_working_models_remain_unpacked": true,
+  "scientific_results_removed": 0
+}

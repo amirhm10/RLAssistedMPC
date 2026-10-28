@@ -1,0 +1,17 @@
+{
+  "at_utc": "2026-10-28T22:27:37.406Z",
+  "approved_files": 211,
+  "approved_bytes": 21294353912,
+  "first_stage_deleted": 211,
+  "second_stage_deleted": 211,
+  "second_stage_empty_verified": true,
+  "unrelated_recycle_bin_items_removed": 0,
+  "quota_before_gb_free": 0,
+  "quota_after_gb_free": 19.83,
+  "quota_total_gb": 1024,
+  "quota_text": "19.83 GB free of 1024.00 GB\t\n\t",
+  "all_archive_representations_retained": true,
+  "retained_archive_files_freshly_rehashed_after_cloud_cleanup": 211,
+  "all_4271_protected_file_versions_unchanged_after_cloud_cleanup": true,
+  "frozen_original_hashes_verified_after_cloud_cleanup": 46
+}

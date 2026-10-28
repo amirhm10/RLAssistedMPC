@@ -59,6 +59,8 @@ def main():
     # All pre-existing files outside the exact removal set must retain their
     # content metadata. This also protects unselected runs and failure evidence.
     metadata_checked=0
+    workflow_updates=[]
+    allowed_workflow={'paper-memory/'+name for name in ('ACTIVE_PAPER_STATE.md','FREEZE_STATE.md','METHOD_FAMILY_MAP.md','RESULT_BUNDLE_INDEX.md','CLAIM_LEDGER.md','EXPERIMENT_BACKLOG.md','OPEN_QUESTIONS.md','DECISION_LOG.md')}
     for label,root in [('code',ROOT),('paper',Path(r'C:\Users\hamediaa\OneDrive - McMaster University\PythonProjects\Rl_assisted_paper')),('local_archive',LOCAL)]:
         for line in (HERE/f'inventory_{label}.jsonl').read_text(encoding='utf-8').splitlines():
             row=json.loads(line);p=root/row['path']
@@ -66,7 +68,10 @@ def main():
             if not p.is_file():errors.append(dict(path=str(p),error='unlisted deletion'));continue
             st=p.stat()
             if (st.st_size,st.st_mtime_ns)!=(row['bytes'],row['mtime_ns']):
-                errors.append(dict(path=str(p),error='unexpected pre-existing file change'))
+                if label=='paper' and Path(row['path']).as_posix().removeprefix('RL_assisted_paper/') in allowed_workflow:
+                    workflow_updates.append(str(p))
+                else:
+                    errors.append(dict(path=str(p),error='unexpected pre-existing file change'))
             metadata_checked+=1
     new_archives={r['archive']:r['archive_bytes'] for r in native if r['new_archive']}
     raw=sum(r['source_bytes'] for r in native)
@@ -81,6 +86,7 @@ def main():
                 redundant_native_backup_files_removed=len(backups),redundant_native_backup_bytes=duplicate_bytes,
                 net_bytes_reclaimed_by_cleanup=raw+duplicate_bytes-sum(new_archives.values()),
                 retained_archive_files_freshly_rehashed=len(retained),preexisting_files_metadata_verified=metadata_checked,
+                intentional_paper_workflow_updates=workflow_updates,
                 initial_disk_usage=initial,final_disk_usage=disk,observed_free_disk_increase=disk['free']-initial['free'],
                 actual_staged_restore_verified=c.read(HERE/'pilot_restore_verification.json')['passed'],
                 no_raw_numerical_results_policies_python_checkpoints_manuscripts_removed=True,

@@ -14,12 +14,15 @@ manuscript and its revision, including results not yet integrated into the text.
 No performance-based run selection was performed. Scientific results with adverse
 or mixed outcomes, failed-attempt records, and numerical provenance remain.
 
-Permanent cloud cleanup is a separate pending step. The browser reported
-0.00 GB free of 1024.00 GB. A concrete selection of 211 deleted native files
-(19.83 GiB) matches intact lossless archives by original path, saved full file
-SHA-256, and displayed cloud size. The broader recycle bin contains unrelated
-files and must not be emptied indiscriminately. No permanent cloud deletion had
-occurred at completion of the local verification.
+Permanent cloud cleanup subsequently completed after fresh explicit user
+confirmation. Exactly 211 native files (19.83 GiB) matched intact lossless
+archives by full original path, saved full file SHA-256 and displayed cloud
+size. The first stage reported 211 removals. The second stage completed in
+batches of 209 and two after the last two approved items arrived, and its empty
+state was verified. No unrelated recycle-bin item was removed. Storage Metrics
+then reported **19.83 GB free of 1024.00 GB**, previously 0.00 GB. The exact
+approval scope, UI completion records, screenshots and quota observation are in
+`cloud_review/deletion_operation.json` and `cloud_review/cloud_verification.json`.
 
 ## What is retained
 
@@ -118,8 +121,10 @@ Primary evidence is `inventory_summary.json`, `protected_evidence_before.json`,
 `native_compaction_plan.json`, both removal receipt logs, the backup plan/result,
 `pilot_restore_verification.json` and `final_verification.json`. The complete
 file-level inventories are retained locally alongside this report. The
-`cloud_review/` manifests record exact cloud candidates and verified archive
-representations; other recycle-bin items remain outside scope.
+`cloud_review/` manifests record exact cloud candidates, approval, verified
+archive representations and the completed selective removal; other recycle-bin
+items remain outside scope. The local hash/metadata verification preceded the
+listed intentional paper-workflow record updates.
 
 Files changed are the cleanup helpers and their audit records in this directory,
 the 617 individually verified native-file removals, 116 retained ZIP additions,

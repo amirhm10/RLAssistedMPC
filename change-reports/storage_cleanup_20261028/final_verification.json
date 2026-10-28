@@ -28,5 +28,10 @@
   "observed_free_disk_increase": 197464932352,
   "actual_staged_restore_verified": true,
   "no_raw_numerical_results_policies_python_checkpoints_manuscripts_removed": true,
-  "cloud_permanent_deletion_performed": false
+  "cloud_permanent_deletion_performed": true,
+  "cloud_files_permanently_deleted": 211,
+  "cloud_free_gb_after": 19.83,
+  "cloud_verification_reference": "cloud_review/cloud_verification.json",
+  "cloud_verified_at_utc": "2026-10-28T22:27:37.406Z",
+  "paper_workflow_records_intentionally_updated_after_local_verification": true
 }

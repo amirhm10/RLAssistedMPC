@@ -1,0 +1,98 @@
+- link "Skip to main content":
+  - /url: "#"
+- region "Microsoft Office 365 suite navigation":
+  - banner:
+    - button "App launcher": 
+    - link "McMaster University":
+      - /url: https://www.mcmaster.ca/
+      - img "McMaster University"
+    - link "SharePoint":
+      - /url: https://mcmasteru365.sharepoint.com/_layouts/15/sharepoint.aspx?&login_hint=hamedia@mcmaster.ca
+      - generic: SharePoint
+    - button "Next steps to improve your site":
+      - generic: 
+    - button "Provide feedback to Microsoft":
+      - generic: 
+    - button "Settings":
+      - generic: 
+    - button "Help":
+      - generic: 
+    - button "Account manager for Amir Hossein Hamedi":
+      - generic: AH
+      - img "AH"
+    - generic: 
+- heading "Amir Hossein Hamedi" [level=1]
+- navigation:
+  - button "Discover, 1 of 4":
+    - generic: Discover
+  - button "Publish, 2 of 4":
+    - generic: Publish
+  - button "Build, 3 of 4":
+    - generic: Build
+  - button "OneDrive, 4 of 4":
+    - generic: OneDrive
+- strong: No free space.
+- text: This site is out of storage space and changes can't be saved. To free up space, delete files you don't need and
+- link "empty the recycle bin":
+  - /url: /personal/hamedia_mcmaster_ca/_layouts/15/adminrecyclebin.aspx
+- text: .
+- region "SharePoint Site Header":
+  - button "navigation pane":
+    - generic: 
+  - link "Amir Hossein Hamedi home":
+    - /url: https://mcmasteru365-my.sharepoint.com/personal/hamedia_mcmaster_ca
+  - heading "Amir Hossein Hamedi" [level=2]:
+    - link "Amir Hossein Hamedi":
+      - /url: https://mcmasteru365-my.sharepoint.com/personal/hamedia_mcmaster_ca
+  - button "Not following, Add to favorites":
+    - generic: 
+    - generic: Not following
+  - button "Share":
+    - generic: 
+    - generic: Share
+- region "Command bar":
+  - menubar:
+    - menuitem "Show progress" [active]:
+      - generic: 
+    - menuitem "View options. List view selected .":
+      - generic: 
+      - generic: View options
+      - generic: 
+- main:
+  - heading "Second stage recycle bin" [level=1]
+  - generic "List of folders and files":
+    - grid "List of folders, files or items":
+      - row "Column headers. Use menus to perform column operations like sort, filter, or group by a column.":
+        - columnheader "Toggle selection for all items":
+          - checkbox "Toggle selection for all items":
+            - generic: 
+            - generic: 
+        - generic: Toggle selection for all items
+        - columnheader "file type":
+          - generic: 
+          - generic: file type
+        - columnheader "Name":
+          - button "Name":
+            - generic: Name
+            - generic: 
+        - columnheader "Date deleted":
+          - button "Date deleted":
+            - generic: Date deleted
+            - generic: 
+            - generic: 
+        - columnheader "Deleted by":
+          - button "Deleted by":
+            - generic: Deleted by
+            - generic: 
+        - columnheader "Created by":
+          - button "Created by":
+            - generic: Created by
+            - generic: 
+        - columnheader "Original location":
+          - generic: Original location
+  - alert:
+    - generic: Your recycle bin is empty
+  - img "Empty folder"
+- alert:
+  - text: Deleted 2 items from
+  - generic: Second stage recycle bin

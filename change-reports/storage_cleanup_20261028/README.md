@@ -14,15 +14,22 @@ manuscript and its revision, including results not yet integrated into the text.
 No performance-based run selection was performed. Scientific results with adverse
 or mixed outcomes, failed-attempt records, and numerical provenance remain.
 
-Permanent cloud cleanup subsequently completed after fresh explicit user
-confirmation. Exactly 211 native files (19.83 GiB) matched intact lossless
-archives by full original path, saved full file SHA-256 and displayed cloud
-size. The first stage reported 211 removals. The second stage completed in
-batches of 209 and two after the last two approved items arrived, and its empty
-state was verified. No unrelated recycle-bin item was removed. Storage Metrics
-then reported **19.83 GB free of 1024.00 GB**, previously 0.00 GB. The exact
-approval scope, UI completion records, screenshots and quota observation are in
-`cloud_review/deletion_operation.json` and `cloud_review/cloud_verification.json`.
+Permanent cloud cleanup subsequently completed under two fresh explicit user
+confirmations: 211 native files (19.83 GiB), then 354 additional native files
+(42.08 GiB). The total is **565 files, 66,475,406,927 bytes (61.91 GiB)**. Each
+copy matched an intact lossless archive using its full original path, saved
+full file SHA-256 and displayed cloud size. Native metadata also links temporary
+exports to byte-identical archived load copies when their original paths differ.
+Both stages reported all approved removals. The second-stage batches were
+209 plus two, then 351 plus three as the final approved items arrived. Its empty
+state was verified after each operation. No unrelated recycle-bin item was
+removed. Storage Metrics showed 19.83 GB free after the first batch and
+**53.12 GB free of 1024.00 GB** at the final observation, previously 0.00 GB.
+This is the observed live quota, rather than an assumption from removed bytes:
+Documents concurrently grew from 612.9 to 621.6 GB between those screenshots.
+The exact approvals, UI completion records, screenshots and quota observations
+are in `cloud_review/deletion_operation.json`, `additional_deletion_operation.json`,
+`cloud_verification.json`, and `additional_cloud_verification.json`.
 
 ## What is retained
 
@@ -88,6 +95,11 @@ stopped or restarted by this cleanup.
    components, and all 294 ZIP files supporting this cleanup. Confirm every
    deletion against the durable receipts and verify all other inventoried
    files' metadata. `final_verification.json` reports zero errors.
+7. After each cloud removal, rehash its supporting ZIPs (211 for the first
+   batch and 144 for the second), check all 4,271 protected file generations,
+   and freshly hash all 46 frozen originals. `verify_cloud_completion.py`
+   verifies the two disjoint approval scopes and completed operation records;
+   `cloud_review/additional_cloud_verification.json` reports zero errors.
 
 Before each unlink, the helper checked the resolved allowed root, excluded
 protected/final paths and online-only files, refused changed generations and

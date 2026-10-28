@@ -1,0 +1,35 @@
+{
+  "at_utc": "2026-10-28T22:43:11.907394+00:00",
+  "passed": true,
+  "errors": [],
+  "additional_approved_files": 354,
+  "additional_approved_bytes": 45181053015,
+  "additional_first_stage_deleted": 354,
+  "additional_second_stage_deleted": 354,
+  "additional_second_stage_batches": [
+    351,
+    3
+  ],
+  "additional_retained_archive_files_freshly_rehashed_after_cloud_cleanup": 144,
+  "all_4271_protected_file_versions_unchanged_after_both_batches": true,
+  "frozen_original_hashes_verified_after_both_batches": 46,
+  "total_approved_files": 565,
+  "total_approved_bytes": 66475406927,
+  "total_first_stage_deleted": 565,
+  "total_second_stage_deleted": 565,
+  "second_stage_empty_verified": true,
+  "unrelated_recycle_bin_items_removed": 0,
+  "all_archive_representations_retained": true,
+  "quota_before_gb_free": 0,
+  "quota_after_first_batch_gb_free": 19.83,
+  "quota_after_gb_free": 53.12,
+  "quota_total_gb": 1024,
+  "quota_text": "53.12 GB free of 1024.00 GB\t\n\t",
+  "quota_observed_at_utc": "2026-10-28T22:42:38.173Z",
+  "first_batch_verification": "cloud_verification.json",
+  "action_time_confirmations": [
+    "Permanently remove these 211 copies",
+    "Permanently remove these additional 354 copies"
+  ],
+  "note": "Quota is the observed live value; raw bytes removed are recorded separately. No further cloud items are authorized."
+}

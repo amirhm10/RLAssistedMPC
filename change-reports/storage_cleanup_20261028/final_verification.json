@@ -29,9 +29,20 @@
   "actual_staged_restore_verified": true,
   "no_raw_numerical_results_policies_python_checkpoints_manuscripts_removed": true,
   "cloud_permanent_deletion_performed": true,
-  "cloud_files_permanently_deleted": 211,
-  "cloud_free_gb_after": 19.83,
-  "cloud_verification_reference": "cloud_review/cloud_verification.json",
-  "cloud_verified_at_utc": "2026-10-28T22:27:37.406Z",
-  "paper_workflow_records_intentionally_updated_after_local_verification": true
+  "cloud_files_permanently_deleted": 565,
+  "cloud_free_gb_after": 53.12,
+  "cloud_verification_reference": "cloud_review/additional_cloud_verification.json",
+  "cloud_verified_at_utc": "2026-10-28T22:43:11.907394+00:00",
+  "paper_workflow_records_intentionally_updated_after_local_verification": true,
+  "cloud_raw_bytes_permanently_deleted": 66475406927,
+  "cloud_second_stage_empty_verified": true,
+  "cloud_unrelated_items_removed": 0,
+  "post_cloud_protected_file_versions_unchanged": 4271,
+  "post_cloud_frozen_original_hashes_verified": 46,
+  "latest_disk_usage_after_cloud": {
+    "total": 1021297291264,
+    "used": 749043793920,
+    "free": 272253497344
+  },
+  "latest_disk_observed_at_utc": "2026-10-28T22:43:58.566567+00:00"
 }

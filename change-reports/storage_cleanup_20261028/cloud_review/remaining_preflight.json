@@ -1,0 +1,12 @@
+{
+  "at_utc": "2026-10-28T22:36:01.986874+00:00",
+  "passed": true,
+  "files": 354,
+  "folders": 0,
+  "bytes": 45181053015,
+  "archives_freshly_rehashed": 144,
+  "all_native_sources_already_compacted": true,
+  "final_checkpoint_directories_excluded": true,
+  "archive_bytes_identical_to_previously_fully_verified_copy": true,
+  "permanent_deletion_not_yet_authorized": true
+}

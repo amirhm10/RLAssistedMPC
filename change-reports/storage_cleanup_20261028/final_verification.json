@@ -1,0 +1,32 @@
+{
+  "at_utc": "2026-10-28T22:13:59.708146+00:00",
+  "passed": true,
+  "errors": [],
+  "protected_local_files_sha256_verified": 4033,
+  "protected_online_only_files_preserved": 238,
+  "final_complete_checkpoint_sets": 10,
+  "final_native_components_sha256_verified": 20,
+  "historical_native_files_compacted": 536,
+  "historical_native_raw_bytes": 161799444691,
+  "new_unique_zip_files": 116,
+  "new_unique_zip_bytes": 3912327871,
+  "redundant_native_backup_files_removed": 81,
+  "redundant_native_backup_bytes": 41536714066,
+  "net_bytes_reclaimed_by_cleanup": 199423830886,
+  "retained_archive_files_freshly_rehashed": 294,
+  "preexisting_files_metadata_verified": 57320,
+  "initial_disk_usage": {
+    "total": 1021297291264,
+    "used": 945717186560,
+    "free": 75580104704
+  },
+  "final_disk_usage": {
+    "total": 1021297291264,
+    "used": 748252254208,
+    "free": 273045037056
+  },
+  "observed_free_disk_increase": 197464932352,
+  "actual_staged_restore_verified": true,
+  "no_raw_numerical_results_policies_python_checkpoints_manuscripts_removed": true,
+  "cloud_permanent_deletion_performed": false
+}

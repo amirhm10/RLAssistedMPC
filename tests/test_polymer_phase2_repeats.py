@@ -21,14 +21,14 @@ import json, pathlib, sys, time
 job_file = pathlib.Path(sys.argv[1])
 job = json.loads(job_file.read_text())
 root = pathlib.Path(job['repo_root'])
-group = root / job['category']
+group = root / (job['category'] + '_' + job['mode'])
 group.mkdir(exist_ok=True)
 started = time.monotonic_ns()
 (group / ('ready_' + job['mode'] + '_' + str(job['seed']))).touch()
 deadline = time.monotonic() + 10
-while len(list(group.glob('ready_*'))) < 10:
+while len(list(group.glob('ready_*'))) < 5:
     if time.monotonic() > deadline:
-        raise RuntimeError('All ten gated and ungated workers were not started together')
+        raise RuntimeError('All five workers in the category/mode group were not started together')
     time.sleep(.01)
 time.sleep(.05)
 failure = root / 'fail_horizon_sg_seed11'
@@ -65,17 +65,19 @@ class LauncherTests(unittest.TestCase):
         }
         return manifest, batch, lambda python, job: [python, str(worker), str(job)]
 
-    def test_default_plan_has_fifty_unique_runs_in_five_category_groups(self):
+    def test_default_plan_has_fifty_unique_runs_in_ten_category_mode_groups(self):
         jobs = launcher.build_jobs(launcher.RUNNERS, ["sg", "plain"], launcher.DEFAULT_SEEDS)
         self.assertEqual(len(jobs), 50)
         self.assertEqual(len({(j["category"], j["mode"], j["seed"]) for j in jobs}), 50)
         self.assertEqual([j["seed"] for j in jobs[:5]], list(launcher.DEFAULT_SEEDS))
         self.assertTrue(all(j["category"] == "horizon" and j["mode"] == "plain" for j in jobs[5:10]))
         self.assertEqual(len({j["category"] for j in jobs}), 5)
+        self.assertEqual(len({(j["category"], j["mode"]) for j in jobs}), 10)
         for category in launcher.RUNNERS:
-            group = [j for j in jobs if j["category"] == category]
-            self.assertEqual(len(group), 10)
-            self.assertEqual({j["mode"] for j in group}, {"sg", "plain"})
+            for mode in ("sg", "plain"):
+                group = [j for j in jobs if (j["category"], j["mode"]) == (category, mode)]
+                self.assertEqual(len(group), 5)
+                self.assertEqual([j["seed"] for j in group], list(launcher.DEFAULT_SEEDS))
 
     def test_configuration_preserves_controller_learning_and_global_defaults(self):
         original = {
@@ -107,7 +109,7 @@ class LauncherTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             launcher.configure_defaults({"n_tests_override": 20}, {"category":"horizon", "mode":"sg"})
 
-    def test_ten_processes_overlap_and_next_category_waits_for_saved_results(self):
+    def test_five_processes_overlap_and_next_group_waits_for_saved_results(self):
         manifest, batch, command = self.make_manifest()
         with redirect_stdout(io.StringIO()):
             self.assertEqual(launcher.run_batches(manifest, batch, command), 0)
@@ -116,30 +118,33 @@ class LauncherTests(unittest.TestCase):
         paths = []
         for job in manifest["jobs"]:
             status = json.loads((Path(job["attempts"][0]["directory"]) / "worker_status.json").read_text())
-            intervals.setdefault(job["category"], []).append((status["started_ns"], status["finished_ns"]))
+            intervals.setdefault((job["category"], job["mode"]), []).append((status["started_ns"], status["finished_ns"]))
             paths.append(job["result_file"])
         for group in intervals.values():
-            self.assertEqual(len(group), 10)
+            self.assertEqual(len(group), 5)
             self.assertLess(max(start for start, _ in group), min(end for _, end in group))
-        self.assertLessEqual(max(end for _, end in intervals["horizon"]), min(start for start, _ in intervals["weights"]))
+        ordered_groups = list(intervals.values())
+        for previous, following in zip(ordered_groups, ordered_groups[1:]):
+            self.assertLessEqual(max(end for _, end in previous), min(start for start, _ in following))
         self.assertEqual(len(set(paths)), 20)
 
-    def test_failure_stops_next_category_and_resume_keeps_completed_runs(self):
+    def test_failure_stops_next_mode_and_category_and_resume_keeps_completed_runs(self):
         manifest, batch, command = self.make_manifest()
         failure = self.root / "fail_horizon_sg_seed11"
         failure.touch()
         with redirect_stdout(io.StringIO()):
             self.assertEqual(launcher.run_batches(manifest, batch, command), 1)
         self.assertTrue(all(not j["attempts"] for j in manifest["jobs"] if j["category"] == "weights"))
+        self.assertTrue(all(not j["attempts"] for j in manifest["jobs"] if j["mode"] == "plain"))
         saved = {(j["mode"], j["seed"]): j["result_file"] for j in manifest["jobs"] if j["state"] == "completed"}
-        self.assertEqual(len(saved), 9)
+        self.assertEqual(len(saved), 4)
         failure.unlink()
         with redirect_stdout(io.StringIO()):
             self.assertEqual(launcher.run_batches(manifest, batch, command), 0)
         for job in manifest["jobs"][:10]:
             failed = job["mode"] == "sg" and job["seed"] == 11
             self.assertEqual(len(job["attempts"]), 2 if failed else 1)
-            if not failed:
+            if (job["mode"], job["seed"]) in saved:
                 self.assertEqual(job["result_file"], saved[(job["mode"], job["seed"])])
         self.assertEqual(manifest["state"], "completed")
 
@@ -222,7 +227,8 @@ class LauncherTests(unittest.TestCase):
             self.assertEqual(launcher.main(["--dry-run", "--output-dir", str(output)]), 0)
         self.assertIn("Total repetitions: 50", captured.getvalue())
         for category in launcher.RUNNERS:
-            self.assertIn(f"{category}: 10 parallel repetitions", captured.getvalue())
+            for mode in ("sg", "plain"):
+                self.assertIn(f"{category}/{mode}: parallel seeds {list(launcher.DEFAULT_SEEDS)}", captured.getvalue())
         self.assertFalse(output.exists())
 
 
